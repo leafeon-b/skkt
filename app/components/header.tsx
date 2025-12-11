@@ -1,20 +1,15 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Header() {
   return (
-    <header className="w-full border-b bg-white p-4 flex items-center justify-between">
-      <NavigationMenu>
-        <NavigationMenuList>
-          <NavigationMenuItem className="text-xl font-bold">
-            将研ログ
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
+    <header className="border-b bg-white px-4 py-3 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <SidebarTrigger className="md:hidden" />
+        <span className="text-lg font-semibold">将研ログ</span>
+      </div>
 
       <div className="flex gap-2">
         <Button variant="outline">ログイン</Button>
