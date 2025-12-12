@@ -3,10 +3,10 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Home, NotebookPen, UserSearch } from "lucide-react";
 import Link from "next/link";
@@ -22,7 +22,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>App</SidebarGroupLabel>
+          <SidebarTrigger />
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (

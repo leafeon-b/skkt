@@ -3,11 +3,7 @@ import Footer from "./components/footer";
 import Header from "./components/header";
 import "./globals.css";
 
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -22,18 +18,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className="h-screen">
+      <body className="h-screen bg-background">
         <SidebarProvider>
-          <div className="flex h-screen flex-col">
-            <Header />
-            <div className="flex flex-1 overflow-hidden">
-              <AppSidebar />
-              <SidebarTrigger />
-              <SidebarInset className="flex flex-col flex-1 overflow-hidden">
-                <main className="p-6 flex-1 overflow-auto">{children}</main>
-                <Footer />
-              </SidebarInset>
-            </div>
+          <div className="flex h-screen">
+            <AppSidebar />
+            <SidebarInset className="flex flex-col flex-1 overflow-hidden">
+              <Header />
+              <main className="p-6 flex-1 overflow-auto">{children}</main>
+              <Footer />
+            </SidebarInset>
           </div>
         </SidebarProvider>
       </body>
