@@ -38,8 +38,8 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  circleMemberships     CircleMembership[]
-  sessionParticipations SessionParticipation[]
+  circleMemberships        CircleMembership[]
+  circleSessionMemberships CircleSessionMembership[]
 
   matchesAsPlayer1 Match[] @relation("MatchPlayer1")
   matchesAsPlayer2 Match[] @relation("MatchPlayer2")
@@ -55,7 +55,7 @@ model Circle {
   name      String
   createdAt DateTime @default(now())
 
-  sessions          CircleSession[]
+  circleSessions    CircleSession[]
   circleMemberships CircleMembership[]
 }
 
@@ -74,8 +74,8 @@ model CircleSession {
 
   circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
-  participants SessionParticipation[]
-  matches      Match[]
+  circleSessionMemberships CircleSessionMembership[]
+  matches                  Match[]
 
   @@unique([circleId, sequence])
   @@map("CircleSession")
@@ -95,23 +95,24 @@ model CircleMembership {
   @@index([circleId, role])
 }
 
-model SessionParticipation {
-  id        String @id @default(cuid())
-  userId    String
-  sessionId String
+model CircleSessionMembership {
+  id              String @id @default(cuid())
+  userId          String
+  circleSessionId String
 
   user    User          @relation(fields: [userId], references: [id], onDelete: Restrict)
-  session CircleSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session CircleSession @relation(fields: [circleSessionId], references: [id], onDelete: Cascade)
 
   /// 開催回参加（単発参加）。研究会参加とは独立。
-  @@unique([userId, sessionId])
-  @@index([sessionId])
+  @@unique([userId, circleSessionId])
+  @@index([circleSessionId])
+  @@map("CircleSessionMembership")
 }
 
 model Match {
-  id        String @id @default(cuid())
-  sessionId String
-  order     Int
+  id              String @id @default(cuid())
+  circleSessionId String
+  order           Int
 
   player1Id String
   player2Id String
@@ -120,7 +121,7 @@ model Match {
   /// 論理削除（DELETEはこれをセットし、履歴にDELETEを積む）
   deletedAt DateTime?
 
-  session CircleSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session CircleSession @relation(fields: [circleSessionId], references: [id], onDelete: Cascade)
 
   player1 User @relation("MatchPlayer1", fields: [player1Id], references: [id], onDelete: Restrict)
   player2 User @relation("MatchPlayer2", fields: [player2Id], references: [id], onDelete: Restrict)
@@ -130,7 +131,7 @@ model Match {
   /// NOTE:
   /// - player1Id != player2Id はDB CHECK制約で担保（migrationにSQL追加）
   /// - 対局者が開催回参加者であることはアプリ層で検証
-  @@unique([sessionId, order])
+  @@unique([circleSessionId, order])
   @@index([player1Id])
   @@index([player2Id])
 }
