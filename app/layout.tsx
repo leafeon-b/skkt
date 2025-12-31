@@ -36,14 +36,14 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${zenMaru.variable} ${shippori.variable} h-screen bg-background`}
+        className={`${zenMaru.variable} ${shippori.variable} min-h-svh w-screen bg-background overflow-x-hidden`}
       >
         <SidebarProvider>
-          <div className="flex h-screen">
+          <div className="flex min-h-svh w-full">
             <AppSidebar />
-            <SidebarInset className="flex flex-col flex-1 overflow-hidden">
+            <SidebarInset className="flex min-w-0 w-full max-w-none flex-1 flex-col overflow-hidden">
               <Header />
-              <main className="p-6 flex-1 overflow-auto">{children}</main>
+              <main className="w-full flex-1 overflow-auto p-6">{children}</main>
               <Footer />
             </SidebarInset>
           </div>
