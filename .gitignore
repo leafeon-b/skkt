@@ -48,3 +48,6 @@ prisma/dev.db-*
 *.db
 *.db-*
 
+# Editor / IDE
+.vscode/
+
