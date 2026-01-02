@@ -6,3 +6,6 @@ import {
 
 export const toMatchDto = (match: Match): MatchDto =>
   matchDtoSchema.parse(match);
+
+export const toMatchDtos = (matches: Match[]): MatchDto[] =>
+  matches.map(toMatchDto);

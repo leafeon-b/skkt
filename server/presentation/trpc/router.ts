@@ -1,5 +1,12 @@
 import { router } from "@/server/presentation/trpc/trpc";
+import { circleRouter } from "@/server/presentation/trpc/routers/circle";
+import { circleSessionRouter } from "@/server/presentation/trpc/routers/circle-session";
+import { matchRouter } from "@/server/presentation/trpc/routers/match";
 
-export const appRouter = router({});
+export const appRouter = router({
+  circles: circleRouter,
+  circleSessions: circleSessionRouter,
+  matches: matchRouter,
+});
 
 export type AppRouter = typeof appRouter;

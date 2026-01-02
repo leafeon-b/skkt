@@ -21,6 +21,18 @@ export const matchDtoSchema = z.object({
 
 export type MatchDto = z.infer<typeof matchDtoSchema>;
 
+export const matchGetInputSchema = z.object({
+  matchId: matchIdSchema,
+});
+
+export type MatchGetInput = z.infer<typeof matchGetInputSchema>;
+
+export const matchListInputSchema = z.object({
+  circleSessionId: circleSessionIdSchema,
+});
+
+export type MatchListInput = z.infer<typeof matchListInputSchema>;
+
 export const matchCreateInputSchema = z.object({
   circleSessionId: circleSessionIdSchema,
   order: z.number().int().positive(),
@@ -49,3 +61,6 @@ export const matchUpdateInputSchema = z
   );
 
 export type MatchUpdateInput = z.infer<typeof matchUpdateInputSchema>;
+
+export const matchDeleteInputSchema = matchGetInputSchema;
+export type MatchDeleteInput = z.infer<typeof matchDeleteInputSchema>;

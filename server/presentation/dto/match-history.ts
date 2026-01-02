@@ -23,3 +23,11 @@ export const matchHistoryDtoSchema = z.object({
 });
 
 export type MatchHistoryDto = z.infer<typeof matchHistoryDtoSchema>;
+
+export const matchHistoryListInputSchema = z.object({
+  matchId: matchIdSchema,
+});
+
+export type MatchHistoryListInput = z.infer<
+  typeof matchHistoryListInputSchema
+>;
