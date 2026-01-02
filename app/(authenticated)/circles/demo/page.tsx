@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -26,18 +27,28 @@ const sessionStatusClasses: Record<string, string> = {
   準備中: "bg-(--brand-gold)/20 text-(--brand-ink)",
 };
 
-export default function CircleDemoPage() {
+type CircleDemoPageProps = {
+  heroContent?: ReactNode;
+};
+
+export default function CircleDemoPage({ heroContent }: CircleDemoPageProps) {
+  const fallbackHero = (
+    <>
+      <h1 className="mt-3 text-3xl font-(--font-display) text-(--brand-ink) sm:text-4xl">
+        京大将棋研究会
+      </h1>
+      <p className="mt-3 text-sm text-(--brand-ink-muted)">
+        参加者 28名 / 毎週土曜 18:00 - 21:00
+      </p>
+    </>
+  );
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
       <section className="rounded-3xl border border-border/60 bg-white/90 p-8 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
-            <h1 className="mt-3 text-3xl font-(--font-display) text-(--brand-ink) sm:text-4xl">
-              京大将棋研究会
-            </h1>
-            <p className="mt-3 text-sm text-(--brand-ink-muted)">
-              参加者 28名 / 毎週土曜 18:00 - 21:00
-            </p>
+            {heroContent ?? fallbackHero}
             <Link
               href="/circle-sessions/demo"
               className="mt-4 block rounded-2xl border border-border/60 bg-white/80 px-4 py-3 text-sm transition hover:border-border hover:bg-white hover:shadow-sm"
@@ -142,6 +153,7 @@ export default function CircleDemoPage() {
           </div>
         </div>
       </section>
+
     </div>
   );
 }

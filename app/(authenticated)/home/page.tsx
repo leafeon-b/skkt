@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CirclePlus } from "lucide-react";
+import CircleCreateDemo from "@/app/(authenticated)/home/circle-create-demo";
 import Link from "next/link";
 
 const recentCircleSessions = [
@@ -41,10 +41,7 @@ export default function Home() {
           className="flex items-center rounded-2xl border border-border/60 bg-white/85 p-6 shadow-sm motion-safe:animate-[rise_0.7s_ease-out]"
           style={{ animationDelay: "140ms" }}
         >
-          <Button className="w-full bg-(--brand-moss) text-white hover:bg-(--brand-moss)/90">
-            <CirclePlus />
-            研究会を新規作成
-          </Button>
+          <CircleCreateDemo />
         </div>
       </section>
 
