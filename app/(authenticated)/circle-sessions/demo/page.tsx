@@ -35,6 +35,8 @@ const matches: Array<{
   { player1Id: "p5", player2Id: "p6", outcome: "DRAW" },
 ];
 
+const getNameInitial = (name: string) => Array.from(name.trim())[0] ?? name;
+
 const getCellOutcome = (rowId: string, columnId: string) => {
   if (rowId === columnId) {
     return {
@@ -163,20 +165,28 @@ export default function CircleSessionDemoPage() {
               {participants.length}名参加
             </p>
           </div>
-          <div className="mt-4 rounded-2xl border border-border/60 bg-white/70">
-            <Table className="min-w-160 border-collapse text-sm">
+          <div className="relative mt-4 rounded-2xl border border-border/60 bg-white/70">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 rounded-l-2xl bg-linear-to-r from-(--brand-ink)/20 to-transparent sm:hidden" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 rounded-r-2xl bg-linear-to-l from-(--brand-ink)/20 to-transparent sm:hidden" />
+            <Table className="min-w-130 border-collapse text-sm sm:min-w-160">
               <TableHeader className="bg-white/80 [&_tr]:border-border/60">
                 <TableRow className="border-b border-border/60">
                   <TableHead className="bg-(--brand-ink)/5 px-3 py-3 text-left text-xs font-semibold text-(--brand-ink)">
-                    参加者＼対局相手
+                    自分＼相手
                   </TableHead>
                   {participants.map((participant) => (
                     <TableHead
                       key={participant.id}
                       className="whitespace-nowrap bg-(--brand-ink)/5 px-3 py-3 text-center text-xs font-semibold text-(--brand-ink)"
                       scope="col"
+                      title={participant.name}
                     >
-                      {participant.name}
+                      <span className="block sm:hidden">
+                        {getNameInitial(participant.name)}
+                      </span>
+                      <span className="hidden sm:block">
+                        {participant.name}
+                      </span>
                     </TableHead>
                   ))}
                   <TableHead className="whitespace-nowrap border-l border-border/60 bg-(--brand-ink)/5 px-3 py-3 text-center text-xs font-semibold text-(--brand-ink)">
