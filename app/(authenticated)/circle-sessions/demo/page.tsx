@@ -155,6 +155,7 @@ const getCellResults = (rowId: string, columnId: string) => {
 const getRowTotals = (rowId: string) => {
   let wins = 0;
   let losses = 0;
+  let draws = 0;
 
   for (const match of matches) {
     const isRowParticipant =
@@ -164,7 +165,12 @@ const getRowTotals = (rowId: string) => {
       continue;
     }
 
-    if (match.outcome === "UNKNOWN" || match.outcome === "DRAW") {
+    if (match.outcome === "UNKNOWN") {
+      continue;
+    }
+
+    if (match.outcome === "DRAW") {
+      draws += 1;
       continue;
     }
 
@@ -180,7 +186,7 @@ const getRowTotals = (rowId: string) => {
     }
   }
 
-  return { wins, losses };
+  return { wins, losses, draws };
 };
 
 export default function CircleSessionDemoPage() {
@@ -318,6 +324,7 @@ export default function CircleSessionDemoPage() {
                       })}
                       <TableCell className="whitespace-nowrap border-l border-border/60 bg-(--brand-ink)/5 px-3 py-3 text-center text-xs font-semibold text-(--brand-ink)">
                         {totals.wins}勝 {totals.losses}敗
+                        {totals.draws ? ` ${totals.draws}分` : ""}
                       </TableCell>
                     </TableRow>
                   );
