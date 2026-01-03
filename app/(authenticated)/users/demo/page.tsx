@@ -2,8 +2,12 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 const memberships = [
-  { name: "京大将棋研究会", role: "オーナー", href: "/circles/demo" },
-  { name: "社会人リーグ研究会", role: "マネージャー", href: "/circles/demo" },
+  { name: "京大将棋研究会", role: "オーナー", href: "/circles/demo/owner" },
+  {
+    name: "社会人リーグ研究会",
+    role: "マネージャー",
+    href: "/circles/demo/manager",
+  },
 ];
 
 const recentSessions = [
