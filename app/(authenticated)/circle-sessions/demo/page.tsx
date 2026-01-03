@@ -224,6 +224,26 @@ const getCellResults = (rowId: string, columnId: string) => {
   } as const;
 };
 
+const getCellDisplay = (rowId: string, columnId: string) => {
+  const cell = getCellResults(rowId, columnId);
+
+  if (cell.type === "aggregate") {
+    return { text: cell.label, title: cell.title, muted: false };
+  }
+
+  const labels = cell.results.map((result) => result.label);
+  const titles = cell.results.map((result) => result.title);
+  const allMuted = cell.results.every(
+    (result) => result.kind === "unknown" || result.kind === "self"
+  );
+  const text =
+    labels.length > 1 && labels.every((label) => label === "未")
+      ? "未"
+      : labels.join("");
+
+  return { text, title: titles.join(" / "), muted: allMuted };
+};
+
 const getRowTotals = (rowId: string) => {
   let wins = 0;
   let losses = 0;
@@ -389,40 +409,6 @@ export default function CircleSessionDemoPage() {
     setActiveDialog(null);
   };
 
-  const renderCellContent = (
-    rowParticipant: (typeof participants)[number],
-    columnParticipant: (typeof participants)[number]
-  ) => {
-    const cell = getCellResults(rowParticipant.id, columnParticipant.id);
-
-    if (cell.type === "aggregate") {
-      return (
-        <span
-          className="inline-flex min-w-10 items-center justify-center rounded-full bg-(--brand-ink)/10 px-2 py-1 text-xs font-semibold text-(--brand-ink)"
-          title={`${rowParticipant.name} vs ${columnParticipant.name}: ${cell.title}`}
-          aria-label={`${rowParticipant.name} vs ${columnParticipant.name}: ${cell.title}`}
-        >
-          {cell.label}
-        </span>
-      );
-    }
-
-    return (
-      <span className="inline-flex items-center justify-center gap-1">
-        {cell.results.map((result, index) => (
-          <span
-            key={`${rowParticipant.id}-${columnParticipant.id}-${index}`}
-            className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${result.className}`}
-            title={`${rowParticipant.name} vs ${columnParticipant.name}: ${result.title}`}
-            aria-label={`${rowParticipant.name} vs ${columnParticipant.name}: ${result.title}`}
-          >
-            {result.label}
-          </span>
-        ))}
-      </span>
-    );
-  };
-
   const activePairMatches = activeDialog
     ? getPairMatches(activeDialog.rowId, activeDialog.columnId)
     : [];
@@ -569,6 +555,14 @@ export default function CircleSessionDemoPage() {
                         const isSelf =
                           rowParticipant.id === columnParticipant.id;
                         const isMenuOpen = openMenuKey === cellKey;
+                        const cellDisplay = getCellDisplay(
+                          rowParticipant.id,
+                          columnParticipant.id
+                        );
+                        const cellLabel = `${rowParticipant.name} vs ${columnParticipant.name}: ${cellDisplay.title}`;
+                        const cellTextClassName = cellDisplay.muted
+                          ? "text-(--brand-ink-muted)"
+                          : "text-(--brand-ink)";
 
                         if (isSelf) {
                           return (
@@ -576,10 +570,17 @@ export default function CircleSessionDemoPage() {
                               key={cellKey}
                               className="px-3 py-3 text-center"
                             >
-                              {renderCellContent(
-                                rowParticipant,
-                                columnParticipant
-                              )}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className={`w-full cursor-default text-xs font-semibold ${cellTextClassName}`}
+                                disabled
+                                title={cellLabel}
+                                aria-label={cellLabel}
+                              >
+                                {cellDisplay.text}
+                              </Button>
                             </TableCell>
                           );
                         }
@@ -589,9 +590,11 @@ export default function CircleSessionDemoPage() {
                             key={cellKey}
                             className="relative px-3 py-3 text-center"
                           >
-                            <button
+                            <Button
                               type="button"
-                              className="group inline-flex w-full items-center justify-center rounded-xl border border-transparent px-2 py-1 transition hover:border-(--brand-ink)/20 hover:bg-(--brand-ink)/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                              variant="outline"
+                              size="sm"
+                              className={`w-full rounded-lg text-xs font-semibold ${cellTextClassName}`}
                               onClick={(event) => {
                                 event.stopPropagation();
                                 if (!hasMatches) {
@@ -606,6 +609,7 @@ export default function CircleSessionDemoPage() {
                                   prev === cellKey ? null : cellKey
                                 );
                               }}
+                              title={cellLabel}
                               aria-label={
                                 hasMatches
                                   ? `${rowParticipant.name} vs ${columnParticipant.name} の操作を開く`
@@ -614,11 +618,8 @@ export default function CircleSessionDemoPage() {
                               aria-haspopup={hasMatches ? "menu" : "dialog"}
                               aria-expanded={hasMatches ? isMenuOpen : undefined}
                             >
-                              {renderCellContent(
-                                rowParticipant,
-                                columnParticipant
-                              )}
-                            </button>
+                              {cellDisplay.text}
+                            </Button>
                             {hasMatches && isMenuOpen ? (
                               <div
                                 className="absolute left-1/2 top-full z-20 mt-2 w-36 -translate-x-1/2 rounded-xl border border-border/60 bg-white p-1 text-xs shadow-lg"
