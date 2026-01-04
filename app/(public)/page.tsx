@@ -30,23 +30,23 @@ export default async function LandingPage() {
         <section className="rounded-3xl border border-border/60 bg-white/85 p-8 shadow-sm">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div className="space-y-5">
-              <h1 className="text-4xl font-[var(--font-display)] text-[color:var(--brand-ink)] sm:text-5xl">
+              <h1 className="text-4xl font-(--font-display) text-(--brand-ink) sm:text-5xl">
                 将研ログ
               </h1>
-              <p className="max-w-2xl text-base leading-relaxed text-[color:var(--brand-ink-muted)] sm:text-lg">
+              <p className="max-w-2xl text-base leading-relaxed text-(--brand-ink-muted) sm:text-lg">
                 研究会の記録と共有を、迷わず続けられる場所へ。将研ログは、
                 日程管理から振り返りまでをやさしく支える記録サービスです。
               </p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-white/90 p-6">
-              <LoginButton className="w-full bg-[color:var(--brand-moss)] text-white hover:bg-[color:var(--brand-moss)]/90" />
+              <LoginButton className="w-full bg-(--brand-moss) text-white hover:bg-(--brand-moss)/90" />
             </div>
           </div>
         </section>
 
         <section className="rounded-3xl border border-border/60 bg-white/90 p-8 shadow-sm">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-[var(--font-display)] text-[color:var(--brand-ink)] sm:text-3xl">
+            <h2 className="text-2xl font-(--font-display) text-(--brand-ink) sm:text-3xl">
               記録が続く理由を、ひと目で
             </h2>
           </div>
@@ -56,10 +56,10 @@ export default async function LandingPage() {
                 key={value.title}
                 className="rounded-2xl border border-border/60 bg-white/80 p-4 transition hover:border-border hover:bg-white"
               >
-                <p className="text-sm font-semibold text-[color:var(--brand-ink)]">
+                <p className="text-sm font-semibold text-(--brand-ink)">
                   {value.title}
                 </p>
-                <p className="mt-2 text-xs leading-relaxed text-[color:var(--brand-ink-muted)]">
+                <p className="mt-2 text-xs leading-relaxed text-(--brand-ink-muted)">
                   {value.description}
                 </p>
               </div>

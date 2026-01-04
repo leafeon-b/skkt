@@ -14,7 +14,7 @@ export default async function PublicLayout({ children }: PublicLayoutProps) {
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-[color:var(--brand-paper)]">
+    <div className="flex min-h-svh flex-col bg-(--brand-paper)">
       <main className="flex-1">{children}</main>
       <Footer />
     </div>
