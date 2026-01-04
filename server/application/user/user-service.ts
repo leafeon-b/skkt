@@ -19,10 +19,7 @@ export const createUserService = (deps: UserServiceDeps) => ({
     return deps.userRepository.findById(id);
   },
 
-  async listUsers(
-    actorId: string,
-    ids: readonly UserId[],
-  ): Promise<User[]> {
+  async listUsers(actorId: string, ids: readonly UserId[]): Promise<User[]> {
     const allowed = await deps.accessService.canViewUser(actorId);
     if (!allowed) {
       throw new Error("Forbidden");

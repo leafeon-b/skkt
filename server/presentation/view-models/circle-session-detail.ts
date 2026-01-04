@@ -1,5 +1,9 @@
 export type CircleSessionRoleKey = "owner" | "manager" | "member";
-export type CircleSessionMatchOutcome = "P1_WIN" | "P2_WIN" | "DRAW" | "UNKNOWN";
+export type CircleSessionMatchOutcome =
+  | "P1_WIN"
+  | "P2_WIN"
+  | "DRAW"
+  | "UNKNOWN";
 
 export type CircleSessionParticipant = {
   id: string;
@@ -34,6 +38,6 @@ export type CircleSessionDetailProviderInput = {
 
 export type CircleSessionDetailProvider = {
   getDetail(
-    input: CircleSessionDetailProviderInput
+    input: CircleSessionDetailProviderInput,
   ): Promise<CircleSessionDetailViewModel>;
 };

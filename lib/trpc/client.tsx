@@ -39,7 +39,7 @@ export const TrpcProvider = ({ children }: TrpcProviderProps) => {
           transformer: superjson,
         }),
       ],
-    })
+    }),
   );
 
   return (

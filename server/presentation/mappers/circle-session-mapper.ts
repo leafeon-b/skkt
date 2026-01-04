@@ -4,9 +4,8 @@ import {
   type CircleSessionDto,
 } from "@/server/presentation/dto/circle-session";
 
-export const toCircleSessionDto = (
-  session: CircleSession,
-): CircleSessionDto => circleSessionDtoSchema.parse(session);
+export const toCircleSessionDto = (session: CircleSession): CircleSessionDto =>
+  circleSessionDtoSchema.parse(session);
 
 export const toCircleSessionDtos = (
   sessions: CircleSession[],

@@ -60,5 +60,7 @@ export type CircleOverviewProviderInput = {
 };
 
 export type CircleOverviewProvider = {
-  getOverview(input: CircleOverviewProviderInput): Promise<CircleOverviewViewModel>;
+  getOverview(
+    input: CircleOverviewProviderInput,
+  ): Promise<CircleOverviewViewModel>;
 };

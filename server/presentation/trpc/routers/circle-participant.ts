@@ -7,9 +7,7 @@ import {
   circleParticipantRoleUpdateInputSchema,
   circleTransferOwnershipInputSchema,
 } from "@/server/presentation/dto/circle-participant";
-import {
-  toCircleParticipantDtos,
-} from "@/server/presentation/mappers/circle-participant-mapper";
+import { toCircleParticipantDtos } from "@/server/presentation/mappers/circle-participant-mapper";
 import { handleTrpcError } from "@/server/presentation/trpc/errors";
 import { publicProcedure, router } from "@/server/presentation/trpc/trpc";
 
@@ -19,12 +17,11 @@ export const circleParticipantRouter = router({
     .output(circleParticipantDtoSchema.array())
     .query(({ ctx, input }) =>
       handleTrpcError(async () => {
-        const participants = await ctx.circleParticipationService.listParticipants(
-          {
+        const participants =
+          await ctx.circleParticipationService.listParticipants({
             actorId: ctx.actorId,
             circleId: input.circleId,
-          },
-        );
+          });
         return toCircleParticipantDtos(participants);
       }),
     ),

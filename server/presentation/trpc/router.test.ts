@@ -433,9 +433,7 @@ describe("tRPC router", () => {
     expect(result).toBeUndefined();
   });
 
-  test(
-    "circleSessions.participants.transferOwnership は void を返す",
-    async () => {
+  test("circleSessions.participants.transferOwnership は void を返す", async () => {
     const { context, mocks } = createContext();
     mocks.circleSessionParticipationService.transferOwnership.mockResolvedValueOnce(
       undefined,

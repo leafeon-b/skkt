@@ -7,9 +7,7 @@ import {
   circleSessionParticipantRoleUpdateInputSchema,
   circleSessionTransferOwnershipInputSchema,
 } from "@/server/presentation/dto/circle-session-participant";
-import {
-  toCircleSessionParticipantDtos,
-} from "@/server/presentation/mappers/circle-session-participant-mapper";
+import { toCircleSessionParticipantDtos } from "@/server/presentation/mappers/circle-session-participant-mapper";
 import { handleTrpcError } from "@/server/presentation/trpc/errors";
 import { publicProcedure, router } from "@/server/presentation/trpc/trpc";
 

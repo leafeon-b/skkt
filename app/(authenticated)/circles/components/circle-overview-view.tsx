@@ -22,7 +22,7 @@ export type CircleOverviewViewProps = {
   getSessionHref?: (session: CircleOverviewSession) => string | null;
   getMemberHref?: (member: CircleOverviewMember) => string | null;
   getNextSessionHref?: (
-    nextSession: NonNullable<CircleOverviewViewModel["nextSession"]>
+    nextSession: NonNullable<CircleOverviewViewModel["nextSession"]>,
   ) => string | null;
 };
 

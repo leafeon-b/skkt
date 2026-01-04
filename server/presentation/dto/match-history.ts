@@ -28,6 +28,4 @@ export const matchHistoryListInputSchema = z.object({
   matchId: matchIdSchema,
 });
 
-export type MatchHistoryListInput = z.infer<
-  typeof matchHistoryListInputSchema
->;
+export type MatchHistoryListInput = z.infer<typeof matchHistoryListInputSchema>;

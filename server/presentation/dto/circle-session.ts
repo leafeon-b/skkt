@@ -54,8 +54,7 @@ export const circleSessionUpdateInputSchema = z
   })
   .refine(
     (value) =>
-      (value.startsAt && value.endsAt) ||
-      (!value.startsAt && !value.endsAt),
+      (value.startsAt && value.endsAt) || (!value.startsAt && !value.endsAt),
     {
       message: "startsAt and endsAt must both be provided",
       path: ["startsAt"],

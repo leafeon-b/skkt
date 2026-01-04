@@ -126,7 +126,7 @@ const getNameInitial = (name: string) => Array.from(name.trim())[0] ?? name;
 const getOutcomeLabel = (
   outcome: RowOutcome,
   rowName: string,
-  columnName: string
+  columnName: string,
 ) => {
   switch (outcome) {
     case "ROW_WIN":
@@ -148,7 +148,7 @@ const getRowOutcomeValue = (
     player1Id: string;
     player2Id: string;
     outcome: CircleSessionMatchOutcome;
-  }
+  },
 ): RowOutcome => {
   if (match.outcome === "UNKNOWN") {
     return "UNKNOWN";
@@ -171,7 +171,7 @@ const getMatchOutcome = (
     player1Id: string;
     player2Id: string;
     outcome: CircleSessionMatchOutcome;
-  }
+  },
 ) => {
   if (match.outcome === "UNKNOWN") {
     return {
@@ -218,13 +218,13 @@ export function CircleSessionDetailView({
   const participants = detail.participants;
   const matches = detail.matches;
   const participantsById = Object.fromEntries(
-    participants.map((participant) => [participant.id, participant])
+    participants.map((participant) => [participant.id, participant]),
   ) as Record<string, (typeof participants)[number]>;
   const todayInputValue = getTodayInputValue();
   const baseDateInput = detail.sessionDateInput || todayInputValue;
   const sessionBaseDate = parseDateInput(baseDateInput);
   const matchDatesByIndex = matches.map((_, index) =>
-    formatDateForInput(addDays(sessionBaseDate, index))
+    formatDateForInput(addDays(sessionBaseDate, index)),
   );
   const getParticipantName = (id: string) =>
     participantsById[id]?.name ?? "不明";
@@ -235,7 +235,7 @@ export function CircleSessionDetailView({
       .filter(
         ({ match }) =>
           (match.player1Id === rowId && match.player2Id === columnId) ||
-          (match.player1Id === columnId && match.player2Id === rowId)
+          (match.player1Id === columnId && match.player2Id === rowId),
       );
 
   const getCellResults = (rowId: string, columnId: string) => {
@@ -254,7 +254,7 @@ export function CircleSessionDetailView({
     }
 
     const pairMatches = getPairMatches(rowId, columnId).map(
-      ({ match }) => match
+      ({ match }) => match,
     );
 
     if (pairMatches.length === 0) {
@@ -285,7 +285,7 @@ export function CircleSessionDetailView({
         acc[k] = (acc[k] ?? 0) + 1;
         return acc;
       },
-      { win: 0, loss: 0, draw: 0, unknown: 0, self: 0 }
+      { win: 0, loss: 0, draw: 0, unknown: 0, self: 0 },
     );
 
     const details = [
@@ -314,7 +314,7 @@ export function CircleSessionDetailView({
     const labels = cell.results.map((result) => result.label);
     const titles = cell.results.map((result) => result.title);
     const allMuted = cell.results.every(
-      (result) => result.kind === "unknown" || result.kind === "self"
+      (result) => result.kind === "unknown" || result.kind === "self",
     );
     const text =
       labels.length > 1 && labels.every((label) => label === "未")
@@ -361,12 +361,11 @@ export function CircleSessionDetailView({
     return { wins, losses, draws };
   };
 
-  const roleConfig = detail.viewerRole
-    ? roleConfigs[detail.viewerRole]
-    : null;
+  const roleConfig = detail.viewerRole ? roleConfigs[detail.viewerRole] : null;
   const actions = roleConfig?.actions ?? ownerManagerBase.actions;
   const roleBadgeClassName = detail.viewerRole
-    ? roleClasses[detail.viewerRole] ?? "bg-(--brand-ink)/10 text-(--brand-ink)"
+    ? (roleClasses[detail.viewerRole] ??
+      "bg-(--brand-ink)/10 text-(--brand-ink)")
     : "bg-(--brand-ink)/10 text-(--brand-ink)";
   const isSingleAction = actions.length === 1;
   const showMemoEdit =
@@ -375,11 +374,10 @@ export function CircleSessionDetailView({
 
   const [activeDialog, setActiveDialog] = useState<ActiveDialog | null>(null);
   const [selectedMatchIndex, setSelectedMatchIndex] = useState<number | null>(
-    null
+    null,
   );
   const [selectedOutcome, setSelectedOutcome] = useState<RowOutcome>("UNKNOWN");
-  const [selectedDate, setSelectedDate] =
-    useState<string>(todayInputValue);
+  const [selectedDate, setSelectedDate] = useState<string>(todayInputValue);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -388,7 +386,7 @@ export function CircleSessionDetailView({
     entry?: {
       match: (typeof matches)[number];
       index: number;
-    }
+    },
   ) => {
     if (!entry) {
       setSelectedMatchIndex(null);
@@ -405,7 +403,7 @@ export function CircleSessionDetailView({
   const initializeDialogState = (
     mode: DialogMode,
     rowId: string,
-    columnId: string
+    columnId: string,
   ) => {
     if (mode === "add") {
       setSelectedMatchIndex(null);
@@ -431,7 +429,7 @@ export function CircleSessionDetailView({
     }
     const pairMatches = getPairMatches(
       activeDialog.rowId,
-      activeDialog.columnId
+      activeDialog.columnId,
     );
     const selected = pairMatches.find((entry) => entry.index === nextIndex);
     applyMatchSelection(activeDialog.rowId, selected);
@@ -477,7 +475,7 @@ export function CircleSessionDetailView({
     const columnName = getParticipantName(activeDialog.columnId);
     const pairMatches = getPairMatches(
       activeDialog.rowId,
-      activeDialog.columnId
+      activeDialog.columnId,
     );
     const selected =
       selectedMatchIndex === null
@@ -488,7 +486,7 @@ export function CircleSessionDetailView({
       ? getOutcomeLabel(
           getRowOutcomeValue(activeDialog.rowId, selected.match),
           rowName,
-          columnName
+          columnName,
         )
       : "結果不明";
     showToast(`削除しました: ${rowName} vs ${columnName} / ${outcomeLabel}`);
@@ -535,13 +533,11 @@ export function CircleSessionDetailView({
   const selectedMatch =
     activeDialog && activePairMatches.length > 0
       ? (activePairMatches.find(
-          (entry) => entry.index === selectedMatchIndex
+          (entry) => entry.index === selectedMatchIndex,
         ) ?? activePairMatches[0])
       : null;
 
-  const roleLabel = detail.viewerRole
-    ? roleLabels[detail.viewerRole]
-    : null;
+  const roleLabel = detail.viewerRole ? roleLabels[detail.viewerRole] : null;
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
@@ -685,25 +681,26 @@ export function CircleSessionDetailView({
                         const cellKey = `${rowParticipant.id}-${columnParticipant.id}`;
                         const pairMatches = getPairMatches(
                           rowParticipant.id,
-                          columnParticipant.id
+                          columnParticipant.id,
                         );
                         const hasMatches = pairMatches.length > 0;
                         const isSelf =
                           rowParticipant.id === columnParticipant.id;
                         const cellDisplay = getCellDisplay(
                           rowParticipant.id,
-                          columnParticipant.id
+                          columnParticipant.id,
                         );
 
-                        const cellButtonClassName = `flex w-full items-center justify-center rounded-full px-2 py-1 text-xs transition ${
-                          cellDisplay.muted
-                            ? "text-(--brand-ink-muted)"
-                            : "text-(--brand-ink)"
-                        } ${
-                          hasMatches
-                            ? "hover:bg-(--brand-ink)/10"
-                            : "hover:bg-(--brand-ink)/5"
-                        }`.trim();
+                        const cellButtonClassName =
+                          `flex w-full items-center justify-center rounded-full px-2 py-1 text-xs transition ${
+                            cellDisplay.muted
+                              ? "text-(--brand-ink-muted)"
+                              : "text-(--brand-ink)"
+                          } ${
+                            hasMatches
+                              ? "hover:bg-(--brand-ink)/10"
+                              : "hover:bg-(--brand-ink)/5"
+                          }`.trim();
 
                         return (
                           <TableCell
@@ -736,7 +733,7 @@ export function CircleSessionDetailView({
                                       openDialog(
                                         "add",
                                         rowParticipant.id,
-                                        columnParticipant.id
+                                        columnParticipant.id,
                                       )
                                     }
                                   >
@@ -747,7 +744,7 @@ export function CircleSessionDetailView({
                                       openDialog(
                                         "edit",
                                         rowParticipant.id,
-                                        columnParticipant.id
+                                        columnParticipant.id,
                                       )
                                     }
                                   >
@@ -758,7 +755,7 @@ export function CircleSessionDetailView({
                                       openDialog(
                                         "delete",
                                         rowParticipant.id,
-                                        columnParticipant.id
+                                        columnParticipant.id,
                                       )
                                     }
                                   >
@@ -775,7 +772,7 @@ export function CircleSessionDetailView({
                                   openDialog(
                                     "add",
                                     rowParticipant.id,
-                                    columnParticipant.id
+                                    columnParticipant.id,
                                   )
                                 }
                               >
@@ -849,7 +846,7 @@ export function CircleSessionDetailView({
                     {activePairMatches.map((entry, index) => {
                       const outcome = getMatchOutcome(
                         activeDialog.rowId,
-                        entry.match
+                        entry.match,
                       );
                       return (
                         <option key={entry.index} value={entry.index}>

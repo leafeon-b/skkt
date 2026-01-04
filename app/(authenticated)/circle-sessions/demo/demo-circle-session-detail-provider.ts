@@ -70,7 +70,7 @@ export const getDemoCircleSessionDetail = (input?: {
 });
 
 export const createDemoCircleSessionDetailProvider = (
-  viewerRole?: CircleSessionRoleKey | null
+  viewerRole?: CircleSessionRoleKey | null,
 ): CircleSessionDetailProvider => ({
   // _inputには実データを入れる予定
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

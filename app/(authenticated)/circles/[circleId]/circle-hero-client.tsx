@@ -25,7 +25,7 @@ export default function CircleHeroClient() {
 
   const title = circleQuery.isLoading
     ? "読み込み中..."
-    : circleQuery.data?.name ?? "研究会が見つかりません";
+    : (circleQuery.data?.name ?? "研究会が見つかりません");
 
   const participantCount = participantsQuery.data?.length;
   const subtitle = participantsQuery.isLoading

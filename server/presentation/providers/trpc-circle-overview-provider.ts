@@ -44,7 +44,8 @@ const ownerManagerBase: Pick<
   actions: [
     {
       label: "開催日程を追加",
-      className: "bg-(--brand-gold) text-(--brand-ink) hover:bg-(--brand-gold)/90",
+      className:
+        "bg-(--brand-gold) text-(--brand-ink) hover:bg-(--brand-gold)/90",
     },
     {
       label: "参加者を管理",
@@ -110,14 +111,12 @@ const getSessionStatus = (startsAt: Date, endsAt: Date) => {
 
 const buildSessionTitle = (sequence: number) => `第${sequence}回 研究会`;
 
-const toSessionViewModel = (
-  session: {
-    id: string;
-    sequence: number;
-    startsAt: Date;
-    endsAt: Date;
-  }
-): CircleOverviewSession => ({
+const toSessionViewModel = (session: {
+  id: string;
+  sequence: number;
+  startsAt: Date;
+  endsAt: Date;
+}): CircleOverviewSession => ({
   id: session.id,
   title: buildSessionTitle(session.sequence),
   dateLabel: formatDate(session.startsAt),
@@ -126,7 +125,7 @@ const toSessionViewModel = (
 
 const getViewerRole = (
   participants: Array<{ userId: string; role: CircleRole }>,
-  viewerId: string | null
+  viewerId: string | null,
 ): CircleRoleKey | null => {
   if (!viewerId) {
     return null;
@@ -181,7 +180,7 @@ export const trpcCircleOverviewProvider: CircleOverviewProvider = {
             id: nextSession.id,
             dateTimeLabel: formatDateTimeRange(
               nextSession.startsAt,
-              nextSession.endsAt
+              nextSession.endsAt,
             ),
             locationLabel: nextSession.location,
           }

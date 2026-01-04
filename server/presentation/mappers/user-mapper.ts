@@ -17,5 +17,4 @@ export const toUserDto = (user: User): UserDto =>
     image: normalizeOptionalText(user.image),
   });
 
-export const toUserDtos = (users: User[]): UserDto[] =>
-  users.map(toUserDto);
+export const toUserDtos = (users: User[]): UserDto[] => users.map(toUserDto);

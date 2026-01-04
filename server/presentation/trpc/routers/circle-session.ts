@@ -70,16 +70,17 @@ export const circleSessionRouter = router({
     .output(circleSessionDtoSchema)
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
-        const session = await ctx.circleSessionService.updateCircleSessionDetails(
-          ctx.actorId,
-          input.circleSessionId,
-          {
-            sequence: input.sequence,
-            startsAt: input.startsAt,
-            endsAt: input.endsAt,
-            location: input.location,
-          },
-        );
+        const session =
+          await ctx.circleSessionService.updateCircleSessionDetails(
+            ctx.actorId,
+            input.circleSessionId,
+            {
+              sequence: input.sequence,
+              startsAt: input.startsAt,
+              endsAt: input.endsAt,
+              location: input.location,
+            },
+          );
         return toCircleSessionDto(session);
       }),
     ),

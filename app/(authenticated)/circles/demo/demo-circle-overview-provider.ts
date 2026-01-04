@@ -72,7 +72,8 @@ const ownerManagerBase: Pick<
   actions: [
     {
       label: "開催日程を追加",
-      className: "bg-(--brand-gold) text-(--brand-ink) hover:bg-(--brand-gold)/90",
+      className:
+        "bg-(--brand-gold) text-(--brand-ink) hover:bg-(--brand-gold)/90",
     },
     {
       label: "参加者を管理",

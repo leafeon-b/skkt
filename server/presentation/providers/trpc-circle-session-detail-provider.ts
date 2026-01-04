@@ -33,7 +33,7 @@ const roleKeyByDto: Record<CircleSessionRole, CircleSessionRoleKey> = {
 
 const getViewerRole = (
   participants: Array<{ userId: string; role: CircleSessionRole }>,
-  viewerId: string | null
+  viewerId: string | null,
 ): CircleSessionRoleKey | null => {
   if (!viewerId) {
     return null;
@@ -47,7 +47,7 @@ const getViewerRole = (
 
 const mapParticipants = (
   participants: Array<{ userId: string }>,
-  nameById: Map<string, string | null>
+  nameById: Map<string, string | null>,
 ): CircleSessionParticipant[] =>
   participants.map((participant) => ({
     id: participant.userId,
@@ -57,7 +57,7 @@ const mapParticipants = (
 const mergeParticipantIds = (
   participants: CircleSessionParticipant[],
   matches: CircleSessionMatch[],
-  nameById: Map<string, string | null>
+  nameById: Map<string, string | null>,
 ) => {
   const ids = new Set(participants.map((participant) => participant.id));
   const extras: CircleSessionParticipant[] = [];
@@ -130,7 +130,7 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
     const participantViewModels = mergeParticipantIds(
       mapParticipants(participants, userNameById),
       matchViewModels,
-      userNameById
+      userNameById,
     );
 
     const detail: CircleSessionDetailViewModel = {
