@@ -6,6 +6,7 @@ import { createCircleSessionParticipationService } from "@/server/application/ci
 import { createMatchService } from "@/server/application/match/match-service";
 import { createMatchHistoryService } from "@/server/application/match-history/match-history-service";
 import { createAccessService } from "@/server/application/authz/access-service";
+import { createUserService } from "@/server/application/user/user-service";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
@@ -27,6 +28,7 @@ export type ServiceContainer = {
     typeof createCircleSessionParticipationService
   >;
   accessService: ReturnType<typeof createAccessService>;
+  userService: ReturnType<typeof createUserService>;
   matchService: ReturnType<typeof createMatchService>;
   matchHistoryService: ReturnType<typeof createMatchHistoryService>;
 };
@@ -85,6 +87,10 @@ export const createServiceContainer = (
       transactionRunner: deps.transactionRunner,
     }),
     accessService,
+    userService: createUserService({
+      userRepository: deps.userRepository,
+      accessService,
+    }),
     matchHistoryService: createMatchHistoryService({
       matchHistoryRepository: deps.matchHistoryRepository,
       matchRepository: deps.matchRepository,

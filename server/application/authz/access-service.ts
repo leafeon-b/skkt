@@ -21,6 +21,11 @@ export function createAccessService(repository: AuthzRepository) {
       return policies.canListOwnCircles(isRegistered);
     },
 
+    async canViewUser(userId: string): Promise<boolean> {
+      const isRegistered = await repository.isRegisteredUser(userId);
+      return policies.canViewUser(isRegistered);
+    },
+
     async canViewCircle(userId: string, circleId: string): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
       return policies.canViewCircle(membership);

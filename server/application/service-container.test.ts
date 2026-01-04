@@ -82,6 +82,7 @@ describe("Service container", () => {
     expect(container.circleSessionService).toBeDefined();
     expect(container.circleSessionParticipationService).toBeDefined();
     expect(container.accessService).toBeDefined();
+    expect(container.userService).toBeDefined();
     expect(container.matchService).toBeDefined();
     expect(container.matchHistoryService).toBeDefined();
 

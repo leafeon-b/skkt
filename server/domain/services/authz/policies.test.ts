@@ -22,6 +22,7 @@ import {
   canViewCircleSession,
   canViewMatch,
   canViewMatchHistory,
+  canViewUser,
 } from "@/server/domain/services/authz/policies";
 import {
   circleMembership,
@@ -58,6 +59,13 @@ describe("認可ポリシー", () => {
       { label: "未登録", value: false, expected: false },
     ])("参加研究会一覧: $label", ({ value, expected }) => {
       expect(canListOwnCircles(value)).toBe(expected);
+    });
+
+    test.each([
+      { label: "登録済み", value: true, expected: true },
+      { label: "未登録", value: false, expected: false },
+    ])("ユーザー閲覧: $label", ({ value, expected }) => {
+      expect(canViewUser(value)).toBe(expected);
     });
   });
 

@@ -52,6 +52,10 @@ const createContext = () => {
   const matchHistoryService = {
     listByMatchId: vi.fn(),
   };
+  const userService = {
+    getUser: vi.fn(),
+    listUsers: vi.fn(),
+  };
 
   const context: Context = {
     actorId: "user-1",
@@ -61,6 +65,7 @@ const createContext = () => {
     circleSessionParticipationService,
     matchService,
     matchHistoryService,
+    userService,
     accessService: {} as Context["accessService"],
   };
 
@@ -73,6 +78,7 @@ const createContext = () => {
       circleSessionParticipationService,
       matchService,
       matchHistoryService,
+      userService,
     },
   };
 };

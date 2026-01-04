@@ -104,6 +104,16 @@ describe("認可ポリシー", () => {
         );
       });
     });
+
+    describe("canViewUser（ユーザー閲覧）", () => {
+      test.each([
+        { isRegisteredUser: true, expected: true },
+        { isRegisteredUser: false, expected: false },
+      ])("登録済み=$isRegisteredUser", async (item) => {
+        mockedIsRegisteredUser.mockResolvedValueOnce(item.isRegisteredUser);
+        await expect(access.canViewUser(userId)).resolves.toBe(item.expected);
+      });
+    });
   });
 
   describe("研究会", () => {

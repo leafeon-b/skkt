@@ -27,6 +27,10 @@ export function canListOwnCircles(isRegistered: boolean): boolean {
   return isRegistered;
 }
 
+export function canViewUser(isRegistered: boolean): boolean {
+  return isRegistered;
+}
+
 export function canViewCircle(membership: CircleMembership): boolean {
   return isCircleMember(membership);
 }
