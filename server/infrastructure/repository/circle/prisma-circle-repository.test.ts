@@ -17,7 +17,7 @@ import { createCircle } from "@/server/domain/models/circle/circle";
 import { prismaCircleRepository } from "@/server/infrastructure/repository/circle/prisma-circle-repository";
 import { mapCircleToPersistence } from "@/server/infrastructure/mappers/circle-mapper";
 
-const mockedPrisma = vi.mocked(prisma);
+const mockedPrisma = vi.mocked(prisma, { deep: true });
 
 describe("Prisma Circle リポジトリ", () => {
   beforeEach(() => {

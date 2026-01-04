@@ -15,7 +15,7 @@ import { circleId, userId } from "@/server/domain/common/ids";
 import { prisma } from "@/server/infrastructure/db";
 import { prismaCircleParticipationRepository } from "@/server/infrastructure/repository/circle/prisma-circle-participation-repository";
 
-const mockedPrisma = vi.mocked(prisma);
+const mockedPrisma = vi.mocked(prisma, { deep: true });
 
 describe("Prisma Circle 参加者リポジトリ", () => {
   beforeEach(() => {

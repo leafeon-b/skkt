@@ -18,7 +18,7 @@ import { createCircleSession } from "@/server/domain/models/circle-session/circl
 import { prismaCircleSessionRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-repository";
 import { mapCircleSessionToPersistence } from "@/server/infrastructure/mappers/circle-session-mapper";
 
-const mockedPrisma = vi.mocked(prisma);
+const mockedPrisma = vi.mocked(prisma, { deep: true });
 
 describe("Prisma CircleSession リポジトリ", () => {
   beforeEach(() => {

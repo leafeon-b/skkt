@@ -16,7 +16,7 @@ import { createMatchHistory } from "@/server/domain/models/match-history/match-h
 import { mapMatchHistoryToPersistence } from "@/server/infrastructure/mappers/match-history-mapper";
 import { prismaMatchHistoryRepository } from "@/server/infrastructure/repository/match-history/prisma-match-history-repository";
 
-const mockedPrisma = vi.mocked(prisma);
+const mockedPrisma = vi.mocked(prisma, { deep: true });
 
 describe("Prisma MatchHistory リポジトリ", () => {
   beforeEach(() => {

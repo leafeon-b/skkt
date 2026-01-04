@@ -17,7 +17,7 @@ vi.mock("@/server/infrastructure/db", () => ({
 import { prisma } from "@/server/infrastructure/db";
 import { prismaAuthzRepository } from "@/server/infrastructure/repository/authz/prisma-authz-repository";
 
-const mockedPrisma = vi.mocked(prisma);
+const mockedPrisma = vi.mocked(prisma, { deep: true });
 
 describe("Prisma Authz リポジトリ", () => {
   beforeEach(() => {
