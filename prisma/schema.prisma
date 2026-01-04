@@ -74,10 +74,13 @@ model CircleSession {
   /// 研究会内の「第N回」
   sequence Int
 
+  title String
+
   /// 複数日開催も許容
   startsAt DateTime
   endsAt   DateTime
   location String?
+  note     String   @default("")
 
   circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
