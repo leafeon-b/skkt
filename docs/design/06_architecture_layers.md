@@ -13,6 +13,7 @@
 - Domain（ドメイン）
   - 不変条件・ポリシー・値オブジェクトなどの純粋ロジック
   - 外部依存を持たない
+  - Repository interface（ポート）を定義する
 - Application（アプリケーション）
   - ユースケース実行（トランザクション境界を含む）
   - ドメインロジックを組み合わせる
@@ -61,8 +62,11 @@ graph TD
   - `server/domain/services/authz/roles.ts`
   - `server/domain/services/authz/policies.ts`
   - `server/domain/services/authz/memberships.ts`
+  - `server/domain/models/*/*-repository.ts`
+  - `server/domain/services/*/*-repository.ts`
 - Application
   - `server/application/authz/access-service.ts`
+  - `server/application/service-container.ts`（現状の Composition Root）
 - Infrastructure
   - `server/infrastructure/repository/authz/prisma-authz-repository.ts`
 
@@ -71,6 +75,7 @@ graph TD
 - リポジトリは「ルールの判断」を行わない
 - ドメインロジックは I/O を持たない
 - ルールに依存する更新はアプリケーション層でトランザクションを張る
+- Composition Root は依存関係逆転の対応で Infrastructure へ移動予定
 
 ## 認可の実装ルール
 

@@ -84,9 +84,12 @@ graph LR
   - `app/api/auth/[...nextauth]/route.ts`
 - Application
   - `server/application/*`
+  - `server/application/service-container.ts`（現状の Composition Root）
 - Domain
   - `server/domain/models/*`
+  - `server/domain/models/*/*-repository.ts`
   - `server/domain/services/*`
+  - `server/domain/services/*/*-repository.ts`
   - `server/domain/common/*`
 - Infrastructure
   - `server/infrastructure/repository/*`
@@ -96,3 +99,4 @@ graph LR
 ## 補足
 
 - リポジトリはマッパー経由で Prisma と接続する方針（Authz 含む）
+- Composition Root は依存関係逆転の対応で Infrastructure へ移動予定
