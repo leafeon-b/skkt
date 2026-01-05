@@ -1,3 +1,5 @@
+import CredentialsLoginForm from "@/app/components/credentials-login-form";
+import Link from "next/link";
 import LoginButton from "@/app/components/login-button";
 
 const valueProps = [
@@ -38,8 +40,20 @@ export default async function LandingPage() {
                 日程管理から振り返りまでをやさしく支える記録サービスです。
               </p>
             </div>
-            <div className="rounded-2xl border border-border/60 bg-white/90 p-6">
+            <div className="space-y-4 rounded-2xl border border-border/60 bg-white/90 p-6">
               <LoginButton className="w-full bg-(--brand-moss) text-white hover:bg-(--brand-moss)/90" />
+              <div className="flex items-center gap-3 text-xs text-(--brand-ink-muted)">
+                <span className="h-px flex-1 bg-border/80" />
+                メールでログイン
+                <span className="h-px flex-1 bg-border/80" />
+              </div>
+              <CredentialsLoginForm />
+              <Link
+                href="/signup"
+                className="block text-center text-xs font-semibold text-(--brand-ink-muted) hover:text-(--brand-ink)"
+              >
+                アカウントを作成する
+              </Link>
             </div>
           </div>
         </section>

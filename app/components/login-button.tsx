@@ -5,15 +5,16 @@ import { signIn } from "next-auth/react";
 
 type LoginButtonProps = {
   className?: string;
+  label?: string;
 };
 
-export default function LoginButton({ className }: LoginButtonProps) {
+export default function LoginButton({ className, label }: LoginButtonProps) {
   return (
     <Button
       className={className}
       onClick={() => signIn("google", { callbackUrl: "/home" })}
     >
-      ログイン
+      {label ?? "Googleでログイン"}
     </Button>
   );
 }
