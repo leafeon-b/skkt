@@ -29,3 +29,6 @@ NextAuth.js
 Tailwind CSS
 ESlint
 Zod
+Vitest
+Prettier
+shadcn/ui
