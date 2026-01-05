@@ -11,6 +11,7 @@ describe("CircleSession ドメイン", () => {
       id: circleSessionId("session-1"),
       circleId: circleId("circle-1"),
       sequence: 1,
+      title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
       location: "A",
@@ -18,6 +19,7 @@ describe("CircleSession ドメイン", () => {
 
     expect(session.sequence).toBe(1);
     expect(session.location).toBe("A");
+    expect(session.title).toBe("第1回 研究会");
   });
 
   test("createCircleSession は回次が正の整数でない場合に拒否する", () => {
@@ -26,6 +28,7 @@ describe("CircleSession ドメイン", () => {
         id: circleSessionId("session-1"),
         circleId: circleId("circle-1"),
         sequence: 0,
+        title: "第1回 研究会",
         startsAt: new Date("2024-01-01T10:00:00Z"),
         endsAt: new Date("2024-01-01T12:00:00Z"),
       }),
@@ -38,6 +41,7 @@ describe("CircleSession ドメイン", () => {
         id: circleSessionId("session-1"),
         circleId: circleId("circle-1"),
         sequence: 1,
+        title: "第1回 研究会",
         startsAt: new Date("invalid"),
         endsAt: new Date("2024-01-01T12:00:00Z"),
       }),
@@ -50,6 +54,7 @@ describe("CircleSession ドメイン", () => {
         id: circleSessionId("session-1"),
         circleId: circleId("circle-1"),
         sequence: 1,
+        title: "第1回 研究会",
         startsAt: new Date("2024-01-01T13:00:00Z"),
         endsAt: new Date("2024-01-01T12:00:00Z"),
       }),
@@ -61,6 +66,7 @@ describe("CircleSession ドメイン", () => {
       id: circleSessionId("session-1"),
       circleId: circleId("circle-1"),
       sequence: 1,
+      title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
     });

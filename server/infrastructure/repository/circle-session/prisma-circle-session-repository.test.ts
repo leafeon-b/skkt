@@ -30,9 +30,11 @@ describe("Prisma CircleSession リポジトリ", () => {
       id: "session-1",
       circleId: "circle-1",
       sequence: 1,
+      title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
       location: "A",
+      note: "メモ",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     } as PrismaCircleSession;
 
@@ -63,9 +65,11 @@ describe("Prisma CircleSession リポジトリ", () => {
       id: "session-1",
       circleId: "circle-1",
       sequence: 1,
+      title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
       location: null,
+      note: "",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     } as PrismaCircleSession;
 
@@ -87,9 +91,11 @@ describe("Prisma CircleSession リポジトリ", () => {
       id: circleSessionId("session-1"),
       circleId: circleId("circle-1"),
       sequence: 1,
+      title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
       location: "A",
+      note: "メモ",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
 
@@ -101,9 +107,11 @@ describe("Prisma CircleSession リポジトリ", () => {
       where: { id: data.id },
       update: {
         sequence: data.sequence,
+        title: data.title,
         startsAt: data.startsAt,
         endsAt: data.endsAt,
         location: data.location,
+        note: data.note,
       },
       create: data,
     });

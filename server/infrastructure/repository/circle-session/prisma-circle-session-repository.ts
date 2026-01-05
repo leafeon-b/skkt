@@ -32,9 +32,11 @@ export const prismaCircleSessionRepository: CircleSessionRepository = {
       where: { id: data.id },
       update: {
         sequence: data.sequence,
+        title: data.title,
         startsAt: data.startsAt,
         endsAt: data.endsAt,
         location: data.location,
+        note: data.note,
       },
       create: data,
     });

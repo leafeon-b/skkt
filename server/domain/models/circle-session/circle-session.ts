@@ -1,5 +1,6 @@
 import type { CircleId, CircleSessionId } from "@/server/domain/common/ids";
 import {
+  assertNonEmpty,
   assertPositiveInteger,
   assertStartBeforeEnd,
   assertValidDate,
@@ -9,9 +10,11 @@ export type CircleSession = {
   id: CircleSessionId;
   circleId: CircleId;
   sequence: number;
+  title: string;
   startsAt: Date;
   endsAt: Date;
   location: string | null;
+  note: string;
   createdAt: Date;
 };
 
@@ -19,9 +22,11 @@ export type CircleSessionCreateParams = {
   id: CircleSessionId;
   circleId: CircleId;
   sequence: number;
+  title?: string;
   startsAt: Date;
   endsAt: Date;
   location?: string | null;
+  note?: string;
   createdAt?: Date;
 };
 
@@ -31,14 +36,20 @@ export const createCircleSession = (
   const startsAt = assertValidDate(params.startsAt, "startsAt");
   const endsAt = assertValidDate(params.endsAt, "endsAt");
   assertStartBeforeEnd(startsAt, endsAt, "CircleSession");
+  const sequence = assertPositiveInteger(params.sequence, "sequence");
+  const title = params.title?.trim()
+    ? assertNonEmpty(params.title, "CircleSession title")
+    : `第${sequence}回 研究会`;
 
   return {
     id: params.id,
     circleId: params.circleId,
-    sequence: assertPositiveInteger(params.sequence, "sequence"),
+    sequence,
+    title,
     startsAt,
     endsAt,
     location: params.location ?? null,
+    note: params.note?.trim() ?? "",
     createdAt: params.createdAt ?? new Date(),
   };
 };
