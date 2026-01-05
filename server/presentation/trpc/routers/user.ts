@@ -3,6 +3,8 @@ import {
   userGetInputSchema,
   userListInputSchema,
 } from "@/server/presentation/dto/user";
+import { userMembershipRouter } from "@/server/presentation/trpc/routers/user-membership";
+import { userSessionRouter } from "@/server/presentation/trpc/routers/user-session";
 import {
   toUserDto,
   toUserDtos,
@@ -23,6 +25,9 @@ export const userRouter = router({
         return toUserDto(user);
       }),
     ),
+
+  memberships: userMembershipRouter,
+  sessions: userSessionRouter,
 
   list: publicProcedure
     .input(userListInputSchema)
