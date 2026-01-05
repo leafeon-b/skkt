@@ -8,8 +8,7 @@ if (!databaseUrl) {
 }
 
 const allowOverride =
-  process.env.ALLOW_DB_RESET === "1" ||
-  process.env.ALLOW_DB_RESET === "true";
+  process.env.ALLOW_DB_RESET === "1" || process.env.ALLOW_DB_RESET === "true";
 const isLocal =
   databaseUrl.startsWith("file:") ||
   databaseUrl.includes("localhost") ||
