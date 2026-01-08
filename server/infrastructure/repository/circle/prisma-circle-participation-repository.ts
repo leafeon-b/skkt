@@ -22,6 +22,15 @@ export const prismaCircleParticipationRepository: CircleParticipationRepository 
       return participants.map(mapCircleParticipantFromPersistence);
     },
 
+    async listByUserId(userId: UserId): Promise<CircleParticipant[]> {
+      const participants = await prisma.circleMembership.findMany({
+        where: { userId: userId as string },
+        select: { userId: true, role: true },
+      });
+
+      return participants.map(mapCircleParticipantFromPersistence);
+    },
+
     async addParticipant(
       circleId: CircleId,
       userId: UserId,

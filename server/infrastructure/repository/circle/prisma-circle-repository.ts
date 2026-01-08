@@ -16,6 +16,22 @@ export const prismaCircleRepository: CircleRepository = {
     return found ? mapCircleToDomain(found) : null;
   },
 
+  async findByIds(ids: readonly CircleId[]): Promise<Circle[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    const uniqueIds = Array.from(new Set(ids.map((id) => id as string)));
+    const circles = await prisma.circle.findMany({
+      where: { id: { in: uniqueIds } },
+    });
+    const byId = new Map(
+      circles.map((circle) => [circle.id, mapCircleToDomain(circle)]),
+    );
+    return uniqueIds
+      .map((id) => byId.get(id))
+      .filter((circle): circle is Circle => circle != null);
+  },
+
   async save(circle: Circle): Promise<void> {
     const data = mapCircleToPersistence(circle);
 
