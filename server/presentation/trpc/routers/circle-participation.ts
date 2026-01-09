@@ -1,37 +1,37 @@
 import { z } from "zod";
 import {
-  circleParticipantCreateInputSchema,
-  circleParticipantDtoSchema,
-  circleParticipantListInputSchema,
-  circleParticipantRemoveInputSchema,
-  circleParticipantRoleUpdateInputSchema,
+  circleParticipationCreateInputSchema,
+  circleParticipationDtoSchema,
+  circleParticipationListInputSchema,
+  circleParticipationRemoveInputSchema,
+  circleParticipationRoleUpdateInputSchema,
   circleTransferOwnershipInputSchema,
-} from "@/server/presentation/dto/circle-participant";
-import { toCircleParticipantDtos } from "@/server/presentation/mappers/circle-participant-mapper";
+} from "@/server/presentation/dto/circle-participation";
+import { toCircleParticipationDtos } from "@/server/presentation/mappers/circle-participation-mapper";
 import { handleTrpcError } from "@/server/presentation/trpc/errors";
 import { publicProcedure, router } from "@/server/presentation/trpc/trpc";
 
-export const circleParticipantRouter = router({
+export const circleParticipationRouter = router({
   list: publicProcedure
-    .input(circleParticipantListInputSchema)
-    .output(circleParticipantDtoSchema.array())
+    .input(circleParticipationListInputSchema)
+    .output(circleParticipationDtoSchema.array())
     .query(({ ctx, input }) =>
       handleTrpcError(async () => {
-        const participants =
-          await ctx.circleParticipationService.listParticipants({
+        const participations =
+          await ctx.circleParticipationService.listParticipations({
             actorId: ctx.actorId,
             circleId: input.circleId,
           });
-        return toCircleParticipantDtos(participants);
+        return toCircleParticipationDtos(participations);
       }),
     ),
 
   add: publicProcedure
-    .input(circleParticipantCreateInputSchema)
+    .input(circleParticipationCreateInputSchema)
     .output(z.void())
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
-        await ctx.circleParticipationService.addParticipant({
+        await ctx.circleParticipationService.addParticipation({
           actorId: ctx.actorId,
           circleId: input.circleId,
           userId: input.userId,
@@ -42,11 +42,11 @@ export const circleParticipantRouter = router({
     ),
 
   updateRole: publicProcedure
-    .input(circleParticipantRoleUpdateInputSchema)
+    .input(circleParticipationRoleUpdateInputSchema)
     .output(z.void())
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
-        await ctx.circleParticipationService.changeParticipantRole({
+        await ctx.circleParticipationService.changeParticipationRole({
           actorId: ctx.actorId,
           circleId: input.circleId,
           userId: input.userId,
@@ -57,11 +57,11 @@ export const circleParticipantRouter = router({
     ),
 
   remove: publicProcedure
-    .input(circleParticipantRemoveInputSchema)
+    .input(circleParticipationRemoveInputSchema)
     .output(z.void())
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
-        await ctx.circleParticipationService.removeParticipant({
+        await ctx.circleParticipationService.removeParticipation({
           actorId: ctx.actorId,
           circleId: input.circleId,
           userId: input.userId,

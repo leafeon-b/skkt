@@ -3,13 +3,13 @@ import type { CircleSessionRepository } from "@/server/domain/models/circle-sess
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
-import { assertCanRemoveCircleSessionParticipant } from "@/server/domain/services/circle-session/participation";
+import { assertCanRemoveCircleSessionParticipation } from "@/server/domain/services/circle-session/participation";
 import {
   assertSingleCircleSessionOwner,
   transferCircleSessionOwnership,
 } from "@/server/domain/services/authz/ownership";
 import { CircleSessionRole } from "@/server/domain/services/authz/roles";
-import type { CircleSessionParticipant } from "@/server/domain/models/circle-session/circle-session-participant";
+import type { CircleSessionParticipation } from "@/server/domain/models/circle-session/circle-session-participation";
 
 type AccessService = ReturnType<typeof createAccessService>;
 
@@ -23,10 +23,10 @@ export type CircleSessionParticipationServiceDeps = {
 export const createCircleSessionParticipationService = (
   deps: CircleSessionParticipationServiceDeps,
 ) => ({
-  async listParticipants(params: {
+  async listParticipations(params: {
     actorId: string;
     circleSessionId: CircleSessionId;
-  }): Promise<CircleSessionParticipant[]> {
+  }): Promise<CircleSessionParticipation[]> {
     const session = await deps.circleSessionRepository.findById(
       params.circleSessionId,
     );
@@ -41,12 +41,12 @@ export const createCircleSessionParticipationService = (
     if (!allowed) {
       throw new Error("Forbidden");
     }
-    return deps.circleSessionParticipationRepository.listParticipants(
+    return deps.circleSessionParticipationRepository.listParticipations(
       params.circleSessionId,
     );
   },
 
-  async addParticipant(params: {
+  async addParticipation(params: {
     actorId: string;
     circleSessionId: CircleSessionId;
     userId: UserId;
@@ -65,16 +65,16 @@ export const createCircleSessionParticipationService = (
     if (!allowed) {
       throw new Error("Forbidden");
     }
-    const participants =
-      await deps.circleSessionParticipationRepository.listParticipants(
+    const participations =
+      await deps.circleSessionParticipationRepository.listParticipations(
         params.circleSessionId,
       );
 
-    if (participants.some((member) => member.userId === params.userId)) {
-      throw new Error("Participant already exists");
+    if (participations.some((member) => member.userId === params.userId)) {
+      throw new Error("Participation already exists");
     }
 
-    const hasOwner = participants.some(
+    const hasOwner = participations.some(
       (member) => member.role === CircleSessionRole.CircleSessionOwner,
     );
 
@@ -86,14 +86,14 @@ export const createCircleSessionParticipationService = (
       throw new Error("CircleSession must have exactly one owner");
     }
 
-    await deps.circleSessionParticipationRepository.addParticipant(
+    await deps.circleSessionParticipationRepository.addParticipation(
       params.circleSessionId,
       params.userId,
       params.role,
     );
   },
 
-  async changeParticipantRole(params: {
+  async changeParticipationRole(params: {
     actorId: string;
     circleSessionId: CircleSessionId;
     userId: UserId;
@@ -117,23 +117,23 @@ export const createCircleSessionParticipationService = (
       throw new Error("Use transferOwnership to assign owner");
     }
 
-    const participants =
-      await deps.circleSessionParticipationRepository.listParticipants(
+    const participations =
+      await deps.circleSessionParticipationRepository.listParticipations(
         params.circleSessionId,
       );
-    const target = participants.find(
+    const target = participations.find(
       (member) => member.userId === params.userId,
     );
 
     if (!target) {
-      throw new Error("Participant not found");
+      throw new Error("Participation not found");
     }
 
     if (target.role === CircleSessionRole.CircleSessionOwner) {
       throw new Error("Use transferOwnership to change owner");
     }
 
-    await deps.circleSessionParticipationRepository.updateParticipantRole(
+    await deps.circleSessionParticipationRepository.updateParticipationRole(
       params.circleSessionId,
       params.userId,
       params.role,
@@ -159,25 +159,25 @@ export const createCircleSessionParticipationService = (
     if (!allowed) {
       throw new Error("Forbidden");
     }
-    const participants =
-      await deps.circleSessionParticipationRepository.listParticipants(
+    const participations =
+      await deps.circleSessionParticipationRepository.listParticipations(
         params.circleSessionId,
       );
 
     const updated = transferCircleSessionOwnership(
-      participants,
+      participations,
       params.fromUserId,
       params.toUserId,
     );
     assertSingleCircleSessionOwner(updated);
 
     const before = new Map(
-      participants.map((member) => [member.userId, member.role]),
+      participations.map((member) => [member.userId, member.role]),
     );
 
     for (const member of updated) {
       if (before.get(member.userId) !== member.role) {
-        await deps.circleSessionParticipationRepository.updateParticipantRole(
+        await deps.circleSessionParticipationRepository.updateParticipationRole(
           params.circleSessionId,
           member.userId,
           member.role,
@@ -186,7 +186,7 @@ export const createCircleSessionParticipationService = (
     }
   },
 
-  async removeParticipant(params: {
+  async removeParticipation(params: {
     actorId: string;
     circleSessionId: CircleSessionId;
     userId: UserId;
@@ -207,8 +207,8 @@ export const createCircleSessionParticipationService = (
     const matches = await deps.matchRepository.listByCircleSessionId(
       params.circleSessionId,
     );
-    assertCanRemoveCircleSessionParticipant(matches, params.userId);
-    await deps.circleSessionParticipationRepository.removeParticipant(
+    assertCanRemoveCircleSessionParticipation(matches, params.userId);
+    await deps.circleSessionParticipationRepository.removeParticipation(
       params.circleSessionId,
       params.userId,
     );

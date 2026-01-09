@@ -5,7 +5,7 @@ export type CircleSessionMatchOutcome =
   | "DRAW"
   | "UNKNOWN";
 
-export type CircleSessionParticipant = {
+export type CircleSessionParticipation = {
   id: string;
   name: string;
 };
@@ -27,7 +27,7 @@ export type CircleSessionDetailViewModel = {
   memoText: string | null;
   sessionDateInput: string;
   viewerRole: CircleSessionRoleKey | null;
-  participants: CircleSessionParticipant[];
+  participations: CircleSessionParticipation[];
   matches: CircleSessionMatch[];
 };
 

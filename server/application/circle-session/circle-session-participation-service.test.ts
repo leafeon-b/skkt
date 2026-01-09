@@ -19,11 +19,12 @@ const matchRepository = {
 } satisfies MatchRepository;
 
 const circleSessionParticipationRepository = {
-  listParticipants: vi.fn(),
-  addParticipant: vi.fn(),
-  updateParticipantRole: vi.fn(),
-  areParticipants: vi.fn(),
-  removeParticipant: vi.fn(),
+  listParticipations: vi.fn(),
+  listByUserId: vi.fn(),
+  addParticipation: vi.fn(),
+  updateParticipationRole: vi.fn(),
+  areUsersParticipating: vi.fn(),
+  removeParticipation: vi.fn(),
 } satisfies CircleSessionParticipationRepository;
 
 const circleSessionRepository = {
@@ -78,34 +79,42 @@ beforeEach(() => {
   vi.mocked(accessService.canRemoveCircleSessionMember).mockResolvedValue(true);
 });
 
-describe("CircleSession 参加者サービス", () => {
-  test("listParticipants は一覧を返す", async () => {
+describe("CircleSession 参加関係サービス", () => {
+  test("listParticipations は一覧を返す", async () => {
     vi.mocked(
-      circleSessionParticipationRepository.listParticipants,
+      circleSessionParticipationRepository.listParticipations,
     ).mockResolvedValueOnce([
-      { userId: userId("user-1"), role: "CircleSessionOwner" },
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionOwner",
+      },
     ]);
 
-    const result = await service.listParticipants({
+    const result = await service.listParticipations({
       actorId: "user-actor",
       circleSessionId: circleSessionId("session-1"),
     });
 
     expect(
-      circleSessionParticipationRepository.listParticipants,
+      circleSessionParticipationRepository.listParticipations,
     ).toHaveBeenCalledWith(circleSessionId("session-1"));
     expect(result).toEqual([
-      { userId: userId("user-1"), role: "CircleSessionOwner" },
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionOwner",
+      },
     ]);
   });
 
-  test("addParticipant は Owner がいない状態で Member を拒否する", async () => {
+  test("addParticipation は Owner がいない状態で Member を拒否する", async () => {
     vi.mocked(
-      circleSessionParticipationRepository.listParticipants,
+      circleSessionParticipationRepository.listParticipations,
     ).mockResolvedValueOnce([]);
 
     await expect(
-      service.addParticipant({
+      service.addParticipation({
         actorId: "user-actor",
         circleSessionId: circleSessionId("session-1"),
         userId: userId("user-1"),
@@ -114,18 +123,22 @@ describe("CircleSession 参加者サービス", () => {
     ).rejects.toThrow("CircleSession must have exactly one owner");
 
     expect(
-      circleSessionParticipationRepository.addParticipant,
+      circleSessionParticipationRepository.addParticipation,
     ).not.toHaveBeenCalled();
   });
 
-  test("addParticipant は Owner がいる場合に Member を追加できる", async () => {
+  test("addParticipation は Owner がいる場合に Member を追加できる", async () => {
     vi.mocked(
-      circleSessionParticipationRepository.listParticipants,
+      circleSessionParticipationRepository.listParticipations,
     ).mockResolvedValueOnce([
-      { userId: userId("user-1"), role: "CircleSessionOwner" },
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionOwner",
+      },
     ]);
 
-    await service.addParticipant({
+    await service.addParticipation({
       actorId: "user-actor",
       circleSessionId: circleSessionId("session-1"),
       userId: userId("user-2"),
@@ -133,7 +146,7 @@ describe("CircleSession 参加者サービス", () => {
     });
 
     expect(
-      circleSessionParticipationRepository.addParticipant,
+      circleSessionParticipationRepository.addParticipation,
     ).toHaveBeenCalledWith(
       circleSessionId("session-1"),
       userId("user-2"),
@@ -141,9 +154,9 @@ describe("CircleSession 参加者サービス", () => {
     );
   });
 
-  test("changeParticipantRole は Owner への変更を拒否する", async () => {
+  test("changeParticipationRole は Owner への変更を拒否する", async () => {
     await expect(
-      service.changeParticipantRole({
+      service.changeParticipationRole({
         actorId: "user-actor",
         circleSessionId: circleSessionId("session-1"),
         userId: userId("user-1"),
@@ -154,10 +167,18 @@ describe("CircleSession 参加者サービス", () => {
 
   test("transferOwnership は Owner を移譲する", async () => {
     vi.mocked(
-      circleSessionParticipationRepository.listParticipants,
+      circleSessionParticipationRepository.listParticipations,
     ).mockResolvedValueOnce([
-      { userId: userId("user-1"), role: "CircleSessionOwner" },
-      { userId: userId("user-2"), role: "CircleSessionMember" },
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionOwner",
+      },
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-2"),
+        role: "CircleSessionMember",
+      },
     ]);
 
     await service.transferOwnership({
@@ -168,14 +189,14 @@ describe("CircleSession 参加者サービス", () => {
     });
 
     expect(
-      circleSessionParticipationRepository.updateParticipantRole,
+      circleSessionParticipationRepository.updateParticipationRole,
     ).toHaveBeenCalledWith(
       circleSessionId("session-1"),
       userId("user-1"),
       "CircleSessionManager",
     );
     expect(
-      circleSessionParticipationRepository.updateParticipantRole,
+      circleSessionParticipationRepository.updateParticipationRole,
     ).toHaveBeenCalledWith(
       circleSessionId("session-1"),
       userId("user-2"),
@@ -183,31 +204,31 @@ describe("CircleSession 参加者サービス", () => {
     );
   });
 
-  test("removeParticipant は対局に登場する参加者を削除できない", async () => {
+  test("removeParticipation は対局に登場する参加者を削除できない", async () => {
     vi.mocked(matchRepository.listByCircleSessionId).mockResolvedValue([
       baseMatch(),
     ]);
 
     await expect(
-      service.removeParticipant({
+      service.removeParticipation({
         actorId: "user-actor",
         circleSessionId: circleSessionId("session-1"),
         userId: userId("user-1"),
       }),
-    ).rejects.toThrow("Participant cannot be removed because matches exist");
+    ).rejects.toThrow("Participation cannot be removed because matches exist");
 
     expect(
-      circleSessionParticipationRepository.removeParticipant,
+      circleSessionParticipationRepository.removeParticipation,
     ).not.toHaveBeenCalled();
   });
 
-  test("removeParticipant は対局に登場しない参加者を削除できる", async () => {
+  test("removeParticipation は対局に登場しない参加者を削除できる", async () => {
     vi.mocked(matchRepository.listByCircleSessionId).mockResolvedValue([
       baseMatch(),
     ]);
 
     await expect(
-      service.removeParticipant({
+      service.removeParticipation({
         actorId: "user-actor",
         circleSessionId: circleSessionId("session-1"),
         userId: userId("user-3"),
@@ -215,7 +236,7 @@ describe("CircleSession 参加者サービス", () => {
     ).resolves.toBeUndefined();
 
     expect(
-      circleSessionParticipationRepository.removeParticipant,
+      circleSessionParticipationRepository.removeParticipation,
     ).toHaveBeenCalledWith(circleSessionId("session-1"), userId("user-3"));
   });
 });

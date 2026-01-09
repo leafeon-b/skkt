@@ -36,7 +36,7 @@ export type CircleOverviewMember = {
 export type CircleOverviewViewModel = {
   circleId: string;
   circleName: string;
-  participantCount: number;
+  participationCount: number;
   scheduleNote: string | null;
   nextSession: {
     id: string | null;

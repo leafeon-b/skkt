@@ -17,7 +17,7 @@ export const demoRoleLinks: CircleSessionRoleLink[] = [
   { role: "member", label: "メンバー", href: "/circle-sessions/demo/member" },
 ];
 
-const participants: CircleSessionDetailViewModel["participants"] = [
+const participations: CircleSessionDetailViewModel["participations"] = [
   { id: "p1", name: "藤井 聡太" },
   { id: "p2", name: "豊島 将之" },
   { id: "p3", name: "永瀬 拓矢" },
@@ -55,7 +55,7 @@ const baseDetail: Omit<CircleSessionDetailViewModel, "viewerRole"> = {
   locationLabel: "オンライン",
   memoText: "進行表は開始10分前に共有",
   sessionDateInput: "2025-03-12",
-  participants,
+  participations,
   matches: matchSeeds.map((match, index) => ({
     id: `match-${index + 1}`,
     ...match,

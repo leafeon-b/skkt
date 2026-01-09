@@ -1,26 +1,27 @@
 import type { CircleSessionId, UserId } from "@/server/domain/common/ids";
-import type { CircleSessionParticipant } from "@/server/domain/models/circle-session/circle-session-participant";
+import type { CircleSessionParticipation } from "@/server/domain/models/circle-session/circle-session-participation";
 import type { CircleSessionRole } from "@/server/domain/services/authz/roles";
 
 export type CircleSessionParticipationRepository = {
-  listParticipants(
+  listParticipations(
     circleSessionId: CircleSessionId,
-  ): Promise<CircleSessionParticipant[]>;
-  addParticipant(
-    circleSessionId: CircleSessionId,
-    userId: UserId,
-    role: CircleSessionRole,
-  ): Promise<void>;
-  updateParticipantRole(
+  ): Promise<CircleSessionParticipation[]>;
+  listByUserId(userId: UserId): Promise<CircleSessionParticipation[]>;
+  addParticipation(
     circleSessionId: CircleSessionId,
     userId: UserId,
     role: CircleSessionRole,
   ): Promise<void>;
-  areParticipants(
+  updateParticipationRole(
+    circleSessionId: CircleSessionId,
+    userId: UserId,
+    role: CircleSessionRole,
+  ): Promise<void>;
+  areUsersParticipating(
     circleSessionId: CircleSessionId,
     userIds: readonly UserId[],
   ): Promise<boolean>;
-  removeParticipant(
+  removeParticipation(
     circleSessionId: CircleSessionId,
     userId: UserId,
   ): Promise<void>;

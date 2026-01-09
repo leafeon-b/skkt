@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { circleSessionId, userId } from "@/server/domain/common/ids";
 import {
   mapCircleSessionIdToPersistence,
-  mapCircleSessionParticipantFromPersistence,
+  mapCircleSessionParticipationFromPersistence,
   mapCircleSessionRoleFromPersistence,
   mapCircleSessionRoleToPersistence,
   mapUserIdsToPersistence,
@@ -41,13 +41,15 @@ describe("CircleSession 参加者マッパー", () => {
     expect(mapped).toBe(CircleSessionRole.CircleSessionMember);
   });
 
-  test("永続化データを参加者に変換できる", () => {
-    const mapped = mapCircleSessionParticipantFromPersistence({
+  test("永続化データを参加関係に変換できる", () => {
+    const mapped = mapCircleSessionParticipationFromPersistence({
+      circleSessionId: "session-1",
       userId: "user-1",
       role: "CircleSessionManager",
     });
 
     expect(mapped).toEqual({
+      circleSessionId: circleSessionId("session-1"),
       userId: userId("user-1"),
       role: CircleSessionRole.CircleSessionManager,
     });

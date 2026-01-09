@@ -127,17 +127,17 @@ const toSessionViewModel = (session: {
 });
 
 const getViewerRole = (
-  participants: Array<{ userId: string; role: CircleRole }>,
+  participations: Array<{ userId: string; role: CircleRole }>,
   viewerId: string | null,
 ): CircleRoleKey | null => {
   if (!viewerId) {
     return null;
   }
-  const participant = participants.find((item) => item.userId === viewerId);
-  if (!participant) {
+  const participation = participations.find((item) => item.userId === viewerId);
+  if (!participation) {
     return null;
   }
-  return roleKeyByDto[participant.role] ?? null;
+  return roleKeyByDto[participation.role] ?? null;
 };
 
 export const trpcCircleOverviewProvider: CircleOverviewProvider = {
@@ -145,15 +145,15 @@ export const trpcCircleOverviewProvider: CircleOverviewProvider = {
     const ctx = await createContext();
     const caller = appRouter.createCaller(ctx);
 
-    const [circle, participants, sessions] = await Promise.all([
+    const [circle, participations, sessions] = await Promise.all([
       caller.circles.get({ circleId: input.circleId }),
-      caller.circles.participants.list({ circleId: input.circleId }),
+      caller.circles.participations.list({ circleId: input.circleId }),
       caller.circleSessions.list({ circleId: input.circleId }),
     ]);
 
     const users = await ctx.userService.listUsers(
       ctx.actorId,
-      participants.map((participant) => userId(participant.userId)),
+      participations.map((participation) => userId(participation.userId)),
     );
     const userNameById = new Map(
       users.map((user) => [user.id as string, user.name]),
@@ -161,7 +161,7 @@ export const trpcCircleOverviewProvider: CircleOverviewProvider = {
 
     const viewerId = input.viewerId ?? ctx.actorId ?? null;
     const viewerRole =
-      input.viewerRoleOverride ?? getViewerRole(participants, viewerId);
+      input.viewerRoleOverride ?? getViewerRole(participations, viewerId);
 
     const now = new Date();
     const recentSessions = sessions
@@ -178,7 +178,7 @@ export const trpcCircleOverviewProvider: CircleOverviewProvider = {
     const overview: CircleOverviewViewModel = {
       circleId: circle.id,
       circleName: circle.name,
-      participantCount: participants.length,
+      participationCount: participations.length,
       scheduleNote: null,
       nextSession: nextSession
         ? {
@@ -199,10 +199,10 @@ export const trpcCircleOverviewProvider: CircleOverviewProvider = {
           }
         : null,
       recentSessions,
-      members: participants.map((participant) => ({
-        userId: participant.userId,
-        name: userNameById.get(participant.userId) ?? participant.userId,
-        role: roleKeyByDto[participant.role] ?? "member",
+      members: participations.map((participation) => ({
+        userId: participation.userId,
+        name: userNameById.get(participation.userId) ?? participation.userId,
+        role: roleKeyByDto[participation.role] ?? "member",
       })),
     };
 

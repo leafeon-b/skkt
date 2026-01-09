@@ -9,10 +9,11 @@ const createStub = () => ({
 });
 
 const createParticipationStub = () => ({
-  listParticipants: vi.fn(),
-  addParticipant: vi.fn(),
-  updateParticipantRole: vi.fn(),
-  removeParticipant: vi.fn(),
+  listParticipations: vi.fn(),
+  listByUserId: vi.fn(),
+  addParticipation: vi.fn(),
+  updateParticipationRole: vi.fn(),
+  removeParticipation: vi.fn(),
 });
 
 const createSessionStub = () => ({
@@ -34,11 +35,12 @@ const createMatchHistoryStub = () => ({
 });
 
 const createSessionParticipationStub = () => ({
-  listParticipants: vi.fn(),
-  addParticipant: vi.fn(),
-  updateParticipantRole: vi.fn(),
-  areParticipants: vi.fn(),
-  removeParticipant: vi.fn(),
+  listParticipations: vi.fn(),
+  listByUserId: vi.fn(),
+  addParticipation: vi.fn(),
+  updateParticipationRole: vi.fn(),
+  areUsersParticipating: vi.fn(),
+  removeParticipation: vi.fn(),
 });
 
 const createAuthzStub = () => ({

@@ -23,11 +23,11 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
     vi.clearAllMocks();
   });
 
-  test("areParticipants は全員参加なら true", async () => {
+  test("areUsersParticipating は全員参加なら true", async () => {
     mockedPrisma.circleSessionMembership.count.mockResolvedValueOnce(2);
 
     const result =
-      await prismaCircleSessionParticipationRepository.areParticipants(
+      await prismaCircleSessionParticipationRepository.areUsersParticipating(
         circleSessionId("session-1"),
         [userId("user-1"), userId("user-2")],
       );
@@ -41,11 +41,11 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
     expect(result).toBe(true);
   });
 
-  test("areParticipants は一部不参加なら false", async () => {
+  test("areUsersParticipating は一部不参加なら false", async () => {
     mockedPrisma.circleSessionMembership.count.mockResolvedValueOnce(1);
 
     const result =
-      await prismaCircleSessionParticipationRepository.areParticipants(
+      await prismaCircleSessionParticipationRepository.areUsersParticipating(
         circleSessionId("session-1"),
         [userId("user-1"), userId("user-2")],
       );
@@ -53,9 +53,9 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
     expect(result).toBe(false);
   });
 
-  test("areParticipants は空配列で false", async () => {
+  test("areUsersParticipating は空配列で false", async () => {
     const result =
-      await prismaCircleSessionParticipationRepository.areParticipants(
+      await prismaCircleSessionParticipationRepository.areUsersParticipating(
         circleSessionId("session-1"),
         [],
       );
@@ -64,11 +64,11 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
     expect(mockedPrisma.circleSessionMembership.count).not.toHaveBeenCalled();
   });
 
-  test("areParticipants は重複したユーザーを排除する", async () => {
+  test("areUsersParticipating は重複したユーザーを排除する", async () => {
     mockedPrisma.circleSessionMembership.count.mockResolvedValueOnce(1);
 
     const result =
-      await prismaCircleSessionParticipationRepository.areParticipants(
+      await prismaCircleSessionParticipationRepository.areUsersParticipating(
         circleSessionId("session-1"),
         [userId("user-1"), userId("user-1")],
       );
@@ -82,7 +82,7 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
     expect(result).toBe(true);
   });
 
-  test("listParticipants は参加者一覧を返す", async () => {
+  test("listParticipations は参加者一覧を返す", async () => {
     mockedPrisma.circleSessionMembership.findMany.mockResolvedValueOnce([
       {
         id: "membership-1",
@@ -99,22 +99,68 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
     ]);
 
     const result =
-      await prismaCircleSessionParticipationRepository.listParticipants(
+      await prismaCircleSessionParticipationRepository.listParticipations(
         circleSessionId("session-1"),
       );
 
     expect(mockedPrisma.circleSessionMembership.findMany).toHaveBeenCalledWith({
       where: { circleSessionId: "session-1" },
-      select: { userId: true, role: true },
+      select: { circleSessionId: true, userId: true, role: true },
     });
     expect(result).toEqual([
-      { userId: userId("user-1"), role: "CircleSessionOwner" },
-      { userId: userId("user-2"), role: "CircleSessionMember" },
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionOwner",
+      },
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-2"),
+        role: "CircleSessionMember",
+      },
     ]);
   });
 
-  test("addParticipant は参加者を追加する", async () => {
-    await prismaCircleSessionParticipationRepository.addParticipant(
+  test("listByUserId は参加関係を返す", async () => {
+    mockedPrisma.circleSessionMembership.findMany.mockResolvedValueOnce([
+      {
+        id: "membership-1",
+        userId: "user-1",
+        circleSessionId: "session-1",
+        role: "CircleSessionOwner",
+      },
+      {
+        id: "membership-2",
+        userId: "user-1",
+        circleSessionId: "session-2",
+        role: "CircleSessionMember",
+      },
+    ]);
+
+    const result = await prismaCircleSessionParticipationRepository.listByUserId(
+      userId("user-1"),
+    );
+
+    expect(mockedPrisma.circleSessionMembership.findMany).toHaveBeenCalledWith({
+      where: { userId: "user-1" },
+      select: { circleSessionId: true, userId: true, role: true },
+    });
+    expect(result).toEqual([
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionOwner",
+      },
+      {
+        circleSessionId: circleSessionId("session-2"),
+        userId: userId("user-1"),
+        role: "CircleSessionMember",
+      },
+    ]);
+  });
+
+  test("addParticipation は参加者を追加する", async () => {
+    await prismaCircleSessionParticipationRepository.addParticipation(
       circleSessionId("session-1"),
       userId("user-1"),
       "CircleSessionMember",
@@ -129,8 +175,8 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
     });
   });
 
-  test("updateParticipantRole は参加者のロールを更新する", async () => {
-    await prismaCircleSessionParticipationRepository.updateParticipantRole(
+  test("updateParticipationRole は参加者のロールを更新する", async () => {
+    await prismaCircleSessionParticipationRepository.updateParticipationRole(
       circleSessionId("session-1"),
       userId("user-1"),
       "CircleSessionManager",
@@ -149,8 +195,8 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
     });
   });
 
-  test("removeParticipant は参加者を削除する", async () => {
-    await prismaCircleSessionParticipationRepository.removeParticipant(
+  test("removeParticipation は参加者を削除する", async () => {
+    await prismaCircleSessionParticipationRepository.removeParticipation(
       circleSessionId("session-1"),
       userId("user-1"),
     );

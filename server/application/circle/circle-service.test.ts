@@ -13,10 +13,11 @@ const circleRepository = {
 } satisfies CircleRepository;
 
 const circleParticipationRepository = {
-  listParticipants: vi.fn(),
-  addParticipant: vi.fn(),
-  updateParticipantRole: vi.fn(),
-  removeParticipant: vi.fn(),
+  listParticipations: vi.fn(),
+  listByUserId: vi.fn(),
+  addParticipation: vi.fn(),
+  updateParticipationRole: vi.fn(),
+  removeParticipation: vi.fn(),
 } satisfies CircleParticipationRepository;
 
 const accessService = createAccessServiceStub();
@@ -47,7 +48,7 @@ describe("Circle サービス", () => {
     });
 
     expect(circleRepository.save).toHaveBeenCalledWith(circle);
-    expect(circleParticipationRepository.addParticipant).toHaveBeenCalled();
+    expect(circleParticipationRepository.addParticipation).toHaveBeenCalled();
     expect(circle.name).toBe("Home");
     expect(circle.createdAt.toISOString()).toBe("2024-01-01T00:00:00.000Z");
   });

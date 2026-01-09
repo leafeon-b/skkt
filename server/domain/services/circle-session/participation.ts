@@ -3,18 +3,17 @@ import type { Match } from "@/server/domain/models/match/match";
 
 export const hasMatchParticipation = (
   matches: readonly Match[],
-  participantId: UserId,
+  userId: UserId,
 ): boolean =>
   matches.some(
-    (match) =>
-      match.player1Id === participantId || match.player2Id === participantId,
+    (match) => match.player1Id === userId || match.player2Id === userId,
   );
 
-export const assertCanRemoveCircleSessionParticipant = (
+export const assertCanRemoveCircleSessionParticipation = (
   matches: readonly Match[],
-  participantId: UserId,
+  userId: UserId,
 ): void => {
-  if (hasMatchParticipation(matches, participantId)) {
-    throw new Error("Participant cannot be removed because matches exist");
+  if (hasMatchParticipation(matches, userId)) {
+    throw new Error("Participation cannot be removed because matches exist");
   }
 };

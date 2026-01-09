@@ -13,7 +13,7 @@ import {
   toCircleSessionDto,
   toCircleSessionDtos,
 } from "@/server/presentation/mappers/circle-session-mapper";
-import { circleSessionParticipantRouter } from "@/server/presentation/trpc/routers/circle-session-participant";
+import { circleSessionParticipationRouter } from "@/server/presentation/trpc/routers/circle-session-participation";
 import { handleTrpcError } from "@/server/presentation/trpc/errors";
 import { publicProcedure, router } from "@/server/presentation/trpc/trpc";
 
@@ -102,5 +102,5 @@ export const circleSessionRouter = router({
       }),
     ),
 
-  participants: circleSessionParticipantRouter,
+  participations: circleSessionParticipationRouter,
 });

@@ -26,11 +26,12 @@ const matchHistoryRepository = {
 } satisfies MatchHistoryRepository;
 
 const circleSessionParticipationRepository = {
-  listParticipants: vi.fn(),
-  addParticipant: vi.fn(),
-  updateParticipantRole: vi.fn(),
-  areParticipants: vi.fn(),
-  removeParticipant: vi.fn(),
+  listParticipations: vi.fn(),
+  listByUserId: vi.fn(),
+  addParticipation: vi.fn(),
+  updateParticipationRole: vi.fn(),
+  areUsersParticipating: vi.fn(),
+  removeParticipation: vi.fn(),
 } satisfies CircleSessionParticipationRepository;
 
 const circleSessionRepository = {
@@ -84,7 +85,7 @@ beforeEach(() => {
 describe("Match サービス", () => {
   test("recordMatch は参加者でない場合にエラー", async () => {
     vi.mocked(
-      circleSessionParticipationRepository.areParticipants,
+      circleSessionParticipationRepository.areUsersParticipating,
     ).mockResolvedValue(false);
 
     await expect(
@@ -100,7 +101,7 @@ describe("Match サービス", () => {
 
   test("recordMatch は対局を保存し履歴を追加する", async () => {
     vi.mocked(
-      circleSessionParticipationRepository.areParticipants,
+      circleSessionParticipationRepository.areUsersParticipating,
     ).mockResolvedValue(true);
 
     const result = await service.recordMatch({
@@ -148,7 +149,7 @@ describe("Match サービス", () => {
     const existing = createMatch(baseMatchParams);
     vi.mocked(matchRepository.findById).mockResolvedValue(existing);
     vi.mocked(
-      circleSessionParticipationRepository.areParticipants,
+      circleSessionParticipationRepository.areUsersParticipating,
     ).mockResolvedValue(false);
 
     await expect(

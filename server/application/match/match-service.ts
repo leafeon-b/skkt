@@ -38,12 +38,12 @@ export type MatchServiceDeps = {
 export const createMatchService = (deps: MatchServiceDeps) => {
   const run = deps.transactionRunner ?? (async (operation) => operation());
 
-  const ensureParticipants = async (
+  const ensurePlayersParticipating = async (
     circleSessionId: CircleSessionId,
     player1Id: UserId,
     player2Id: UserId,
   ) => {
-    const ok = await deps.circleSessionParticipationRepository.areParticipants(
+    const ok = await deps.circleSessionParticipationRepository.areUsersParticipating(
       circleSessionId,
       [player1Id, player2Id],
     );
@@ -95,7 +95,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
         if (!allowed) {
           throw new Error("Forbidden");
         }
-        await ensureParticipants(
+        await ensurePlayersParticipating(
           params.circleSessionId,
           params.player1Id,
           params.player2Id,
@@ -151,7 +151,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
           if (!params.player1Id || !params.player2Id) {
             throw new Error("player1Id and player2Id must both be provided");
           }
-          await ensureParticipants(
+          await ensurePlayersParticipating(
             match.circleSessionId,
             params.player1Id,
             params.player2Id,

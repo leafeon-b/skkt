@@ -215,19 +215,19 @@ export function CircleSessionDetailView({
   detail,
   roleLinks,
 }: CircleSessionDetailViewProps) {
-  const participants = detail.participants;
+  const participations = detail.participations;
   const matches = detail.matches;
-  const participantsById = Object.fromEntries(
-    participants.map((participant) => [participant.id, participant]),
-  ) as Record<string, (typeof participants)[number]>;
+  const participationsById = Object.fromEntries(
+    participations.map((participation) => [participation.id, participation]),
+  ) as Record<string, (typeof participations)[number]>;
   const todayInputValue = getTodayInputValue();
   const baseDateInput = detail.sessionDateInput || todayInputValue;
   const sessionBaseDate = parseDateInput(baseDateInput);
   const matchDatesByIndex = matches.map((_, index) =>
     formatDateForInput(addDays(sessionBaseDate, index)),
   );
-  const getParticipantName = (id: string) =>
-    participantsById[id]?.name ?? "不明";
+  const getParticipationName = (id: string) =>
+    participationsById[id]?.name ?? "不明";
 
   const getPairMatches = (rowId: string, columnId: string) =>
     matches
@@ -330,10 +330,10 @@ export function CircleSessionDetailView({
     let draws = 0;
 
     for (const match of matches) {
-      const isRowParticipant =
+      const isRowParticipation =
         match.player1Id === rowId || match.player2Id === rowId;
 
-      if (!isRowParticipant) {
+      if (!isRowParticipation) {
         continue;
       }
 
@@ -458,8 +458,8 @@ export function CircleSessionDetailView({
     if (!activeDialog) {
       return;
     }
-    const rowName = getParticipantName(activeDialog.rowId);
-    const columnName = getParticipantName(activeDialog.columnId);
+    const rowName = getParticipationName(activeDialog.rowId);
+    const columnName = getParticipationName(activeDialog.columnId);
     const actionLabel =
       activeDialog.mode === "add" ? "追加しました" : "保存しました";
     const outcomeLabel = getOutcomeLabel(selectedOutcome, rowName, columnName);
@@ -471,8 +471,8 @@ export function CircleSessionDetailView({
     if (!activeDialog) {
       return;
     }
-    const rowName = getParticipantName(activeDialog.rowId);
-    const columnName = getParticipantName(activeDialog.columnId);
+    const rowName = getParticipationName(activeDialog.rowId);
+    const columnName = getParticipationName(activeDialog.columnId);
     const pairMatches = getPairMatches(
       activeDialog.rowId,
       activeDialog.columnId,
@@ -497,10 +497,10 @@ export function CircleSessionDetailView({
     ? getPairMatches(activeDialog.rowId, activeDialog.columnId)
     : [];
   const dialogRowName = activeDialog
-    ? getParticipantName(activeDialog.rowId)
+    ? getParticipationName(activeDialog.rowId)
     : "";
   const dialogColumnName = activeDialog
-    ? getParticipantName(activeDialog.columnId)
+    ? getParticipationName(activeDialog.columnId)
     : "";
   const dialogTitle = activeDialog
     ? activeDialog.mode === "add"
@@ -631,7 +631,7 @@ export function CircleSessionDetailView({
               </p>
             </div>
             <p className="text-xs text-(--brand-ink-muted)">
-              {participants.length}名参加
+              {participations.length}名参加
             </p>
           </div>
           <div className="relative mt-4 rounded-2xl border border-border/60 bg-white/70">
@@ -643,18 +643,18 @@ export function CircleSessionDetailView({
                   <TableHead className="bg-(--brand-ink)/5 px-3 py-3 text-left text-xs font-semibold text-(--brand-ink)">
                     自分＼相手
                   </TableHead>
-                  {participants.map((participant) => (
+                  {participations.map((participation) => (
                     <TableHead
-                      key={participant.id}
+                      key={participation.id}
                       className="whitespace-nowrap bg-(--brand-ink)/5 px-3 py-3 text-center text-xs font-semibold text-(--brand-ink)"
                       scope="col"
-                      title={participant.name}
+                      title={participation.name}
                     >
                       <span className="block sm:hidden">
-                        {getNameInitial(participant.name)}
+                        {getNameInitial(participation.name)}
                       </span>
                       <span className="hidden sm:block">
-                        {participant.name}
+                        {participation.name}
                       </span>
                     </TableHead>
                   ))}
@@ -664,31 +664,31 @@ export function CircleSessionDetailView({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {participants.map((rowParticipant) => {
-                  const totals = getRowTotals(rowParticipant.id);
+                {participations.map((rowParticipation) => {
+                  const totals = getRowTotals(rowParticipation.id);
                   return (
                     <TableRow
-                      key={rowParticipant.id}
+                      key={rowParticipation.id}
                       className="border-b border-border/60 last:border-b-0"
                     >
                       <TableHead
                         scope="row"
                         className="whitespace-nowrap bg-(--brand-ink)/5 px-3 py-3 text-left text-xs font-semibold text-(--brand-ink)"
                       >
-                        {rowParticipant.name}
+                        {rowParticipation.name}
                       </TableHead>
-                      {participants.map((columnParticipant) => {
-                        const cellKey = `${rowParticipant.id}-${columnParticipant.id}`;
+                      {participations.map((columnParticipation) => {
+                        const cellKey = `${rowParticipation.id}-${columnParticipation.id}`;
                         const pairMatches = getPairMatches(
-                          rowParticipant.id,
-                          columnParticipant.id,
+                          rowParticipation.id,
+                          columnParticipation.id,
                         );
                         const hasMatches = pairMatches.length > 0;
                         const isSelf =
-                          rowParticipant.id === columnParticipant.id;
+                          rowParticipation.id === columnParticipation.id;
                         const cellDisplay = getCellDisplay(
-                          rowParticipant.id,
-                          columnParticipant.id,
+                          rowParticipation.id,
+                          columnParticipation.id,
                         );
 
                         const cellButtonClassName =
@@ -732,8 +732,8 @@ export function CircleSessionDetailView({
                                     onClick={() =>
                                       openDialog(
                                         "add",
-                                        rowParticipant.id,
-                                        columnParticipant.id,
+                                        rowParticipation.id,
+                                        columnParticipation.id,
                                       )
                                     }
                                   >
@@ -743,8 +743,8 @@ export function CircleSessionDetailView({
                                     onClick={() =>
                                       openDialog(
                                         "edit",
-                                        rowParticipant.id,
-                                        columnParticipant.id,
+                                        rowParticipation.id,
+                                        columnParticipation.id,
                                       )
                                     }
                                   >
@@ -754,8 +754,8 @@ export function CircleSessionDetailView({
                                     onClick={() =>
                                       openDialog(
                                         "delete",
-                                        rowParticipant.id,
-                                        columnParticipant.id,
+                                        rowParticipation.id,
+                                        columnParticipation.id,
                                       )
                                     }
                                   >
@@ -771,8 +771,8 @@ export function CircleSessionDetailView({
                                 onClick={() =>
                                   openDialog(
                                     "add",
-                                    rowParticipant.id,
-                                    columnParticipant.id,
+                                    rowParticipation.id,
+                                    columnParticipation.id,
                                   )
                                 }
                               >

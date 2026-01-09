@@ -93,8 +93,8 @@ export function CircleOverviewView({
     : "bg-(--brand-ink)/10 text-(--brand-ink)";
   const isSingleAction = overview.actions.length === 1;
   const scheduleText = overview.scheduleNote
-    ? `参加者 ${overview.participantCount}名 / ${overview.scheduleNote}`
-    : `参加者 ${overview.participantCount}名`;
+    ? `参加者 ${overview.participationCount}名 / ${overview.scheduleNote}`
+    : `参加者 ${overview.participationCount}名`;
 
   const defaultHero = (
     <>

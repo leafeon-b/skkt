@@ -6,7 +6,7 @@ import type {
   CircleSessionDetailProvider,
   CircleSessionDetailProviderInput,
   CircleSessionMatch,
-  CircleSessionParticipant,
+  CircleSessionParticipation,
   CircleSessionRoleKey,
   CircleSessionDetailViewModel,
 } from "@/server/presentation/view-models/circle-session-detail";
@@ -32,35 +32,35 @@ const roleKeyByDto: Record<CircleSessionRole, CircleSessionRoleKey> = {
 };
 
 const getViewerRole = (
-  participants: Array<{ userId: string; role: CircleSessionRole }>,
+  participations: Array<{ userId: string; role: CircleSessionRole }>,
   viewerId: string | null,
 ): CircleSessionRoleKey | null => {
   if (!viewerId) {
     return null;
   }
-  const participant = participants.find((item) => item.userId === viewerId);
-  if (!participant) {
+  const participation = participations.find((item) => item.userId === viewerId);
+  if (!participation) {
     return null;
   }
-  return roleKeyByDto[participant.role] ?? null;
+  return roleKeyByDto[participation.role] ?? null;
 };
 
-const mapParticipants = (
-  participants: Array<{ userId: string }>,
+const mapParticipations = (
+  participations: Array<{ userId: string }>,
   nameById: Map<string, string | null>,
-): CircleSessionParticipant[] =>
-  participants.map((participant) => ({
-    id: participant.userId,
-    name: nameById.get(participant.userId) ?? participant.userId,
+): CircleSessionParticipation[] =>
+  participations.map((participation) => ({
+    id: participation.userId,
+    name: nameById.get(participation.userId) ?? participation.userId,
   }));
 
-const mergeParticipantIds = (
-  participants: CircleSessionParticipant[],
+const mergeParticipationIds = (
+  participations: CircleSessionParticipation[],
   matches: CircleSessionMatch[],
   nameById: Map<string, string | null>,
 ) => {
-  const ids = new Set(participants.map((participant) => participant.id));
-  const extras: CircleSessionParticipant[] = [];
+  const ids = new Set(participations.map((participation) => participation.id));
+  const extras: CircleSessionParticipation[] = [];
 
   for (const match of matches) {
     if (!ids.has(match.player1Id)) {
@@ -79,7 +79,7 @@ const mergeParticipantIds = (
     }
   }
 
-  return participants.concat(extras);
+  return participations.concat(extras);
 };
 
 export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
@@ -91,7 +91,7 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
       circleSessionId: input.circleSessionId,
     });
     const circle = await caller.circles.get({ circleId: session.circleId });
-    const participants = await caller.circleSessions.participants.list({
+    const participations = await caller.circleSessions.participations.list({
       circleSessionId: session.id,
     });
     const matches = await caller.matches.list({
@@ -99,8 +99,8 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
     });
 
     const userIds = new Set<string>();
-    for (const participant of participants) {
-      userIds.add(participant.userId);
+    for (const participation of participations) {
+      userIds.add(participation.userId);
     }
     for (const match of matches) {
       userIds.add(match.player1Id);
@@ -115,7 +115,7 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
     );
 
     const viewerId = input.viewerId ?? ctx.actorId ?? null;
-    const viewerRole = getViewerRole(participants, viewerId);
+    const viewerRole = getViewerRole(participations, viewerId);
 
     const matchViewModels: CircleSessionMatch[] = matches
       .filter((match) => match.deletedAt == null)
@@ -127,8 +127,8 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
         outcome: match.outcome,
       }));
 
-    const participantViewModels = mergeParticipantIds(
-      mapParticipants(participants, userNameById),
+    const participationViewModels = mergeParticipationIds(
+      mapParticipations(participations, userNameById),
       matchViewModels,
       userNameById,
     );
@@ -145,7 +145,7 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
       memoText: session.note.trim() ? session.note : null,
       sessionDateInput: formatDateForInput(session.startsAt),
       viewerRole,
-      participants: participantViewModels,
+      participations: participationViewModels,
       matches: matchViewModels,
     };
 

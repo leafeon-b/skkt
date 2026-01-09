@@ -124,7 +124,7 @@ export const getDemoCircleOverview = (input?: {
   return {
     circleId: "demo",
     circleName: "京大将棋研究会",
-    participantCount: 28,
+    participationCount: 28,
     scheduleNote: "毎週土曜 18:00 - 21:00",
     nextSession: {
       id: "next-session",

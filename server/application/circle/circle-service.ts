@@ -35,7 +35,7 @@ export const createCircleService = (deps: CircleServiceDeps) => ({
       createdAt: params.createdAt,
     });
     await deps.circleRepository.save(circle);
-    await deps.circleParticipationRepository.addParticipant(
+    await deps.circleParticipationRepository.addParticipation(
       circle.id,
       userId(params.actorId),
       CircleRole.CircleOwner,

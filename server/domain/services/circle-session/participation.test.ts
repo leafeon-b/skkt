@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
-  assertCanRemoveCircleSessionParticipant,
+  assertCanRemoveCircleSessionParticipation,
   hasMatchParticipation,
 } from "@/server/domain/services/circle-session/participation";
 import { circleSessionId, matchId, userId } from "@/server/domain/common/ids";
@@ -21,15 +21,15 @@ describe("開催回参加取消の不変条件", () => {
     const matches = [baseMatch()];
 
     expect(() =>
-      assertCanRemoveCircleSessionParticipant(matches, userId("user-1")),
-    ).toThrow("Participant cannot be removed because matches exist");
+      assertCanRemoveCircleSessionParticipation(matches, userId("user-1")),
+    ).toThrow("Participation cannot be removed because matches exist");
   });
 
   test("対局に登場しない参加者は削除できる", () => {
     const matches = [baseMatch()];
 
     expect(() =>
-      assertCanRemoveCircleSessionParticipant(matches, userId("user-3")),
+      assertCanRemoveCircleSessionParticipation(matches, userId("user-3")),
     ).not.toThrow();
   });
 
@@ -40,8 +40,8 @@ describe("開催回参加取消の不変条件", () => {
     };
 
     expect(() =>
-      assertCanRemoveCircleSessionParticipant([deletedMatch], userId("user-2")),
-    ).toThrow("Participant cannot be removed because matches exist");
+      assertCanRemoveCircleSessionParticipation([deletedMatch], userId("user-2")),
+    ).toThrow("Participation cannot be removed because matches exist");
   });
 
   test("hasMatchParticipation は対局参加の有無を判定できる", () => {

@@ -1,37 +1,37 @@
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
 import type { CircleId, UserId } from "@/server/domain/common/ids";
 import type { CircleRole } from "@/server/domain/services/authz/roles";
-import type { CircleParticipant } from "@/server/domain/models/circle/circle-participant";
+import type { CircleParticipation } from "@/server/domain/models/circle/circle-participation";
 import { prisma } from "@/server/infrastructure/db";
 import {
   mapCircleIdToPersistence,
-  mapCircleParticipantFromPersistence,
+  mapCircleParticipationFromPersistence,
   mapCircleRoleToPersistence,
 } from "@/server/infrastructure/mappers/circle-participation-mapper";
 
 export const prismaCircleParticipationRepository: CircleParticipationRepository =
   {
-    async listParticipants(circleId: CircleId): Promise<CircleParticipant[]> {
+    async listParticipations(circleId: CircleId): Promise<CircleParticipation[]> {
       const persistedCircleId = mapCircleIdToPersistence(circleId);
 
-      const participants = await prisma.circleMembership.findMany({
+      const participations = await prisma.circleMembership.findMany({
         where: { circleId: persistedCircleId },
-        select: { userId: true, role: true },
+        select: { circleId: true, userId: true, role: true },
       });
 
-      return participants.map(mapCircleParticipantFromPersistence);
+      return participations.map(mapCircleParticipationFromPersistence);
     },
 
-    async listByUserId(userId: UserId): Promise<CircleParticipant[]> {
-      const participants = await prisma.circleMembership.findMany({
+    async listByUserId(userId: UserId): Promise<CircleParticipation[]> {
+      const participations = await prisma.circleMembership.findMany({
         where: { userId: userId as string },
-        select: { userId: true, role: true },
+        select: { circleId: true, userId: true, role: true },
       });
 
-      return participants.map(mapCircleParticipantFromPersistence);
+      return participations.map(mapCircleParticipationFromPersistence);
     },
 
-    async addParticipant(
+    async addParticipation(
       circleId: CircleId,
       userId: UserId,
       role: CircleRole,
@@ -48,7 +48,7 @@ export const prismaCircleParticipationRepository: CircleParticipationRepository 
       });
     },
 
-    async updateParticipantRole(
+    async updateParticipationRole(
       circleId: CircleId,
       userId: UserId,
       role: CircleRole,
@@ -69,7 +69,10 @@ export const prismaCircleParticipationRepository: CircleParticipationRepository 
       });
     },
 
-    async removeParticipant(circleId: CircleId, userId: UserId): Promise<void> {
+    async removeParticipation(
+      circleId: CircleId,
+      userId: UserId,
+    ): Promise<void> {
       const persistedCircleId = mapCircleIdToPersistence(circleId);
 
       await prisma.circleMembership.deleteMany({
