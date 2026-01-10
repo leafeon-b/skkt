@@ -58,6 +58,7 @@ describe("Prisma Authz リポジトリ", () => {
       userId: "user-1",
       circleId: "circle-1",
       role: "CircleOwner",
+      createdAt: new Date("2024-01-01T00:00:00Z"),
     });
 
     const membership = await prismaAuthzRepository.findCircleMembership(

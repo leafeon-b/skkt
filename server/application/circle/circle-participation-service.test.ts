@@ -15,6 +15,7 @@ const circleParticipationRepository = {
 
 const circleRepository = {
   findById: vi.fn(),
+  findByIds: vi.fn(),
   save: vi.fn(),
   delete: vi.fn(),
 } satisfies CircleRepository;

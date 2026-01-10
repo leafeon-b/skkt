@@ -4,6 +4,7 @@ import { matchHistoryId } from "@/server/domain/common/ids";
 
 const createStub = () => ({
   findById: vi.fn(),
+  findByIds: vi.fn(),
   save: vi.fn(),
   delete: vi.fn(),
 });
