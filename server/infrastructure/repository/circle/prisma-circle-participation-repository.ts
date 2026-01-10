@@ -11,7 +11,7 @@ import {
 
 export const prismaCircleParticipationRepository: CircleParticipationRepository =
   {
-    async listParticipations(circleId: CircleId): Promise<CircleParticipation[]> {
+    async listByCircleId(circleId: CircleId): Promise<CircleParticipation[]> {
       const persistedCircleId = mapCircleIdToPersistence(circleId);
 
       const participations = await prisma.circleMembership.findMany({

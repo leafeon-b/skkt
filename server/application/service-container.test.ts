@@ -10,7 +10,7 @@ const createStub = () => ({
 });
 
 const createParticipationStub = () => ({
-  listParticipations: vi.fn(),
+  listByCircleId: vi.fn(),
   listByUserId: vi.fn(),
   addParticipation: vi.fn(),
   updateParticipationRole: vi.fn(),

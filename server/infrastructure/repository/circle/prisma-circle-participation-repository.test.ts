@@ -22,7 +22,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     vi.clearAllMocks();
   });
 
-  test("listParticipations は参加者一覧を返す", async () => {
+  test("listByCircleId は参加者一覧を返す", async () => {
     const createdAt = new Date("2025-01-01T00:00:00Z");
     mockedPrisma.circleMembership.findMany.mockResolvedValueOnce([
       {
@@ -41,7 +41,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
       },
     ]);
 
-    const result = await prismaCircleParticipationRepository.listParticipations(
+    const result = await prismaCircleParticipationRepository.listByCircleId(
       circleId("circle-1"),
     );
 

@@ -14,7 +14,7 @@ const circleRepository = {
 } satisfies CircleRepository;
 
 const circleParticipationRepository = {
-  listParticipations: vi.fn(),
+  listByCircleId: vi.fn(),
   listByUserId: vi.fn(),
   addParticipation: vi.fn(),
   updateParticipationRole: vi.fn(),

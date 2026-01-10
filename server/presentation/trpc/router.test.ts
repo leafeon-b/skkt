@@ -21,7 +21,8 @@ const createContext = () => {
     deleteCircle: vi.fn(),
   };
   const circleParticipationService = {
-    listParticipations: vi.fn(),
+    listByCircleId: vi.fn(),
+    listByUserId: vi.fn(),
     addParticipation: vi.fn(),
     changeParticipationRole: vi.fn(),
     removeParticipation: vi.fn(),
@@ -134,6 +135,32 @@ describe("tRPC router", () => {
       circleId: circleId("circle-1"),
       userId: userId("user-2"),
       role: CircleRole.CircleMember,
+    });
+  });
+
+  test("users.circles.participations.list は所属研究会一覧を返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleParticipationService.listByUserId.mockResolvedValueOnce([
+      {
+        circleId: circleId("circle-1"),
+        circleName: "Test Circle",
+        role: CircleRole.CircleOwner,
+      },
+    ]);
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.users.circles.participations.list({});
+
+    expect(result).toEqual([
+      {
+        circleId: "circle-1",
+        circleName: "Test Circle",
+        role: CircleRole.CircleOwner,
+      },
+    ]);
+    expect(mocks.circleParticipationService.listByUserId).toHaveBeenCalledWith({
+      actorId: "user-1",
+      userId: userId("user-1"),
     });
   });
 

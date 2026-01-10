@@ -18,7 +18,7 @@ export const circleParticipationRouter = router({
     .query(({ ctx, input }) =>
       handleTrpcError(async () => {
         const participations =
-          await ctx.circleParticipationService.listParticipations({
+          await ctx.circleParticipationService.listByCircleId({
             actorId: ctx.actorId,
             circleId: input.circleId,
           });

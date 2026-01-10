@@ -3,7 +3,7 @@ import type { CircleParticipation } from "@/server/domain/models/circle/circle-p
 import type { CircleRole } from "@/server/domain/services/authz/roles";
 
 export type CircleParticipationRepository = {
-  listParticipations(circleId: CircleId): Promise<CircleParticipation[]>;
+  listByCircleId(circleId: CircleId): Promise<CircleParticipation[]>;
   listByUserId(userId: UserId): Promise<CircleParticipation[]>;
   addParticipation(
     circleId: CircleId,

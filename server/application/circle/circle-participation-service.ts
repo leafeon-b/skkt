@@ -1,4 +1,4 @@
-import type { CircleId, UserId } from "@/server/domain/common/ids";
+import { userId, type CircleId, type UserId } from "@/server/domain/common/ids";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
 import type { CircleParticipation } from "@/server/domain/models/circle/circle-participation";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
@@ -17,10 +17,16 @@ export type CircleParticipationServiceDeps = {
   accessService: AccessService;
 };
 
+export type UserCircleParticipation = {
+  circleId: CircleId;
+  circleName: string;
+  role: CircleRole;
+};
+
 export const createCircleParticipationService = (
   deps: CircleParticipationServiceDeps,
 ) => ({
-  async listParticipations(params: {
+  async listByCircleId(params: {
     actorId: string;
     circleId: CircleId;
   }): Promise<CircleParticipation[]> {
@@ -37,9 +43,47 @@ export const createCircleParticipationService = (
       throw new Error("Forbidden");
     }
 
-    return deps.circleParticipationRepository.listParticipations(
-      params.circleId,
+    return deps.circleParticipationRepository.listByCircleId(params.circleId);
+  },
+
+  async listByUserId(params: {
+    actorId: string;
+    userId: UserId;
+  }): Promise<UserCircleParticipation[]> {
+    if (params.userId !== userId(params.actorId)) {
+      throw new Error("Forbidden");
+    }
+    const allowed = await deps.accessService.canListOwnCircles(
+      params.actorId,
     );
+    if (!allowed) {
+      throw new Error("Forbidden");
+    }
+
+    const participations =
+      await deps.circleParticipationRepository.listByUserId(params.userId);
+    const uniqueCircleIds = Array.from(
+      new Set(participations.map((participation) => participation.circleId)),
+    );
+    const circles = await deps.circleRepository.findByIds(uniqueCircleIds);
+    if (circles.length !== uniqueCircleIds.length) {
+      throw new Error("Circle not found");
+    }
+    const circlesById = new Map(
+      circles.map((circle) => [circle.id, circle]),
+    );
+
+    return participations.map((participation) => {
+      const circle = circlesById.get(participation.circleId);
+      if (!circle) {
+        throw new Error("Circle not found");
+      }
+      return {
+        circleId: participation.circleId,
+        circleName: circle.name,
+        role: participation.role,
+      };
+    });
   },
 
   async addParticipation(params: {
@@ -62,9 +106,7 @@ export const createCircleParticipationService = (
     }
 
     const participations =
-      await deps.circleParticipationRepository.listParticipations(
-        params.circleId,
-      );
+      await deps.circleParticipationRepository.listByCircleId(params.circleId);
 
     if (participations.some((member) => member.userId === params.userId)) {
       throw new Error("Participation already exists");
@@ -114,9 +156,7 @@ export const createCircleParticipationService = (
     }
 
     const participations =
-      await deps.circleParticipationRepository.listParticipations(
-        params.circleId,
-      );
+      await deps.circleParticipationRepository.listByCircleId(params.circleId);
     const target = participations.find(
       (member) => member.userId === params.userId,
     );
@@ -156,9 +196,7 @@ export const createCircleParticipationService = (
     }
 
     const participations =
-      await deps.circleParticipationRepository.listParticipations(
-        params.circleId,
-      );
+      await deps.circleParticipationRepository.listByCircleId(params.circleId);
 
     const updated = transferCircleOwnership(
       participations,
@@ -201,9 +239,7 @@ export const createCircleParticipationService = (
     }
 
     const participations =
-      await deps.circleParticipationRepository.listParticipations(
-        params.circleId,
-      );
+      await deps.circleParticipationRepository.listByCircleId(params.circleId);
     const target = participations.find(
       (member) => member.userId === params.userId,
     );
