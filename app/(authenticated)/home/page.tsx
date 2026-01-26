@@ -22,10 +22,28 @@ const pad2 = (value: number) => String(value).padStart(2, "0");
 const formatDate = (date: Date) =>
   `${date.getFullYear()}/${pad2(date.getMonth() + 1)}/${pad2(date.getDate())}`;
 
+const formatTime = (date: Date) =>
+  `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+
 export default function Home() {
   const recentSessionsQuery =
     trpc.users.circleSessions.participations.list.useQuery({ limit: 3 });
   const recentCircleSessions = recentSessionsQuery.data ?? [];
+
+  const upcomingSessionsQuery =
+    trpc.users.circleSessions.participations.list.useQuery({ limit: 20 });
+
+  const nextSession = (() => {
+    const sessions = upcomingSessionsQuery.data;
+    if (!sessions) return null;
+
+    const now = new Date();
+    const upcoming = sessions
+      .filter((s) => s.startsAt > now)
+      .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+
+    return upcoming[0] ?? null;
+  })();
 
   return (
     <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-10">
@@ -36,24 +54,50 @@ export default function Home() {
       </div>
 
       <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-        <Link
-          href="/circle-sessions/demo"
-          className="rounded-2xl border border-border/60 bg-white/85 p-6 shadow-sm transition hover:border-border hover:bg-white hover:shadow-sm motion-safe:animate-[rise_0.7s_ease-out]"
-          style={{ animationDelay: "80ms" }}
-        >
-          <div className="flex items-center justify-between">
+        {upcomingSessionsQuery.isLoading ? (
+          <div
+            className="rounded-2xl border border-border/60 bg-white/85 p-6 shadow-sm motion-safe:animate-[rise_0.7s_ease-out]"
+            style={{ animationDelay: "80ms" }}
+          >
             <p className="text-sm font-semibold text-(--brand-ink)">次回日程</p>
-            <span className="rounded-full bg-(--brand-gold)/20 px-3 py-1 text-xs text-(--brand-ink)">
-              2026/03/12
-            </span>
+            <p className="mt-3 text-sm text-(--brand-ink-muted)">
+              読み込み中...
+            </p>
           </div>
-          <p className="mt-3 text-2xl font-semibold text-(--brand-ink)">
-            第42回 週末研究会
-          </p>
-          <p className="mt-2 text-sm text-(--brand-ink-muted)">
-            18:00 - 21:00 / オンライン
-          </p>
-        </Link>
+        ) : nextSession ? (
+          <Link
+            href={`/circle-sessions/${nextSession.circleSessionId}`}
+            className="rounded-2xl border border-border/60 bg-white/85 p-6 shadow-sm transition hover:border-border hover:bg-white hover:shadow-sm motion-safe:animate-[rise_0.7s_ease-out]"
+            style={{ animationDelay: "80ms" }}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-(--brand-ink)">
+                次回日程
+              </p>
+              <span className="rounded-full bg-(--brand-gold)/20 px-3 py-1 text-xs text-(--brand-ink)">
+                {formatDate(nextSession.startsAt)}
+              </span>
+            </div>
+            <p className="mt-3 text-2xl font-semibold text-(--brand-ink)">
+              {nextSession.title}
+            </p>
+            <p className="mt-2 text-sm text-(--brand-ink-muted)">
+              {formatTime(nextSession.startsAt)} -{" "}
+              {formatTime(nextSession.endsAt)} /{" "}
+              {nextSession.location ?? "場所未定"}
+            </p>
+          </Link>
+        ) : (
+          <div
+            className="rounded-2xl border border-border/60 bg-white/85 p-6 shadow-sm motion-safe:animate-[rise_0.7s_ease-out]"
+            style={{ animationDelay: "80ms" }}
+          >
+            <p className="text-sm font-semibold text-(--brand-ink)">次回日程</p>
+            <p className="mt-3 text-sm text-(--brand-ink-muted)">
+              予定されている研究会はありません
+            </p>
+          </div>
+        )}
 
         <div
           className="flex items-center rounded-2xl border border-border/60 bg-white/85 p-6 shadow-sm motion-safe:animate-[rise_0.7s_ease-out]"
