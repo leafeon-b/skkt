@@ -43,6 +43,10 @@ const demoUsers: DemoUserSeed[] = [
         circleSessionId: "demo-session-42",
         role: CircleSessionRole.CircleSessionOwner,
       },
+      {
+        circleSessionId: "demo-session-43",
+        role: CircleSessionRole.CircleSessionOwner,
+      },
     ],
   },
   {
@@ -73,6 +77,10 @@ const demoUsers: DemoUserSeed[] = [
         circleSessionId: "demo-session-42",
         role: CircleSessionRole.CircleSessionMember,
       },
+      {
+        circleSessionId: "demo-session-43",
+        role: CircleSessionRole.CircleSessionMember,
+      },
     ],
   },
   {
@@ -84,6 +92,10 @@ const demoUsers: DemoUserSeed[] = [
     sessionRoles: [
       {
         circleSessionId: "demo-session-42",
+        role: CircleSessionRole.CircleSessionManager,
+      },
+      {
+        circleSessionId: "demo-session-43",
         role: CircleSessionRole.CircleSessionManager,
       },
     ],
