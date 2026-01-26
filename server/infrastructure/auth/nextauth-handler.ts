@@ -1,24 +1,11 @@
-import { scryptSync, timingSafeEqual } from "crypto";
 import { prisma } from "@/server/infrastructure/db";
+import { verifyPassword } from "@/server/infrastructure/auth/password";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth, { type AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 
-const HASH_PREFIX = "scrypt";
-
 const isDebug = process.env.NODE_ENV !== "production";
-
-const verifyPassword = (password: string, hashedValue: string): boolean => {
-  const [prefix, saltBase64, keyBase64] = hashedValue.split("$");
-  if (prefix !== HASH_PREFIX || !saltBase64 || !keyBase64) {
-    return false;
-  }
-  const salt = Buffer.from(saltBase64, "base64");
-  const storedKey = Buffer.from(keyBase64, "base64");
-  const derivedKey = scryptSync(password, salt, storedKey.length);
-  return timingSafeEqual(derivedKey, storedKey);
-};
 
 export const createAuthOptions = (): AuthOptions => ({
   adapter: PrismaAdapter(prisma),

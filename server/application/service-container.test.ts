@@ -57,6 +57,11 @@ const createUserStub = () => ({
   save: vi.fn(),
 });
 
+const createSignupStub = () => ({
+  emailExists: vi.fn(),
+  createUser: vi.fn(),
+});
+
 describe("Service container", () => {
   test("依存を注入してサービスを作成できる", async () => {
     const circleRepository = createStub();
@@ -68,6 +73,7 @@ describe("Service container", () => {
       createSessionParticipationStub();
     const userRepository = createUserStub();
     const authzRepository = createAuthzStub();
+    const signupRepository = createSignupStub();
 
     const container = createServiceContainer({
       circleRepository,
@@ -78,6 +84,7 @@ describe("Service container", () => {
       circleSessionParticipationRepository,
       userRepository,
       authzRepository,
+      signupRepository,
       generateMatchHistoryId: () => matchHistoryId("history-1"),
     });
 
@@ -89,6 +96,7 @@ describe("Service container", () => {
     expect(container.userService).toBeDefined();
     expect(container.matchService).toBeDefined();
     expect(container.matchHistoryService).toBeDefined();
+    expect(container.signupService).toBeDefined();
 
     circleRepository.findById.mockResolvedValueOnce(null);
     await expect(

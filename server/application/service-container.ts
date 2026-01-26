@@ -7,6 +7,7 @@ import { createMatchService } from "@/server/application/match/match-service";
 import { createMatchHistoryService } from "@/server/application/match-history/match-history-service";
 import { createAccessService } from "@/server/application/authz/access-service";
 import { createUserService } from "@/server/application/user/user-service";
+import { createSignupService } from "@/server/application/auth/signup-service";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
@@ -17,6 +18,7 @@ import type { TransactionRunner } from "@/server/application/match/match-service
 import { matchHistoryId } from "@/server/domain/common/ids";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
+import type { SignupRepository } from "@/server/domain/models/user/signup-repository";
 
 export type ServiceContainer = {
   circleService: ReturnType<typeof createCircleService>;
@@ -31,6 +33,7 @@ export type ServiceContainer = {
   userService: ReturnType<typeof createUserService>;
   matchService: ReturnType<typeof createMatchService>;
   matchHistoryService: ReturnType<typeof createMatchHistoryService>;
+  signupService: ReturnType<typeof createSignupService>;
 };
 
 export type ServiceContainerDeps = {
@@ -42,6 +45,7 @@ export type ServiceContainerDeps = {
   circleSessionParticipationRepository: CircleSessionParticipationRepository;
   userRepository: UserRepository;
   authzRepository: AuthzRepository;
+  signupRepository: SignupRepository;
   generateMatchHistoryId?: () => ReturnType<typeof matchHistoryId>;
   transactionRunner?: TransactionRunner;
 };
@@ -97,6 +101,9 @@ export const createServiceContainer = (
       matchRepository: deps.matchRepository,
       circleSessionRepository: deps.circleSessionRepository,
       accessService,
+    }),
+    signupService: createSignupService({
+      signupRepository: deps.signupRepository,
     }),
   };
 };

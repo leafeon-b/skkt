@@ -58,6 +58,9 @@ const createContext = () => {
     getUser: vi.fn(),
     listUsers: vi.fn(),
   };
+  const signupService = {
+    signup: vi.fn(),
+  };
 
   const context: Context = {
     actorId: "user-1",
@@ -68,6 +71,7 @@ const createContext = () => {
     matchService,
     matchHistoryService,
     userService,
+    signupService,
     accessService: {} as Context["accessService"],
   };
 
