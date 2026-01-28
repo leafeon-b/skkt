@@ -23,4 +23,9 @@ describe("Circle ドメイン", () => {
     const renamed = renameCircle(circle, "  Next ");
     expect(renamed.name).toBe("Next");
   });
+
+  test("renameCircle は空名を拒否する", () => {
+    const circle = createCircle({ id: circleId("circle-1"), name: "Home" });
+    expect(() => renameCircle(circle, "  ")).toThrow("Circle name is required");
+  });
 });

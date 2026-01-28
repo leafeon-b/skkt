@@ -17,6 +17,12 @@ const baseMatch = () =>
   });
 
 describe("開催回参加取消の不変条件", () => {
+  test("対局が0件なら参加者を削除できる", () => {
+    expect(() =>
+      assertCanRemoveCircleSessionParticipation([], userId("user-1")),
+    ).not.toThrow();
+  });
+
   test("対局に登場する参加者は削除できない", () => {
     const matches = [baseMatch()];
 

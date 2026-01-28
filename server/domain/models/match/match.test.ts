@@ -3,6 +3,7 @@ import { circleSessionId, matchId, userId } from "@/server/domain/common/ids";
 import {
   createMatch,
   deleteMatch,
+  hasDifferentPlayers,
   updateMatchOutcome,
   updateMatchPlayers,
   restoreMatch,
@@ -114,5 +115,59 @@ describe("Match ドメイン", () => {
 
     expect(restored.deletedAt?.toISOString()).toBe("2024-01-02T00:00:00.000Z");
     expect(restored.outcome).toBe("P2_WIN");
+  });
+
+  test("restoreMatch は deletedAt が null の場合に null を設定する", () => {
+    const restored = restoreMatch({
+      id: matchId("match-1"),
+      circleSessionId: circleSessionId("session-1"),
+      order: 1,
+      player1Id: userId("user-1"),
+      player2Id: userId("user-2"),
+      outcome: "P1_WIN",
+      deletedAt: null,
+    });
+
+    expect(restored.deletedAt).toBeNull();
+  });
+
+  test("restoreMatch は deletedAt が undefined の場合に null を設定する", () => {
+    const restored = restoreMatch({
+      id: matchId("match-1"),
+      circleSessionId: circleSessionId("session-1"),
+      order: 1,
+      player1Id: userId("user-1"),
+      player2Id: userId("user-2"),
+      outcome: "P1_WIN",
+      deletedAt: undefined,
+    });
+
+    expect(restored.deletedAt).toBeNull();
+  });
+
+  test("deleteMatch は引数なしでデフォルトの日時を設定する", () => {
+    const match = createMatch({
+      id: matchId("match-1"),
+      circleSessionId: circleSessionId("session-1"),
+      order: 1,
+      player1Id: userId("user-1"),
+      player2Id: userId("user-2"),
+    });
+
+    const before = new Date();
+    const deleted = deleteMatch(match);
+    const after = new Date();
+
+    expect(deleted.deletedAt).not.toBeNull();
+    expect(deleted.deletedAt!.getTime()).toBeGreaterThanOrEqual(before.getTime());
+    expect(deleted.deletedAt!.getTime()).toBeLessThanOrEqual(after.getTime());
+  });
+
+  test("hasDifferentPlayers は異なるプレイヤーで true を返す", () => {
+    expect(hasDifferentPlayers(userId("user-1"), userId("user-2"))).toBe(true);
+  });
+
+  test("hasDifferentPlayers は同一プレイヤーで false を返す", () => {
+    expect(hasDifferentPlayers(userId("user-1"), userId("user-1"))).toBe(false);
   });
 });

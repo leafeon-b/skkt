@@ -91,4 +91,54 @@ describe("CircleSession ドメイン", () => {
 
     expect(rescheduled.startsAt.toISOString()).toBe("2024-01-02T10:00:00.000Z");
   });
+
+  test("rescheduleCircleSession は不正な日時を拒否する", () => {
+    const session = createCircleSession({
+      id: circleSessionId("session-1"),
+      circleId: circleId("circle-1"),
+      sequence: 1,
+      title: "第1回 研究会",
+      startsAt: new Date("2024-01-01T10:00:00Z"),
+      endsAt: new Date("2024-01-01T12:00:00Z"),
+    });
+
+    expect(() =>
+      rescheduleCircleSession(
+        session,
+        new Date("invalid"),
+        new Date("2024-01-02T12:00:00Z"),
+      ),
+    ).toThrow("startsAt must be a valid date");
+  });
+
+  test("rescheduleCircleSession は開始が終了より後なら拒否する", () => {
+    const session = createCircleSession({
+      id: circleSessionId("session-1"),
+      circleId: circleId("circle-1"),
+      sequence: 1,
+      title: "第1回 研究会",
+      startsAt: new Date("2024-01-01T10:00:00Z"),
+      endsAt: new Date("2024-01-01T12:00:00Z"),
+    });
+
+    expect(() =>
+      rescheduleCircleSession(
+        session,
+        new Date("2024-01-02T13:00:00Z"),
+        new Date("2024-01-02T12:00:00Z"),
+      ),
+    ).toThrow("CircleSession start must be before or equal to end");
+  });
+
+  test("createCircleSession は note 未指定時に空文字を設定する", () => {
+    const session = createCircleSession({
+      id: circleSessionId("session-1"),
+      circleId: circleId("circle-1"),
+      sequence: 1,
+      startsAt: new Date("2024-01-01T10:00:00Z"),
+      endsAt: new Date("2024-01-01T12:00:00Z"),
+    });
+
+    expect(session.note).toBe("");
+  });
 });

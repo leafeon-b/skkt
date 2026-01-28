@@ -252,18 +252,24 @@ describe("認可ポリシー", () => {
   });
 
   describe("対局", () => {
+    // 対局関連の5つのポリシー（記録・閲覧・編集・削除・履歴閲覧）は
+    // すべて同一の認可条件「研究会メンバーまたは開催回メンバーであること」を持つ。
+    // そのため同一のテストケースを共有し、ポリシー間の一貫性を保証している。
     const cases = [
       {
+        label: "CircleMember",
         circle: member(CircleMember),
         session: noSessionMember(),
         expected: true,
       },
       {
+        label: "CircleSessionMember",
         circle: noMember(),
         session: sessionMember(CircleSessionMember),
         expected: true,
       },
       {
+        label: "非メンバー",
         circle: noMember(),
         session: noSessionMember(),
         expected: false,
@@ -280,7 +286,7 @@ describe("認可ポリシー", () => {
 
     for (const policy of policies) {
       test.each(cases)(
-        `${policy.label}: $expected`,
+        `${policy.label}: $label → $expected`,
         ({ circle, session, expected }) => {
           expect(policy.fn(circle, session)).toBe(expected);
         },

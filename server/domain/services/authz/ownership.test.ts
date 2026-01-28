@@ -79,6 +79,16 @@ describe("Owner の不変条件", () => {
     ).toThrow("Target member not found");
   });
 
+  test("transferCircleOwnership は同一ユーザーへの移譲を拒否する", () => {
+    expect(() =>
+      transferCircleOwnership(
+        [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
+        userId("user-1"),
+        userId("user-1"),
+      ),
+    ).toThrow("owner transfer must be different");
+  });
+
   test("assertSingleCircleSessionOwner は Owner が 1 人なら通る", () => {
     expect(() =>
       assertSingleCircleSessionOwner([
@@ -159,5 +169,39 @@ describe("Owner の不変条件", () => {
         userId("user-1"),
       ),
     ).toThrow("owner transfer must be different");
+  });
+
+  test("transferCircleSessionOwnership は Owner 以外からの移譲を拒否する", () => {
+    expect(() =>
+      transferCircleSessionOwnership(
+        [
+          {
+            userId: userId("user-1"),
+            role: CircleSessionRole.CircleSessionManager,
+          },
+          {
+            userId: userId("user-2"),
+            role: CircleSessionRole.CircleSessionOwner,
+          },
+        ],
+        userId("user-1"),
+        userId("user-2"),
+      ),
+    ).toThrow("Current owner must be CircleSessionOwner");
+  });
+
+  test("transferCircleSessionOwnership は移譲先がいない場合に失敗する", () => {
+    expect(() =>
+      transferCircleSessionOwnership(
+        [
+          {
+            userId: userId("user-1"),
+            role: CircleSessionRole.CircleSessionOwner,
+          },
+        ],
+        userId("user-1"),
+        userId("user-2"),
+      ),
+    ).toThrow("Target member not found");
   });
 });
