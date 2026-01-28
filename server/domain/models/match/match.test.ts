@@ -45,6 +45,21 @@ describe("Match ドメイン", () => {
     ).toThrow("order must be a positive integer");
   });
 
+  test("updateMatchPlayers は対局者を正しく更新する", () => {
+    const match = createMatch({
+      id: matchId("match-1"),
+      circleSessionId: circleSessionId("session-1"),
+      order: 1,
+      player1Id: userId("user-1"),
+      player2Id: userId("user-2"),
+    });
+
+    const updated = updateMatchPlayers(match, userId("user-3"), userId("user-4"));
+
+    expect(updated.player1Id).toBe(userId("user-3"));
+    expect(updated.player2Id).toBe(userId("user-4"));
+  });
+
   test("updateMatchPlayers は対局者の違いを検証する", () => {
     const match = createMatch({
       id: matchId("match-1"),

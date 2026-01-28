@@ -22,6 +22,18 @@ describe("CircleSession ドメイン", () => {
     expect(session.title).toBe("第1回 研究会");
   });
 
+  test("createCircleSession は title 未指定時に自動生成する", () => {
+    const session = createCircleSession({
+      id: circleSessionId("session-1"),
+      circleId: circleId("circle-1"),
+      sequence: 5,
+      startsAt: new Date("2024-01-01T10:00:00Z"),
+      endsAt: new Date("2024-01-01T12:00:00Z"),
+    });
+
+    expect(session.title).toBe("第5回 研究会");
+  });
+
   test("createCircleSession は回次が正の整数でない場合に拒否する", () => {
     expect(() =>
       createCircleSession({
