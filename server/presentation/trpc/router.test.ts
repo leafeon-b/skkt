@@ -525,4 +525,399 @@ describe("tRPC router", () => {
 
     expect(result).toBeUndefined();
   });
+
+  // ========================================
+  // Step 1: circles.create テスト
+  // ========================================
+
+  test("circles.create は作成したサークルを返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleService.createCircle.mockResolvedValueOnce({
+      id: circleId("circle-new"),
+      name: "新しい研究会",
+      createdAt: new Date("2025-01-01T00:00:00Z"),
+    });
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.circles.create({ name: "新しい研究会" });
+
+    expect(result.name).toBe("新しい研究会");
+    expect(mocks.circleService.createCircle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: "user-1",
+        name: "新しい研究会",
+      }),
+    );
+  });
+
+  // ========================================
+  // Step 2: circles.participations 系テスト
+  // ========================================
+
+  test("circles.participations.list は参加者一覧を返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleParticipationService.listByCircleId.mockResolvedValueOnce([
+      {
+        circleId: circleId("circle-1"),
+        userId: userId("user-1"),
+        displayName: "テストユーザー",
+        role: CircleRole.CircleOwner,
+      },
+      {
+        circleId: circleId("circle-1"),
+        userId: userId("user-2"),
+        displayName: "メンバー",
+        role: CircleRole.CircleMember,
+      },
+    ]);
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.circles.participations.list({
+      circleId: "circle-1",
+    });
+
+    expect(result).toHaveLength(2);
+    expect(result[0].userId).toBe("user-1");
+    expect(result[0].role).toBe(CircleRole.CircleOwner);
+    expect(mocks.circleParticipationService.listByCircleId).toHaveBeenCalledWith(
+      {
+        actorId: "user-1",
+        circleId: circleId("circle-1"),
+      },
+    );
+  });
+
+  test("circles.participations.updateRole は void を返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleParticipationService.changeParticipationRole.mockResolvedValueOnce(
+      undefined,
+    );
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.circles.participations.updateRole({
+      circleId: "circle-1",
+      userId: "user-2",
+      role: CircleRole.CircleManager,
+    });
+
+    expect(result).toBeUndefined();
+    expect(
+      mocks.circleParticipationService.changeParticipationRole,
+    ).toHaveBeenCalledWith({
+      actorId: "user-1",
+      circleId: circleId("circle-1"),
+      userId: userId("user-2"),
+      role: CircleRole.CircleManager,
+    });
+  });
+
+  test("circles.participations.remove は void を返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleParticipationService.removeParticipation.mockResolvedValueOnce(
+      undefined,
+    );
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.circles.participations.remove({
+      circleId: "circle-1",
+      userId: "user-2",
+    });
+
+    expect(result).toBeUndefined();
+    expect(
+      mocks.circleParticipationService.removeParticipation,
+    ).toHaveBeenCalledWith({
+      actorId: "user-1",
+      circleId: circleId("circle-1"),
+      userId: userId("user-2"),
+    });
+  });
+
+  test("circles.participations.transferOwnership は void を返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleParticipationService.transferOwnership.mockResolvedValueOnce(
+      undefined,
+    );
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.circles.participations.transferOwnership({
+      circleId: "circle-1",
+      fromUserId: "user-1",
+      toUserId: "user-2",
+    });
+
+    expect(result).toBeUndefined();
+    expect(
+      mocks.circleParticipationService.transferOwnership,
+    ).toHaveBeenCalledWith({
+      actorId: "user-1",
+      circleId: circleId("circle-1"),
+      fromUserId: userId("user-1"),
+      toUserId: userId("user-2"),
+    });
+  });
+
+  // ========================================
+  // Step 3: circleSessions 系テスト
+  // ========================================
+
+  test("circleSessions.list はセッション一覧を返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleSessionService.listByCircleId.mockResolvedValueOnce([
+      {
+        id: circleSessionId("session-1"),
+        circleId: circleId("circle-1"),
+        sequence: 1,
+        title: "第1回 研究会",
+        startsAt: new Date("2025-02-01T09:00:00Z"),
+        endsAt: new Date("2025-02-01T12:00:00Z"),
+        location: "会議室A",
+        note: "",
+        createdAt: new Date("2025-01-01T00:00:00Z"),
+      },
+      {
+        id: circleSessionId("session-2"),
+        circleId: circleId("circle-1"),
+        sequence: 2,
+        title: "第2回 研究会",
+        startsAt: new Date("2025-03-01T09:00:00Z"),
+        endsAt: new Date("2025-03-01T12:00:00Z"),
+        location: null,
+        note: "",
+        createdAt: new Date("2025-01-02T00:00:00Z"),
+      },
+    ]);
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.circleSessions.list({ circleId: "circle-1" });
+
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe("session-1");
+    expect(result[0].title).toBe("第1回 研究会");
+    expect(result[1].id).toBe("session-2");
+    expect(mocks.circleSessionService.listByCircleId).toHaveBeenCalledWith(
+      "user-1",
+      "circle-1",
+    );
+  });
+
+  test("circleSessions.get はセッションを返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleSessionService.getCircleSession.mockResolvedValueOnce({
+      id: circleSessionId("session-1"),
+      circleId: circleId("circle-1"),
+      sequence: 1,
+      title: "第1回 研究会",
+      startsAt: new Date("2025-02-01T09:00:00Z"),
+      endsAt: new Date("2025-02-01T12:00:00Z"),
+      location: "会議室A",
+      note: "メモ",
+      createdAt: new Date("2025-01-01T00:00:00Z"),
+    });
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.circleSessions.get({
+      circleSessionId: "session-1",
+    });
+
+    expect(result.id).toBe("session-1");
+    expect(result.title).toBe("第1回 研究会");
+    expect(mocks.circleSessionService.getCircleSession).toHaveBeenCalledWith(
+      "user-1",
+      "session-1",
+    );
+  });
+
+  test("circleSessions.get は見つからないと NOT_FOUND", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleSessionService.getCircleSession.mockResolvedValueOnce(null);
+
+    const caller = appRouter.createCaller(context);
+
+    await expect(
+      caller.circleSessions.get({ circleSessionId: "session-1" }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  // ========================================
+  // Step 4: circleSessions.participations 系テスト
+  // ========================================
+
+  test("circleSessions.participations.list は参加者一覧を返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleSessionParticipationService.listParticipations.mockResolvedValueOnce(
+      [
+        {
+          circleSessionId: circleSessionId("session-1"),
+          userId: userId("user-1"),
+          displayName: "オーナー",
+          role: CircleSessionRole.CircleSessionOwner,
+        },
+        {
+          circleSessionId: circleSessionId("session-1"),
+          userId: userId("user-2"),
+          displayName: "メンバー",
+          role: CircleSessionRole.CircleSessionMember,
+        },
+      ],
+    );
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.circleSessions.participations.list({
+      circleSessionId: "session-1",
+    });
+
+    expect(result).toHaveLength(2);
+    expect(result[0].userId).toBe("user-1");
+    expect(result[0].role).toBe(CircleSessionRole.CircleSessionOwner);
+    expect(
+      mocks.circleSessionParticipationService.listParticipations,
+    ).toHaveBeenCalledWith({
+      actorId: "user-1",
+      circleSessionId: circleSessionId("session-1"),
+    });
+  });
+
+  test("circleSessions.participations.add は void を返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleSessionParticipationService.addParticipation.mockResolvedValueOnce(
+      undefined,
+    );
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.circleSessions.participations.add({
+      circleSessionId: "session-1",
+      userId: "user-3",
+      role: CircleSessionRole.CircleSessionMember,
+    });
+
+    expect(result).toBeUndefined();
+    expect(
+      mocks.circleSessionParticipationService.addParticipation,
+    ).toHaveBeenCalledWith({
+      actorId: "user-1",
+      circleSessionId: circleSessionId("session-1"),
+      userId: userId("user-3"),
+      role: CircleSessionRole.CircleSessionMember,
+    });
+  });
+
+  test("circleSessions.participations.remove は void を返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.circleSessionParticipationService.removeParticipation.mockResolvedValueOnce(
+      undefined,
+    );
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.circleSessions.participations.remove({
+      circleSessionId: "session-1",
+      userId: "user-3",
+    });
+
+    expect(result).toBeUndefined();
+    expect(
+      mocks.circleSessionParticipationService.removeParticipation,
+    ).toHaveBeenCalledWith({
+      actorId: "user-1",
+      circleSessionId: circleSessionId("session-1"),
+      userId: userId("user-3"),
+    });
+  });
+
+  // ========================================
+  // Step 5: users 系テスト
+  // ========================================
+
+  test("users.get はユーザーを返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.userService.getUser.mockResolvedValueOnce({
+      id: userId("user-2"),
+      name: "テストユーザー",
+      email: "test@example.com",
+      image: null,
+      createdAt: new Date("2025-01-01T00:00:00Z"),
+    });
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.users.get({ userId: "user-2" });
+
+    expect(result.id).toBe("user-2");
+    expect(result.name).toBe("テストユーザー");
+    expect(mocks.userService.getUser).toHaveBeenCalledWith("user-1", "user-2");
+  });
+
+  test("users.get は見つからないと NOT_FOUND", async () => {
+    const { context, mocks } = createContext();
+    mocks.userService.getUser.mockResolvedValueOnce(null);
+
+    const caller = appRouter.createCaller(context);
+
+    await expect(
+      caller.users.get({ userId: "user-not-found" }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  test("users.list はユーザー一覧を返す", async () => {
+    const { context, mocks } = createContext();
+    mocks.userService.listUsers.mockResolvedValueOnce([
+      {
+        id: userId("user-1"),
+        name: "ユーザー1",
+        email: "user1@example.com",
+        image: null,
+        createdAt: new Date("2025-01-01T00:00:00Z"),
+      },
+      {
+        id: userId("user-2"),
+        name: "ユーザー2",
+        email: "user2@example.com",
+        image: null,
+        createdAt: new Date("2025-01-02T00:00:00Z"),
+      },
+    ]);
+
+    const caller = appRouter.createCaller(context);
+    const result = await caller.users.list({
+      userIds: ["user-1", "user-2"],
+    });
+
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe("user-1");
+    expect(result[1].id).toBe("user-2");
+    expect(mocks.userService.listUsers).toHaveBeenCalledWith("user-1", [
+      "user-1",
+      "user-2",
+    ]);
+  });
+
+  // ========================================
+  // 未実装プロシージャのテスト
+  // ========================================
+
+  test("users.memberships.list は Not implemented を返す", async () => {
+    const { context } = createContext();
+    const caller = appRouter.createCaller(context);
+
+    await expect(
+      caller.users.memberships.list({ userId: "user-1" }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  test("users.sessions.recent は Not implemented を返す", async () => {
+    const { context } = createContext();
+    const caller = appRouter.createCaller(context);
+
+    await expect(
+      caller.users.sessions.recent({ userId: "user-1" }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  test("users.sessions.next は Not implemented を返す", async () => {
+    const { context } = createContext();
+    const caller = appRouter.createCaller(context);
+
+    await expect(
+      caller.users.sessions.next({ userId: "user-1" }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
 });
