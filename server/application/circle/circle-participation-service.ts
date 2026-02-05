@@ -4,6 +4,7 @@ import type { CircleParticipation } from "@/server/domain/models/circle/circle-p
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import {
+  assertCanAddCircleMemberWithRole,
   assertSingleCircleOwner,
   transferCircleOwnership,
 } from "@/server/domain/services/authz/ownership";
@@ -117,17 +118,7 @@ export const createCircleParticipationService = (
       throw new BadRequestError("Participation already exists");
     }
 
-    const hasOwner = participations.some(
-      (member) => member.role === CircleRole.CircleOwner,
-    );
-
-    if (!hasOwner && params.role !== CircleRole.CircleOwner) {
-      throw new BadRequestError("Circle must have exactly one owner");
-    }
-
-    if (hasOwner && params.role === CircleRole.CircleOwner) {
-      throw new BadRequestError("Circle must have exactly one owner");
-    }
+    assertCanAddCircleMemberWithRole(participations, params.role);
 
     await deps.circleParticipationRepository.addParticipation(
       params.circleId,
