@@ -1,5 +1,18 @@
-import * as policies from "@/server/domain/services/authz/policies";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
+import {
+  isCircleMember,
+  isCircleSessionMember,
+} from "@/server/domain/services/authz/memberships";
+import {
+  CircleRole,
+  CircleSessionRole,
+  isSameOrHigherCircleRole,
+  isSameOrHigherCircleSessionRole,
+} from "@/server/domain/services/authz/roles";
+
+const { CircleOwner, CircleManager, CircleMember } = CircleRole;
+const { CircleSessionOwner, CircleSessionManager, CircleSessionMember } =
+  CircleSessionRole;
 
 export function createAccessService(repository: AuthzRepository) {
   const findCircleMembership = (userId: string, circleId: string) =>
@@ -13,32 +26,35 @@ export function createAccessService(repository: AuthzRepository) {
   return {
     async canCreateCircle(userId: string): Promise<boolean> {
       const isRegistered = await repository.isRegisteredUser(userId);
-      return policies.canCreateCircle(isRegistered);
+      return isRegistered;
     },
 
     async canListOwnCircles(userId: string): Promise<boolean> {
       const isRegistered = await repository.isRegisteredUser(userId);
-      return policies.canListOwnCircles(isRegistered);
+      return isRegistered;
     },
 
     async canViewUser(userId: string): Promise<boolean> {
       const isRegistered = await repository.isRegisteredUser(userId);
-      return policies.canViewUser(isRegistered);
+      return isRegistered;
     },
 
     async canViewCircle(userId: string, circleId: string): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return policies.canViewCircle(membership);
+      return isCircleMember(membership);
     },
 
     async canEditCircle(userId: string, circleId: string): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return policies.canEditCircle(membership);
+      return (
+        isCircleMember(membership) &&
+        (membership.role === CircleOwner || membership.role === CircleManager)
+      );
     },
 
     async canDeleteCircle(userId: string, circleId: string): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return policies.canDeleteCircle(membership);
+      return isCircleMember(membership) && membership.role === CircleOwner;
     },
 
     async canAddCircleMember(
@@ -46,7 +62,7 @@ export function createAccessService(repository: AuthzRepository) {
       circleId: string,
     ): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return policies.canAddCircleMember(membership);
+      return isCircleMember(membership);
     },
 
     async canRemoveCircleMember(
@@ -54,7 +70,10 @@ export function createAccessService(repository: AuthzRepository) {
       circleId: string,
     ): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return policies.canRemoveCircleMember(membership);
+      return (
+        isCircleMember(membership) &&
+        (membership.role === CircleOwner || membership.role === CircleManager)
+      );
     },
 
     async canChangeCircleMemberRole(
@@ -66,9 +85,18 @@ export function createAccessService(repository: AuthzRepository) {
         findCircleMembership(actorId, circleId),
         findCircleMembership(targetId, circleId),
       ]);
-      return policies.canChangeCircleMemberRole(
-        actorMembership,
-        targetMembership,
+      if (
+        !isCircleMember(actorMembership) ||
+        !isCircleMember(targetMembership)
+      ) {
+        return false;
+      }
+      if (actorMembership.role === CircleMember) {
+        return false;
+      }
+      return isSameOrHigherCircleRole(
+        actorMembership.role,
+        targetMembership.role,
       );
     },
 
@@ -77,7 +105,7 @@ export function createAccessService(repository: AuthzRepository) {
       circleId: string,
     ): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return policies.canTransferCircleOwnership(membership);
+      return isCircleMember(membership) && membership.role === CircleOwner;
     },
 
     async canCreateCircleSession(
@@ -85,7 +113,10 @@ export function createAccessService(repository: AuthzRepository) {
       circleId: string,
     ): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return policies.canCreateCircleSession(membership);
+      return (
+        isCircleMember(membership) &&
+        (membership.role === CircleOwner || membership.role === CircleManager)
+      );
     },
 
     async canViewCircleSession(
@@ -97,7 +128,10 @@ export function createAccessService(repository: AuthzRepository) {
         findCircleMembership(userId, circleId),
         findCircleSessionMembership(userId, circleSessionId),
       ]);
-      return policies.canViewCircleSession(circleMembership, sessionMembership);
+      return (
+        isCircleMember(circleMembership) ||
+        isCircleSessionMember(sessionMembership)
+      );
     },
 
     async canEditCircleSession(
@@ -108,7 +142,11 @@ export function createAccessService(repository: AuthzRepository) {
         userId,
         circleSessionId,
       );
-      return policies.canEditCircleSession(membership);
+      return (
+        isCircleSessionMember(membership) &&
+        (membership.role === CircleSessionOwner ||
+          membership.role === CircleSessionManager)
+      );
     },
 
     async canDeleteCircleSession(
@@ -119,7 +157,10 @@ export function createAccessService(repository: AuthzRepository) {
         userId,
         circleSessionId,
       );
-      return policies.canDeleteCircleSession(membership);
+      return (
+        isCircleSessionMember(membership) &&
+        membership.role === CircleSessionOwner
+      );
     },
 
     async canAddCircleSessionMember(
@@ -130,7 +171,7 @@ export function createAccessService(repository: AuthzRepository) {
         userId,
         circleSessionId,
       );
-      return policies.canAddCircleSessionMember(membership);
+      return isCircleSessionMember(membership);
     },
 
     async canRemoveCircleSessionMember(
@@ -141,7 +182,11 @@ export function createAccessService(repository: AuthzRepository) {
         userId,
         circleSessionId,
       );
-      return policies.canRemoveCircleSessionMember(membership);
+      return (
+        isCircleSessionMember(membership) &&
+        (membership.role === CircleSessionOwner ||
+          membership.role === CircleSessionManager)
+      );
     },
 
     async canChangeCircleSessionMemberRole(
@@ -153,9 +198,18 @@ export function createAccessService(repository: AuthzRepository) {
         findCircleSessionMembership(actorId, circleSessionId),
         findCircleSessionMembership(targetId, circleSessionId),
       ]);
-      return policies.canChangeCircleSessionMemberRole(
-        actorMembership,
-        targetMembership,
+      if (
+        !isCircleSessionMember(actorMembership) ||
+        !isCircleSessionMember(targetMembership)
+      ) {
+        return false;
+      }
+      if (actorMembership.role === CircleSessionMember) {
+        return false;
+      }
+      return isSameOrHigherCircleSessionRole(
+        actorMembership.role,
+        targetMembership.role,
       );
     },
 
@@ -167,7 +221,10 @@ export function createAccessService(repository: AuthzRepository) {
         userId,
         circleSessionId,
       );
-      return policies.canTransferCircleSessionOwnership(membership);
+      return (
+        isCircleSessionMember(membership) &&
+        membership.role === CircleSessionOwner
+      );
     },
 
     async canRecordMatch(
@@ -179,7 +236,10 @@ export function createAccessService(repository: AuthzRepository) {
         findCircleMembership(userId, circleId),
         findCircleSessionMembership(userId, circleSessionId),
       ]);
-      return policies.canRecordMatch(circleMembership, sessionMembership);
+      return (
+        isCircleMember(circleMembership) ||
+        isCircleSessionMember(sessionMembership)
+      );
     },
 
     async canViewMatch(
@@ -191,7 +251,10 @@ export function createAccessService(repository: AuthzRepository) {
         findCircleMembership(userId, circleId),
         findCircleSessionMembership(userId, circleSessionId),
       ]);
-      return policies.canViewMatch(circleMembership, sessionMembership);
+      return (
+        isCircleMember(circleMembership) ||
+        isCircleSessionMember(sessionMembership)
+      );
     },
 
     async canEditMatch(
@@ -203,7 +266,10 @@ export function createAccessService(repository: AuthzRepository) {
         findCircleMembership(userId, circleId),
         findCircleSessionMembership(userId, circleSessionId),
       ]);
-      return policies.canEditMatch(circleMembership, sessionMembership);
+      return (
+        isCircleMember(circleMembership) ||
+        isCircleSessionMember(sessionMembership)
+      );
     },
 
     async canDeleteMatch(
@@ -215,7 +281,10 @@ export function createAccessService(repository: AuthzRepository) {
         findCircleMembership(userId, circleId),
         findCircleSessionMembership(userId, circleSessionId),
       ]);
-      return policies.canDeleteMatch(circleMembership, sessionMembership);
+      return (
+        isCircleMember(circleMembership) ||
+        isCircleSessionMember(sessionMembership)
+      );
     },
 
     async canViewMatchHistory(
@@ -227,7 +296,10 @@ export function createAccessService(repository: AuthzRepository) {
         findCircleMembership(userId, circleId),
         findCircleSessionMembership(userId, circleSessionId),
       ]);
-      return policies.canViewMatchHistory(circleMembership, sessionMembership);
+      return (
+        isCircleMember(circleMembership) ||
+        isCircleSessionMember(sessionMembership)
+      );
     },
   };
 }
