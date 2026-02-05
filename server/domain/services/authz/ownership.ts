@@ -37,6 +37,21 @@ export const assertSingleCircleSessionOwner = (
   assertSingleOwner(owners.length, "CircleSession");
 };
 
+export const assertCanAddParticipantWithRole = (
+  participants: CircleSessionMember[],
+  newRole: CircleSessionRole,
+): void => {
+  const hasOwner = participants.some(
+    (p) => p.role === CircleSessionRole.CircleSessionOwner,
+  );
+  if (!hasOwner && newRole !== CircleSessionRole.CircleSessionOwner) {
+    throw new Error("CircleSession must have exactly one owner");
+  }
+  if (hasOwner && newRole === CircleSessionRole.CircleSessionOwner) {
+    throw new Error("CircleSession must have exactly one owner");
+  }
+};
+
 export const transferCircleOwnership = (
   members: CircleMember[],
   fromUserId: UserId,
