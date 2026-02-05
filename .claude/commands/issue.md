@@ -89,7 +89,25 @@ Output:
 
 ---
 
-## Step 6. Finalization
+## Step 6. Code Review
+
+- Use the Task tool with `subagent_type=code-reviewer` to request a code quality review.
+- The code-reviewer agent will:
+  - Inspect modified files and overall structure
+  - Evaluate readability, naming, and complexity
+  - Check error handling and validation presence
+  - Review test adequacy
+  - Detect duplication and over-engineering
+- Review the feedback and address any critical or high-priority issues before proceeding.
+
+Output:
+
+- Summary of review findings
+- Actions taken to address issues (if any)
+
+---
+
+## Step 7. Finalization
 
 - Produce a GitHub-ready summary comment including:
   - What was done
