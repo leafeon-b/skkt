@@ -4,6 +4,7 @@ import type { MatchHistoryRepository } from "@/server/domain/models/match-histor
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
+import { ForbiddenError, NotFoundError } from "@/server/domain/common/errors";
 
 type AccessService = ReturnType<typeof createAccessService>;
 
@@ -21,13 +22,13 @@ export const createMatchHistoryService = (deps: MatchHistoryServiceDeps) => ({
   }): Promise<MatchHistory[]> {
     const match = await deps.matchRepository.findById(params.matchId);
     if (!match) {
-      throw new Error("Match not found");
+      throw new NotFoundError("Match");
     }
     const session = await deps.circleSessionRepository.findById(
       match.circleSessionId,
     );
     if (!session) {
-      throw new Error("CircleSession not found");
+      throw new NotFoundError("CircleSession");
     }
     const allowed = await deps.accessService.canViewMatchHistory(
       params.actorId,
@@ -35,7 +36,7 @@ export const createMatchHistoryService = (deps: MatchHistoryServiceDeps) => ({
       match.circleSessionId as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
     return deps.matchHistoryRepository.listByMatchId(params.matchId);
   },

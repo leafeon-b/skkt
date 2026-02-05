@@ -11,6 +11,11 @@ import {
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "@/server/domain/common/errors";
 
 type AccessService = ReturnType<typeof createAccessService>;
 
@@ -35,14 +40,14 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => ({
   }): Promise<CircleSession> {
     const circle = await deps.circleRepository.findById(params.circleId);
     if (!circle) {
-      throw new Error("Circle not found");
+      throw new NotFoundError("Circle");
     }
     const allowed = await deps.accessService.canCreateCircleSession(
       params.actorId,
       params.circleId as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
 
     const session = createCircleSession({
@@ -68,14 +73,14 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => ({
   ): Promise<CircleSession> {
     const session = await deps.circleSessionRepository.findById(id);
     if (!session) {
-      throw new Error("CircleSession not found");
+      throw new NotFoundError("CircleSession");
     }
     const allowed = await deps.accessService.canEditCircleSession(
       actorId,
       id as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
 
     const updated = rescheduleCircleSession(session, startsAt, endsAt);
@@ -97,21 +102,21 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => ({
   ): Promise<CircleSession> {
     const session = await deps.circleSessionRepository.findById(id);
     if (!session) {
-      throw new Error("CircleSession not found");
+      throw new NotFoundError("CircleSession");
     }
     const allowed = await deps.accessService.canEditCircleSession(
       actorId,
       id as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
 
     let updated = session;
 
     if (params.startsAt || params.endsAt) {
       if (!params.startsAt || !params.endsAt) {
-        throw new Error("startsAt and endsAt must both be provided");
+        throw new BadRequestError("startsAt and endsAt must both be provided");
       }
       updated = rescheduleCircleSession(
         updated,
@@ -166,7 +171,7 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => ({
       id as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
     return session;
   },
@@ -177,14 +182,14 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => ({
   ): Promise<CircleSession[]> {
     const circle = await deps.circleRepository.findById(circleId);
     if (!circle) {
-      throw new Error("Circle not found");
+      throw new NotFoundError("Circle");
     }
     const allowed = await deps.accessService.canViewCircle(
       actorId,
       circleId as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
     return deps.circleSessionRepository.listByCircleId(circleId);
   },
@@ -195,14 +200,14 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => ({
   ): Promise<void> {
     const session = await deps.circleSessionRepository.findById(id);
     if (!session) {
-      throw new Error("CircleSession not found");
+      throw new NotFoundError("CircleSession");
     }
     const allowed = await deps.accessService.canDeleteCircleSession(
       actorId,
       id as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
     await deps.circleSessionRepository.delete(id);
   },

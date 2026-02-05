@@ -9,6 +9,7 @@ import type { CircleRepository } from "@/server/domain/models/circle/circle-repo
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import { CircleRole } from "@/server/domain/services/authz/roles";
+import { ForbiddenError, NotFoundError } from "@/server/domain/common/errors";
 
 type AccessService = ReturnType<typeof createAccessService>;
 
@@ -27,7 +28,7 @@ export const createCircleService = (deps: CircleServiceDeps) => ({
   }): Promise<Circle> {
     const allowed = await deps.accessService.canCreateCircle(params.actorId);
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
     const circle = createCircle({
       id: params.id,
@@ -50,14 +51,14 @@ export const createCircleService = (deps: CircleServiceDeps) => ({
   ): Promise<Circle> {
     const circle = await deps.circleRepository.findById(id);
     if (!circle) {
-      throw new Error("Circle not found");
+      throw new NotFoundError("Circle");
     }
     const allowed = await deps.accessService.canEditCircle(
       actorId,
       id as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
 
     const updated = renameCircle(circle, name);
@@ -75,7 +76,7 @@ export const createCircleService = (deps: CircleServiceDeps) => ({
       id as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
     return circle;
   },
@@ -83,14 +84,14 @@ export const createCircleService = (deps: CircleServiceDeps) => ({
   async deleteCircle(actorId: string, id: CircleId): Promise<void> {
     const circle = await deps.circleRepository.findById(id);
     if (!circle) {
-      throw new Error("Circle not found");
+      throw new NotFoundError("Circle");
     }
     const allowed = await deps.accessService.canDeleteCircle(
       actorId,
       id as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
     await deps.circleRepository.delete(id);
   },

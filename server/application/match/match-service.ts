@@ -20,6 +20,11 @@ import type { MatchHistoryRepository } from "@/server/domain/models/match-histor
 import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "@/server/domain/common/errors";
 
 type AccessService = ReturnType<typeof createAccessService>;
 
@@ -48,7 +53,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
       [player1Id, player2Id],
     );
     if (!ok) {
-      throw new Error("Players must belong to the circle session");
+      throw new BadRequestError("Players must belong to the circle session");
     }
   };
 
@@ -85,7 +90,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
           params.circleSessionId,
         );
         if (!session) {
-          throw new Error("CircleSession not found");
+          throw new NotFoundError("CircleSession");
         }
         const allowed = await deps.accessService.canRecordMatch(
           params.actorId as string,
@@ -93,7 +98,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
           params.circleSessionId as string,
         );
         if (!allowed) {
-          throw new Error("Forbidden");
+          throw new ForbiddenError();
         }
         await ensurePlayersParticipating(
           params.circleSessionId,
@@ -125,16 +130,16 @@ export const createMatchService = (deps: MatchServiceDeps) => {
       return run(async () => {
         const match = await deps.matchRepository.findById(params.id);
         if (!match) {
-          throw new Error("Match not found");
+          throw new NotFoundError("Match");
         }
         if (match.deletedAt) {
-          throw new Error("Match is deleted");
+          throw new BadRequestError("Match is deleted");
         }
         const session = await deps.circleSessionRepository.findById(
           match.circleSessionId,
         );
         if (!session) {
-          throw new Error("CircleSession not found");
+          throw new NotFoundError("CircleSession");
         }
         const allowed = await deps.accessService.canEditMatch(
           params.actorId as string,
@@ -142,14 +147,14 @@ export const createMatchService = (deps: MatchServiceDeps) => {
           match.circleSessionId as string,
         );
         if (!allowed) {
-          throw new Error("Forbidden");
+          throw new ForbiddenError();
         }
 
         let updated = match;
 
         if (params.player1Id || params.player2Id) {
           if (!params.player1Id || !params.player2Id) {
-            throw new Error("player1Id and player2Id must both be provided");
+            throw new BadRequestError("player1Id and player2Id must both be provided");
           }
           await ensurePlayersParticipating(
             match.circleSessionId,
@@ -180,16 +185,16 @@ export const createMatchService = (deps: MatchServiceDeps) => {
       return run(async () => {
         const match = await deps.matchRepository.findById(params.id);
         if (!match) {
-          throw new Error("Match not found");
+          throw new NotFoundError("Match");
         }
         if (match.deletedAt) {
-          throw new Error("Match is deleted");
+          throw new BadRequestError("Match is deleted");
         }
         const session = await deps.circleSessionRepository.findById(
           match.circleSessionId,
         );
         if (!session) {
-          throw new Error("CircleSession not found");
+          throw new NotFoundError("CircleSession");
         }
         const allowed = await deps.accessService.canDeleteMatch(
           params.actorId as string,
@@ -197,7 +202,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
           match.circleSessionId as string,
         );
         if (!allowed) {
-          throw new Error("Forbidden");
+          throw new ForbiddenError();
         }
 
         const deleted = deleteMatch(match);
@@ -219,7 +224,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
         match.circleSessionId,
       );
       if (!session) {
-        throw new Error("CircleSession not found");
+        throw new NotFoundError("CircleSession");
       }
       const allowed = await deps.accessService.canViewMatch(
         params.actorId as string,
@@ -227,7 +232,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
         match.circleSessionId as string,
       );
       if (!allowed) {
-        throw new Error("Forbidden");
+        throw new ForbiddenError();
       }
       return match;
     },
@@ -240,7 +245,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
         params.circleSessionId,
       );
       if (!session) {
-        throw new Error("CircleSession not found");
+        throw new NotFoundError("CircleSession");
       }
       const allowed = await deps.accessService.canViewMatch(
         params.actorId as string,
@@ -248,7 +253,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
         params.circleSessionId as string,
       );
       if (!allowed) {
-        throw new Error("Forbidden");
+        throw new ForbiddenError();
       }
       return deps.matchRepository.listByCircleSessionId(params.circleSessionId);
     },

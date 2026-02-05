@@ -8,6 +8,11 @@ import {
   transferCircleOwnership,
 } from "@/server/domain/services/authz/ownership";
 import { CircleRole } from "@/server/domain/services/authz/roles";
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "@/server/domain/common/errors";
 
 type AccessService = ReturnType<typeof createAccessService>;
 
@@ -32,7 +37,7 @@ export const createCircleParticipationService = (
   }): Promise<CircleParticipation[]> {
     const circle = await deps.circleRepository.findById(params.circleId);
     if (!circle) {
-      throw new Error("Circle not found");
+      throw new NotFoundError("Circle");
     }
 
     const allowed = await deps.accessService.canViewCircle(
@@ -40,7 +45,7 @@ export const createCircleParticipationService = (
       params.circleId as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
 
     return deps.circleParticipationRepository.listByCircleId(params.circleId);
@@ -51,13 +56,13 @@ export const createCircleParticipationService = (
     userId: UserId;
   }): Promise<UserCircleParticipation[]> {
     if (params.userId !== userId(params.actorId)) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
     const allowed = await deps.accessService.canListOwnCircles(
       params.actorId,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
 
     const participations =
@@ -67,7 +72,7 @@ export const createCircleParticipationService = (
     );
     const circles = await deps.circleRepository.findByIds(uniqueCircleIds);
     if (circles.length !== uniqueCircleIds.length) {
-      throw new Error("Circle not found");
+      throw new NotFoundError("Circle");
     }
     const circlesById = new Map(
       circles.map((circle) => [circle.id, circle]),
@@ -76,7 +81,7 @@ export const createCircleParticipationService = (
     return participations.map((participation) => {
       const circle = circlesById.get(participation.circleId);
       if (!circle) {
-        throw new Error("Circle not found");
+        throw new NotFoundError("Circle");
       }
       return {
         circleId: participation.circleId,
@@ -94,7 +99,7 @@ export const createCircleParticipationService = (
   }): Promise<void> {
     const circle = await deps.circleRepository.findById(params.circleId);
     if (!circle) {
-      throw new Error("Circle not found");
+      throw new NotFoundError("Circle");
     }
 
     const allowed = await deps.accessService.canAddCircleMember(
@@ -102,14 +107,14 @@ export const createCircleParticipationService = (
       params.circleId as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
 
     const participations =
       await deps.circleParticipationRepository.listByCircleId(params.circleId);
 
     if (participations.some((member) => member.userId === params.userId)) {
-      throw new Error("Participation already exists");
+      throw new BadRequestError("Participation already exists");
     }
 
     const hasOwner = participations.some(
@@ -117,11 +122,11 @@ export const createCircleParticipationService = (
     );
 
     if (!hasOwner && params.role !== CircleRole.CircleOwner) {
-      throw new Error("Circle must have exactly one owner");
+      throw new BadRequestError("Circle must have exactly one owner");
     }
 
     if (hasOwner && params.role === CircleRole.CircleOwner) {
-      throw new Error("Circle must have exactly one owner");
+      throw new BadRequestError("Circle must have exactly one owner");
     }
 
     await deps.circleParticipationRepository.addParticipation(
@@ -139,7 +144,7 @@ export const createCircleParticipationService = (
   }): Promise<void> {
     const circle = await deps.circleRepository.findById(params.circleId);
     if (!circle) {
-      throw new Error("Circle not found");
+      throw new NotFoundError("Circle");
     }
 
     const allowed = await deps.accessService.canChangeCircleMemberRole(
@@ -148,11 +153,11 @@ export const createCircleParticipationService = (
       params.circleId as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
 
     if (params.role === CircleRole.CircleOwner) {
-      throw new Error("Use transferOwnership to assign owner");
+      throw new BadRequestError("Use transferOwnership to assign owner");
     }
 
     const participations =
@@ -162,11 +167,11 @@ export const createCircleParticipationService = (
     );
 
     if (!target) {
-      throw new Error("Participation not found");
+      throw new NotFoundError("Participation");
     }
 
     if (target.role === CircleRole.CircleOwner) {
-      throw new Error("Use transferOwnership to change owner");
+      throw new BadRequestError("Use transferOwnership to change owner");
     }
 
     await deps.circleParticipationRepository.updateParticipationRole(
@@ -184,7 +189,7 @@ export const createCircleParticipationService = (
   }): Promise<void> {
     const circle = await deps.circleRepository.findById(params.circleId);
     if (!circle) {
-      throw new Error("Circle not found");
+      throw new NotFoundError("Circle");
     }
 
     const allowed = await deps.accessService.canTransferCircleOwnership(
@@ -192,7 +197,7 @@ export const createCircleParticipationService = (
       params.circleId as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
 
     const participations =
@@ -227,7 +232,7 @@ export const createCircleParticipationService = (
   }): Promise<void> {
     const circle = await deps.circleRepository.findById(params.circleId);
     if (!circle) {
-      throw new Error("Circle not found");
+      throw new NotFoundError("Circle");
     }
 
     const allowed = await deps.accessService.canRemoveCircleMember(
@@ -235,7 +240,7 @@ export const createCircleParticipationService = (
       params.circleId as string,
     );
     if (!allowed) {
-      throw new Error("Forbidden");
+      throw new ForbiddenError();
     }
 
     const participations =
@@ -245,11 +250,11 @@ export const createCircleParticipationService = (
     );
 
     if (!target) {
-      throw new Error("Participation not found");
+      throw new NotFoundError("Participation");
     }
 
     if (target.role === CircleRole.CircleOwner) {
-      throw new Error("Use transferOwnership to remove owner");
+      throw new BadRequestError("Use transferOwnership to remove owner");
     }
 
     await deps.circleParticipationRepository.removeParticipation(

@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { DomainError } from "@/server/domain/common/errors";
 
 const toMessage = (error: unknown): string =>
   error instanceof Error ? error.message : "Unknown error";
@@ -8,6 +9,11 @@ export const toTrpcError = (error: unknown): TRPCError => {
     return error;
   }
 
+  if (error instanceof DomainError) {
+    return new TRPCError({ code: error.code, message: error.message });
+  }
+
+  // フォールバック（移行期間中の互換性維持）
   const message = toMessage(error);
 
   if (message === "Unauthorized") {
