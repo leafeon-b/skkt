@@ -1,7 +1,6 @@
 import { CircleRole } from "@/server/domain/services/authz/roles";
-import { userId } from "@/server/domain/common/ids";
-import { appRouter } from "@/server/presentation/trpc/router";
-import { createContext } from "@/server/presentation/trpc/context";
+import { circleId, userId } from "@/server/domain/common/ids";
+import type { ServiceContainer } from "@/server/application/service-container";
 import type {
   CircleOverviewAction,
   CircleOverviewPanelItem,
@@ -11,6 +10,7 @@ import type {
   CircleOverviewViewModel,
   CircleRoleKey,
 } from "@/server/presentation/view-models/circle-overview";
+import { NotFoundError } from "@/server/domain/common/errors";
 
 type RoleConfig = {
   actions: CircleOverviewAction[];
@@ -140,35 +140,69 @@ const getViewerRole = (
   return roleKeyByDto[participation.role] ?? null;
 };
 
-export const trpcCircleOverviewProvider: CircleOverviewProvider = {
+export type CircleOverviewProviderDeps = {
+  circleService: ServiceContainer["circleService"];
+  circleParticipationService: ServiceContainer["circleParticipationService"];
+  circleSessionService: ServiceContainer["circleSessionService"];
+  userService: ServiceContainer["userService"];
+  getActorId: () => Promise<string | null>;
+};
+
+export const createCircleOverviewProvider = (
+  deps: CircleOverviewProviderDeps,
+): CircleOverviewProvider => ({
   async getOverview(input: CircleOverviewProviderInput) {
-    const ctx = await createContext();
-    const caller = appRouter.createCaller(ctx);
+    const actorId = await deps.getActorId();
 
     const [circle, participations, sessions] = await Promise.all([
-      caller.circles.get({ circleId: input.circleId }),
-      caller.circles.participations.list({ circleId: input.circleId }),
-      caller.circleSessions.list({ circleId: input.circleId }),
+      deps.circleService.getCircle(actorId ?? "", circleId(input.circleId)),
+      deps.circleParticipationService.listByCircleId({
+        actorId: actorId ?? "",
+        circleId: circleId(input.circleId),
+      }),
+      deps.circleSessionService.listByCircleId(
+        actorId ?? "",
+        circleId(input.circleId),
+      ),
     ]);
 
-    const users = await ctx.userService.listUsers(
-      ctx.actorId,
+    if (!circle) {
+      throw new NotFoundError("Circle");
+    }
+
+    const users = await deps.userService.listUsers(
+      actorId ?? "",
       participations.map((participation) => userId(participation.userId)),
     );
     const userNameById = new Map(
       users.map((user) => [user.id as string, user.name]),
     );
 
-    const viewerId = input.viewerId ?? ctx.actorId ?? null;
+    const viewerId = input.viewerId ?? actorId ?? null;
     const viewerRole =
-      input.viewerRoleOverride ?? getViewerRole(participations, viewerId);
+      input.viewerRoleOverride ??
+      getViewerRole(
+        participations.map((p) => ({
+          userId: p.userId as string,
+          role: p.role,
+        })),
+        viewerId,
+      );
 
     const now = new Date();
     const recentSessions = sessions
       .filter((session) => session.startsAt < now)
       .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())
       .slice(0, 3)
-      .map(toSessionViewModel);
+      .map((session) =>
+        toSessionViewModel({
+          id: session.id as string,
+          sequence: session.sequence,
+          title: session.title,
+          startsAt: session.startsAt,
+          endsAt: session.endsAt,
+        }),
+      );
 
     const upcomingSessions = sessions
       .filter((session) => session.startsAt >= now)
@@ -176,13 +210,13 @@ export const trpcCircleOverviewProvider: CircleOverviewProvider = {
     const nextSession = upcomingSessions[0];
 
     const overview: CircleOverviewViewModel = {
-      circleId: circle.id,
+      circleId: circle.id as string,
       circleName: circle.name,
       participationCount: participations.length,
       scheduleNote: null,
       nextSession: nextSession
         ? {
-            id: nextSession.id,
+            id: nextSession.id as string,
             dateTimeLabel: formatDateTimeRange(
               nextSession.startsAt,
               nextSession.endsAt,
@@ -200,12 +234,14 @@ export const trpcCircleOverviewProvider: CircleOverviewProvider = {
         : null,
       recentSessions,
       members: participations.map((participation) => ({
-        userId: participation.userId,
-        name: userNameById.get(participation.userId) ?? participation.userId,
+        userId: participation.userId as string,
+        name:
+          userNameById.get(participation.userId as string) ??
+          (participation.userId as string),
         role: roleKeyByDto[participation.role] ?? "member",
       })),
     };
 
     return overview;
   },
-};
+});

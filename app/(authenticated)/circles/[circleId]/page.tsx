@@ -1,7 +1,8 @@
 import { CircleOverviewView } from "@/app/(authenticated)/circles/components/circle-overview-view";
-import { trpcCircleOverviewProvider } from "@/server/presentation/providers/trpc-circle-overview-provider";
+import { createCircleOverviewProvider } from "@/server/presentation/providers/circle-overview-provider";
+import { createContext } from "@/server/presentation/trpc/context";
+import { NotFoundError } from "@/server/domain/common/errors";
 import { notFound } from "next/navigation";
-import { TRPCError } from "@trpc/server";
 
 type CircleDetailPageProps = {
   params: Promise<{ circleId: string }>;
@@ -15,14 +16,23 @@ export default async function CircleDetailPage({
     notFound();
   }
 
+  const ctx = await createContext();
+  const provider = createCircleOverviewProvider({
+    circleService: ctx.circleService,
+    circleParticipationService: ctx.circleParticipationService,
+    circleSessionService: ctx.circleSessionService,
+    userService: ctx.userService,
+    getActorId: async () => ctx.actorId,
+  });
+
   let overview;
   try {
-    overview = await trpcCircleOverviewProvider.getOverview({
+    overview = await provider.getOverview({
       circleId,
       viewerId: null,
     });
   } catch (error) {
-    if (error instanceof TRPCError && error.code === "NOT_FOUND") {
+    if (error instanceof NotFoundError) {
       notFound();
     }
     throw error;
