@@ -1,8 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { signOut } from "next-auth/react";
+import UserMenu from "./user-menu";
 
 export default function Header() {
   return (
@@ -12,11 +11,7 @@ export default function Header() {
         <span className="text-lg font-semibold">将研ログ</span>
       </div>
 
-      <div className="flex gap-2">
-        <Button variant="outline" onClick={() => signOut({ callbackUrl: "/" })}>
-          ログアウト
-        </Button>
-      </div>
+      <UserMenu />
     </header>
   );
 }

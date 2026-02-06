@@ -31,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja">
+    <html lang="ja" suppressHydrationWarning>
       <body
         className={`${zenMaru.variable} ${shippori.variable} min-h-svh w-screen bg-background overflow-x-hidden`}
       >
