@@ -6,14 +6,15 @@ import {
   mapUserToDomain,
   mapUserToPersistence,
 } from "@/server/infrastructure/mappers/user-mapper";
-
-const mapIdsToPersistence = (ids: readonly UserId[]) =>
-  ids.map((id) => id as string);
+import {
+  toPersistenceId,
+  toPersistenceIds,
+} from "@/server/infrastructure/common/id-utils";
 
 export const prismaUserRepository: UserRepository = {
   async findById(id: UserId): Promise<User | null> {
     const found = await prisma.user.findUnique({
-      where: { id: id as string },
+      where: { id: toPersistenceId(id) },
     });
 
     return found ? mapUserToDomain(found) : null;
@@ -23,7 +24,7 @@ export const prismaUserRepository: UserRepository = {
     if (ids.length === 0) {
       return [];
     }
-    const uniqueIds = Array.from(new Set(mapIdsToPersistence(ids)));
+    const uniqueIds = Array.from(new Set(toPersistenceIds(ids)));
     const users = await prisma.user.findMany({
       where: { id: { in: uniqueIds } },
     });

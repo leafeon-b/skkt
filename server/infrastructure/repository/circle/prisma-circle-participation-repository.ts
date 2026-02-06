@@ -4,15 +4,15 @@ import type { CircleRole } from "@/server/domain/services/authz/roles";
 import type { CircleParticipation } from "@/server/domain/models/circle/circle-participation";
 import { prisma } from "@/server/infrastructure/db";
 import {
-  mapCircleIdToPersistence,
   mapCircleParticipationFromPersistence,
   mapCircleRoleToPersistence,
 } from "@/server/infrastructure/mappers/circle-participation-mapper";
+import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 
 export const prismaCircleParticipationRepository: CircleParticipationRepository =
   {
     async listByCircleId(circleId: CircleId): Promise<CircleParticipation[]> {
-      const persistedCircleId = mapCircleIdToPersistence(circleId);
+      const persistedCircleId = toPersistenceId(circleId);
 
       const participations = await prisma.circleMembership.findMany({
         where: { circleId: persistedCircleId },
@@ -24,7 +24,7 @@ export const prismaCircleParticipationRepository: CircleParticipationRepository 
 
     async listByUserId(userId: UserId): Promise<CircleParticipation[]> {
       const participations = await prisma.circleMembership.findMany({
-        where: { userId: userId as string },
+        where: { userId: toPersistenceId(userId) },
         orderBy: { createdAt: "desc" },
         select: { circleId: true, userId: true, role: true, createdAt: true },
       });
@@ -37,13 +37,13 @@ export const prismaCircleParticipationRepository: CircleParticipationRepository 
       userId: UserId,
       role: CircleRole,
     ): Promise<void> {
-      const persistedCircleId = mapCircleIdToPersistence(circleId);
+      const persistedCircleId = toPersistenceId(circleId);
       const persistedRole = mapCircleRoleToPersistence(role);
 
       await prisma.circleMembership.create({
         data: {
           circleId: persistedCircleId,
-          userId: userId as string,
+          userId: toPersistenceId(userId),
           role: persistedRole,
         },
       });
@@ -54,13 +54,13 @@ export const prismaCircleParticipationRepository: CircleParticipationRepository 
       userId: UserId,
       role: CircleRole,
     ): Promise<void> {
-      const persistedCircleId = mapCircleIdToPersistence(circleId);
+      const persistedCircleId = toPersistenceId(circleId);
       const persistedRole = mapCircleRoleToPersistence(role);
 
       await prisma.circleMembership.update({
         where: {
           userId_circleId: {
-            userId: userId as string,
+            userId: toPersistenceId(userId),
             circleId: persistedCircleId,
           },
         },
@@ -74,12 +74,12 @@ export const prismaCircleParticipationRepository: CircleParticipationRepository 
       circleId: CircleId,
       userId: UserId,
     ): Promise<void> {
-      const persistedCircleId = mapCircleIdToPersistence(circleId);
+      const persistedCircleId = toPersistenceId(circleId);
 
       await prisma.circleMembership.deleteMany({
         where: {
           circleId: persistedCircleId,
-          userId: userId as string,
+          userId: toPersistenceId(userId),
         },
       });
     },

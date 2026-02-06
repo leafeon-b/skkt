@@ -2,21 +2,22 @@ import type { CircleSessionParticipationRepository } from "@/server/domain/model
 import type { CircleSessionId, UserId } from "@/server/domain/common/ids";
 import { prisma } from "@/server/infrastructure/db";
 import {
-  mapCircleSessionIdToPersistence,
   mapCircleSessionParticipationFromPersistence,
   mapCircleSessionRoleToPersistence,
-  mapUserIdsToPersistence,
 } from "@/server/infrastructure/mappers/circle-session-participation-mapper";
 import type { CircleSessionRole } from "@/server/domain/services/authz/roles";
 import type { CircleSessionParticipation } from "@/server/domain/models/circle-session/circle-session-participation";
+import {
+  toPersistenceId,
+  toPersistenceIds,
+} from "@/server/infrastructure/common/id-utils";
 
 export const prismaCircleSessionParticipationRepository: CircleSessionParticipationRepository =
   {
     async listParticipations(
       circleSessionId: CircleSessionId,
     ): Promise<CircleSessionParticipation[]> {
-      const persistedCircleSessionId =
-        mapCircleSessionIdToPersistence(circleSessionId);
+      const persistedCircleSessionId = toPersistenceId(circleSessionId);
 
       const participations = await prisma.circleSessionMembership.findMany({
         where: { circleSessionId: persistedCircleSessionId },
@@ -27,7 +28,7 @@ export const prismaCircleSessionParticipationRepository: CircleSessionParticipat
     },
 
     async listByUserId(userId: UserId): Promise<CircleSessionParticipation[]> {
-      const [persistedUserId] = mapUserIdsToPersistence([userId]);
+      const persistedUserId = toPersistenceId(userId);
 
       const participations = await prisma.circleSessionMembership.findMany({
         where: { userId: persistedUserId },
@@ -42,9 +43,8 @@ export const prismaCircleSessionParticipationRepository: CircleSessionParticipat
       userId: UserId,
       role: CircleSessionRole,
     ): Promise<void> {
-      const persistedCircleSessionId =
-        mapCircleSessionIdToPersistence(circleSessionId);
-      const [persistedUserId] = mapUserIdsToPersistence([userId]);
+      const persistedCircleSessionId = toPersistenceId(circleSessionId);
+      const persistedUserId = toPersistenceId(userId);
       const persistedRole = mapCircleSessionRoleToPersistence(role);
 
       await prisma.circleSessionMembership.create({
@@ -61,9 +61,8 @@ export const prismaCircleSessionParticipationRepository: CircleSessionParticipat
       userId: UserId,
       role: CircleSessionRole,
     ): Promise<void> {
-      const persistedCircleSessionId =
-        mapCircleSessionIdToPersistence(circleSessionId);
-      const [persistedUserId] = mapUserIdsToPersistence([userId]);
+      const persistedCircleSessionId = toPersistenceId(circleSessionId);
+      const persistedUserId = toPersistenceId(userId);
       const persistedRole = mapCircleSessionRoleToPersistence(role);
 
       await prisma.circleSessionMembership.update({
@@ -83,9 +82,8 @@ export const prismaCircleSessionParticipationRepository: CircleSessionParticipat
       circleSessionId: CircleSessionId,
       userIds: readonly UserId[],
     ): Promise<boolean> {
-      const persistedCircleSessionId =
-        mapCircleSessionIdToPersistence(circleSessionId);
-      const uniqueIds = Array.from(new Set(mapUserIdsToPersistence(userIds)));
+      const persistedCircleSessionId = toPersistenceId(circleSessionId);
+      const uniqueIds = Array.from(new Set(toPersistenceIds(userIds)));
       if (uniqueIds.length === 0) {
         return false;
       }
@@ -104,9 +102,8 @@ export const prismaCircleSessionParticipationRepository: CircleSessionParticipat
       circleSessionId: CircleSessionId,
       userId: UserId,
     ): Promise<void> {
-      const persistedCircleSessionId =
-        mapCircleSessionIdToPersistence(circleSessionId);
-      const [persistedUserId] = mapUserIdsToPersistence([userId]);
+      const persistedCircleSessionId = toPersistenceId(circleSessionId);
+      const persistedUserId = toPersistenceId(userId);
 
       await prisma.circleSessionMembership.deleteMany({
         where: {

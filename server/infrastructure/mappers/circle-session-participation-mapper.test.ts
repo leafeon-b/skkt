@@ -1,28 +1,25 @@
 import { describe, expect, test } from "vitest";
 import { circleSessionId, userId } from "@/server/domain/common/ids";
 import {
-  mapCircleSessionIdToPersistence,
   mapCircleSessionParticipationFromPersistence,
   mapCircleSessionRoleFromPersistence,
   mapCircleSessionRoleToPersistence,
-  mapUserIdsToPersistence,
 } from "@/server/infrastructure/mappers/circle-session-participation-mapper";
+import {
+  toPersistenceId,
+  toPersistenceIds,
+} from "@/server/infrastructure/common/id-utils";
 import { CircleSessionRole } from "@/server/domain/services/authz/roles";
 
 describe("CircleSession 参加者マッパー", () => {
   test("CircleSessionId を永続化向けに変換できる", () => {
-    const mapped = mapCircleSessionIdToPersistence(
-      circleSessionId("session-1"),
-    );
+    const mapped = toPersistenceId(circleSessionId("session-1"));
 
     expect(mapped).toBe("session-1");
   });
 
   test("UserId 配列を永続化向けに変換できる", () => {
-    const mapped = mapUserIdsToPersistence([
-      userId("user-1"),
-      userId("user-2"),
-    ]);
+    const mapped = toPersistenceIds([userId("user-1"), userId("user-2")]);
 
     expect(mapped).toEqual(["user-1", "user-2"]);
   });

@@ -2,6 +2,7 @@ import type { Match as PrismaMatch } from "@/generated/prisma/client";
 import { restoreMatch } from "@/server/domain/models/match/match";
 import type { Match, MatchOutcome } from "@/server/domain/models/match/match";
 import { circleSessionId, matchId, userId } from "@/server/domain/common/ids";
+import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 
 export const mapMatchToDomain = (match: PrismaMatch): Match =>
   restoreMatch({
@@ -15,11 +16,11 @@ export const mapMatchToDomain = (match: PrismaMatch): Match =>
   });
 
 export const mapMatchToPersistence = (match: Match) => ({
-  id: match.id as string,
-  circleSessionId: match.circleSessionId as string,
+  id: toPersistenceId(match.id),
+  circleSessionId: toPersistenceId(match.circleSessionId),
   order: match.order,
-  player1Id: match.player1Id as string,
-  player2Id: match.player2Id as string,
+  player1Id: toPersistenceId(match.player1Id),
+  player2Id: toPersistenceId(match.player2Id),
   outcome: match.outcome,
   deletedAt: match.deletedAt,
 });

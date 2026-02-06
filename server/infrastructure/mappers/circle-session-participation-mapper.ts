@@ -1,15 +1,7 @@
-import type { CircleSessionId, UserId } from "@/server/domain/common/ids";
 import { circleSessionId, userId } from "@/server/domain/common/ids";
 import type { CircleSessionParticipation } from "@/server/domain/models/circle-session/circle-session-participation";
 import type { CircleSessionRole } from "@/server/domain/services/authz/roles";
 import type { CircleSessionRole as PrismaCircleSessionRole } from "@/generated/prisma/enums";
-
-export const mapCircleSessionIdToPersistence = (
-  circleSessionId: CircleSessionId,
-): string => circleSessionId as string;
-
-export const mapUserIdsToPersistence = (userIds: readonly UserId[]): string[] =>
-  userIds.map((id) => id as string);
 
 export const mapCircleSessionRoleToPersistence = (
   role: CircleSessionRole,

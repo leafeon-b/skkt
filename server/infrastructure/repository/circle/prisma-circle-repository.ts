@@ -6,11 +6,15 @@ import {
   mapCircleToDomain,
   mapCircleToPersistence,
 } from "@/server/infrastructure/mappers/circle-mapper";
+import {
+  toPersistenceId,
+  toPersistenceIds,
+} from "@/server/infrastructure/common/id-utils";
 
 export const prismaCircleRepository: CircleRepository = {
   async findById(id: CircleId): Promise<Circle | null> {
     const found = await prisma.circle.findUnique({
-      where: { id: id as string },
+      where: { id: toPersistenceId(id) },
     });
 
     return found ? mapCircleToDomain(found) : null;
@@ -20,7 +24,7 @@ export const prismaCircleRepository: CircleRepository = {
     if (ids.length === 0) {
       return [];
     }
-    const uniqueIds = Array.from(new Set(ids.map((id) => id as string)));
+    const uniqueIds = Array.from(new Set(toPersistenceIds(ids)));
     const circles = await prisma.circle.findMany({
       where: { id: { in: uniqueIds } },
     });
@@ -45,6 +49,6 @@ export const prismaCircleRepository: CircleRepository = {
   },
 
   async delete(id: CircleId): Promise<void> {
-    await prisma.circle.delete({ where: { id: id as string } });
+    await prisma.circle.delete({ where: { id: toPersistenceId(id) } });
   },
 };

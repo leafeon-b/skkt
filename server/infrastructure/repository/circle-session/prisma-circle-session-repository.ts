@@ -6,11 +6,15 @@ import {
 } from "@/server/infrastructure/mappers/circle-session-mapper";
 import type { CircleSession } from "@/server/domain/models/circle-session/circle-session";
 import type { CircleId, CircleSessionId } from "@/server/domain/common/ids";
+import {
+  toPersistenceId,
+  toPersistenceIds,
+} from "@/server/infrastructure/common/id-utils";
 
 export const prismaCircleSessionRepository: CircleSessionRepository = {
   async findById(id: CircleSessionId): Promise<CircleSession | null> {
     const found = await prisma.circleSession.findUnique({
-      where: { id: id as string },
+      where: { id: toPersistenceId(id) },
     });
 
     return found ? mapCircleSessionToDomain(found) : null;
@@ -20,7 +24,7 @@ export const prismaCircleSessionRepository: CircleSessionRepository = {
     if (ids.length === 0) {
       return [];
     }
-    const uniqueIds = Array.from(new Set(ids.map((id) => id as string)));
+    const uniqueIds = Array.from(new Set(toPersistenceIds(ids)));
     const sessions = await prisma.circleSession.findMany({
       where: { id: { in: uniqueIds } },
     });
@@ -37,7 +41,7 @@ export const prismaCircleSessionRepository: CircleSessionRepository = {
 
   async listByCircleId(circleId: CircleId): Promise<CircleSession[]> {
     const sessions = await prisma.circleSession.findMany({
-      where: { circleId: circleId as string },
+      where: { circleId: toPersistenceId(circleId) },
       orderBy: { sequence: "asc" },
     });
 
@@ -62,6 +66,6 @@ export const prismaCircleSessionRepository: CircleSessionRepository = {
   },
 
   async delete(id: CircleSessionId): Promise<void> {
-    await prisma.circleSession.delete({ where: { id: id as string } });
+    await prisma.circleSession.delete({ where: { id: toPersistenceId(id) } });
   },
 };

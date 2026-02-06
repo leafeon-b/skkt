@@ -6,6 +6,7 @@ import type {
 } from "@/server/domain/models/match-history/match-history";
 import type { MatchOutcome } from "@/server/domain/models/match/match";
 import { matchHistoryId, matchId, userId } from "@/server/domain/common/ids";
+import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 
 export const mapMatchHistoryToDomain = (
   history: PrismaMatchHistory,
@@ -23,13 +24,13 @@ export const mapMatchHistoryToDomain = (
   });
 
 export const mapMatchHistoryToPersistence = (history: MatchHistory) => ({
-  id: history.id as string,
-  matchId: history.matchId as string,
-  editorId: history.editorId as string,
+  id: toPersistenceId(history.id),
+  matchId: toPersistenceId(history.matchId),
+  editorId: toPersistenceId(history.editorId),
   action: history.action,
   createdAt: history.createdAt,
   order: history.order,
-  player1Id: history.player1Id as string,
-  player2Id: history.player2Id as string,
+  player1Id: toPersistenceId(history.player1Id),
+  player2Id: toPersistenceId(history.player2Id),
   outcome: history.outcome,
 });

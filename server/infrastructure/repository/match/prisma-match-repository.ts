@@ -6,11 +6,12 @@ import {
 } from "@/server/infrastructure/mappers/match-mapper";
 import type { Match } from "@/server/domain/models/match/match";
 import type { CircleSessionId, MatchId } from "@/server/domain/common/ids";
+import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 
 export const prismaMatchRepository: MatchRepository = {
   async findById(id: MatchId): Promise<Match | null> {
     const found = await prisma.match.findUnique({
-      where: { id: id as string },
+      where: { id: toPersistenceId(id) },
     });
 
     return found ? mapMatchToDomain(found) : null;
@@ -20,7 +21,7 @@ export const prismaMatchRepository: MatchRepository = {
     circleSessionId: CircleSessionId,
   ): Promise<Match[]> {
     const matches = await prisma.match.findMany({
-      where: { circleSessionId: circleSessionId as string },
+      where: { circleSessionId: toPersistenceId(circleSessionId) },
       orderBy: { order: "asc" },
     });
 
