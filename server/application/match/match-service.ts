@@ -48,10 +48,11 @@ export const createMatchService = (deps: MatchServiceDeps) => {
     player1Id: UserId,
     player2Id: UserId,
   ) => {
-    const ok = await deps.circleSessionParticipationRepository.areUsersParticipating(
-      circleSessionId,
-      [player1Id, player2Id],
-    );
+    const ok =
+      await deps.circleSessionParticipationRepository.areUsersParticipating(
+        circleSessionId,
+        [player1Id, player2Id],
+      );
     if (!ok) {
       throw new BadRequestError("Players must belong to the circle session");
     }
@@ -154,7 +155,9 @@ export const createMatchService = (deps: MatchServiceDeps) => {
 
         if (params.player1Id || params.player2Id) {
           if (!params.player1Id || !params.player2Id) {
-            throw new BadRequestError("player1Id and player2Id must both be provided");
+            throw new BadRequestError(
+              "player1Id and player2Id must both be provided",
+            );
           }
           await ensurePlayersParticipating(
             match.circleSessionId,

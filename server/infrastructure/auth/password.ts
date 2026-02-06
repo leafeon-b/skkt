@@ -16,7 +16,7 @@ export const hashPassword = (password: string): string => {
 
 export const verifyPassword = (
   password: string,
-  hashedValue: string
+  hashedValue: string,
 ): boolean => {
   const [prefix, saltBase64, keyBase64] = hashedValue.split("$");
   if (prefix !== HASH_PREFIX || !saltBase64 || !keyBase64) {

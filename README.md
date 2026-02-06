@@ -38,6 +38,7 @@ npx vitest
 ```
 
 注意:
+
 - `migrate reset` は全データ削除のため開発DBでのみ使用する
 - Seedは `prisma/seed.ts` に定義している
 

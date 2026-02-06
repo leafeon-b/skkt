@@ -517,11 +517,13 @@ describe("tRPC router", () => {
     );
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circleSessions.participations.transferOwnership({
-      circleSessionId: "session-1",
-      fromUserId: "user-1",
-      toUserId: "user-2",
-    });
+    const result = await caller.circleSessions.participations.transferOwnership(
+      {
+        circleSessionId: "session-1",
+        fromUserId: "user-1",
+        toUserId: "user-2",
+      },
+    );
 
     expect(result).toBeUndefined();
   });
@@ -579,12 +581,12 @@ describe("tRPC router", () => {
     expect(result).toHaveLength(2);
     expect(result[0].userId).toBe("user-1");
     expect(result[0].role).toBe(CircleRole.CircleOwner);
-    expect(mocks.circleParticipationService.listByCircleId).toHaveBeenCalledWith(
-      {
-        actorId: "user-1",
-        circleId: circleId("circle-1"),
-      },
-    );
+    expect(
+      mocks.circleParticipationService.listByCircleId,
+    ).toHaveBeenCalledWith({
+      actorId: "user-1",
+      circleId: circleId("circle-1"),
+    });
   });
 
   test("circles.participations.updateRole は void を返す", async () => {

@@ -46,7 +46,10 @@ describe("開催回参加取消の不変条件", () => {
     };
 
     expect(() =>
-      assertCanRemoveCircleSessionParticipation([deletedMatch], userId("user-2")),
+      assertCanRemoveCircleSessionParticipation(
+        [deletedMatch],
+        userId("user-2"),
+      ),
     ).toThrow("Participation cannot be removed because matches exist");
   });
 

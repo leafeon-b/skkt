@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   if (!body) {
     return NextResponse.json(
       { message: "リクエストの形式が正しくありません。" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     };
     return NextResponse.json(
       { message: errorMessages[result.error] },
-      { status: statusCodes[result.error] }
+      { status: statusCodes[result.error] },
     );
   }
 

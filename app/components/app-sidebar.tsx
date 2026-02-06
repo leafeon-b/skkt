@@ -21,8 +21,9 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const participationsQuery =
-    trpc.users.circles.participations.list.useQuery({});
+  const participationsQuery = trpc.users.circles.participations.list.useQuery(
+    {},
+  );
   const circleItems = participationsQuery.data ?? [];
 
   return (

@@ -69,7 +69,9 @@ describe("バリデーション", () => {
   test("assertStartBeforeEnd は開始が終了より前なら成功する", () => {
     const startsAt = new Date("2024-01-01T00:00:00Z");
     const endsAt = new Date("2024-01-02T00:00:00Z");
-    expect(() => assertStartBeforeEnd(startsAt, endsAt, "session")).not.toThrow();
+    expect(() =>
+      assertStartBeforeEnd(startsAt, endsAt, "session"),
+    ).not.toThrow();
   });
 
   test("assertDifferentIds は同一でエラー", () => {

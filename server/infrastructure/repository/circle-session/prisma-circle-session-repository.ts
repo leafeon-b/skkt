@@ -25,7 +25,10 @@ export const prismaCircleSessionRepository: CircleSessionRepository = {
       where: { id: { in: uniqueIds } },
     });
     const byId = new Map(
-      sessions.map((session) => [session.id, mapCircleSessionToDomain(session)]),
+      sessions.map((session) => [
+        session.id,
+        mapCircleSessionToDomain(session),
+      ]),
     );
     return uniqueIds
       .map((id) => byId.get(id))

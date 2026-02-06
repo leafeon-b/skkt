@@ -59,9 +59,7 @@ export const createCircleParticipationService = (
     if (params.userId !== userId(params.actorId)) {
       throw new ForbiddenError();
     }
-    const allowed = await deps.accessService.canListOwnCircles(
-      params.actorId,
-    );
+    const allowed = await deps.accessService.canListOwnCircles(params.actorId);
     if (!allowed) {
       throw new ForbiddenError();
     }
@@ -75,9 +73,7 @@ export const createCircleParticipationService = (
     if (circles.length !== uniqueCircleIds.length) {
       throw new NotFoundError("Circle");
     }
-    const circlesById = new Map(
-      circles.map((circle) => [circle.id, circle]),
-    );
+    const circlesById = new Map(circles.map((circle) => [circle.id, circle]));
 
     return participations.map((participation) => {
       const circle = circlesById.get(participation.circleId);

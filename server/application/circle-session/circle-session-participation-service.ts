@@ -94,9 +94,7 @@ export const createCircleSessionParticipationService = (
     if (params.userId !== userId(params.actorId)) {
       throw new ForbiddenError();
     }
-    const allowed = await deps.accessService.canListOwnCircles(
-      params.actorId,
-    );
+    const allowed = await deps.accessService.canListOwnCircles(params.actorId);
     if (!allowed) {
       throw new ForbiddenError();
     }

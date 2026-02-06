@@ -211,7 +211,10 @@ describe("Owner の不変条件", () => {
 describe("assertCanAddParticipantWithRole", () => {
   test("Owner がいない状態で Owner 以外を追加しようとするとエラー", () => {
     expect(() =>
-      assertCanAddParticipantWithRole([], CircleSessionRole.CircleSessionMember),
+      assertCanAddParticipantWithRole(
+        [],
+        CircleSessionRole.CircleSessionMember,
+      ),
     ).toThrow("CircleSession must have exactly one owner");
   });
 

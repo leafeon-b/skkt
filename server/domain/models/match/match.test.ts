@@ -55,7 +55,11 @@ describe("Match ドメイン", () => {
       player2Id: userId("user-2"),
     });
 
-    const updated = updateMatchPlayers(match, userId("user-3"), userId("user-4"));
+    const updated = updateMatchPlayers(
+      match,
+      userId("user-3"),
+      userId("user-4"),
+    );
 
     expect(updated.player1Id).toBe(userId("user-3"));
     expect(updated.player2Id).toBe(userId("user-4"));
@@ -159,7 +163,9 @@ describe("Match ドメイン", () => {
     const after = new Date();
 
     expect(deleted.deletedAt).not.toBeNull();
-    expect(deleted.deletedAt!.getTime()).toBeGreaterThanOrEqual(before.getTime());
+    expect(deleted.deletedAt!.getTime()).toBeGreaterThanOrEqual(
+      before.getTime(),
+    );
     expect(deleted.deletedAt!.getTime()).toBeLessThanOrEqual(after.getTime());
   });
 

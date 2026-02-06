@@ -12,7 +12,10 @@ export default function NotFound() {
         <p className="text-sm leading-relaxed text-(--brand-ink-muted)">
           お探しのページは存在しないか、移動した可能性があります。
         </p>
-        <Button asChild className="bg-(--brand-moss) hover:bg-(--brand-moss)/90">
+        <Button
+          asChild
+          className="bg-(--brand-moss) hover:bg-(--brand-moss)/90"
+        >
           <Link href="/">ホームに戻る</Link>
         </Button>
       </div>

@@ -137,9 +137,10 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
       },
     ]);
 
-    const result = await prismaCircleSessionParticipationRepository.listByUserId(
-      userId("user-1"),
-    );
+    const result =
+      await prismaCircleSessionParticipationRepository.listByUserId(
+        userId("user-1"),
+      );
 
     expect(mockedPrisma.circleSessionMembership.findMany).toHaveBeenCalledWith({
       where: { userId: "user-1" },

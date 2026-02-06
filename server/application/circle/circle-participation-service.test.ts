@@ -48,16 +48,16 @@ beforeEach(() => {
 describe("Circle 参加関係サービス", () => {
   test("listByCircleId は一覧を返す", async () => {
     const createdAt = new Date("2025-01-01T00:00:00Z");
-    vi.mocked(circleParticipationRepository.listByCircleId).mockResolvedValueOnce(
-      [
+    vi.mocked(
+      circleParticipationRepository.listByCircleId,
+    ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
         role: "CircleOwner",
         createdAt,
       },
-      ],
-    );
+    ]);
 
     const result = await service.listByCircleId({
       actorId: "user-actor",
@@ -78,20 +78,22 @@ describe("Circle 参加関係サービス", () => {
   });
 
   test("listByUserId は所属研究会の概要を返す", async () => {
-    vi.mocked(circleParticipationRepository.listByUserId).mockResolvedValueOnce([
-      {
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
-        role: "CircleOwner",
-        createdAt: new Date("2025-01-01T00:00:00Z"),
-      },
-      {
-        circleId: circleId("circle-2"),
-        userId: userId("user-1"),
-        role: "CircleMember",
-        createdAt: new Date("2025-01-02T00:00:00Z"),
-      },
-    ]);
+    vi.mocked(circleParticipationRepository.listByUserId).mockResolvedValueOnce(
+      [
+        {
+          circleId: circleId("circle-1"),
+          userId: userId("user-1"),
+          role: "CircleOwner",
+          createdAt: new Date("2025-01-01T00:00:00Z"),
+        },
+        {
+          circleId: circleId("circle-2"),
+          userId: userId("user-1"),
+          role: "CircleMember",
+          createdAt: new Date("2025-01-02T00:00:00Z"),
+        },
+      ],
+    );
     vi.mocked(circleRepository.findByIds).mockResolvedValueOnce([
       {
         id: circleId("circle-1"),
@@ -132,14 +134,16 @@ describe("Circle 参加関係サービス", () => {
   });
 
   test("listByUserId は研究会が欠けているとエラー", async () => {
-    vi.mocked(circleParticipationRepository.listByUserId).mockResolvedValueOnce([
-      {
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
-        role: "CircleOwner",
-        createdAt: new Date("2025-01-01T00:00:00Z"),
-      },
-    ]);
+    vi.mocked(circleParticipationRepository.listByUserId).mockResolvedValueOnce(
+      [
+        {
+          circleId: circleId("circle-1"),
+          userId: userId("user-1"),
+          role: "CircleOwner",
+          createdAt: new Date("2025-01-01T00:00:00Z"),
+        },
+      ],
+    );
     vi.mocked(circleRepository.findByIds).mockResolvedValueOnce([]);
 
     await expect(
@@ -164,7 +168,9 @@ describe("Circle 参加関係サービス", () => {
       }),
     ).rejects.toThrow("Circle must have exactly one owner");
 
-    expect(circleParticipationRepository.addParticipation).not.toHaveBeenCalled();
+    expect(
+      circleParticipationRepository.addParticipation,
+    ).not.toHaveBeenCalled();
   });
 
   test("changeParticipationRole は Owner への変更を拒否する", async () => {

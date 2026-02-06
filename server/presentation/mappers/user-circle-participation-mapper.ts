@@ -6,7 +6,8 @@ import {
 
 export const toUserCircleParticipationDto = (
   participation: UserCircleParticipation,
-): UserCircleParticipationDto => userCircleParticipationDtoSchema.parse(participation);
+): UserCircleParticipationDto =>
+  userCircleParticipationDtoSchema.parse(participation);
 
 export const toUserCircleParticipationDtos = (
   participations: UserCircleParticipation[],

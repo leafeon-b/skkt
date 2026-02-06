@@ -139,20 +139,20 @@ describe("CircleSession 参加関係サービス", () => {
   });
 
   test("listByUserId は参加回の要約を返す", async () => {
-    vi.mocked(circleSessionParticipationRepository.listByUserId).mockResolvedValueOnce(
-      [
-        {
-          circleSessionId: circleSessionId("session-1"),
-          userId: userId("user-1"),
-          role: "CircleSessionMember",
-        },
-        {
-          circleSessionId: circleSessionId("session-2"),
-          userId: userId("user-1"),
-          role: "CircleSessionMember",
-        },
-      ],
-    );
+    vi.mocked(
+      circleSessionParticipationRepository.listByUserId,
+    ).mockResolvedValueOnce([
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionMember",
+      },
+      {
+        circleSessionId: circleSessionId("session-2"),
+        userId: userId("user-1"),
+        role: "CircleSessionMember",
+      },
+    ]);
     vi.mocked(circleSessionRepository.findByIds).mockResolvedValueOnce([
       {
         id: circleSessionId("session-1"),
@@ -190,9 +190,9 @@ describe("CircleSession 参加関係サービス", () => {
       userId: userId("user-1"),
     });
 
-    expect(circleSessionParticipationRepository.listByUserId).toHaveBeenCalledWith(
-      userId("user-1"),
-    );
+    expect(
+      circleSessionParticipationRepository.listByUserId,
+    ).toHaveBeenCalledWith(userId("user-1"));
     expect(circleSessionRepository.findByIds).toHaveBeenCalledWith([
       circleSessionId("session-1"),
       circleSessionId("session-2"),
