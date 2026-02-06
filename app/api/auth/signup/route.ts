@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { signupService } from "@/server/presentation/api/signup";
+import { createSignupService } from "@/server/application/auth/signup-service";
+import { prismaSignupRepository } from "@/server/infrastructure/repository/user/prisma-signup-repository";
+
+const signupService = createSignupService({
+  signupRepository: prismaSignupRepository,
+});
 
 type SignupPayload = {
   email?: string;
