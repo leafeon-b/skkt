@@ -97,6 +97,44 @@ export const transferCircleOwnership = (
   return updated;
 };
 
+export const assertCanRemoveCircleMember = (targetRole: CircleRole): void => {
+  if (targetRole === CircleRole.CircleOwner) {
+    throw new Error("Use transferOwnership to remove owner");
+  }
+};
+
+export const assertCanChangeCircleMemberRole = (
+  currentRole: CircleRole,
+  newRole: CircleRole,
+): void => {
+  if (newRole === CircleRole.CircleOwner) {
+    throw new Error("Use transferOwnership to assign owner");
+  }
+  if (currentRole === CircleRole.CircleOwner) {
+    throw new Error("Use transferOwnership to change owner");
+  }
+};
+
+export const assertCanRemoveCircleSessionMember = (
+  targetRole: CircleSessionRole,
+): void => {
+  if (targetRole === CircleSessionRole.CircleSessionOwner) {
+    throw new Error("Use transferOwnership to remove owner");
+  }
+};
+
+export const assertCanChangeCircleSessionMemberRole = (
+  currentRole: CircleSessionRole,
+  newRole: CircleSessionRole,
+): void => {
+  if (newRole === CircleSessionRole.CircleSessionOwner) {
+    throw new Error("Use transferOwnership to assign owner");
+  }
+  if (currentRole === CircleSessionRole.CircleSessionOwner) {
+    throw new Error("Use transferOwnership to change owner");
+  }
+};
+
 export const transferCircleSessionOwnership = (
   members: CircleSessionMember[],
   fromUserId: UserId,

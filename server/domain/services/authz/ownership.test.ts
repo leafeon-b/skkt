@@ -2,6 +2,10 @@ import { describe, expect, test } from "vitest";
 import {
   assertCanAddCircleMemberWithRole,
   assertCanAddParticipantWithRole,
+  assertCanChangeCircleMemberRole,
+  assertCanChangeCircleSessionMemberRole,
+  assertCanRemoveCircleMember,
+  assertCanRemoveCircleSessionMember,
   assertSingleCircleOwner,
   assertSingleCircleSessionOwner,
   transferCircleOwnership,
@@ -262,6 +266,128 @@ describe("assertCanAddParticipantWithRole", () => {
           },
         ],
         CircleSessionRole.CircleSessionManager,
+      ),
+    ).not.toThrow();
+  });
+});
+
+describe("assertCanRemoveCircleMember", () => {
+  test("Owner を削除しようとするとエラー", () => {
+    expect(() => assertCanRemoveCircleMember(CircleRole.CircleOwner)).toThrow(
+      "Use transferOwnership to remove owner",
+    );
+  });
+
+  test("Manager を削除できる", () => {
+    expect(() =>
+      assertCanRemoveCircleMember(CircleRole.CircleManager),
+    ).not.toThrow();
+  });
+
+  test("Member を削除できる", () => {
+    expect(() =>
+      assertCanRemoveCircleMember(CircleRole.CircleMember),
+    ).not.toThrow();
+  });
+});
+
+describe("assertCanChangeCircleMemberRole", () => {
+  test("Owner への変更はエラー", () => {
+    expect(() =>
+      assertCanChangeCircleMemberRole(
+        CircleRole.CircleMember,
+        CircleRole.CircleOwner,
+      ),
+    ).toThrow("Use transferOwnership to assign owner");
+  });
+
+  test("Owner からの変更はエラー", () => {
+    expect(() =>
+      assertCanChangeCircleMemberRole(
+        CircleRole.CircleOwner,
+        CircleRole.CircleManager,
+      ),
+    ).toThrow("Use transferOwnership to change owner");
+  });
+
+  test("Member から Manager への変更は可能", () => {
+    expect(() =>
+      assertCanChangeCircleMemberRole(
+        CircleRole.CircleMember,
+        CircleRole.CircleManager,
+      ),
+    ).not.toThrow();
+  });
+
+  test("Manager から Member への変更は可能", () => {
+    expect(() =>
+      assertCanChangeCircleMemberRole(
+        CircleRole.CircleManager,
+        CircleRole.CircleMember,
+      ),
+    ).not.toThrow();
+  });
+});
+
+describe("assertCanRemoveCircleSessionMember", () => {
+  test("Owner を削除しようとするとエラー", () => {
+    expect(() =>
+      assertCanRemoveCircleSessionMember(
+        CircleSessionRole.CircleSessionOwner,
+      ),
+    ).toThrow("Use transferOwnership to remove owner");
+  });
+
+  test("Manager を削除できる", () => {
+    expect(() =>
+      assertCanRemoveCircleSessionMember(
+        CircleSessionRole.CircleSessionManager,
+      ),
+    ).not.toThrow();
+  });
+
+  test("Member を削除できる", () => {
+    expect(() =>
+      assertCanRemoveCircleSessionMember(
+        CircleSessionRole.CircleSessionMember,
+      ),
+    ).not.toThrow();
+  });
+});
+
+describe("assertCanChangeCircleSessionMemberRole", () => {
+  test("Owner への変更はエラー", () => {
+    expect(() =>
+      assertCanChangeCircleSessionMemberRole(
+        CircleSessionRole.CircleSessionMember,
+        CircleSessionRole.CircleSessionOwner,
+      ),
+    ).toThrow("Use transferOwnership to assign owner");
+  });
+
+  test("Owner からの変更はエラー", () => {
+    expect(() =>
+      assertCanChangeCircleSessionMemberRole(
+        CircleSessionRole.CircleSessionOwner,
+        CircleSessionRole.CircleSessionManager,
+      ),
+    ).toThrow("Use transferOwnership to change owner");
+  });
+
+  test("Member から Manager への変更は可能", () => {
+    expect(() =>
+      assertCanChangeCircleSessionMemberRole(
+        CircleSessionRole.CircleSessionMember,
+        CircleSessionRole.CircleSessionManager,
+      ),
+    ).not.toThrow();
+  });
+
+  test("Manager から Member への変更は可能", () => {
+    expect(() =>
+      assertCanChangeCircleSessionMemberRole(
+        CircleSessionRole.CircleSessionManager,
+        CircleSessionRole.CircleSessionMember,
       ),
     ).not.toThrow();
   });

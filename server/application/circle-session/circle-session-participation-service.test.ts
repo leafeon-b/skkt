@@ -233,6 +233,16 @@ describe("CircleSession 参加関係サービス", () => {
   });
 
   test("changeParticipationRole は Owner への変更を拒否する", async () => {
+    vi.mocked(
+      circleSessionParticipationRepository.listParticipations,
+    ).mockResolvedValueOnce([
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionMember",
+      },
+    ]);
+
     await expect(
       service.changeParticipationRole({
         actorId: "user-actor",
@@ -283,6 +293,15 @@ describe("CircleSession 参加関係サービス", () => {
   });
 
   test("removeParticipation は対局に登場する参加者を削除できない", async () => {
+    vi.mocked(
+      circleSessionParticipationRepository.listParticipations,
+    ).mockResolvedValueOnce([
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionMember",
+      },
+    ]);
     vi.mocked(matchRepository.listByCircleSessionId).mockResolvedValue([
       baseMatch(),
     ]);
@@ -301,6 +320,15 @@ describe("CircleSession 参加関係サービス", () => {
   });
 
   test("removeParticipation は対局に登場しない参加者を削除できる", async () => {
+    vi.mocked(
+      circleSessionParticipationRepository.listParticipations,
+    ).mockResolvedValueOnce([
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-3"),
+        role: "CircleSessionMember",
+      },
+    ]);
     vi.mocked(matchRepository.listByCircleSessionId).mockResolvedValue([
       baseMatch(),
     ]);

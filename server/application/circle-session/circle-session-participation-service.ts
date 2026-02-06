@@ -11,6 +11,8 @@ import type { createAccessService } from "@/server/application/authz/access-serv
 import { assertCanRemoveCircleSessionParticipation } from "@/server/domain/services/circle-session/participation";
 import {
   assertCanAddParticipantWithRole,
+  assertCanChangeCircleSessionMemberRole,
+  assertCanRemoveCircleSessionMember,
   assertSingleCircleSessionOwner,
   transferCircleSessionOwnership,
 } from "@/server/domain/services/authz/ownership";
@@ -217,10 +219,6 @@ export const createCircleSessionParticipationService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    if (params.role === CircleSessionRole.CircleSessionOwner) {
-      throw new BadRequestError("Use transferOwnership to assign owner");
-    }
-
     const participations =
       await deps.circleSessionParticipationRepository.listParticipations(
         params.circleSessionId,
@@ -233,9 +231,7 @@ export const createCircleSessionParticipationService = (
       throw new NotFoundError("Participation");
     }
 
-    if (target.role === CircleSessionRole.CircleSessionOwner) {
-      throw new BadRequestError("Use transferOwnership to change owner");
-    }
+    assertCanChangeCircleSessionMemberRole(target.role, params.role);
 
     await deps.circleSessionParticipationRepository.updateParticipationRole(
       params.circleSessionId,
@@ -308,6 +304,20 @@ export const createCircleSessionParticipationService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
+    const participations =
+      await deps.circleSessionParticipationRepository.listParticipations(
+        params.circleSessionId,
+      );
+    const target = participations.find(
+      (member) => member.userId === params.userId,
+    );
+
+    if (!target) {
+      throw new NotFoundError("Participation");
+    }
+
+    assertCanRemoveCircleSessionMember(target.role);
+
     const matches = await deps.matchRepository.listByCircleSessionId(
       params.circleSessionId,
     );

@@ -174,6 +174,17 @@ describe("Circle 参加関係サービス", () => {
   });
 
   test("changeParticipationRole は Owner への変更を拒否する", async () => {
+    vi.mocked(
+      circleParticipationRepository.listByCircleId,
+    ).mockResolvedValueOnce([
+      {
+        circleId: circleId("circle-1"),
+        userId: userId("user-1"),
+        role: "CircleMember",
+        createdAt: new Date("2025-01-01T00:00:00Z"),
+      },
+    ]);
+
     await expect(
       service.changeParticipationRole({
         actorId: "user-actor",
