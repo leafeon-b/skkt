@@ -57,6 +57,42 @@ beforeEach(() => {
 });
 
 describe("CircleSession サービス", () => {
+  describe("認可拒否時のエラー", () => {
+    test("createCircleSession は認可拒否時に Forbidden エラー", async () => {
+      vi.mocked(circleRepository.findById).mockResolvedValue(baseCircle);
+      vi.mocked(accessService.canCreateCircleSession).mockResolvedValue(false);
+
+      await expect(
+        service.createCircleSession({
+          actorId: "user-1",
+          ...baseSessionParams,
+        }),
+      ).rejects.toThrow("Forbidden");
+
+      expect(circleSessionRepository.save).not.toHaveBeenCalled();
+    });
+
+    test("rescheduleCircleSession は認可拒否時に Forbidden エラー", async () => {
+      const existing = createCircleSession({
+        ...baseSessionParams,
+        createdAt: new Date("2024-01-01T00:00:00Z"),
+      });
+      vi.mocked(circleSessionRepository.findById).mockResolvedValue(existing);
+      vi.mocked(accessService.canEditCircleSession).mockResolvedValue(false);
+
+      await expect(
+        service.rescheduleCircleSession(
+          "user-1",
+          existing.id,
+          new Date("2024-02-01T00:00:00Z"),
+          new Date("2024-02-02T00:00:00Z"),
+        ),
+      ).rejects.toThrow("Forbidden");
+
+      expect(circleSessionRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
   test("createCircleSession は研究会が存在しないとエラー", async () => {
     vi.mocked(circleRepository.findById).mockResolvedValue(null);
 

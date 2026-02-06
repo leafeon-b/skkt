@@ -38,6 +38,39 @@ beforeEach(() => {
 });
 
 describe("Circle サービス", () => {
+  describe("認可拒否時のエラー", () => {
+    test("createCircle は認可拒否時に Forbidden エラー", async () => {
+      vi.mocked(accessService.canCreateCircle).mockResolvedValue(false);
+
+      await expect(
+        service.createCircle({
+          actorId: "user-1",
+          id: circleId("circle-1"),
+          name: "Home",
+          createdAt: new Date("2024-01-01T00:00:00Z"),
+        }),
+      ).rejects.toThrow("Forbidden");
+
+      expect(circleRepository.save).not.toHaveBeenCalled();
+    });
+
+    test("renameCircle は認可拒否時に Forbidden エラー", async () => {
+      const existing = createCircle({
+        id: circleId("circle-1"),
+        name: "Home",
+        createdAt: new Date("2024-01-01T00:00:00Z"),
+      });
+      vi.mocked(circleRepository.findById).mockResolvedValue(existing);
+      vi.mocked(accessService.canEditCircle).mockResolvedValue(false);
+
+      await expect(
+        service.renameCircle("user-1", existing.id, "Next"),
+      ).rejects.toThrow("Forbidden");
+
+      expect(circleRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
   test("createCircle は研究会を保存する", async () => {
     const createdAt = new Date("2024-01-01T00:00:00Z");
 

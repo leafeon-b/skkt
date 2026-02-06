@@ -91,6 +91,42 @@ beforeEach(() => {
 });
 
 describe("CircleSession 参加関係サービス", () => {
+  describe("認可拒否時のエラー", () => {
+    test("listParticipations は認可拒否時に Forbidden エラー", async () => {
+      vi.mocked(accessService.canViewCircleSession).mockResolvedValue(false);
+
+      await expect(
+        service.listParticipations({
+          actorId: "user-actor",
+          circleSessionId: circleSessionId("session-1"),
+        }),
+      ).rejects.toThrow("Forbidden");
+
+      expect(
+        circleSessionParticipationRepository.listParticipations,
+      ).not.toHaveBeenCalled();
+    });
+
+    test("addParticipation は認可拒否時に Forbidden エラー", async () => {
+      vi.mocked(accessService.canAddCircleSessionMember).mockResolvedValue(
+        false,
+      );
+
+      await expect(
+        service.addParticipation({
+          actorId: "user-actor",
+          circleSessionId: circleSessionId("session-1"),
+          userId: userId("user-1"),
+          role: "CircleSessionMember",
+        }),
+      ).rejects.toThrow("Forbidden");
+
+      expect(
+        circleSessionParticipationRepository.addParticipation,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
   test("listParticipations は一覧を返す", async () => {
     vi.mocked(
       circleSessionParticipationRepository.listParticipations,

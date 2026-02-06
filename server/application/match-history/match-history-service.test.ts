@@ -39,6 +39,41 @@ beforeEach(() => {
 });
 
 describe("MatchHistory サービス", () => {
+  describe("認可拒否時のエラー", () => {
+    test("listByMatchId は認可拒否時に Forbidden エラー", async () => {
+      vi.mocked(matchRepository.findById).mockResolvedValueOnce({
+        id: matchId("match-1"),
+        circleSessionId: circleSessionId("session-1"),
+        order: 1,
+        player1Id: "user-1",
+        player2Id: "user-2",
+        outcome: "UNKNOWN",
+        deletedAt: null,
+      });
+      vi.mocked(circleSessionRepository.findById).mockResolvedValueOnce({
+        id: circleSessionId("session-1"),
+        circleId: circleId("circle-1"),
+        sequence: 1,
+        title: "第1回 研究会",
+        startsAt: new Date("2024-01-01T00:00:00Z"),
+        endsAt: new Date("2024-01-02T00:00:00Z"),
+        location: null,
+        note: "",
+        createdAt: new Date("2024-01-01T00:00:00Z"),
+      });
+      vi.mocked(accessService.canViewMatchHistory).mockResolvedValueOnce(false);
+
+      await expect(
+        service.listByMatchId({
+          actorId: "user-1",
+          matchId: matchId("match-1"),
+        }),
+      ).rejects.toThrow("Forbidden");
+
+      expect(matchHistoryRepository.listByMatchId).not.toHaveBeenCalled();
+    });
+  });
+
   test("listByMatchId は履歴を返す", async () => {
     vi.mocked(matchRepository.findById).mockResolvedValueOnce({
       id: matchId("match-1"),

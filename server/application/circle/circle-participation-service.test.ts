@@ -46,6 +46,40 @@ beforeEach(() => {
 });
 
 describe("Circle 参加関係サービス", () => {
+  describe("認可拒否時のエラー", () => {
+    test("listByCircleId は認可拒否時に Forbidden エラー", async () => {
+      vi.mocked(accessService.canViewCircle).mockResolvedValue(false);
+
+      await expect(
+        service.listByCircleId({
+          actorId: "user-actor",
+          circleId: circleId("circle-1"),
+        }),
+      ).rejects.toThrow("Forbidden");
+
+      expect(
+        circleParticipationRepository.listByCircleId,
+      ).not.toHaveBeenCalled();
+    });
+
+    test("addParticipation は認可拒否時に Forbidden エラー", async () => {
+      vi.mocked(accessService.canAddCircleMember).mockResolvedValue(false);
+
+      await expect(
+        service.addParticipation({
+          actorId: "user-actor",
+          circleId: circleId("circle-1"),
+          userId: userId("user-1"),
+          role: "CircleMember",
+        }),
+      ).rejects.toThrow("Forbidden");
+
+      expect(
+        circleParticipationRepository.addParticipation,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
   test("listByCircleId は一覧を返す", async () => {
     const createdAt = new Date("2025-01-01T00:00:00Z");
     vi.mocked(

@@ -84,6 +84,39 @@ beforeEach(() => {
 });
 
 describe("Match サービス", () => {
+  describe("認可拒否時のエラー", () => {
+    test("recordMatch は認可拒否時に Forbidden エラー", async () => {
+      vi.mocked(accessService.canRecordMatch).mockResolvedValue(false);
+
+      await expect(
+        service.recordMatch({
+          actorId: userId("user-3"),
+          ...baseMatchParams,
+        }),
+      ).rejects.toThrow("Forbidden");
+
+      expect(matchRepository.save).not.toHaveBeenCalled();
+      expect(matchHistoryRepository.add).not.toHaveBeenCalled();
+    });
+
+    test("updateMatch は認可拒否時に Forbidden エラー", async () => {
+      const existing = createMatch(baseMatchParams);
+      vi.mocked(matchRepository.findById).mockResolvedValue(existing);
+      vi.mocked(accessService.canEditMatch).mockResolvedValue(false);
+
+      await expect(
+        service.updateMatch({
+          actorId: userId("user-3"),
+          id: baseMatchParams.id,
+          outcome: "DRAW",
+        }),
+      ).rejects.toThrow("Forbidden");
+
+      expect(matchRepository.save).not.toHaveBeenCalled();
+      expect(matchHistoryRepository.add).not.toHaveBeenCalled();
+    });
+  });
+
   test("recordMatch は参加者でない場合にエラー", async () => {
     vi.mocked(
       circleSessionParticipationRepository.areUsersParticipating,
