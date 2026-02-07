@@ -98,9 +98,18 @@ export function CircleOverviewView({
 
   const defaultHero = (
     <>
-      <h1 className="mt-3 text-3xl font-(--font-display) text-(--brand-ink) sm:text-4xl">
-        {overview.circleName}
-      </h1>
+      <div className="mt-3 flex flex-wrap items-baseline gap-3">
+        <h1 className="text-3xl font-(--font-display) text-(--brand-ink) sm:text-4xl">
+          {overview.circleName}
+        </h1>
+        {roleLabel ? (
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-xs ${roleBadgeClassName}`}
+          >
+            {roleLabel}
+          </span>
+        ) : null}
+      </div>
       <p className="mt-3 text-sm text-(--brand-ink-muted)">{scheduleText}</p>
     </>
   );
@@ -142,6 +151,26 @@ export function CircleOverviewView({
             </div>
           </div>
           <div className="flex w-full flex-col gap-4 sm:w-auto sm:min-w-60 sm:max-w-[320px]">
+            {roleLinks?.length ? (
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {roleLinks.map((link) => {
+                  const isActive = overview.viewerRole === link.role;
+                  return (
+                    <Link
+                      key={link.role}
+                      href={link.href}
+                      className={`rounded-full border px-2.5 py-0.5 text-xs transition ${
+                        isActive
+                          ? "border-(--brand-ink)/30 bg-(--brand-ink)/10 text-(--brand-ink)"
+                          : "border-border/60 bg-white/70 text-(--brand-ink-muted) hover:border-border hover:text-(--brand-ink)"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : null}
             <div
               className={`flex gap-3 ${isSingleAction ? "flex-col" : "flex-wrap"}`}
             >
@@ -174,41 +203,6 @@ export function CircleOverviewView({
             </div>
           </div>
         </div>
-        {roleLabel ? (
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 rounded-full border border-border/60 bg-white/70 px-3 py-1 text-xs">
-              <span className="text-(--brand-ink-muted)">あなたのロール</span>
-              <span
-                className={`rounded-full px-2.5 py-1 text-xs ${roleBadgeClassName}`}
-              >
-                {roleLabel}
-              </span>
-            </div>
-            {roleLinks?.length ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-xs font-semibold text-(--brand-ink)">
-                  ロール別デモ
-                </p>
-                {roleLinks.map((link) => {
-                  const isActive = overview.viewerRole === link.role;
-                  return (
-                    <Link
-                      key={link.role}
-                      href={link.href}
-                      className={`rounded-full border px-3 py-1 text-xs transition ${
-                        isActive
-                          ? "border-(--brand-ink)/30 bg-(--brand-ink)/10 text-(--brand-ink)"
-                          : "border-border/60 bg-white/70 text-(--brand-ink-muted) hover:border-border hover:text-(--brand-ink)"
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
