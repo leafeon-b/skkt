@@ -21,7 +21,7 @@ const shippori = Shippori_Mincho_B1({
 });
 
 export const metadata: Metadata = {
-  title: "将研ログ",
+  title: "SKKT",
   description: "将棋研究会の活動記録をつけるアプリケーション",
 };
 

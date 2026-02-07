@@ -33,10 +33,10 @@ export default async function LandingPage() {
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div className="space-y-5">
               <h1 className="text-4xl font-(--font-display) text-(--brand-ink) sm:text-5xl">
-                将研ログ
+                SKKT
               </h1>
               <p className="max-w-2xl text-base leading-relaxed text-(--brand-ink-muted) sm:text-lg">
-                研究会の記録と共有を、迷わず続けられる場所へ。将研ログは、
+                研究会の記録と共有を、迷わず続けられる場所へ。SKKTは、
                 日程管理から振り返りまでをやさしく支える記録サービスです。
               </p>
             </div>

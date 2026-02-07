@@ -3,10 +3,10 @@ export default function HelpPage() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <header className="rounded-3xl border border-border/60 bg-white/90 p-8 shadow-sm">
         <h1 className="mt-3 text-3xl font-(--font-display) text-(--brand-ink) sm:text-4xl">
-          将研ログについて
+          SKKTについて
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-(--brand-ink-muted) sm:text-base">
-          将研ログは研究会の活動記録を効率的に行うための記録ツールです。
+          SKKT(将棋研究会管理ツール)は研究会の活動記録を効率的に行うための記録ツールです。
         </p>
       </header>
 
