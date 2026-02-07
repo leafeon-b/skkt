@@ -23,6 +23,7 @@ const shippori = Shippori_Mincho_B1({
 export const metadata: Metadata = {
   title: "SKKT",
   description: "将棋研究会の活動記録をつけるアプリケーション",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
