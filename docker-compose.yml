@@ -1,11 +1,11 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: shogi-ken-log-db
+    container_name: skkt-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: shogi_ken_log
+      POSTGRES_DB: skkt
     ports:
       - "5432:5432"
     volumes:
