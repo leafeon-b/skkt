@@ -535,9 +535,18 @@ export function CircleSessionDetailView({
       <section className="rounded-3xl border border-border/60 bg-white/90 p-8 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div className="min-w-60 flex-1">
-            <h1 className="mt-3 text-3xl font-(--font-display) text-(--brand-ink) sm:text-4xl">
-              {detail.title}
-            </h1>
+            <div className="mt-3 flex flex-wrap items-baseline gap-3">
+              <h1 className="text-3xl font-(--font-display) text-(--brand-ink) sm:text-4xl">
+                {detail.title}
+              </h1>
+              {roleLabel ? (
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs ${roleBadgeClassName}`}
+                >
+                  {roleLabel}
+                </span>
+              ) : null}
+            </div>
             <p className="mt-3 text-sm text-(--brand-ink-muted)">
               {detail.dateTimeLabel}
               {detail.locationLabel ? ` / ${detail.locationLabel}` : ""}
@@ -573,18 +582,6 @@ export function CircleSessionDetailView({
             </div>
           </div>
         </div>
-        {roleLabel ? (
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 rounded-full border border-border/60 bg-white/70 px-3 py-1 text-xs">
-              <span className="text-(--brand-ink-muted)">あなたのロール</span>
-              <span
-                className={`rounded-full px-2.5 py-1 text-xs ${roleBadgeClassName}`}
-              >
-                {roleLabel}
-              </span>
-            </div>
-          </div>
-        ) : null}
       </section>
 
       <section className="grid gap-6 lg:grid-cols-1">
