@@ -1,19 +1,16 @@
+import { CircleOverviewCalendar } from "@/app/(authenticated)/circles/components/circle-overview-calendar";
 import { Button } from "@/components/ui/button";
 import type {
   CircleOverviewMember,
-  CircleOverviewSession,
   CircleOverviewViewModel,
   CircleRoleKey,
-  CircleSessionStatus,
 } from "@/server/presentation/view-models/circle-overview";
-import { Plus } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 export type CircleOverviewViewProps = {
   overview: CircleOverviewViewModel;
   heroContent?: ReactNode;
-  getSessionHref?: (session: CircleOverviewSession) => string | null;
   getMemberHref?: (member: CircleOverviewMember) => string | null;
   getNextSessionHref?: (
     nextSession: NonNullable<CircleOverviewViewModel["nextSession"]>,
@@ -31,18 +28,6 @@ const roleClasses: Record<CircleRoleKey, string> = {
   owner: "bg-(--brand-gold)/25 text-(--brand-ink)",
   manager: "bg-(--brand-sky)/25 text-(--brand-ink)",
   member: "bg-(--brand-moss)/20 text-(--brand-ink)",
-};
-
-const sessionStatusLabels: Record<CircleSessionStatus, string> = {
-  done: "開催済み",
-  scheduled: "予定",
-  draft: "準備中",
-};
-
-const sessionStatusClasses: Record<CircleSessionStatus, string> = {
-  done: "bg-(--brand-moss)/15 text-(--brand-ink)",
-  scheduled: "bg-(--brand-sky)/20 text-(--brand-ink)",
-  draft: "bg-(--brand-gold)/20 text-(--brand-ink)",
 };
 
 type LinkCardProps = {
@@ -66,7 +51,6 @@ const LinkCard = ({ href, className, children }: LinkCardProps) => {
 export function CircleOverviewView({
   overview,
   heroContent,
-  getSessionHref,
   getMemberHref,
   getNextSessionHref,
   getCreateSessionHref,
@@ -139,80 +123,14 @@ export function CircleOverviewView({
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-(--brand-ink)">
-              最近の開催
-            </p>
-            <div className="flex items-center gap-1">
-              {(() => {
-                if (
-                  overview.viewerRole !== "owner" &&
-                  overview.viewerRole !== "manager"
-                )
-                  return null;
-                const href = getCreateSessionHref?.();
-                if (!href) return null;
-                return (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-(--brand-ink-muted) hover:text-(--brand-ink)"
-                    asChild
-                  >
-                    <Link href={href}>
-                      <Plus className="size-3.5" aria-hidden="true" />
-                      新規作成
-                    </Link>
-                  </Button>
-                );
-              })()}
-              <Button
-                variant="ghost"
-                className="text-xs text-(--brand-ink-muted) hover:text-(--brand-ink)"
-              >
-                すべて見る
-              </Button>
-            </div>
-          </div>
-          <div className="mt-4 space-y-3">
-            {overview.recentSessions.length === 0 ? (
-              <p className="text-xs text-(--brand-ink-muted)">
-                まだ開催回がありません
-              </p>
-            ) : (
-              overview.recentSessions.map((session) => {
-                const sessionHref = getSessionHref
-                  ? getSessionHref(session)
-                  : null;
-                return (
-                  <LinkCard
-                    key={session.title}
-                    href={sessionHref}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-white/70 p-4 transition hover:border-border hover:bg-white hover:shadow-sm"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-(--brand-ink)">
-                        {session.title}
-                      </p>
-                      <p className="text-xs text-(--brand-ink-muted)">
-                        {session.dateLabel}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs ${
-                        sessionStatusClasses[session.status] ??
-                        "bg-(--brand-ink)/10 text-(--brand-ink)"
-                      }`}
-                    >
-                      {sessionStatusLabels[session.status] ?? session.status}
-                    </span>
-                  </LinkCard>
-                );
-              })
-            )}
-          </div>
-        </div>
+        <CircleOverviewCalendar
+          sessions={overview.sessions}
+          createSessionHref={
+            overview.viewerRole === "owner" || overview.viewerRole === "manager"
+              ? (getCreateSessionHref?.() ?? null)
+              : null
+          }
+        />
 
         <div className="flex flex-col gap-6">
           <div className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">

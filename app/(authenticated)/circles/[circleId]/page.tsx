@@ -41,9 +41,6 @@ export default async function CircleDetailPage({
   return (
     <CircleOverviewView
       overview={overview}
-      getSessionHref={(session) =>
-        session.id ? `/circle-sessions/${session.id}` : null
-      }
       getNextSessionHref={(session) =>
         session.id ? `/circle-sessions/${session.id}` : null
       }

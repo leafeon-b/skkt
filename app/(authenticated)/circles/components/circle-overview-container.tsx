@@ -4,21 +4,18 @@ import type {
   CircleOverviewProvider,
   CircleOverviewViewModel,
 } from "@/server/presentation/view-models/circle-overview";
-import type {
-  CircleOverviewMember,
-  CircleOverviewSession,
-} from "@/server/presentation/view-models/circle-overview";
+import type { CircleOverviewMember } from "@/server/presentation/view-models/circle-overview";
 
 export type CircleOverviewContainerProps = {
   provider: CircleOverviewProvider;
   circleId: string;
   viewerId: string | null;
   heroContent?: ReactNode;
-  getSessionHref?: (session: CircleOverviewSession) => string | null;
   getMemberHref?: (member: CircleOverviewMember) => string | null;
   getNextSessionHref?: (
     nextSession: NonNullable<CircleOverviewViewModel["nextSession"]>,
   ) => string | null;
+  getCreateSessionHref?: () => string | null;
 };
 
 export async function CircleOverviewContainer({
@@ -26,9 +23,9 @@ export async function CircleOverviewContainer({
   circleId,
   viewerId,
   heroContent,
-  getSessionHref,
   getMemberHref,
   getNextSessionHref,
+  getCreateSessionHref,
 }: CircleOverviewContainerProps) {
   const overview = await provider.getOverview({
     circleId,
@@ -39,9 +36,9 @@ export async function CircleOverviewContainer({
     <CircleOverviewView
       overview={overview}
       heroContent={heroContent}
-      getSessionHref={getSessionHref}
       getMemberHref={getMemberHref}
       getNextSessionHref={getNextSessionHref}
+      getCreateSessionHref={getCreateSessionHref}
     />
   );
 }
