@@ -1,21 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import CircleCreateForm from "@/app/(authenticated)/home/circle-create-form";
+import { SessionCalendar } from "@/components/calendar/session-calendar";
 import Link from "next/link";
+import { useMemo } from "react";
 import { trpc } from "@/lib/trpc/client";
-
-const sessionStatusLabels: Record<string, string> = {
-  done: "開催済み",
-  scheduled: "予定",
-  draft: "準備中",
-};
-
-const sessionStatusClasses: Record<string, string> = {
-  done: "bg-(--brand-moss)/20 text-(--brand-ink)",
-  scheduled: "bg-(--brand-sky)/20 text-(--brand-ink)",
-  draft: "bg-(--brand-gold)/20 text-(--brand-ink)",
-};
+import type { EventInput } from "@fullcalendar/core";
 
 const pad2 = (value: number) => String(value).padStart(2, "0");
 
@@ -26,15 +16,11 @@ const formatTime = (date: Date) =>
   `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 
 export default function Home() {
-  const recentSessionsQuery =
-    trpc.users.circleSessions.participations.list.useQuery({ limit: 3 });
-  const recentCircleSessions = recentSessionsQuery.data ?? [];
+  const sessionsQuery =
+    trpc.users.circleSessions.participations.list.useQuery({});
 
-  const upcomingSessionsQuery =
-    trpc.users.circleSessions.participations.list.useQuery({ limit: 20 });
-
-  const nextSession = (() => {
-    const sessions = upcomingSessionsQuery.data;
+  const nextSession = useMemo(() => {
+    const sessions = sessionsQuery.data;
     if (!sessions) return null;
 
     const now = new Date();
@@ -43,7 +29,20 @@ export default function Home() {
       .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
 
     return upcoming[0] ?? null;
-  })();
+  }, [sessionsQuery.data]);
+
+  const calendarEvents: EventInput[] = useMemo(() => {
+    const sessions = sessionsQuery.data;
+    if (!sessions) return [];
+
+    return sessions.map((s) => ({
+      id: s.circleSessionId,
+      title: s.title,
+      start: s.startsAt,
+      end: s.endsAt,
+      url: `/circle-sessions/${s.circleSessionId}`,
+    }));
+  }, [sessionsQuery.data]);
 
   return (
     <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-10">
@@ -54,7 +53,7 @@ export default function Home() {
       </div>
 
       <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-        {upcomingSessionsQuery.isLoading ? (
+        {sessionsQuery.isLoading ? (
           <div
             className="rounded-2xl border border-border/60 bg-white/85 p-6 shadow-sm motion-safe:animate-[rise_0.7s_ease-out]"
             style={{ animationDelay: "80ms" }}
@@ -107,62 +106,16 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-1">
+      <section>
         <div className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-(--brand-ink)">
-              最近参加した回
-            </p>
-            <Button
-              variant="ghost"
-              className="text-xs text-(--brand-ink-muted) hover:text-(--brand-ink)"
-            >
-              すべて見る
-            </Button>
-          </div>
-          <div className="mt-4 space-y-3">
-            {recentSessionsQuery.isLoading ? (
-              <p className="text-sm text-(--brand-ink-muted)">読み込み中...</p>
-            ) : recentSessionsQuery.isError ? (
-              <p className="text-sm text-(--brand-ink-muted)">
-                最近参加した回を取得できませんでした
-              </p>
-            ) : recentCircleSessions.length === 0 ? (
-              <p className="text-sm text-(--brand-ink-muted)">
-                最近参加した回はまだありません
-              </p>
-            ) : (
-              recentCircleSessions.map((session) => {
-                const statusLabel =
-                  sessionStatusLabels[session.status] ?? "参加中";
-                const statusClass =
-                  sessionStatusClasses[session.status] ??
-                  "bg-(--brand-ink)/10 text-(--brand-ink)";
-
-                return (
-                  <Link
-                    key={session.circleSessionId}
-                    href={`/circle-sessions/${session.circleSessionId}`}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-white/70 p-4 transition hover:border-border hover:bg-white hover:shadow-sm"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-(--brand-ink)">
-                        {session.title}
-                      </p>
-                      <p className="text-xs text-(--brand-ink-muted)">
-                        {formatDate(session.startsAt)} / {session.circleName}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs ${statusClass}`}
-                    >
-                      {statusLabel}
-                    </span>
-                  </Link>
-                );
-              })
-            )}
-          </div>
+          <p className="mb-4 text-sm font-semibold text-(--brand-ink)">
+            参加した回
+          </p>
+          {sessionsQuery.isLoading ? (
+            <p className="text-sm text-(--brand-ink-muted)">読み込み中...</p>
+          ) : (
+            <SessionCalendar events={calendarEvents} />
+          )}
         </div>
       </section>
     </div>

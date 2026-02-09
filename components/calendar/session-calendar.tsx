@@ -13,7 +13,10 @@ type SessionCalendarProps = {
   onDateClick?: (arg: DateClickArg) => void;
 };
 
-export function SessionCalendar({ events, onDateClick }: SessionCalendarProps) {
+export function SessionCalendar({
+  events,
+  onDateClick,
+}: SessionCalendarProps) {
   return (
     <FullCalendar
       plugins={FC_PLUGINS}
