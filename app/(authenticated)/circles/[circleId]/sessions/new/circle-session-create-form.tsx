@@ -10,14 +10,18 @@ import { useRouter } from "next/navigation";
 
 type CircleSessionCreateFormProps = {
   circleId: string;
+  defaultStartsAt?: string;
 };
 
 export function CircleSessionCreateForm({
   circleId,
+  defaultStartsAt,
 }: CircleSessionCreateFormProps) {
   const [sequence, setSequence] = useState("");
   const [title, setTitle] = useState("");
-  const [startsAt, setStartsAt] = useState("");
+  const [startsAt, setStartsAt] = useState(
+    defaultStartsAt ? `${defaultStartsAt}T00:00` : "",
+  );
   const [endsAt, setEndsAt] = useState("");
   const [location, setLocation] = useState("");
   const [note, setNote] = useState("");
