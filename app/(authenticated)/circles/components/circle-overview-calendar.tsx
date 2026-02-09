@@ -6,7 +6,8 @@ import type { CircleOverviewSession } from "@/server/presentation/view-models/ci
 import type { EventInput } from "@fullcalendar/core";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo } from "react";
 
 type CircleOverviewCalendarProps = {
   sessions: CircleOverviewSession[];
@@ -17,6 +18,8 @@ export function CircleOverviewCalendar({
   sessions,
   createSessionHref,
 }: CircleOverviewCalendarProps) {
+  const router = useRouter();
+
   const events: EventInput[] = useMemo(
     () =>
       sessions.map((s) => ({
@@ -27,6 +30,26 @@ export function CircleOverviewCalendar({
         url: s.id ? `/circle-sessions/${s.id}` : undefined,
       })),
     [sessions],
+  );
+
+  const handleDateClick = useCallback(
+    (arg: { dateStr: string }) => {
+      if (!createSessionHref) return;
+      const clickedDate = arg.dateStr;
+      const hasSession = events.some((e) => {
+        if (!e.start) return false;
+        const eventDate =
+          typeof e.start === "string"
+            ? e.start.slice(0, 10)
+            : e.start instanceof Date
+              ? e.start.toISOString().slice(0, 10)
+              : String(e.start).slice(0, 10);
+        return eventDate === clickedDate;
+      });
+      if (hasSession) return;
+      router.push(`${createSessionHref}?startsAt=${clickedDate}`);
+    },
+    [createSessionHref, events, router],
   );
 
   return (
@@ -47,7 +70,10 @@ export function CircleOverviewCalendar({
           </Button>
         ) : null}
       </div>
-      <SessionCalendar events={events} />
+      <SessionCalendar
+        events={events}
+        onDateClick={createSessionHref ? handleDateClick : undefined}
+      />
     </div>
   );
 }
