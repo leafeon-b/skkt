@@ -2,7 +2,7 @@
 
 ### description
 
-Implement based on plan artifact.
+Implement based on approved plan without interactive confirmation.
 
 ### Session Rule
 
@@ -13,19 +13,24 @@ Implement based on plan artifact.
 
 ### instructions
 
-For each task:
+1. Load plan.md
+2. Execute ALL tasks sequentially to completion
+3. Apply minimal necessary changes only
+4. Record implementation log
 
-1. Implement minimal change
-2. Record to implement-log.md
+Process requirements:
 
-After each task ASK:
+- NO interactive confirmation during execution
+- Follow the plan strictly
+- Keep changes minimal and atomic
+- Rely on Claude default guardrails for safety decisions
 
-"Continue to next task? (y/n)"
-
-Output to:
-.claude/artifacts/issue-{id}/implement-log.md
-
-## Rules
+### Rules
 
 - no unrelated refactor
 - no new library without justification
+- keep existing architecture
+- preserve coding style
+
+Output to:
+.claude/artifacts/issue-{id}/implement-log.md
