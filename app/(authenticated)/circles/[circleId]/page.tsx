@@ -47,6 +47,7 @@ export default async function CircleDetailPage({
       getNextSessionHref={(session) =>
         session.id ? `/circle-sessions/${session.id}` : null
       }
+      getCreateSessionHref={() => `/circles/${circleId}/sessions/new`}
     />
   );
 }

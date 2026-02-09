@@ -6,6 +6,7 @@ import type {
   CircleRoleKey,
   CircleSessionStatus,
 } from "@/server/presentation/view-models/circle-overview";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -17,6 +18,7 @@ export type CircleOverviewViewProps = {
   getNextSessionHref?: (
     nextSession: NonNullable<CircleOverviewViewModel["nextSession"]>,
   ) => string | null;
+  getCreateSessionHref?: () => string | null;
 };
 
 const roleLabels: Record<CircleRoleKey, string> = {
@@ -67,6 +69,7 @@ export function CircleOverviewView({
   getSessionHref,
   getMemberHref,
   getNextSessionHref,
+  getCreateSessionHref,
 }: CircleOverviewViewProps) {
   const roleLabel = overview.viewerRole
     ? roleLabels[overview.viewerRole]
@@ -141,12 +144,36 @@ export function CircleOverviewView({
             <p className="text-sm font-semibold text-(--brand-ink)">
               最近の開催
             </p>
-            <Button
-              variant="ghost"
-              className="text-xs text-(--brand-ink-muted) hover:text-(--brand-ink)"
-            >
-              すべて見る
-            </Button>
+            <div className="flex items-center gap-1">
+              {(() => {
+                if (
+                  overview.viewerRole !== "owner" &&
+                  overview.viewerRole !== "manager"
+                )
+                  return null;
+                const href = getCreateSessionHref?.();
+                if (!href) return null;
+                return (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-(--brand-ink-muted) hover:text-(--brand-ink)"
+                    asChild
+                  >
+                    <Link href={href}>
+                      <Plus className="size-3.5" aria-hidden="true" />
+                      新規作成
+                    </Link>
+                  </Button>
+                );
+              })()}
+              <Button
+                variant="ghost"
+                className="text-xs text-(--brand-ink-muted) hover:text-(--brand-ink)"
+              >
+                すべて見る
+              </Button>
+            </div>
           </div>
           <div className="mt-4 space-y-3">
             {overview.recentSessions.length === 0 ? (
