@@ -134,3 +134,72 @@ Structure:
 - applied fixes
 
 ## Remaining Limitations
+
+---
+
+## Improvement Issue Creation
+
+After all reviews complete, create GitHub issues from improvement suggestions.
+
+### Scope
+
+Target findings that are:
+
+- NOT blocking the current PR (blocking issues should be fixed in-place)
+- Worth tracking as separate work items
+- Appropriately scoped (one concern per issue)
+
+If no such findings exist, skip this phase.
+
+### Granularity Rules
+
+- One issue per distinct improvement suggestion
+- Do NOT bundle unrelated findings into a single issue
+- If a finding spans multiple files but is one concern, create one issue
+- If a finding contains multiple independent concerns, split into separate issues
+
+### Labeling
+
+Each issue MUST have exactly TWO labels: one type label and one priority label.
+
+#### Type Labels (select one)
+
+| Label                | When to use                                    |
+| -------------------- | ---------------------------------------------- |
+| `bug`                | Incorrect behavior or defect found             |
+| `enhancement`        | New feature or functional improvement          |
+| `documentation`      | Documentation additions or corrections         |
+| `type: security`     | Security vulnerability or hardening            |
+| `type: accessibility`| Accessibility (WCAG) compliance improvement    |
+| `type: testing`      | Test coverage addition or test improvement     |
+| `type: ui/ux`        | UI/UX design or usability improvement          |
+| `type: refactoring`  | Code structure, readability, architecture      |
+
+#### Priority Labels (select one)
+
+| Label              | Criteria                                              |
+| ------------------ | ----------------------------------------------------- |
+| `priority: high`   | Security risk, data integrity, or user-facing breakage|
+| `priority: medium` | Code quality, maintainability, or moderate UX impact  |
+| `priority: low`    | Minor style, nice-to-have, or low-impact improvement  |
+
+### Execution
+
+1. Collect all improvement suggestions from review results.
+2. Group and deduplicate across intents (e.g., same concern found by both safety and implementation reviewers).
+3. For each distinct suggestion, draft:
+   - **Title**: concise, imperative form (e.g., "Add input validation to match creation endpoint")
+   - **Body**: context, what was found, why it matters, suggested approach (if any)
+   - **Labels**: one type + one priority
+4. Present the list of proposed issues to the user for approval.
+5. After approval, create issues via `gh issue create`.
+
+### Output Addition
+
+Append to verify.md:
+
+## Created Issues
+
+| # | Title | Labels |
+|---|-------|--------|
+| {number} | {title} | {type}, {priority} |
