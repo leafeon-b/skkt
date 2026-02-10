@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc/client";
 import { useRouter } from "next/navigation";
 
@@ -157,12 +158,12 @@ export function CircleSessionCreateForm({
           >
             備考（任意）
           </label>
-          <textarea
+          <Textarea
             id="note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}
-            className="rounded-md border border-input bg-white px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="bg-white"
           />
         </div>
 
