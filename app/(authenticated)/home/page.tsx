@@ -41,6 +41,11 @@ export default function Home() {
       start: s.startsAt,
       end: s.endsAt,
       url: `/circle-sessions/${s.circleSessionId}`,
+      extendedProps: {
+        status: s.status,
+        startsAt: s.startsAt,
+        endsAt: s.endsAt,
+      },
     }));
   }, [sessionsQuery.data]);
 

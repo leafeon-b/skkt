@@ -28,6 +28,11 @@ export function CircleOverviewCalendar({
         start: s.startsAt,
         end: s.endsAt,
         url: s.id ? `/circle-sessions/${s.id}` : undefined,
+        extendedProps: {
+          status: s.status,
+          startsAt: s.startsAt,
+          endsAt: s.endsAt,
+        },
       })),
     [sessions],
   );
