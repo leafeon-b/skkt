@@ -42,7 +42,6 @@ export default function Home() {
       end: s.endsAt,
       url: `/circle-sessions/${s.circleSessionId}`,
       extendedProps: {
-        status: s.status,
         startsAt: s.startsAt,
         endsAt: s.endsAt,
       },

@@ -4,7 +4,6 @@ import {
   userListInputSchema,
 } from "@/server/presentation/dto/user";
 import { userMembershipRouter } from "@/server/presentation/trpc/routers/user-membership";
-import { userSessionRouter } from "@/server/presentation/trpc/routers/user-session";
 import {
   toUserDto,
   toUserDtos,
@@ -29,7 +28,6 @@ export const userRouter = router({
     ),
 
   memberships: userMembershipRouter,
-  sessions: userSessionRouter,
   circles: userCircleRouter,
   circleSessions: userCircleSessionRouter,
 

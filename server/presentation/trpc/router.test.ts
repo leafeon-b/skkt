@@ -180,7 +180,6 @@ describe("tRPC router", () => {
         startsAt: new Date("2025-01-01T10:00:00Z"),
         endsAt: new Date("2025-01-01T12:00:00Z"),
         location: null,
-        status: "done",
       },
     ]);
 
@@ -198,7 +197,6 @@ describe("tRPC router", () => {
         startsAt: new Date("2025-01-01T10:00:00Z"),
         endsAt: new Date("2025-01-01T12:00:00Z"),
         location: null,
-        status: "done",
       },
     ]);
     expect(
@@ -905,21 +903,4 @@ describe("tRPC router", () => {
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
-  test("users.sessions.recent は Not implemented を返す", async () => {
-    const { context } = createContext();
-    const caller = appRouter.createCaller(context);
-
-    await expect(
-      caller.users.sessions.recent({ userId: "user-1" }),
-    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
-  });
-
-  test("users.sessions.next は Not implemented を返す", async () => {
-    const { context } = createContext();
-    const caller = appRouter.createCaller(context);
-
-    await expect(
-      caller.users.sessions.next({ userId: "user-1" }),
-    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
-  });
 });

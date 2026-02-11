@@ -7,10 +7,6 @@ import {
 
 const textSchema = z.string().trim().min(1);
 
-export const circleSessionStatusSchema = z.enum(["scheduled", "done", "draft"]);
-
-export type CircleSessionStatusDto = z.infer<typeof circleSessionStatusSchema>;
-
 export const userSessionSummaryDtoSchema = z.object({
   circleSessionId: circleSessionIdSchema,
   circleId: circleIdSchema,
@@ -19,7 +15,6 @@ export const userSessionSummaryDtoSchema = z.object({
   startsAt: z.date(),
   endsAt: z.date(),
   location: z.string().nullable(),
-  status: circleSessionStatusSchema,
   note: z.string().optional(),
 });
 

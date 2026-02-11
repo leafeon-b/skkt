@@ -3,7 +3,6 @@ import {
   circleIdSchema,
   circleSessionIdSchema,
 } from "@/server/presentation/dto/ids";
-import { circleSessionStatusSchema } from "@/server/presentation/dto/user-session";
 
 const textSchema = z.string().trim().min(1);
 
@@ -23,7 +22,6 @@ export const userCircleSessionParticipationSummaryDtoSchema = z.object({
   startsAt: z.date(),
   endsAt: z.date(),
   location: z.string().nullable(),
-  status: circleSessionStatusSchema,
 });
 
 export type UserCircleSessionParticipationSummaryDto = z.infer<

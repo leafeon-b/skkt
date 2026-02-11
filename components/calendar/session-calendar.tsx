@@ -13,12 +13,6 @@ import {
 
 const FC_PLUGINS = [dayGridPlugin, interactionPlugin];
 
-const STATUS_LABEL: Record<string, string> = {
-  scheduled: "予定",
-  done: "終了",
-  draft: "下書き",
-};
-
 function formatTooltipDateTime(startsAt: unknown, endsAt: unknown): string {
   const toDate = (v: unknown): Date | null => {
     if (v instanceof Date) return v;
@@ -40,11 +34,10 @@ function formatTooltipDateTime(startsAt: unknown, endsAt: unknown): string {
 
 function EventWithTooltip({ arg }: { arg: EventContentArg }) {
   const { extendedProps, title } = arg.event;
-  const status = extendedProps.status as string | undefined;
   const startsAt = extendedProps.startsAt;
   const endsAt = extendedProps.endsAt;
 
-  const hasTooltipData = status && startsAt && endsAt;
+  const hasTooltipData = startsAt && endsAt;
 
   if (!hasTooltipData) {
     return <span className="truncate">{title}</span>;
@@ -59,7 +52,6 @@ function EventWithTooltip({ arg }: { arg: EventContentArg }) {
         <div className="space-y-0.5 text-left">
           <p className="font-semibold">{title}</p>
           <p>{formatTooltipDateTime(startsAt, endsAt)}</p>
-          <p>ステータス: {STATUS_LABEL[status] ?? status}</p>
         </div>
       </TooltipContent>
     </Tooltip>
