@@ -12,20 +12,32 @@ import { useRouter } from "next/navigation";
 type CircleSessionCreateFormProps = {
   circleId: string;
   defaultStartsAt?: string;
+  defaultTitle?: string;
+  defaultEndsAt?: string;
+  defaultLocation?: string;
+  defaultNote?: string;
 };
 
 export function CircleSessionCreateForm({
   circleId,
   defaultStartsAt,
+  defaultTitle,
+  defaultEndsAt,
+  defaultLocation,
+  defaultNote,
 }: CircleSessionCreateFormProps) {
   const [sequence, setSequence] = useState("");
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(defaultTitle ?? "");
   const [startsAt, setStartsAt] = useState(
-    defaultStartsAt ? `${defaultStartsAt}T00:00` : "",
+    defaultStartsAt
+      ? defaultStartsAt.includes("T")
+        ? defaultStartsAt
+        : `${defaultStartsAt}T00:00`
+      : "",
   );
-  const [endsAt, setEndsAt] = useState("");
-  const [location, setLocation] = useState("");
-  const [note, setNote] = useState("");
+  const [endsAt, setEndsAt] = useState(defaultEndsAt ?? "");
+  const [location, setLocation] = useState(defaultLocation ?? "");
+  const [note, setNote] = useState(defaultNote ?? "");
 
   const createSession = trpc.circleSessions.create.useMutation();
   const router = useRouter();

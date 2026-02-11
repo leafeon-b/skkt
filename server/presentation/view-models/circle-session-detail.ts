@@ -1,4 +1,5 @@
 export type CircleSessionRoleKey = "owner" | "manager" | "member";
+export type CircleRoleKey = "owner" | "manager" | "member";
 export type CircleSessionMatchOutcome =
   | "P1_WIN"
   | "P2_WIN"
@@ -26,7 +27,10 @@ export type CircleSessionDetailViewModel = {
   locationLabel: string | null;
   memoText: string | null;
   sessionDateInput: string;
+  startsAtInput: string;
+  endsAtInput: string;
   viewerRole: CircleSessionRoleKey | null;
+  viewerCircleRole: CircleRoleKey | null;
   participations: CircleSessionParticipation[];
   matches: CircleSessionMatch[];
 };

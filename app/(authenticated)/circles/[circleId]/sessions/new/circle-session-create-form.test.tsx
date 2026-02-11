@@ -128,6 +128,47 @@ describe("CircleSessionCreateForm", () => {
     );
   });
 
+  it("defaultStartsAt が datetime-local 形式の場合そのまま設定される", () => {
+    render(
+      <CircleSessionCreateForm
+        circleId={circleId}
+        defaultStartsAt="2025-06-15T14:00"
+      />,
+    );
+
+    const startsAtInput = screen.getByLabelText("開始日時") as HTMLInputElement;
+    expect(startsAtInput.value).toBe("2025-06-15T14:00");
+  });
+
+  it("プリフィル props が設定されるとフォームにデフォルト値が入る", () => {
+    render(
+      <CircleSessionCreateForm
+        circleId={circleId}
+        defaultStartsAt="2025-06-15T10:00"
+        defaultTitle="複製テスト"
+        defaultEndsAt="2025-06-15T17:00"
+        defaultLocation="将棋会館"
+        defaultNote="テストメモ"
+      />,
+    );
+
+    expect(
+      (screen.getByLabelText("タイトル") as HTMLInputElement).value,
+    ).toBe("複製テスト");
+    expect(
+      (screen.getByLabelText("開始日時") as HTMLInputElement).value,
+    ).toBe("2025-06-15T10:00");
+    expect(
+      (screen.getByLabelText("終了日時") as HTMLInputElement).value,
+    ).toBe("2025-06-15T17:00");
+    expect(
+      (screen.getByLabelText("場所（任意）") as HTMLInputElement).value,
+    ).toBe("将棋会館");
+    expect(
+      (screen.getByLabelText("備考（任意）") as HTMLTextAreaElement).value,
+    ).toBe("テストメモ");
+  });
+
   it("defaultStartsAt が設定されると startsAt にデフォルト値が入る", async () => {
     const user = userEvent.setup();
     render(

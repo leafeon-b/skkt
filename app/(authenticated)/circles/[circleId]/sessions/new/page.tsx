@@ -2,7 +2,13 @@ import { CircleSessionCreateForm } from "./circle-session-create-form";
 
 type NewCircleSessionPageProps = {
   params: Promise<{ circleId: string }>;
-  searchParams: Promise<{ startsAt?: string }>;
+  searchParams: Promise<{
+    startsAt?: string;
+    title?: string;
+    endsAt?: string;
+    location?: string;
+    note?: string;
+  }>;
 };
 
 export default async function NewCircleSessionPage({
@@ -10,7 +16,7 @@ export default async function NewCircleSessionPage({
   searchParams,
 }: NewCircleSessionPageProps) {
   const { circleId } = await params;
-  const { startsAt } = await searchParams;
+  const { startsAt, title, endsAt, location, note } = await searchParams;
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 py-8">
@@ -20,6 +26,10 @@ export default async function NewCircleSessionPage({
       <CircleSessionCreateForm
         circleId={circleId}
         defaultStartsAt={startsAt}
+        defaultTitle={title}
+        defaultEndsAt={endsAt}
+        defaultLocation={location}
+        defaultNote={note}
       />
     </div>
   );

@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Copy, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -352,6 +353,27 @@ export function CircleSessionDetailView({
     return { wins, losses, draws };
   };
 
+  const router = useRouter();
+  const canDuplicate =
+    detail.viewerCircleRole === "owner" ||
+    detail.viewerCircleRole === "manager";
+
+  const handleDuplicate = () => {
+    const params = new URLSearchParams();
+    params.set("title", detail.title);
+    params.set("startsAt", detail.startsAtInput);
+    params.set("endsAt", detail.endsAtInput);
+    if (detail.locationLabel) {
+      params.set("location", detail.locationLabel);
+    }
+    if (detail.memoText) {
+      params.set("note", detail.memoText);
+    }
+    router.push(
+      `/circles/${encodeURIComponent(detail.circleId)}/sessions/new?${params.toString()}`,
+    );
+  };
+
   const roleConfig = detail.viewerRole ? roleConfigs[detail.viewerRole] : null;
   const actions = roleConfig?.actions ?? ownerManagerBase.actions;
   const roleBadgeClassName = detail.viewerRole
@@ -579,6 +601,16 @@ export function CircleSessionDetailView({
                   {action.label}
                 </Button>
               ))}
+              {canDuplicate ? (
+                <Button
+                  variant="outline"
+                  className={`border-(--brand-ink)/20 bg-white/80 text-(--brand-ink) hover:bg-white ${isSingleAction ? "w-full" : ""}`.trim()}
+                  onClick={handleDuplicate}
+                >
+                  <Copy className="size-4" />
+                  複製して作成
+                </Button>
+              ) : null}
             </div>
           </div>
         </div>

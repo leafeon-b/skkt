@@ -1,8 +1,12 @@
-import { CircleSessionRole } from "@/server/domain/services/authz/roles";
+import {
+  CircleRole,
+  CircleSessionRole,
+} from "@/server/domain/services/authz/roles";
 import { userId } from "@/server/domain/common/ids";
 import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
 import type {
+  CircleRoleKey,
   CircleSessionDetailProvider,
   CircleSessionDetailProviderInput,
   CircleSessionMatch,
@@ -15,6 +19,9 @@ const pad2 = (value: number) => String(value).padStart(2, "0");
 
 const formatDateForInput = (date: Date) =>
   `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+
+const formatDateTimeForInput = (date: Date) =>
+  `${formatDateForInput(date)}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 
 const formatDate = (date: Date) =>
   `${date.getFullYear()}/${pad2(date.getMonth() + 1)}/${pad2(date.getDate())}`;
@@ -29,6 +36,12 @@ const roleKeyByDto: Record<CircleSessionRole, CircleSessionRoleKey> = {
   [CircleSessionRole.CircleSessionOwner]: "owner",
   [CircleSessionRole.CircleSessionManager]: "manager",
   [CircleSessionRole.CircleSessionMember]: "member",
+};
+
+const circleRoleKeyByDto: Record<CircleRole, CircleRoleKey> = {
+  [CircleRole.CircleOwner]: "owner",
+  [CircleRole.CircleManager]: "manager",
+  [CircleRole.CircleMember]: "member",
 };
 
 const getViewerRole = (
@@ -114,8 +127,18 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
       users.map((user) => [user.id as string, user.name]),
     );
 
+    const circleParticipations = await caller.circles.participations.list({
+      circleId: session.circleId,
+    });
+
     const viewerId = input.viewerId ?? ctx.actorId ?? null;
     const viewerRole = getViewerRole(participations, viewerId);
+    const viewerCircleParticipation = viewerId
+      ? circleParticipations.find((p) => p.userId === viewerId)
+      : null;
+    const viewerCircleRole = viewerCircleParticipation
+      ? (circleRoleKeyByDto[viewerCircleParticipation.role] ?? null)
+      : null;
 
     const matchViewModels: CircleSessionMatch[] = matches
       .filter((match) => match.deletedAt == null)
@@ -144,7 +167,10 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
       locationLabel: session.location,
       memoText: session.note.trim() ? session.note : null,
       sessionDateInput: formatDateForInput(session.startsAt),
+      startsAtInput: formatDateTimeForInput(session.startsAt),
+      endsAtInput: formatDateTimeForInput(session.endsAt),
       viewerRole,
+      viewerCircleRole,
       participations: participationViewModels,
       matches: matchViewModels,
     };
