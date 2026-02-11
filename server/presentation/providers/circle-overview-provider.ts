@@ -4,7 +4,6 @@ import type { ServiceContainer } from "@/server/application/service-container";
 import type {
   CircleOverviewProvider,
   CircleOverviewProviderInput,
-  CircleOverviewSession,
   CircleOverviewViewModel,
   CircleRoleKey,
 } from "@/server/presentation/view-models/circle-overview";
@@ -27,17 +26,6 @@ const formatTime = (date: Date) =>
 const formatDateTimeRange = (startsAt: Date, endsAt: Date) =>
   `${formatDate(startsAt)} ${formatTime(startsAt)} - ${formatTime(endsAt)}`;
 
-const getSessionStatus = (startsAt: Date, endsAt: Date) => {
-  const now = new Date();
-  if (endsAt < now) {
-    return "done";
-  }
-  if (startsAt > now) {
-    return "scheduled";
-  }
-  return "scheduled";
-};
-
 const buildSessionTitle = (sequence: number) => `第${sequence}回 研究会`;
 
 const toSessionViewModel = (session: {
@@ -46,14 +34,13 @@ const toSessionViewModel = (session: {
   title: string;
   startsAt: Date;
   endsAt: Date;
-}): CircleOverviewSession => ({
+}) => ({
   id: session.id,
   title: session.title?.trim()
     ? session.title
     : buildSessionTitle(session.sequence),
   startsAt: session.startsAt.toISOString(),
   endsAt: session.endsAt.toISOString(),
-  status: getSessionStatus(session.startsAt, session.endsAt),
 });
 
 const getViewerRole = (

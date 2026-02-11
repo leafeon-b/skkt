@@ -43,24 +43,9 @@ export type UserCircleSessionParticipationSummary = {
   startsAt: Date;
   endsAt: Date;
   location: string | null;
-  status: "scheduled" | "done" | "draft";
 };
 
 const buildSessionTitle = (sequence: number) => `第${sequence}回 研究会`;
-
-const getSessionStatus = (
-  startsAt: Date,
-  endsAt: Date,
-): "scheduled" | "done" => {
-  const now = new Date();
-  if (endsAt < now) {
-    return "done";
-  }
-  if (startsAt > now) {
-    return "scheduled";
-  }
-  return "scheduled";
-};
 
 export const createCircleSessionParticipationService = (
   deps: CircleSessionParticipationServiceDeps,
@@ -149,7 +134,6 @@ export const createCircleSessionParticipationService = (
         startsAt: session.startsAt,
         endsAt: session.endsAt,
         location: session.location ?? null,
-        status: getSessionStatus(session.startsAt, session.endsAt),
       };
     });
 

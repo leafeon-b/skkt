@@ -1,12 +1,10 @@
 export type CircleRoleKey = "owner" | "manager" | "member";
-export type CircleSessionStatus = "scheduled" | "done" | "draft";
 
 export type CircleOverviewSession = {
   id: string | null;
   title: string;
   startsAt: string;
   endsAt: string;
-  status: CircleSessionStatus;
 };
 
 export type CircleOverviewMember = {
