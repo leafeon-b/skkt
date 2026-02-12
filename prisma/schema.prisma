@@ -72,9 +72,6 @@ model CircleSession {
   circleId  String
   createdAt DateTime @default(now())
 
-  /// 研究会内の「第N回」
-  sequence Int
-
   title String
 
   /// 複数日開催も許容
@@ -88,7 +85,6 @@ model CircleSession {
   circleSessionMemberships CircleSessionMembership[]
   matches                  Match[]
 
-  @@unique([circleId, sequence])
   @@map("CircleSession")
 }
 
