@@ -81,7 +81,7 @@ server/
 SQLite + Prisma ORM。主要モデル:
 
 - **Circle**: 研究会
-- **CircleSession**: 開催回（sequence番号で管理）
+- **CircleSession**: 開催回
 - **CircleMembership / CircleSessionMembership**: ロールベースの参加情報
 - **Match**: 対局記録（論理削除対応）
 - **MatchHistory**: 対局の変更履歴
