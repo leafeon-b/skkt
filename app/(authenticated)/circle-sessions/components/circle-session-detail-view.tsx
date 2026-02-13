@@ -41,7 +41,7 @@ import type {
 } from "@/server/presentation/view-models/circle-session-detail";
 import { Copy, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 
 type RowOutcome = "ROW_WIN" | "ROW_LOSS" | "DRAW" | "UNKNOWN";
@@ -457,6 +457,7 @@ export function CircleSessionDetailView({
     detail.viewerRole === "owner" || detail.viewerRole === "manager";
   const memoText = detail.memoText?.trim() ? detail.memoText : "未設定";
 
+  const triggerCellIdRef = useRef<string | null>(null);
   const [activeDialog, setActiveDialog] = useState<ActiveDialog | null>(null);
   const [selectedMatchIndex, setSelectedMatchIndex] = useState<number | null>(
     null,
@@ -500,11 +501,23 @@ export function CircleSessionDetailView({
   };
 
   const openDialog = (mode: DialogMode, rowId: string, columnId: string) => {
+    triggerCellIdRef.current = `${rowId}-${columnId}`;
     initializeDialogState(mode, rowId, columnId);
     setActiveDialog({ mode, rowId, columnId });
   };
 
   const closeDialog = () => setActiveDialog(null);
+
+  const handleCloseAutoFocus = (event: Event) => {
+    if (triggerCellIdRef.current) {
+      event.preventDefault();
+      const el = document.querySelector<HTMLElement>(
+        `[data-cell-id="${triggerCellIdRef.current}"]`,
+      );
+      el?.focus();
+      triggerCellIdRef.current = null;
+    }
+  };
 
   const handleMatchSelectChange = (nextIndex: number) => {
     if (!activeDialog) {
@@ -890,6 +903,7 @@ export function CircleSessionDetailView({
                                     type="button"
                                     className={cellButtonClassName}
                                     title={cellDisplay.title}
+                                    data-cell-id={cellKey}
                                   >
                                     {cellDisplay.text}
                                   </button>
@@ -935,6 +949,7 @@ export function CircleSessionDetailView({
                                 type="button"
                                 className={cellButtonClassName}
                                 title={cellDisplay.title}
+                                data-cell-id={cellKey}
                                 onClick={() =>
                                   openDialog(
                                     "add",
@@ -968,7 +983,7 @@ export function CircleSessionDetailView({
           if (!open) closeDialog();
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent onCloseAutoFocus={handleCloseAutoFocus}>
           <AlertDialogHeader>
             <AlertDialogTitle>対局結果を削除</AlertDialogTitle>
             <AlertDialogDescription>
@@ -1039,7 +1054,7 @@ export function CircleSessionDetailView({
           if (!open) closeDialog();
         }}
       >
-        <DialogContent className="max-w-md rounded-2xl border-border/60 bg-white p-6 shadow-xl">
+        <DialogContent className="max-w-md rounded-2xl border-border/60 bg-white p-6 shadow-xl" onCloseAutoFocus={handleCloseAutoFocus}>
           <DialogHeader>
             <p className="text-xs font-semibold text-(--brand-ink-muted)">
               対局結果
