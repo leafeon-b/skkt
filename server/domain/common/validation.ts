@@ -6,6 +6,17 @@ export const assertNonEmpty = (value: string, field: string): string => {
   return trimmed;
 };
 
+export const assertMaxLength = (
+  value: string,
+  maxLength: number,
+  field: string,
+): string => {
+  if (value.length > maxLength) {
+    throw new Error(`${field} must be at most ${maxLength} characters`);
+  }
+  return value;
+};
+
 export const assertPositiveInteger = (value: number, field: string): number => {
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${field} must be a positive integer`);

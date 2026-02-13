@@ -1,5 +1,6 @@
 import type { CircleId, CircleSessionId } from "@/server/domain/common/ids";
 import {
+  assertMaxLength,
   assertNonEmpty,
   assertStartBeforeEnd,
   assertValidDate,
@@ -33,7 +34,11 @@ export const createCircleSession = (
   const startsAt = assertValidDate(params.startsAt, "startsAt");
   const endsAt = assertValidDate(params.endsAt, "endsAt");
   assertStartBeforeEnd(startsAt, endsAt, "CircleSession");
-  const title = assertNonEmpty(params.title, "CircleSession title");
+  const title = assertMaxLength(
+    assertNonEmpty(params.title, "CircleSession title"),
+    100,
+    "CircleSession title",
+  );
 
   return {
     id: params.id,
