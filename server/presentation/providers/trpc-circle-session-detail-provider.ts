@@ -122,6 +122,9 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
     const canCreateCircleSession = viewerId
       ? await ctx.accessService.canCreateCircleSession(viewerId, session.circleId)
       : false;
+    const canDeleteCircleSession = viewerId
+      ? await ctx.accessService.canDeleteCircleSession(viewerId, session.id)
+      : false;
 
     const matchViewModels: CircleSessionMatch[] = matches
       .filter((match) => match.deletedAt == null)
@@ -152,6 +155,7 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
       endsAtInput: formatDateTimeForInput(session.endsAt),
       viewerRole,
       canCreateCircleSession,
+      canDeleteCircleSession,
       participations: participationViewModels,
       matches: matchViewModels,
     };

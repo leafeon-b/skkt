@@ -31,6 +31,7 @@ export type CircleSessionDetailViewModel = {
   endsAtInput: string;
   viewerRole: CircleSessionRoleKey | null;
   canCreateCircleSession: boolean;
+  canDeleteCircleSession: boolean;
   participations: CircleSessionParticipation[];
   matches: CircleSessionMatch[];
 };
