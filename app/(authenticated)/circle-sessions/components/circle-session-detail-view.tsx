@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,12 +25,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { trpc } from "@/lib/trpc/client";
 import type {
   CircleSessionDetailViewModel,
   CircleSessionMatchOutcome,
   CircleSessionRoleKey,
 } from "@/server/presentation/view-models/circle-session-detail";
-import { Copy, Pencil } from "lucide-react";
+import { Copy, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
@@ -372,6 +383,20 @@ export function CircleSessionDetailView({
     );
   };
 
+  const [showDeleteSessionDialog, setShowDeleteSessionDialog] = useState(false);
+  const deleteSession = trpc.circleSessions.delete.useMutation({
+    onSuccess: () => {
+      router.push(`/circles/${encodeURIComponent(detail.circleId)}`);
+    },
+    onError: () => {
+      setShowDeleteSessionDialog(false);
+    },
+  });
+
+  const handleDeleteSession = () => {
+    deleteSession.mutate({ circleSessionId: detail.circleSessionId });
+  };
+
   const roleConfig = detail.viewerRole ? roleConfigs[detail.viewerRole] : null;
   const actions = roleConfig?.actions ?? ownerManagerBase.actions;
   const roleBadgeClassName = detail.viewerRole
@@ -608,6 +633,52 @@ export function CircleSessionDetailView({
                   <Copy className="size-4" />
                   複製
                 </Button>
+              ) : null}
+              {detail.canDeleteCircleSession ? (
+                <AlertDialog
+                  open={showDeleteSessionDialog}
+                  onOpenChange={(open) => {
+                    if (!deleteSession.isPending) setShowDeleteSessionDialog(open);
+                  }}
+                >
+                  <Button
+                    variant="destructive"
+                    className={isSingleAction ? "w-full" : ""}
+                    onClick={() => setShowDeleteSessionDialog(true)}
+                  >
+                    <Trash2 className="size-4" />
+                    削除
+                  </Button>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>削除</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        削除すると、参加者情報や対局結果もすべて削除されます。この操作は取り消せません。
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="rounded-xl border border-border/60 bg-(--brand-ink)/5 px-3 py-2 text-sm font-semibold text-(--brand-ink)">
+                      {detail.title}
+                      <span className="ml-2 text-xs font-normal text-(--brand-ink-muted)">
+                        {detail.dateTimeLabel}
+                      </span>
+                    </div>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={deleteSession.isPending}>
+                        キャンセル
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        variant="destructive"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDeleteSession();
+                        }}
+                        disabled={deleteSession.isPending}
+                      >
+                        {deleteSession.isPending ? "削除中…" : "削除する"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               ) : null}
             </div>
           </div>
