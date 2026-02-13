@@ -33,7 +33,7 @@ import type {
 } from "@/server/presentation/view-models/circle-session-detail";
 import { Copy, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 
 type RowOutcome = "ROW_WIN" | "ROW_LOSS" | "DRAW" | "UNKNOWN";
@@ -124,6 +124,18 @@ const parseDateInput = (value: string) => {
     return new Date();
   }
   return new Date(year, month - 1, day);
+};
+
+const convertRowOutcomeToApiOutcome = (
+  rowOutcome: RowOutcome,
+  rowId: string,
+  player1Id: string,
+): CircleSessionMatchOutcome => {
+  if (rowOutcome === "DRAW") return "DRAW";
+  if (rowOutcome === "UNKNOWN") return "UNKNOWN";
+  const rowIsPlayer1 = rowId === player1Id;
+  if (rowOutcome === "ROW_WIN") return rowIsPlayer1 ? "P1_WIN" : "P2_WIN";
+  return rowIsPlayer1 ? "P2_WIN" : "P1_WIN";
 };
 
 const getNameInitial = (name: string) => Array.from(name.trim())[0] ?? name;
@@ -399,6 +411,33 @@ export function CircleSessionDetailView({
     deleteSession.mutate({ circleSessionId: detail.circleSessionId });
   };
 
+  const createMatch = trpc.matches.create.useMutation({
+    onSuccess: () => {
+      router.refresh();
+    },
+    onError: () => {
+      toast.error("対局結果の追加に失敗しました");
+    },
+  });
+
+  const updateMatch = trpc.matches.update.useMutation({
+    onSuccess: () => {
+      router.refresh();
+    },
+    onError: () => {
+      toast.error("対局結果の更新に失敗しました");
+    },
+  });
+
+  const deleteMatch = trpc.matches.delete.useMutation({
+    onSuccess: () => {
+      router.refresh();
+    },
+    onError: () => {
+      toast.error("対局結果の削除に失敗しました");
+    },
+  });
+
   const roleConfig = detail.viewerRole ? roleConfigs[detail.viewerRole] : null;
   const actions = roleConfig?.actions ?? ownerManagerBase.actions;
   const roleBadgeClassName = detail.viewerRole
@@ -416,8 +455,6 @@ export function CircleSessionDetailView({
   );
   const [selectedOutcome, setSelectedOutcome] = useState<RowOutcome>("UNKNOWN");
   const [selectedDate, setSelectedDate] = useState<string>(todayInputValue);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const applyMatchSelection = (
     rowId: string,
@@ -473,44 +510,87 @@ export function CircleSessionDetailView({
     applyMatchSelection(activeDialog.rowId, selected);
   };
 
-  const showToast = (message: string) => {
-    setToastMessage(message);
-    if (toastTimeoutRef.current) {
-      clearTimeout(toastTimeoutRef.current);
-    }
-    toastTimeoutRef.current = setTimeout(() => {
-      setToastMessage(null);
-    }, 2200);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (toastTimeoutRef.current) {
-        clearTimeout(toastTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const handleDialogSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!activeDialog) {
       return;
     }
-    const rowName = getParticipationName(activeDialog.rowId);
-    const columnName = getParticipationName(activeDialog.columnId);
-    const actionLabel =
-      activeDialog.mode === "add" ? "追加しました" : "保存しました";
-    const outcomeLabel = getOutcomeLabel(selectedOutcome, rowName, columnName);
-    showToast(`${actionLabel}: ${rowName} vs ${columnName} / ${outcomeLabel}`);
-    setActiveDialog(null);
+
+    const player1Id = activeDialog.rowId;
+    const player2Id = activeDialog.columnId;
+    const outcome = convertRowOutcomeToApiOutcome(
+      selectedOutcome,
+      activeDialog.rowId,
+      player1Id,
+    );
+
+    if (activeDialog.mode === "add") {
+      createMatch.mutate(
+        {
+          circleSessionId: detail.circleSessionId,
+          order: matches.length + 1,
+          player1Id,
+          player2Id,
+          outcome,
+        },
+        {
+          onSuccess: () => {
+            const rowName = getParticipationName(activeDialog.rowId);
+            const columnName = getParticipationName(activeDialog.columnId);
+            const outcomeLabel = getOutcomeLabel(
+              selectedOutcome,
+              rowName,
+              columnName,
+            );
+            toast.success(
+              `追加しました: ${rowName} vs ${columnName} / ${outcomeLabel}`,
+            );
+            setActiveDialog(null);
+          },
+        },
+      );
+    } else if (activeDialog.mode === "edit") {
+      const pairMatches = getPairMatches(
+        activeDialog.rowId,
+        activeDialog.columnId,
+      );
+      const selected =
+        selectedMatchIndex === null
+          ? pairMatches[0]
+          : (pairMatches.find(
+              (entry) => entry.index === selectedMatchIndex,
+            ) ?? pairMatches[0]);
+      if (!selected) return;
+
+      updateMatch.mutate(
+        {
+          matchId: selected.match.id,
+          outcome,
+        },
+        {
+          onSuccess: () => {
+            const rowName = getParticipationName(activeDialog.rowId);
+            const columnName = getParticipationName(activeDialog.columnId);
+            const outcomeLabel = getOutcomeLabel(
+              selectedOutcome,
+              rowName,
+              columnName,
+            );
+            toast.success(
+              `保存しました: ${rowName} vs ${columnName} / ${outcomeLabel}`,
+            );
+            setActiveDialog(null);
+          },
+        },
+      );
+    }
   };
 
   const handleDelete = () => {
     if (!activeDialog) {
       return;
     }
-    const rowName = getParticipationName(activeDialog.rowId);
-    const columnName = getParticipationName(activeDialog.columnId);
     const pairMatches = getPairMatches(
       activeDialog.rowId,
       activeDialog.columnId,
@@ -520,15 +600,26 @@ export function CircleSessionDetailView({
         ? pairMatches[0]
         : (pairMatches.find((entry) => entry.index === selectedMatchIndex) ??
           pairMatches[0]);
-    const outcomeLabel = selected
-      ? getOutcomeLabel(
-          getRowOutcomeValue(activeDialog.rowId, selected.match),
-          rowName,
-          columnName,
-        )
-      : "結果不明";
-    showToast(`削除しました: ${rowName} vs ${columnName} / ${outcomeLabel}`);
-    setActiveDialog(null);
+    if (!selected) return;
+
+    deleteMatch.mutate(
+      { matchId: selected.match.id },
+      {
+        onSuccess: () => {
+          const rowName = getParticipationName(activeDialog.rowId);
+          const columnName = getParticipationName(activeDialog.columnId);
+          const outcomeLabel = getOutcomeLabel(
+            getRowOutcomeValue(activeDialog.rowId, selected.match),
+            rowName,
+            columnName,
+          );
+          toast.success(
+            `削除しました: ${rowName} vs ${columnName} / ${outcomeLabel}`,
+          );
+          setActiveDialog(null);
+        },
+      },
+    );
   };
 
   const activePairMatches = activeDialog
@@ -920,9 +1011,15 @@ export function CircleSessionDetailView({
             </>
           ) : null}
           <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleDelete}>
-              削除
+            <AlertDialogCancel disabled={deleteMatch.isPending}>
+              キャンセル
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteMatch.isPending}
+            >
+              {deleteMatch.isPending ? "削除中…" : "削除"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1040,17 +1137,17 @@ export function CircleSessionDetailView({
                 <Button
                   type="submit"
                   className="bg-(--brand-moss) text-white hover:bg-(--brand-moss)/90"
+                  disabled={createMatch.isPending || updateMatch.isPending}
                 >
-                  {activeDialog.mode === "add" ? "追加" : "保存"}
+                  {createMatch.isPending || updateMatch.isPending
+                    ? "処理中…"
+                    : activeDialog.mode === "add"
+                      ? "追加"
+                      : "保存"}
                 </Button>
               </div>
             </form>
           </div>
-        </div>
-      ) : null}
-      {toastMessage ? (
-        <div className="fixed bottom-6 right-6 z-50 rounded-full bg-(--brand-ink) px-4 py-2 text-xs font-semibold text-white shadow-lg">
-          {toastMessage}
         </div>
       ) : null}
     </div>
