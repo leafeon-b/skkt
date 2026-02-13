@@ -34,6 +34,7 @@ import type {
 import { Copy, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 type RowOutcome = "ROW_WIN" | "ROW_LOSS" | "DRAW" | "UNKNOWN";
 type DialogMode = "add" | "edit" | "delete";
@@ -390,6 +391,7 @@ export function CircleSessionDetailView({
     },
     onError: () => {
       setShowDeleteSessionDialog(false);
+      toast.error("削除に失敗しました");
     },
   });
 
