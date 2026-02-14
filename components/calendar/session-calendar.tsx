@@ -90,8 +90,9 @@ export function SessionCalendar({
     function applyKeyboardSupport() {
       const cells = container!.querySelectorAll<HTMLElement>(".fc-daygrid-day");
       cells.forEach((cell) => {
-        if (cell.getAttribute("tabindex") === "0") return;
+        if (cell.dataset.kbBound) return;
         cell.setAttribute("tabindex", "0");
+        cell.dataset.kbBound = "true";
         cell.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
