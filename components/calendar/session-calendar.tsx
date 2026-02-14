@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -46,10 +47,14 @@ function EventWithTooltip({ arg }: { arg: EventContentArg }) {
     return <span className="truncate">{title}</span>;
   }
 
+  const ariaLabel = `${title} ${formatTooltipDateTime(startsAt, endsAt)}`;
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="block truncate">{title}</span>
+        <span className="block truncate" aria-label={ariaLabel}>
+          {title}
+        </span>
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={4}>
         <div className="space-y-0.5 text-left">
@@ -70,14 +75,67 @@ export function SessionCalendar({
   events,
   onDateClick,
 }: SessionCalendarProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const onDateClickRef = useRef(onDateClick);
+  useEffect(() => {
+    onDateClickRef.current = onDateClick;
+  }, [onDateClick]);
+
+  useEffect(() => {
+    if (!onDateClick) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    function applyKeyboardSupport() {
+      const cells = container!.querySelectorAll<HTMLElement>(".fc-daygrid-day");
+      cells.forEach((cell) => {
+        if (cell.getAttribute("tabindex") === "0") return;
+        cell.setAttribute("tabindex", "0");
+        cell.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            const dateStr = cell.getAttribute("data-date");
+            if (dateStr && onDateClickRef.current) {
+              onDateClickRef.current({
+                date: new Date(dateStr),
+                dateStr,
+                allDay: true,
+                dayEl: cell,
+                jsEvent: e as unknown as MouseEvent,
+                view: {} as DateClickArg["view"],
+              });
+            }
+          }
+        });
+      });
+    }
+
+    applyKeyboardSupport();
+
+    const observer = new MutationObserver(() => {
+      applyKeyboardSupport();
+    });
+    observer.observe(container, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, [onDateClick]);
+
   return (
-    <FullCalendar
-      plugins={FC_PLUGINS}
-      initialView="dayGridMonth"
-      locale="ja"
-      events={events}
-      dateClick={onDateClick}
-      eventContent={(arg) => <EventWithTooltip arg={arg} />}
-    />
+    <div
+      ref={containerRef}
+      role="region"
+      aria-label="開催カレンダー"
+      className="[&_.fc-daygrid-day:focus-visible]:ring-2 [&_.fc-daygrid-day:focus-visible]:ring-ring [&_.fc-daygrid-day:focus-visible]:ring-offset-1 [&_.fc-daygrid-day:focus-visible]:outline-none"
+    >
+      <FullCalendar
+        plugins={FC_PLUGINS}
+        initialView="dayGridMonth"
+        locale="ja"
+        events={events}
+        dateClick={onDateClick}
+        eventContent={(arg) => <EventWithTooltip arg={arg} />}
+      />
+    </div>
   );
 }
