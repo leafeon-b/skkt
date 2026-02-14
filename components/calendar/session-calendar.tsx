@@ -37,7 +37,7 @@ function formatTooltipDateTime(
   return `${date} ${startTime} - ${endTime}`;
 }
 
-function EventWithTooltip({ arg }: { arg: EventContentArg }) {
+export function EventWithTooltip({ arg }: { arg: EventContentArg }) {
   const { extendedProps, title } = arg.event;
   const { startsAt, endsAt } = extendedProps as SessionExtendedProps;
 
@@ -47,19 +47,20 @@ function EventWithTooltip({ arg }: { arg: EventContentArg }) {
     return <span className="truncate">{title}</span>;
   }
 
-  const ariaLabel = `${title} ${formatTooltipDateTime(startsAt, endsAt)}`;
+  const dateTimeLabel = formatTooltipDateTime(startsAt, endsAt);
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="block truncate" aria-label={ariaLabel}>
+        <span className="block truncate">
           {title}
+          <span className="sr-only">{`, ${dateTimeLabel}`}</span>
         </span>
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={4}>
         <div className="space-y-0.5 text-left">
           <p className="font-semibold">{title}</p>
-          <p>{formatTooltipDateTime(startsAt, endsAt)}</p>
+          <p>{dateTimeLabel}</p>
         </div>
       </TooltipContent>
     </Tooltip>
