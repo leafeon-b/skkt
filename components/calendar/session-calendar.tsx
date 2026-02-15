@@ -107,10 +107,14 @@ export function SessionCalendar({
       );
       if (cells.length === 0) return;
 
-      // Determine if this is a fresh grid (no cell has kbBound yet)
-      const isFreshGrid = cells.every((c) => !c.dataset.kbBound);
+      // Determine if roving tabindex needs initialization:
+      // either no cell has kbBound (fresh grid) or no cell has tabindex="0"
+      // (can happen when FullCalendar replaces grid cells during month switch)
+      const needsInit =
+        cells.every((c) => !c.dataset.kbBound) ||
+        !cells.some((c) => c.getAttribute("tabindex") === "0");
 
-      if (isFreshGrid) {
+      if (needsInit) {
         // Set initial roving tabindex
         const todayIndex = cells.findIndex((c) =>
           c.classList.contains("fc-day-today"),
@@ -212,6 +216,7 @@ export function SessionCalendar({
         plugins={FC_PLUGINS}
         initialView="dayGridMonth"
         locale="ja"
+        buttonHints={{ prev: "前の$0", next: "次の$0" }}
         events={events}
         dateClick={onDateClick}
         eventContent={(arg) => <EventWithTooltip arg={arg} />}
