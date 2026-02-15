@@ -136,7 +136,7 @@ export function CircleSessionCreateForm({
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="startsAt"
-              className="text-xs font-semibold text-(--brand-ink-muted)"
+              className="text-xs font-semibold text-(--brand-ink-muted) after:ml-0.5 after:text-red-600 after:content-['*']"
             >
               開始日時
             </label>
@@ -152,7 +152,7 @@ export function CircleSessionCreateForm({
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="endsAt"
-              className="text-xs font-semibold text-(--brand-ink-muted)"
+              className="text-xs font-semibold text-(--brand-ink-muted) after:ml-0.5 after:text-red-600 after:content-['*']"
             >
               終了日時
             </label>

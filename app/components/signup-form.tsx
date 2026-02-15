@@ -77,10 +77,14 @@ export default function SignupForm() {
   return (
     <form className="space-y-3" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <label className="text-xs font-semibold text-(--brand-ink-muted)">
+        <label
+          htmlFor="display-name"
+          className="text-xs font-semibold text-(--brand-ink-muted)"
+        >
           表示名（任意）
         </label>
         <Input
+          id="display-name"
           type="text"
           value={name}
           autoComplete="name"
@@ -89,42 +93,57 @@ export default function SignupForm() {
         />
       </div>
       <div className="space-y-2">
-        <label className="text-xs font-semibold text-(--brand-ink-muted)">
+        <label
+          htmlFor="signup-email"
+          className="text-xs font-semibold text-(--brand-ink-muted) after:ml-0.5 after:text-red-600 after:content-['*']"
+        >
           メールアドレス
         </label>
         <Input
+          id="signup-email"
           type="email"
           value={email}
           autoComplete="email"
           placeholder="demo1@example.com"
           onChange={(event) => setEmail(event.target.value)}
           required
+          aria-required="true"
         />
       </div>
       <div className="space-y-2">
-        <label className="text-xs font-semibold text-(--brand-ink-muted)">
+        <label
+          htmlFor="signup-password"
+          className="text-xs font-semibold text-(--brand-ink-muted) after:ml-0.5 after:text-red-600 after:content-['*']"
+        >
           パスワード
         </label>
         <Input
+          id="signup-password"
           type="password"
           value={password}
           autoComplete="new-password"
           placeholder="••••••••"
           onChange={(event) => setPassword(event.target.value)}
           required
+          aria-required="true"
         />
       </div>
       <div className="space-y-2">
-        <label className="text-xs font-semibold text-(--brand-ink-muted)">
+        <label
+          htmlFor="signup-password-confirm"
+          className="text-xs font-semibold text-(--brand-ink-muted) after:ml-0.5 after:text-red-600 after:content-['*']"
+        >
           パスワード（確認）
         </label>
         <Input
+          id="signup-password-confirm"
           type="password"
           value={passwordConfirm}
           autoComplete="new-password"
           placeholder="••••••••"
           onChange={(event) => setPasswordConfirm(event.target.value)}
           required
+          aria-required="true"
         />
       </div>
       {errorMessage ? (

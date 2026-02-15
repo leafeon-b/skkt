@@ -35,14 +35,24 @@ export default function CircleCreateForm() {
     <div className="w-full">
       <form
         onSubmit={handleSubmit}
-        className="flex w-full flex-col gap-3 sm:flex-row"
+        className="flex w-full flex-col gap-3"
       >
-        <Input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="研究会名"
-          className="bg-white"
-        />
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="circle-name"
+            className="text-xs font-semibold text-(--brand-ink-muted) after:ml-0.5 after:text-red-600 after:content-['*']"
+          >
+            研究会名
+          </label>
+          <Input
+            id="circle-name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="研究会名"
+            aria-required="true"
+            className="bg-white"
+          />
+        </div>
         <Button
           type="submit"
           className="bg-(--brand-moss) text-white hover:bg-(--brand-moss)/90"
