@@ -157,7 +157,7 @@ export function SessionCalendar({
         });
       }
 
-      cells.forEach((cell, idx) => {
+      cells.forEach((cell) => {
         if (cell.dataset.kbBound) return;
         cell.dataset.kbBound = "true";
         cell.addEventListener("keydown", (e) => {

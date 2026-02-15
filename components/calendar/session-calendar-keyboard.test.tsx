@@ -71,7 +71,7 @@ describe("SessionCalendar keyboard navigation", () => {
     document.body.appendChild(container);
 
     // Build a 5×7 grid inside the container
-    const grid = buildGrid(5, { todayIndex: 10 });
+    buildGrid(5, { todayIndex: 10 });
     // We'll render the component – its useEffect will attach to containerRef
     // But since FC is stubbed, we need to manually insert the grid DOM
     // and then render the component pointing to our container.
@@ -360,7 +360,7 @@ describe("SessionCalendar keyboard navigation", () => {
 
     it("newly added cells get exactly one listener via MutationObserver", async () => {
       const onDateClick = vi.fn();
-      const { wrapper, getCells: getC } = await setupWithSpy(onDateClick);
+      const { wrapper } = await setupWithSpy(onDateClick);
 
       // Add a new cell – MutationObserver will call applyKeyboardSupport
       const newCell = document.createElement("td");
