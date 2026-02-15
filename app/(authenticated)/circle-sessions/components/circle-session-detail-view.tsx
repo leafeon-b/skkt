@@ -424,6 +424,7 @@ export function CircleSessionDetailView({
       router.refresh();
     },
     onError: () => {
+      setActiveDialog(null);
       toast.error("対局結果の追加に失敗しました");
     },
   });
@@ -433,6 +434,7 @@ export function CircleSessionDetailView({
       router.refresh();
     },
     onError: () => {
+      setActiveDialog(null);
       toast.error("対局結果の更新に失敗しました");
     },
   });
@@ -442,6 +444,7 @@ export function CircleSessionDetailView({
       router.refresh();
     },
     onError: () => {
+      setActiveDialog(null);
       toast.error("対局結果の削除に失敗しました");
     },
   });
@@ -569,9 +572,6 @@ export function CircleSessionDetailView({
             );
             setActiveDialog(null);
           },
-          onError: () => {
-            setActiveDialog(null);
-          },
         },
       );
     } else if (activeDialog.mode === "edit") {
@@ -604,9 +604,6 @@ export function CircleSessionDetailView({
             toast.success(
               `保存しました: ${rowName} vs ${columnName} / ${outcomeLabel}`,
             );
-            setActiveDialog(null);
-          },
-          onError: () => {
             setActiveDialog(null);
           },
         },
@@ -643,9 +640,6 @@ export function CircleSessionDetailView({
           toast.success(
             `削除しました: ${rowName} vs ${columnName} / ${outcomeLabel}`,
           );
-          setActiveDialog(null);
-        },
-        onError: () => {
           setActiveDialog(null);
         },
       },
