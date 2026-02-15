@@ -123,7 +123,7 @@ describe("Prisma CircleSession リポジトリ", () => {
 
     expect(mockedPrisma.circleSession.findMany).toHaveBeenCalledWith({
       where: { circleId: "circle-1" },
-      orderBy: { startsAt: "asc" },
+      orderBy: [{ startsAt: "asc" }, { createdAt: "asc" }],
     });
     expect(sessions).toHaveLength(1);
   });

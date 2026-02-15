@@ -44,7 +44,7 @@ export const createPrismaCircleSessionRepository = (
   async listByCircleId(circleId: CircleId): Promise<CircleSession[]> {
     const sessions = await client.circleSession.findMany({
       where: { circleId: toPersistenceId(circleId) },
-      orderBy: { startsAt: "asc" },
+      orderBy: [{ startsAt: "asc" }, { createdAt: "asc" }],
     });
 
     return sessions.map(mapCircleSessionToDomain);
