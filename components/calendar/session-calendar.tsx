@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -85,6 +85,17 @@ export function SessionCalendar({
   useEffect(() => {
     onDateClickRef.current = onDateClick;
   }, [onDateClick]);
+
+  const sessionDates = useMemo(() => {
+    if (!events) return new Set<string>();
+    return new Set(
+      events.map((e) => {
+        const d = e.start;
+        if (d instanceof Date) return d.toISOString().slice(0, 10);
+        return typeof d === "string" ? d.slice(0, 10) : "";
+      }),
+    );
+  }, [events]);
 
   useEffect(() => {
     if (!onDateClick) return;
@@ -214,7 +225,7 @@ export function SessionCalendar({
       ref={containerRef}
       role="region"
       aria-label="開催カレンダー"
-      className="[&_.fc-daygrid-day:focus-visible]:ring-2 [&_.fc-daygrid-day:focus-visible]:ring-ring [&_.fc-daygrid-day:focus-visible]:ring-offset-1 [&_.fc-daygrid-day:focus-visible]:outline-none"
+      className="[&_.fc-daygrid-day:focus-visible]:ring-2 [&_.fc-daygrid-day:focus-visible]:ring-ring [&_.fc-daygrid-day:focus-visible]:ring-offset-1 [&_.fc-daygrid-day:focus-visible]:outline-none [&_.fc-day-clickable]:cursor-pointer [&_.fc-day-clickable:hover]:bg-(--brand-moss)/10"
     >
       <FullCalendar
         plugins={FC_PLUGINS}
@@ -223,6 +234,11 @@ export function SessionCalendar({
         buttonHints={{ prev: "前の$0", next: "次の$0" }}
         events={events}
         dateClick={onDateClick}
+        dayCellClassNames={(arg) => {
+          if (!onDateClick) return [];
+          const dateStr = arg.date.toISOString().slice(0, 10);
+          return sessionDates.has(dateStr) ? [] : ["fc-day-clickable"];
+        }}
         eventContent={(arg) => <EventWithTooltip arg={arg} />}
       />
     </div>
