@@ -128,6 +128,53 @@ describe("Prisma CircleSession リポジトリ", () => {
     expect(sessions).toHaveLength(1);
   });
 
+  test("listByCircleId はPrismaから返された順序をそのまま保持する", async () => {
+    const prismaSessions = [
+      {
+        id: "session-a",
+        circleId: "circle-1",
+        title: "セッションA",
+        startsAt: new Date("2024-01-01T10:00:00Z"),
+        endsAt: new Date("2024-01-01T12:00:00Z"),
+        location: null,
+        note: "",
+        createdAt: new Date("2024-01-01T03:00:00Z"),
+      },
+      {
+        id: "session-b",
+        circleId: "circle-1",
+        title: "セッションB",
+        startsAt: new Date("2024-01-01T10:00:00Z"),
+        endsAt: new Date("2024-01-01T12:00:00Z"),
+        location: null,
+        note: "",
+        createdAt: new Date("2024-01-01T01:00:00Z"),
+      },
+      {
+        id: "session-c",
+        circleId: "circle-1",
+        title: "セッションC",
+        startsAt: new Date("2024-01-01T10:00:00Z"),
+        endsAt: new Date("2024-01-01T12:00:00Z"),
+        location: null,
+        note: "",
+        createdAt: new Date("2024-01-01T02:00:00Z"),
+      },
+    ] as PrismaCircleSession[];
+
+    mockedPrisma.circleSession.findMany.mockResolvedValueOnce(prismaSessions);
+
+    const sessions = await prismaCircleSessionRepository.listByCircleId(
+      circleId("circle-1"),
+    );
+
+    expect(sessions.map((session) => session.id)).toEqual([
+      circleSessionId("session-a"),
+      circleSessionId("session-b"),
+      circleSessionId("session-c"),
+    ]);
+  });
+
   test("save は upsert を呼ぶ", async () => {
     const session = createCircleSession({
       id: circleSessionId("session-1"),
