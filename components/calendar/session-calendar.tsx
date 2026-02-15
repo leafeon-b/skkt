@@ -39,7 +39,8 @@ export function formatTooltipDateTime(
 
 export function EventWithTooltip({ arg }: { arg: EventContentArg }) {
   const { extendedProps, title } = arg.event;
-  const { startsAt, endsAt } = extendedProps as SessionExtendedProps;
+  const startsAt = extendedProps.startsAt as string | Date | undefined;
+  const endsAt = extendedProps.endsAt as string | Date | undefined;
 
   const hasTooltipData = startsAt && endsAt;
 
