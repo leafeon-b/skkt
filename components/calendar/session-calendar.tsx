@@ -76,6 +76,26 @@ type SessionCalendarProps = {
   onDateClick?: (arg: DateClickArg) => void;
 };
 
+export function buildSessionDates(events?: EventInput[]): Set<string> {
+  if (!events) return new Set<string>();
+  return new Set(
+    events.map((e) => {
+      const d = e.start;
+      if (d instanceof Date) return d.toISOString().slice(0, 10);
+      return typeof d === "string" ? d.slice(0, 10) : "";
+    }),
+  );
+}
+
+export function getDayCellClassNames(
+  dateStr: string,
+  sessionDates: Set<string>,
+  hasDateClick: boolean,
+): string[] {
+  if (!hasDateClick) return [];
+  return sessionDates.has(dateStr) ? [] : ["fc-day-clickable"];
+}
+
 export function SessionCalendar({
   events,
   onDateClick,
@@ -86,16 +106,7 @@ export function SessionCalendar({
     onDateClickRef.current = onDateClick;
   }, [onDateClick]);
 
-  const sessionDates = useMemo(() => {
-    if (!events) return new Set<string>();
-    return new Set(
-      events.map((e) => {
-        const d = e.start;
-        if (d instanceof Date) return d.toISOString().slice(0, 10);
-        return typeof d === "string" ? d.slice(0, 10) : "";
-      }),
-    );
-  }, [events]);
+  const sessionDates = useMemo(() => buildSessionDates(events), [events]);
 
   useEffect(() => {
     if (!onDateClick) return;
@@ -235,9 +246,8 @@ export function SessionCalendar({
         events={events}
         dateClick={onDateClick}
         dayCellClassNames={(arg) => {
-          if (!onDateClick) return [];
           const dateStr = arg.date.toISOString().slice(0, 10);
-          return sessionDates.has(dateStr) ? [] : ["fc-day-clickable"];
+          return getDayCellClassNames(dateStr, sessionDates, !!onDateClick);
         }}
         eventContent={(arg) => <EventWithTooltip arg={arg} />}
       />
