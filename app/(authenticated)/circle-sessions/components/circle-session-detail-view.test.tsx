@@ -285,7 +285,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
   let toastModule: { toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> } };
 
   beforeEach(async () => {
-    toastModule = await import("sonner") as typeof toastModule;
+    toastModule = await import("sonner") as unknown as typeof toastModule;
     toastModule.toast.success.mockClear();
     toastModule.toast.error.mockClear();
   });

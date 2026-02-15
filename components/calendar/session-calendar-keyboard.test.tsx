@@ -7,6 +7,7 @@
  * component to exercise the keyboard-support effect.
  */
 import { cleanup, render } from "@testing-library/react";
+import type { DateClickArg } from "@fullcalendar/interaction";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Stub FullCalendar so the component can mount without the real library ──
@@ -296,7 +297,7 @@ describe("SessionCalendar keyboard navigation", () => {
      * Helper: render a fresh SessionCalendar, inject grid, wait for
      * MutationObserver, then return cells and container refs.
      */
-    async function setupWithSpy(onDateClick: ReturnType<typeof vi.fn>) {
+    async function setupWithSpy(onDateClick: (arg: DateClickArg) => void) {
       document.body.innerHTML = "";
       const newContainer = document.createElement("div");
       document.body.appendChild(newContainer);
