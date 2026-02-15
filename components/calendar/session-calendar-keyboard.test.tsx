@@ -290,4 +290,106 @@ describe("SessionCalendar keyboard navigation", () => {
       expect(onDateClick).toHaveBeenCalledOnce();
     });
   });
+
+  describe("duplicate listener prevention (dataset.kbBound guard)", () => {
+    /**
+     * Helper: render a fresh SessionCalendar, inject grid, wait for
+     * MutationObserver, then return cells and container refs.
+     */
+    async function setupWithSpy(onDateClick: ReturnType<typeof vi.fn>) {
+      document.body.innerHTML = "";
+      const newContainer = document.createElement("div");
+      document.body.appendChild(newContainer);
+      container = newContainer;
+
+      const mod = await import("./session-calendar");
+      const { container: rendered } = render(
+        <mod.SessionCalendar onDateClick={onDateClick} />,
+        { container: newContainer },
+      );
+
+      const wrapper = rendered.querySelector("[role='region']")!;
+      const gridDom = buildGrid(5, { todayIndex: 10 });
+      while (gridDom.firstChild) {
+        wrapper.appendChild(gridDom.firstChild);
+      }
+
+      // Wait for MutationObserver to fire applyKeyboardSupport
+      await new Promise((r) => setTimeout(r, 0));
+
+      return { wrapper, getCells: () => getCells() };
+    }
+
+    it("Enter fires onDateClick only once even after multiple MutationObserver re-runs", async () => {
+      const onDateClick = vi.fn();
+      const { wrapper, getCells: getC } = await setupWithSpy(onDateClick);
+
+      // Trigger MutationObserver again by adding a new cell
+      const extraCell = document.createElement("td");
+      extraCell.classList.add("fc-daygrid-day");
+      extraCell.setAttribute("data-date", "2025-02-01");
+      wrapper.appendChild(extraCell);
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      const cells = getC();
+      cells[10].focus();
+      press(cells[10], "Enter");
+
+      expect(onDateClick).toHaveBeenCalledOnce();
+    });
+
+    it("Space fires onDateClick only once even after multiple MutationObserver re-runs", async () => {
+      const onDateClick = vi.fn();
+      const { wrapper, getCells: getC } = await setupWithSpy(onDateClick);
+
+      // Trigger MutationObserver again
+      const extraCell = document.createElement("td");
+      extraCell.classList.add("fc-daygrid-day");
+      extraCell.setAttribute("data-date", "2025-02-02");
+      wrapper.appendChild(extraCell);
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      const cells = getC();
+      cells[10].focus();
+      press(cells[10], " ");
+
+      expect(onDateClick).toHaveBeenCalledOnce();
+    });
+
+    it("newly added cells get exactly one listener via MutationObserver", async () => {
+      const onDateClick = vi.fn();
+      const { wrapper, getCells: getC } = await setupWithSpy(onDateClick);
+
+      // Add a new cell – MutationObserver will call applyKeyboardSupport
+      const newCell = document.createElement("td");
+      newCell.classList.add("fc-daygrid-day");
+      newCell.setAttribute("data-date", "2025-02-03");
+      wrapper.appendChild(newCell);
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Trigger another MutationObserver run (should not duplicate listener)
+      const anotherCell = document.createElement("td");
+      anotherCell.classList.add("fc-daygrid-day");
+      anotherCell.setAttribute("data-date", "2025-02-04");
+      wrapper.appendChild(anotherCell);
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Focus and press Enter on the first newly added cell
+      newCell.setAttribute("tabindex", "0");
+      newCell.focus();
+      press(newCell, "Enter");
+
+      expect(onDateClick).toHaveBeenCalledOnce();
+      expect(onDateClick).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dateStr: "2025-02-03",
+          allDay: true,
+        }),
+      );
+    });
+  });
 });
