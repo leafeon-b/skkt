@@ -1,3 +1,5 @@
+import { createContext } from "@/server/presentation/trpc/context";
+import { forbidden } from "next/navigation";
 import { CircleSessionCreateForm } from "./circle-session-create-form";
 
 type NewCircleSessionPageProps = {
@@ -16,6 +18,16 @@ export default async function NewCircleSessionPage({
   searchParams,
 }: NewCircleSessionPageProps) {
   const { circleId } = await params;
+
+  const ctx = await createContext();
+  const canCreate = await ctx.accessService.canCreateCircleSession(
+    ctx.actorId,
+    circleId,
+  );
+  if (!canCreate) {
+    forbidden();
+  }
+
   const { startsAt, title, endsAt, location, note } = await searchParams;
 
   return (
