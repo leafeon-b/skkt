@@ -1,3 +1,4 @@
+import { formatDateTimeRange } from "@/lib/date-utils";
 import { CircleRole } from "@/server/domain/services/authz/roles";
 import { circleId, userId } from "@/server/domain/common/ids";
 import type { ServiceContainer } from "@/server/application/service-container";
@@ -14,17 +15,6 @@ const roleKeyByDto: Record<CircleRole, CircleRoleKey> = {
   [CircleRole.CircleManager]: "manager",
   [CircleRole.CircleMember]: "member",
 };
-
-const pad2 = (value: number) => String(value).padStart(2, "0");
-
-const formatDate = (date: Date) =>
-  `${date.getFullYear()}/${pad2(date.getMonth() + 1)}/${pad2(date.getDate())}`;
-
-const formatTime = (date: Date) =>
-  `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
-
-const formatDateTimeRange = (startsAt: Date, endsAt: Date) =>
-  `${formatDate(startsAt)} ${formatTime(startsAt)} - ${formatTime(endsAt)}`;
 
 const toSessionViewModel = (session: {
   id: string;

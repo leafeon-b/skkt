@@ -11,6 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { formatTooltipDateTime } from "@/lib/date-utils";
 
 const FC_PLUGINS = [dayGridPlugin, interactionPlugin];
 
@@ -18,24 +19,6 @@ export type SessionExtendedProps = {
   startsAt: string | Date;
   endsAt: string | Date;
 };
-
-export function formatTooltipDateTime(
-  startsAt: string | Date,
-  endsAt: string | Date,
-): string {
-  const toDate = (v: string | Date): Date =>
-    v instanceof Date ? v : new Date(v);
-
-  const start = toDate(startsAt);
-  const end = toDate(endsAt);
-
-  const pad2 = (n: number) => String(n).padStart(2, "0");
-  const date = `${start.getFullYear()}/${pad2(start.getMonth() + 1)}/${pad2(start.getDate())}`;
-  const startTime = `${pad2(start.getHours())}:${pad2(start.getMinutes())}`;
-  const endTime = `${pad2(end.getHours())}:${pad2(end.getMinutes())}`;
-
-  return `${date} ${startTime} - ${endTime}`;
-}
 
 function isValidDateValue(value: unknown): value is string | Date {
   return typeof value === "string" || value instanceof Date;

@@ -5,18 +5,11 @@ import {
   SessionCalendar,
   type SessionExtendedProps,
 } from "@/components/calendar/session-calendar";
+import { formatDate, formatTime } from "@/lib/date-utils";
 import { trpc } from "@/lib/trpc/client";
 import type { EventInput } from "@fullcalendar/core";
 import Link from "next/link";
 import { useMemo } from "react";
-
-const pad2 = (value: number) => String(value).padStart(2, "0");
-
-const formatDate = (date: Date) =>
-  `${date.getFullYear()}/${pad2(date.getMonth() + 1)}/${pad2(date.getDate())}`;
-
-const formatTime = (date: Date) =>
-  `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 
 export default function Home() {
   const sessionsQuery =

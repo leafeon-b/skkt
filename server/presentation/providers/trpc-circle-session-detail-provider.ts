@@ -1,3 +1,8 @@
+import {
+  formatDateForInput,
+  formatDateTimeForInput,
+  formatDateTimeRange,
+} from "@/lib/date-utils";
 import { CircleSessionRole } from "@/server/domain/services/authz/roles";
 import { userId } from "@/server/domain/common/ids";
 import { appRouter } from "@/server/presentation/trpc/router";
@@ -10,23 +15,6 @@ import type {
   CircleSessionRoleKey,
   CircleSessionDetailViewModel,
 } from "@/server/presentation/view-models/circle-session-detail";
-
-const pad2 = (value: number) => String(value).padStart(2, "0");
-
-const formatDateForInput = (date: Date) =>
-  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-
-const formatDateTimeForInput = (date: Date) =>
-  `${formatDateForInput(date)}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
-
-const formatDate = (date: Date) =>
-  `${date.getFullYear()}/${pad2(date.getMonth() + 1)}/${pad2(date.getDate())}`;
-
-const formatTime = (date: Date) =>
-  `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
-
-const formatDateTimeRange = (startsAt: Date, endsAt: Date) =>
-  `${formatDate(startsAt)} ${formatTime(startsAt)} - ${formatTime(endsAt)}`;
 
 const roleKeyByDto: Record<CircleSessionRole, CircleSessionRoleKey> = {
   [CircleSessionRole.CircleSessionOwner]: "owner",

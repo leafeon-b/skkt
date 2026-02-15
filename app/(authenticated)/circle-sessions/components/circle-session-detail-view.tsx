@@ -33,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatDateForInput } from "@/lib/date-utils";
 import { trpc } from "@/lib/trpc/client";
 import type {
   CircleSessionDetailViewModel,
@@ -115,11 +116,6 @@ const roleConfigs: Record<CircleSessionRoleKey, RoleConfig> = {
     ],
   },
 };
-
-const pad2 = (value: number) => String(value).padStart(2, "0");
-
-const formatDateForInput = (date: Date) =>
-  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
 const getTodayInputValue = () => formatDateForInput(new Date());
 
