@@ -19,7 +19,7 @@ export type SessionExtendedProps = {
   endsAt: string | Date;
 };
 
-function formatTooltipDateTime(
+export function formatTooltipDateTime(
   startsAt: string | Date,
   endsAt: string | Date,
 ): string {
