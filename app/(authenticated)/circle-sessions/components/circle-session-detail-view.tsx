@@ -720,7 +720,7 @@ export function CircleSessionDetailView({
                   className="text-(--brand-ink-muted) hover:text-(--brand-ink)"
                   aria-label="メモを編集"
                 >
-                  <Pencil />
+                  <Pencil aria-hidden="true" />
                 </Button>
               ) : null}
             </div>
@@ -744,7 +744,7 @@ export function CircleSessionDetailView({
                   className={`border-(--brand-ink)/20 bg-white/80 text-(--brand-ink) hover:bg-white ${isSingleAction ? "w-full" : ""}`.trim()}
                   onClick={handleDuplicate}
                 >
-                  <Copy className="size-4" />
+                  <Copy className="size-4" aria-hidden="true" />
                   複製
                 </Button>
               ) : null}
@@ -760,7 +760,7 @@ export function CircleSessionDetailView({
                     className={isSingleAction ? "w-full" : ""}
                     onClick={() => setShowDeleteSessionDialog(true)}
                   >
-                    <Trash2 className="size-4" />
+                    <Trash2 className="size-4" aria-hidden="true" />
                     削除
                   </Button>
                   <AlertDialogContent>
