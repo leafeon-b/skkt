@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc/client";
+import { trimWithFullwidth } from "@/lib/string";
 import { useRouter } from "next/navigation";
 
 type CircleSessionCreateFormProps = {
@@ -68,7 +69,7 @@ export function CircleSessionCreateForm({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const trimmedTitle = title.replace(/^[\s\u3000]+|[\s\u3000]+$/g, "");
+    const trimmedTitle = trimWithFullwidth(title);
     if (!trimmedTitle) {
       setTitleError("タイトルを入力してください");
       titleRef.current?.focus();

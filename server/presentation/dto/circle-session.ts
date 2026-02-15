@@ -3,6 +3,7 @@ import {
   circleIdSchema,
   circleSessionIdSchema,
 } from "@/server/presentation/dto/ids";
+import { trimWithFullwidth } from "@/lib/string";
 
 const dateInputSchema = z.coerce.date();
 
@@ -37,7 +38,7 @@ export const circleSessionCreateInputSchema = z.object({
   circleId: circleIdSchema,
   title: z
     .string()
-    .transform((v) => v.replace(/^[\s\u3000]+|[\s\u3000]+$/g, ""))
+    .transform(trimWithFullwidth)
     .pipe(z.string().min(1).max(100)),
   startsAt: dateInputSchema,
   endsAt: dateInputSchema,
@@ -54,7 +55,7 @@ export const circleSessionUpdateInputSchema = z
     circleSessionId: circleSessionIdSchema,
     title: z
       .string()
-      .transform((v) => v.replace(/^[\s\u3000]+|[\s\u3000]+$/g, ""))
+      .transform(trimWithFullwidth)
       .pipe(z.string().min(1).max(100))
       .optional(),
     startsAt: dateInputSchema.optional(),
