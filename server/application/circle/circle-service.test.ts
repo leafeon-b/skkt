@@ -3,6 +3,7 @@ import { createCircleService } from "@/server/application/circle/circle-service"
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
+import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { circleId } from "@/server/domain/common/ids";
 import { createCircle } from "@/server/domain/models/circle/circle";
 
@@ -109,5 +110,73 @@ describe("Circle サービス", () => {
 
     expect(circleRepository.save).toHaveBeenCalledWith(updated);
     expect(updated.name).toBe("Next");
+  });
+});
+
+describe("UnitOfWork 経路", () => {
+  const uowCircleRepository = {
+    findById: vi.fn(),
+    findByIds: vi.fn(),
+    save: vi.fn(),
+    delete: vi.fn(),
+  } satisfies CircleRepository;
+
+  const uowCircleParticipationRepository = {
+    listByCircleId: vi.fn(),
+    listByUserId: vi.fn(),
+    addParticipation: vi.fn(),
+    updateParticipationRole: vi.fn(),
+    removeParticipation: vi.fn(),
+  } satisfies CircleParticipationRepository;
+
+  const unitOfWork: UnitOfWork = vi.fn(async (op) =>
+    op({
+      circleRepository: uowCircleRepository,
+      circleParticipationRepository: uowCircleParticipationRepository,
+    } as never),
+  );
+
+  const uowAccessService = createAccessServiceStub();
+
+  const uowService = createCircleService({
+    circleRepository: uowCircleRepository,
+    circleParticipationRepository: uowCircleParticipationRepository,
+    accessService: uowAccessService,
+    unitOfWork,
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(uowAccessService.canCreateCircle).mockResolvedValue(true);
+  });
+
+  test("createCircle は unitOfWork を呼び出す", async () => {
+    const circle = await uowService.createCircle({
+      actorId: "user-1",
+      id: circleId("circle-1"),
+      name: "Home",
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+    });
+
+    expect(unitOfWork).toHaveBeenCalledOnce();
+    expect(uowCircleRepository.save).toHaveBeenCalledWith(circle);
+    expect(
+      uowCircleParticipationRepository.addParticipation,
+    ).toHaveBeenCalled();
+  });
+
+  test("addParticipation 失敗時にエラーが伝播する", async () => {
+    uowCircleParticipationRepository.addParticipation.mockRejectedValue(
+      new Error("DB error"),
+    );
+
+    await expect(
+      uowService.createCircle({
+        actorId: "user-1",
+        id: circleId("circle-1"),
+        name: "Home",
+        createdAt: new Date("2024-01-01T00:00:00Z"),
+      }),
+    ).rejects.toThrow("DB error");
   });
 });

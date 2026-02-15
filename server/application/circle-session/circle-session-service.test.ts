@@ -4,6 +4,7 @@ import { createAccessServiceStub } from "@/server/application/test-helpers/acces
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
+import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 import { createCircle } from "@/server/domain/models/circle/circle";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
@@ -233,5 +234,88 @@ describe("CircleSession サービス", () => {
         circleSessionParticipationRepository.addParticipation,
       ).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe("UnitOfWork 経路", () => {
+  const uowCircleRepository = {
+    findById: vi.fn(),
+    findByIds: vi.fn(),
+    save: vi.fn(),
+    delete: vi.fn(),
+  } satisfies CircleRepository;
+
+  const uowCircleSessionRepository = {
+    findById: vi.fn(),
+    findByIds: vi.fn(),
+    listByCircleId: vi.fn(),
+    save: vi.fn(),
+    delete: vi.fn(),
+  } satisfies CircleSessionRepository;
+
+  const uowCircleSessionParticipationRepository = {
+    listParticipations: vi.fn(),
+    listByUserId: vi.fn(),
+    addParticipation: vi.fn(),
+    updateParticipationRole: vi.fn(),
+    areUsersParticipating: vi.fn(),
+    removeParticipation: vi.fn(),
+  } satisfies CircleSessionParticipationRepository;
+
+  const unitOfWork: UnitOfWork = vi.fn(async (op) =>
+    op({
+      circleSessionRepository: uowCircleSessionRepository,
+      circleSessionParticipationRepository:
+        uowCircleSessionParticipationRepository,
+    } as never),
+  );
+
+  const uowAccessService = createAccessServiceStub();
+
+  const uowService = createCircleSessionService({
+    circleRepository: uowCircleRepository,
+    circleSessionRepository: uowCircleSessionRepository,
+    circleSessionParticipationRepository:
+      uowCircleSessionParticipationRepository,
+    accessService: uowAccessService,
+    unitOfWork,
+  });
+
+  const uowBaseCircle = createCircle({
+    id: circleId("circle-1"),
+    name: "Home",
+    createdAt: new Date("2024-01-01T00:00:00Z"),
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(uowAccessService.canCreateCircleSession).mockResolvedValue(true);
+    vi.mocked(uowCircleRepository.findById).mockResolvedValue(uowBaseCircle);
+  });
+
+  test("createCircleSession は unitOfWork を呼び出す", async () => {
+    const session = await uowService.createCircleSession({
+      actorId: "user-1",
+      ...baseSessionParams,
+    });
+
+    expect(unitOfWork).toHaveBeenCalledOnce();
+    expect(uowCircleSessionRepository.save).toHaveBeenCalledWith(session);
+    expect(
+      uowCircleSessionParticipationRepository.addParticipation,
+    ).toHaveBeenCalled();
+  });
+
+  test("addParticipation 失敗時にエラーが伝播する", async () => {
+    uowCircleSessionParticipationRepository.addParticipation.mockRejectedValue(
+      new Error("DB error"),
+    );
+
+    await expect(
+      uowService.createCircleSession({
+        actorId: "user-1",
+        ...baseSessionParams,
+      }),
+    ).rejects.toThrow("DB error");
   });
 });
