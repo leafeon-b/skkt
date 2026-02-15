@@ -639,6 +639,9 @@ export function CircleSessionDetailView({
           );
           setActiveDialog(null);
         },
+        onError: () => {
+          setActiveDialog(null);
+        },
       },
     );
   };
