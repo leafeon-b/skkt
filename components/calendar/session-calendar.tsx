@@ -88,25 +88,103 @@ export function SessionCalendar({
     const container = containerRef.current;
     if (!container) return;
 
+    function moveFocus(
+      cells: HTMLElement[],
+      from: number,
+      to: number,
+    ) {
+      if (to < 0 || to >= cells.length) return;
+      cells[from].setAttribute("tabindex", "-1");
+      cells[to].setAttribute("tabindex", "0");
+      cells[to].focus();
+    }
+
+    const COLS = 7;
+
     function applyKeyboardSupport() {
-      const cells = container!.querySelectorAll<HTMLElement>(".fc-daygrid-day");
-      cells.forEach((cell) => {
+      const cells = Array.from(
+        container!.querySelectorAll<HTMLElement>(".fc-daygrid-day"),
+      );
+      if (cells.length === 0) return;
+
+      // Determine if this is a fresh grid (no cell has kbBound yet)
+      const isFreshGrid = cells.every((c) => !c.dataset.kbBound);
+
+      if (isFreshGrid) {
+        // Set initial roving tabindex
+        const todayIndex = cells.findIndex((c) =>
+          c.classList.contains("fc-day-today"),
+        );
+        const activeIndex = todayIndex >= 0 ? todayIndex : 0;
+        cells.forEach((cell, i) => {
+          cell.setAttribute(
+            "tabindex",
+            i === activeIndex ? "0" : "-1",
+          );
+          if (cell.classList.contains("fc-day-today")) {
+            cell.setAttribute("aria-current", "date");
+          }
+        });
+      }
+
+      cells.forEach((cell, idx) => {
         if (cell.dataset.kbBound) return;
-        cell.setAttribute("tabindex", "0");
         cell.dataset.kbBound = "true";
         cell.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            const dateStr = cell.getAttribute("data-date");
-            if (dateStr && onDateClickRef.current) {
-              onDateClickRef.current({
-                date: new Date(dateStr),
-                dateStr,
-                allDay: true,
-                dayEl: cell,
-                jsEvent: e as unknown as MouseEvent,
-                view: {} as DateClickArg["view"],
-              });
+          const currentCells = Array.from(
+            container!.querySelectorAll<HTMLElement>(".fc-daygrid-day"),
+          );
+          const currentIdx = currentCells.indexOf(cell);
+          if (currentIdx === -1) return;
+
+          switch (e.key) {
+            case "ArrowLeft":
+              e.preventDefault();
+              moveFocus(currentCells, currentIdx, currentIdx - 1);
+              break;
+            case "ArrowRight":
+              e.preventDefault();
+              moveFocus(currentCells, currentIdx, currentIdx + 1);
+              break;
+            case "ArrowUp":
+              e.preventDefault();
+              moveFocus(currentCells, currentIdx, currentIdx - COLS);
+              break;
+            case "ArrowDown":
+              e.preventDefault();
+              moveFocus(currentCells, currentIdx, currentIdx + COLS);
+              break;
+            case "Home":
+              e.preventDefault();
+              moveFocus(
+                currentCells,
+                currentIdx,
+                currentIdx - (currentIdx % COLS),
+              );
+              break;
+            case "End":
+              e.preventDefault();
+              moveFocus(
+                currentCells,
+                currentIdx,
+                currentIdx - (currentIdx % COLS) + COLS - 1,
+              );
+              break;
+            case "Enter":
+            case " ": {
+              e.preventDefault();
+              const dateStr = cell.getAttribute("data-date");
+              if (dateStr && onDateClickRef.current) {
+                onDateClickRef.current({
+                  date: new Date(dateStr),
+                  dateStr,
+                  allDay: true,
+                  dayEl: cell,
+                  jsEvent: e as unknown as MouseEvent,
+                  view: {} as DateClickArg["view"],
+                });
+              }
+              break;
             }
           }
         });
