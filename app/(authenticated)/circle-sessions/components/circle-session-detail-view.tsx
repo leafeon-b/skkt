@@ -569,6 +569,9 @@ export function CircleSessionDetailView({
             );
             setActiveDialog(null);
           },
+          onError: () => {
+            setActiveDialog(null);
+          },
         },
       );
     } else if (activeDialog.mode === "edit") {
@@ -601,6 +604,9 @@ export function CircleSessionDetailView({
             toast.success(
               `保存しました: ${rowName} vs ${columnName} / ${outcomeLabel}`,
             );
+            setActiveDialog(null);
+          },
+          onError: () => {
             setActiveDialog(null);
           },
         },
