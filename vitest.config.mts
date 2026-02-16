@@ -6,6 +6,6 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["**/*.{test,spec}.ts", "**/*.{test,spec}.mts", "**/*.{test,spec}.tsx"],
-    exclude: ["node_modules", ".next", "dist", "coverage"],
+    exclude: ["node_modules", ".next", "dist", "coverage", "**/*.integration.test.*"],
   },
 });
