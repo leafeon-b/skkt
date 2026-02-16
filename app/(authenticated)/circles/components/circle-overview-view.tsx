@@ -16,6 +16,7 @@ export type CircleOverviewViewProps = {
     nextSession: NonNullable<CircleOverviewViewModel["nextSession"]>,
   ) => string | null;
   getCreateSessionHref?: () => string | null;
+  getInviteLinkHref?: () => string | null;
 };
 
 const roleLabels: Record<CircleRoleKey, string> = {
@@ -54,6 +55,7 @@ export function CircleOverviewView({
   getMemberHref,
   getNextSessionHref,
   getCreateSessionHref,
+  getInviteLinkHref,
 }: CircleOverviewViewProps) {
   const roleLabel = overview.viewerRole
     ? roleLabels[overview.viewerRole]
@@ -138,12 +140,22 @@ export function CircleOverviewView({
               <p className="text-sm font-semibold text-(--brand-ink)">
                 参加メンバー
               </p>
-              <Button
-                variant="ghost"
-                className="text-xs text-(--brand-ink-muted) hover:text-(--brand-ink)"
-              >
-                すべて見る
-              </Button>
+              <div className="flex items-center gap-2">
+                {getInviteLinkHref?.() ? (
+                  <Link
+                    href={getInviteLinkHref()!}
+                    className="rounded-md px-2 py-1 text-xs font-semibold text-(--brand-moss) hover:bg-(--brand-moss)/10"
+                  >
+                    招待リンク
+                  </Link>
+                ) : null}
+                <Button
+                  variant="ghost"
+                  className="text-xs text-(--brand-ink-muted) hover:text-(--brand-ink)"
+                >
+                  すべて見る
+                </Button>
+              </div>
             </div>
             <div className="mt-4 space-y-3">
               {overview.members.length === 0 ? (
