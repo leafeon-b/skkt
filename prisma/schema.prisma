@@ -56,6 +56,8 @@ model User {
 
   accounts Account[]
   sessions Session[]
+
+  createdInviteLinks CircleInviteLink[]
 }
 
 model Circle {
@@ -65,6 +67,21 @@ model Circle {
 
   circleSessions    CircleSession[]
   circleMemberships CircleMembership[]
+  inviteLinks       CircleInviteLink[]
+}
+
+model CircleInviteLink {
+  id              String   @id @default(cuid())
+  circleId        String
+  token           String   @unique
+  createdByUserId String
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+
+  circle    Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  createdBy User   @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([circleId])
 }
 
 model CircleSession {
