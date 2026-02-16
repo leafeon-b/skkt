@@ -103,6 +103,7 @@ function buildDetail(
     viewerRole: "owner",
     canCreateCircleSession: false,
     canDeleteCircleSession: false,
+    canWithdrawFromCircleSession: false,
     participations: [],
     matches: [],
     ...overrides,

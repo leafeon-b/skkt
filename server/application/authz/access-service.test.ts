@@ -322,6 +322,18 @@ describe("認可ポリシー", () => {
       });
     });
 
+    describe("canWithdrawFromCircleSession（セッション脱退）", () => {
+      test.each([
+        { membership: sessionMember("CircleSessionMember"), expected: true },
+        { membership: noSessionMember(), expected: false },
+      ])("メンバー=$expected", async (item) => {
+        setCircleSessionMembership(item.membership);
+        await expect(
+          access.canWithdrawFromCircleSession(userId, circleSessionId),
+        ).resolves.toBe(item.expected);
+      });
+    });
+
     describe("canAddCircleSessionMember（セッション参加者追加）", () => {
       test.each([
         { membership: sessionMember("CircleSessionMember"), expected: true },

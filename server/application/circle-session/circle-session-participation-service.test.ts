@@ -87,6 +87,7 @@ beforeEach(() => {
     true,
   );
   vi.mocked(accessService.canRemoveCircleSessionMember).mockResolvedValue(true);
+  vi.mocked(accessService.canWithdrawFromCircleSession).mockResolvedValue(true);
 });
 
 describe("CircleSession 参加関係サービス", () => {
@@ -377,5 +378,111 @@ describe("CircleSession 参加関係サービス", () => {
     expect(
       circleSessionParticipationRepository.removeParticipation,
     ).toHaveBeenCalledWith(circleSessionId("session-1"), userId("user-3"));
+  });
+
+  describe("withdrawParticipation", () => {
+    test("メンバーは脱退できる", async () => {
+      vi.mocked(
+        circleSessionParticipationRepository.listParticipations,
+      ).mockResolvedValueOnce([
+        {
+          circleSessionId: circleSessionId("session-1"),
+          userId: userId("user-actor"),
+          role: "CircleSessionMember",
+        },
+      ]);
+      vi.mocked(matchRepository.listByCircleSessionId).mockResolvedValue([]);
+
+      await expect(
+        service.withdrawParticipation({
+          actorId: "user-actor",
+          circleSessionId: circleSessionId("session-1"),
+        }),
+      ).resolves.toBeUndefined();
+
+      expect(
+        circleSessionParticipationRepository.removeParticipation,
+      ).toHaveBeenCalledWith(
+        circleSessionId("session-1"),
+        userId("user-actor"),
+      );
+    });
+
+    test("オーナーは脱退できない", async () => {
+      vi.mocked(
+        circleSessionParticipationRepository.listParticipations,
+      ).mockResolvedValueOnce([
+        {
+          circleSessionId: circleSessionId("session-1"),
+          userId: userId("user-actor"),
+          role: "CircleSessionOwner",
+        },
+      ]);
+
+      await expect(
+        service.withdrawParticipation({
+          actorId: "user-actor",
+          circleSessionId: circleSessionId("session-1"),
+        }),
+      ).rejects.toThrow(
+        "Owner cannot withdraw from session. Use transferOwnership instead",
+      );
+
+      expect(
+        circleSessionParticipationRepository.removeParticipation,
+      ).not.toHaveBeenCalled();
+    });
+
+    test("対局記録がある場合は脱退できない", async () => {
+      vi.mocked(
+        circleSessionParticipationRepository.listParticipations,
+      ).mockResolvedValueOnce([
+        {
+          circleSessionId: circleSessionId("session-1"),
+          userId: userId("user-actor"),
+          role: "CircleSessionMember",
+        },
+      ]);
+      vi.mocked(matchRepository.listByCircleSessionId).mockResolvedValue([
+        createMatch({
+          id: matchId("match-1"),
+          circleSessionId: circleSessionId("session-1"),
+          order: 1,
+          player1Id: userId("user-actor"),
+          player2Id: userId("user-2"),
+          outcome: "P1_WIN",
+        }),
+      ]);
+
+      await expect(
+        service.withdrawParticipation({
+          actorId: "user-actor",
+          circleSessionId: circleSessionId("session-1"),
+        }),
+      ).rejects.toThrow(
+        "Participation cannot be removed because matches exist",
+      );
+
+      expect(
+        circleSessionParticipationRepository.removeParticipation,
+      ).not.toHaveBeenCalled();
+    });
+
+    test("非メンバーは Forbidden エラー", async () => {
+      vi.mocked(accessService.canWithdrawFromCircleSession).mockResolvedValue(
+        false,
+      );
+
+      await expect(
+        service.withdrawParticipation({
+          actorId: "user-actor",
+          circleSessionId: circleSessionId("session-1"),
+        }),
+      ).rejects.toThrow("Forbidden");
+
+      expect(
+        circleSessionParticipationRepository.removeParticipation,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

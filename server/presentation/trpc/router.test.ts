@@ -44,6 +44,7 @@ const createContext = () => {
     changeParticipationRole: vi.fn(),
     removeParticipation: vi.fn(),
     transferOwnership: vi.fn(),
+    withdrawParticipation: vi.fn(),
   };
   const matchService = {
     listByCircleSessionId: vi.fn(),
