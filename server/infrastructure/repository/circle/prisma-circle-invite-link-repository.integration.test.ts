@@ -119,4 +119,81 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
 
     expect(result).toBeNull();
   });
+
+  it("データ不整合で複数の有効リンクが存在する場合、createdAtが最新のリンクを返す", async () => {
+    const repo = createPrismaCircleInviteLinkRepository(ctx.prisma);
+    const now = new Date();
+
+    // Active link 1: created 1 hour ago
+    await ctx.prisma.circleInviteLink.create({
+      data: {
+        id: "link-active-old",
+        circleId: CIRCLE_ID,
+        token: "token-active-old",
+        createdByUserId: USER_ID,
+        expiresAt: new Date(now.getTime() + 2 * 60 * 60 * 1000),
+        createdAt: new Date(now.getTime() - 60 * 60 * 1000),
+      },
+    });
+
+    // Active link 2: created now (newest)
+    await ctx.prisma.circleInviteLink.create({
+      data: {
+        id: "link-active-new",
+        circleId: CIRCLE_ID,
+        token: "token-active-new",
+        createdByUserId: USER_ID,
+        expiresAt: new Date(now.getTime() + 2 * 60 * 60 * 1000),
+        createdAt: now,
+      },
+    });
+
+    const result = await repo.findActiveByCircleId(circleId(CIRCLE_ID));
+
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe("link-active-new");
+  });
+
+  it("有効リンク1件と期限切れリンク複数件が混在する場合、有効リンクのみ返す", async () => {
+    const repo = createPrismaCircleInviteLinkRepository(ctx.prisma);
+    const now = new Date();
+
+    // Active link
+    await ctx.prisma.circleInviteLink.create({
+      data: {
+        id: "link-active",
+        circleId: CIRCLE_ID,
+        token: "token-active",
+        createdByUserId: USER_ID,
+        expiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+      },
+    });
+
+    // Expired link 1: expired 1 hour ago
+    await ctx.prisma.circleInviteLink.create({
+      data: {
+        id: "link-expired-1",
+        circleId: CIRCLE_ID,
+        token: "token-expired-1",
+        createdByUserId: USER_ID,
+        expiresAt: new Date(now.getTime() - 60 * 60 * 1000),
+      },
+    });
+
+    // Expired link 2: expired 2 hours ago
+    await ctx.prisma.circleInviteLink.create({
+      data: {
+        id: "link-expired-2",
+        circleId: CIRCLE_ID,
+        token: "token-expired-2",
+        createdByUserId: USER_ID,
+        expiresAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+      },
+    });
+
+    const result = await repo.findActiveByCircleId(circleId(CIRCLE_ID));
+
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe("link-active");
+  });
 });
