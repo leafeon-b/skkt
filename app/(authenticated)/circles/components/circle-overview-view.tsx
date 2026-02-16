@@ -1,4 +1,5 @@
 import { CircleOverviewCalendar } from "@/app/(authenticated)/circles/components/circle-overview-calendar";
+import { CircleWithdrawButton } from "@/app/(authenticated)/circles/components/circle-withdraw-button";
 import { Button } from "@/components/ui/button";
 import type {
   CircleOverviewMember,
@@ -121,6 +122,12 @@ export function CircleOverviewView({
               )}
             </div>
           </div>
+          {overview.viewerRole && overview.viewerRole !== "owner" ? (
+            <CircleWithdrawButton
+              circleId={overview.circleId}
+              circleName={overview.circleName}
+            />
+          ) : null}
         </div>
       </section>
 
