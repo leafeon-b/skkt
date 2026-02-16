@@ -208,6 +208,41 @@ export const createCircleParticipationService = (
     }
   },
 
+  async withdrawParticipation(params: {
+    actorId: string;
+    circleId: CircleId;
+  }): Promise<void> {
+    const circle = await deps.circleRepository.findById(params.circleId);
+    if (!circle) {
+      throw new NotFoundError("Circle");
+    }
+
+    const allowed = await deps.accessService.canViewCircle(
+      params.actorId,
+      params.circleId as string,
+    );
+    if (!allowed) {
+      throw new ForbiddenError();
+    }
+
+    const participations =
+      await deps.circleParticipationRepository.listByCircleId(params.circleId);
+    const actor = participations.find(
+      (member) => member.userId === userId(params.actorId),
+    );
+
+    if (!actor) {
+      throw new NotFoundError("Participation");
+    }
+
+    assertCanRemoveCircleMember(actor.role);
+
+    await deps.circleParticipationRepository.removeParticipation(
+      params.circleId,
+      actor.userId,
+    );
+  },
+
   async removeParticipation(params: {
     actorId: string;
     circleId: CircleId;

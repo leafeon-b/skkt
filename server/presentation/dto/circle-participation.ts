@@ -48,6 +48,12 @@ export type CircleParticipationRemoveInput = z.infer<
   typeof circleParticipationRemoveInputSchema
 >;
 
+export const circleWithdrawInputSchema = z.object({
+  circleId: circleIdSchema,
+});
+
+export type CircleWithdrawInput = z.infer<typeof circleWithdrawInputSchema>;
+
 export const circleTransferOwnershipInputSchema = z.object({
   circleId: circleIdSchema,
   fromUserId: userIdSchema,
