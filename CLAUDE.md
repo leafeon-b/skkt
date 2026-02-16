@@ -78,7 +78,7 @@ server/
 
 ### データベース
 
-SQLite + Prisma ORM。主要モデル:
+PostgreSQL（Vercel Postgres）+ Prisma ORM。主要モデル:
 
 - **Circle**: 研究会
 - **CircleSession**: セッション
