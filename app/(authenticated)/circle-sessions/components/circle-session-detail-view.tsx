@@ -1102,6 +1102,10 @@ export function CircleSessionDetailView({
           ) : null}
 
           <form onSubmit={handleDialogSubmit}>
+            <p className="mb-3 text-xs text-(--brand-ink-muted)">
+              <span className="text-red-600" aria-hidden="true">*</span>{" "}
+              は必須項目です
+            </p>
             <label
               htmlFor="match-outcome"
               className="block text-xs font-semibold text-(--brand-ink-muted) after:ml-0.5 after:text-red-600 after:content-['*']"
