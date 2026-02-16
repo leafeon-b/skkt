@@ -77,6 +77,7 @@ describe("Service container", () => {
 
     const circleInviteLinkRepository = {
       findByToken: vi.fn(),
+      findActiveByCircleId: vi.fn(),
       listByCircleId: vi.fn(),
       save: vi.fn(),
     };

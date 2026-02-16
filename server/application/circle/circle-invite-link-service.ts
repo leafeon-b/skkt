@@ -62,9 +62,10 @@ export const createCircleInviteLinkService = (
     }
 
     // BR-011: 1研究会1有効リンク制約 — 既存の有効リンクがあればそれを返す（冪等方式）
-    const existingLinks =
-      await deps.circleInviteLinkRepository.listByCircleId(params.circleId);
-    const activeLink = existingLinks.find((link) => !isExpired(link));
+    const activeLink =
+      await deps.circleInviteLinkRepository.findActiveByCircleId(
+        params.circleId,
+      );
     if (activeLink) {
       return activeLink;
     }
