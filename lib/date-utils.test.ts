@@ -71,8 +71,26 @@ describe("formatTooltipDateTime", () => {
     expect(result).toBe("2025/01/15 14:00 - 16:00");
   });
 
-  it("不正な日付文字列の場合 NaN を含む文字列を返す", () => {
+  it("不正な日付文字列の場合、空文字列を返す", () => {
     const result = formatTooltipDateTime("invalid-date", "also-invalid");
-    expect(result).toContain("NaN");
+    expect(result).toBe("");
+  });
+
+  it("開始日のみ不正な場合、空文字列を返す", () => {
+    const result = formatTooltipDateTime("invalid-date", "2025-01-15T12:00:00");
+    expect(result).toBe("");
+  });
+
+  it("終了日のみ不正な場合、空文字列を返す", () => {
+    const result = formatTooltipDateTime("2025-01-15T10:00:00", "not-a-date");
+    expect(result).toBe("");
+  });
+
+  it("不正なDateオブジェクトの場合、空文字列を返す", () => {
+    const result = formatTooltipDateTime(
+      new Date("invalid"),
+      new Date("invalid"),
+    );
+    expect(result).toBe("");
   });
 });

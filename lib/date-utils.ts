@@ -25,5 +25,7 @@ export function formatTooltipDateTime(
   const start = toDate(startsAt);
   const end = toDate(endsAt);
 
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+
   return `${formatDate(start)} ${formatTime(start)} - ${formatTime(end)}`;
 }
