@@ -61,6 +61,11 @@ const createContext = () => {
   const signupService = {
     signup: vi.fn(),
   };
+  const circleInviteLinkService = {
+    createInviteLink: vi.fn(),
+    getInviteLinkInfo: vi.fn(),
+    redeemInviteLink: vi.fn(),
+  };
 
   const context: Context = {
     actorId: "user-1",
@@ -72,6 +77,7 @@ const createContext = () => {
     matchHistoryService,
     userService,
     signupService,
+    circleInviteLinkService,
     accessService: {} as Context["accessService"],
   };
 

@@ -10,6 +10,7 @@ import { prismaMatchHistoryRepository } from "@/server/infrastructure/repository
 import { prismaMatchRepository } from "@/server/infrastructure/repository/match/prisma-match-repository";
 import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
 import { prismaSignupRepository } from "@/server/infrastructure/repository/user/prisma-signup-repository";
+import { prismaCircleInviteLinkRepository } from "@/server/infrastructure/repository/circle/prisma-circle-invite-link-repository";
 import { prismaUnitOfWork } from "@/server/infrastructure/transaction/prisma-unit-of-work";
 
 const getSessionUserId = createGetSessionUserId(nextAuthSessionService);
@@ -27,6 +28,7 @@ export const createContext = async () => {
     userRepository: prismaUserRepository,
     authzRepository: prismaAuthzRepository,
     signupRepository: prismaSignupRepository,
+    circleInviteLinkRepository: prismaCircleInviteLinkRepository,
     unitOfWork: prismaUnitOfWork,
   });
 

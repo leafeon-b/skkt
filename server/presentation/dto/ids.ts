@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type {
   CircleId,
+  CircleInviteLinkId,
   CircleSessionId,
   MatchHistoryId,
   MatchId,
@@ -8,6 +9,7 @@ import type {
 } from "@/server/domain/common/ids";
 import {
   circleId,
+  circleInviteLinkId,
   circleSessionId,
   matchHistoryId,
   matchId,
@@ -27,3 +29,5 @@ export const circleSessionIdSchema =
 export const matchIdSchema = makeIdSchema<MatchId>(matchId);
 export const matchHistoryIdSchema =
   makeIdSchema<MatchHistoryId>(matchHistoryId);
+export const circleInviteLinkIdSchema =
+  makeIdSchema<CircleInviteLinkId>(circleInviteLinkId);
