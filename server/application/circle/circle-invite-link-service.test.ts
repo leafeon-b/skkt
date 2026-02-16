@@ -57,6 +57,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(circleRepository.findById).mockResolvedValue(baseCircle());
   vi.mocked(accessService.canViewCircle).mockResolvedValue(true);
+  vi.mocked(circleInviteLinkRepository.listByCircleId).mockResolvedValue([]);
 });
 
 describe("招待リンクサービス", () => {
@@ -101,6 +102,39 @@ describe("招待リンクサービス", () => {
           circleId: circleId("circle-1"),
         }),
       ).rejects.toThrow("Circle not found");
+    });
+
+    test("既存の有効リンクがあればそれを返し新規作成しない (BR-011)", async () => {
+      const existing = baseLink();
+      vi.mocked(circleInviteLinkRepository.listByCircleId).mockResolvedValue([
+        existing,
+      ]);
+
+      const result = await service.createInviteLink({
+        actorId: "user-1",
+        circleId: circleId("circle-1"),
+      });
+
+      expect(result).toEqual(existing);
+      expect(circleInviteLinkRepository.save).not.toHaveBeenCalled();
+    });
+
+    test("既存リンクがすべて期限切れなら新規作成する (BR-011)", async () => {
+      const expiredLink = {
+        ...baseLink(),
+        expiresAt: new Date(Date.now() - 1000),
+      };
+      vi.mocked(circleInviteLinkRepository.listByCircleId).mockResolvedValue([
+        expiredLink,
+      ]);
+
+      const result = await service.createInviteLink({
+        actorId: "user-1",
+        circleId: circleId("circle-1"),
+      });
+
+      expect(result.token).toBe("test-token");
+      expect(circleInviteLinkRepository.save).toHaveBeenCalled();
     });
 
     test("認可拒否時はエラー", async () => {
