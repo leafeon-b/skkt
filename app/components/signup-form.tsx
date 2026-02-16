@@ -76,6 +76,10 @@ export default function SignupForm() {
 
   return (
     <form className="space-y-3" onSubmit={handleSubmit}>
+      <p className="text-xs text-(--brand-ink-muted)">
+        <span className="text-red-600" aria-hidden="true">*</span>{" "}
+        は必須項目です
+      </p>
       <div className="space-y-2">
         <label
           htmlFor="display-name"

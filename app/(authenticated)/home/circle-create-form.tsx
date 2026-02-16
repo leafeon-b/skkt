@@ -37,6 +37,10 @@ export default function CircleCreateForm() {
         onSubmit={handleSubmit}
         className="flex w-full flex-col gap-3"
       >
+        <p className="text-xs text-(--brand-ink-muted)">
+          <span className="text-red-600" aria-hidden="true">*</span>{" "}
+          は必須項目です
+        </p>
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="circle-name"
