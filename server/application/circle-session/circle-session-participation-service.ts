@@ -13,6 +13,7 @@ import {
   assertCanAddParticipantWithRole,
   assertCanChangeCircleSessionMemberRole,
   assertCanRemoveCircleSessionMember,
+  assertCanWithdrawFromSession,
   assertSingleCircleSessionOwner,
   transferCircleSessionOwnership,
 } from "@/server/domain/services/authz/ownership";
@@ -302,6 +303,50 @@ export const createCircleSessionParticipationService = (
     await deps.circleSessionParticipationRepository.removeParticipation(
       params.circleSessionId,
       params.userId,
+    );
+  },
+
+  async withdrawParticipation(params: {
+    actorId: string;
+    circleSessionId: CircleSessionId;
+  }): Promise<void> {
+    const session = await deps.circleSessionRepository.findById(
+      params.circleSessionId,
+    );
+    if (!session) {
+      throw new NotFoundError("CircleSession");
+    }
+
+    const allowed = await deps.accessService.canWithdrawFromCircleSession(
+      params.actorId,
+      params.circleSessionId as string,
+    );
+    if (!allowed) {
+      throw new ForbiddenError();
+    }
+
+    const participations =
+      await deps.circleSessionParticipationRepository.listParticipations(
+        params.circleSessionId,
+      );
+    const actor = participations.find(
+      (member) => member.userId === userId(params.actorId),
+    );
+
+    if (!actor) {
+      throw new NotFoundError("Participation");
+    }
+
+    assertCanWithdrawFromSession(actor.role);
+
+    const matches = await deps.matchRepository.listByCircleSessionId(
+      params.circleSessionId,
+    );
+    assertCanRemoveCircleSessionParticipation(matches, userId(params.actorId));
+
+    await deps.circleSessionParticipationRepository.removeParticipation(
+      params.circleSessionId,
+      userId(params.actorId),
     );
   },
 });

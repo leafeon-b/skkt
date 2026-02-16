@@ -6,6 +6,7 @@ import {
   circleSessionParticipationRemoveInputSchema,
   circleSessionParticipationRoleUpdateInputSchema,
   circleSessionTransferOwnershipInputSchema,
+  circleSessionWithdrawInputSchema,
 } from "@/server/presentation/dto/circle-session-participation";
 import { toCircleSessionParticipationDtos } from "@/server/presentation/mappers/circle-session-participation-mapper";
 import { handleTrpcError } from "@/server/presentation/trpc/errors";
@@ -51,6 +52,19 @@ export const circleSessionParticipationRouter = router({
           circleSessionId: input.circleSessionId,
           userId: input.userId,
           role: input.role,
+        });
+        return;
+      }),
+    ),
+
+  withdraw: publicProcedure
+    .input(circleSessionWithdrawInputSchema)
+    .output(z.void())
+    .mutation(({ ctx, input }) =>
+      handleTrpcError(async () => {
+        await ctx.circleSessionParticipationService.withdrawParticipation({
+          actorId: ctx.actorId,
+          circleSessionId: input.circleSessionId,
         });
         return;
       }),

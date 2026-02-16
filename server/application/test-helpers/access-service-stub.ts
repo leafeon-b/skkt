@@ -23,6 +23,7 @@ export const createAccessServiceStub = (): AccessService => {
     canTransferCircleOwnership: notConfigured("canTransferCircleOwnership"),
     canCreateCircleSession: notConfigured("canCreateCircleSession"),
     canViewCircleSession: notConfigured("canViewCircleSession"),
+    canWithdrawFromCircleSession: notConfigured("canWithdrawFromCircleSession"),
     canEditCircleSession: notConfigured("canEditCircleSession"),
     canDeleteCircleSession: notConfigured("canDeleteCircleSession"),
     canAddCircleSessionMember: notConfigured("canAddCircleSessionMember"),

@@ -142,6 +142,17 @@ export function createAccessService(repository: AuthzRepository) {
       );
     },
 
+    async canWithdrawFromCircleSession(
+      userId: string,
+      circleSessionId: string,
+    ): Promise<boolean> {
+      const membership = await findCircleSessionMembership(
+        userId,
+        circleSessionId,
+      );
+      return isCircleSessionMember(membership);
+    },
+
     async canEditCircleSession(
       userId: string,
       circleSessionId: string,

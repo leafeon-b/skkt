@@ -51,6 +51,14 @@ export type CircleSessionParticipationRemoveInput = z.infer<
   typeof circleSessionParticipationRemoveInputSchema
 >;
 
+export const circleSessionWithdrawInputSchema = z.object({
+  circleSessionId: circleSessionIdSchema,
+});
+
+export type CircleSessionWithdrawInput = z.infer<
+  typeof circleSessionWithdrawInputSchema
+>;
+
 export const circleSessionTransferOwnershipInputSchema = z.object({
   circleSessionId: circleSessionIdSchema,
   fromUserId: userIdSchema,
