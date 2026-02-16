@@ -72,7 +72,7 @@ export default function CircleCreateForm() {
         </p>
       ) : null}
       {createCircle.error ? (
-        <p className="mt-3 text-xs text-red-600">
+        <p role="alert" className="mt-3 text-xs text-red-600">
           {createCircle.error.message}
         </p>
       ) : null}

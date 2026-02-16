@@ -151,7 +151,7 @@ export default function SignupForm() {
         />
       </div>
       {errorMessage ? (
-        <p className="text-xs font-semibold text-red-600">{errorMessage}</p>
+        <p role="alert" className="text-xs font-semibold text-red-600">{errorMessage}</p>
       ) : null}
       <Button
         type="submit"
