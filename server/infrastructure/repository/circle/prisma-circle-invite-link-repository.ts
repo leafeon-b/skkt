@@ -1,0 +1,45 @@
+import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
+import type { CircleId } from "@/server/domain/common/ids";
+import type { CircleInviteLink } from "@/server/domain/models/circle/circle-invite-link";
+import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
+import {
+  mapCircleInviteLinkToDomain,
+  mapCircleInviteLinkToPersistence,
+} from "@/server/infrastructure/mappers/circle-invite-link-mapper";
+import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
+
+export const createPrismaCircleInviteLinkRepository = (
+  client: PrismaClientLike,
+): CircleInviteLinkRepository => ({
+  async findByToken(token: string): Promise<CircleInviteLink | null> {
+    const found = await client.circleInviteLink.findUnique({
+      where: { token },
+    });
+
+    return found ? mapCircleInviteLinkToDomain(found) : null;
+  },
+
+  async listByCircleId(circleId: CircleId): Promise<CircleInviteLink[]> {
+    const links = await client.circleInviteLink.findMany({
+      where: { circleId: toPersistenceId(circleId) },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return links.map(mapCircleInviteLinkToDomain);
+  },
+
+  async save(link: CircleInviteLink): Promise<void> {
+    const data = mapCircleInviteLinkToPersistence(link);
+
+    await client.circleInviteLink.upsert({
+      where: { id: data.id },
+      update: {
+        expiresAt: data.expiresAt,
+      },
+      create: data,
+    });
+  },
+});
+
+export const prismaCircleInviteLinkRepository =
+  createPrismaCircleInviteLinkRepository(prisma);
