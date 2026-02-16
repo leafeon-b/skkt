@@ -38,6 +38,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(circleRepository.findById).mockResolvedValue(baseCircle());
   vi.mocked(accessService.canViewCircle).mockResolvedValue(true);
+  vi.mocked(accessService.canWithdrawFromCircle).mockResolvedValue(true);
   vi.mocked(accessService.canListOwnCircles).mockResolvedValue(true);
   vi.mocked(accessService.canAddCircleMember).mockResolvedValue(true);
   vi.mocked(accessService.canChangeCircleMemberRole).mockResolvedValue(true);
@@ -344,7 +345,9 @@ describe("Circle 参加関係サービス", () => {
           actorId: "user-owner",
           circleId: circleId("circle-1"),
         }),
-      ).rejects.toThrow("Use transferOwnership to remove owner");
+      ).rejects.toThrow(
+        "Owner cannot withdraw from circle. Use transferOwnership instead",
+      );
 
       expect(
         circleParticipationRepository.removeParticipation,
@@ -352,7 +355,7 @@ describe("Circle 参加関係サービス", () => {
     });
 
     test("非メンバーは Forbidden エラー", async () => {
-      vi.mocked(accessService.canViewCircle).mockResolvedValue(false);
+      vi.mocked(accessService.canWithdrawFromCircle).mockResolvedValue(false);
 
       await expect(
         service.withdrawParticipation({

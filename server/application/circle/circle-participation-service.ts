@@ -7,6 +7,7 @@ import {
   assertCanAddCircleMemberWithRole,
   assertCanChangeCircleMemberRole,
   assertCanRemoveCircleMember,
+  assertCanWithdraw,
   assertSingleCircleOwner,
   transferCircleOwnership,
 } from "@/server/domain/services/authz/ownership";
@@ -217,7 +218,7 @@ export const createCircleParticipationService = (
       throw new NotFoundError("Circle");
     }
 
-    const allowed = await deps.accessService.canViewCircle(
+    const allowed = await deps.accessService.canWithdrawFromCircle(
       params.actorId,
       params.circleId as string,
     );
@@ -235,7 +236,7 @@ export const createCircleParticipationService = (
       throw new NotFoundError("Participation");
     }
 
-    assertCanRemoveCircleMember(actor.role);
+    assertCanWithdraw(actor.role);
 
     await deps.circleParticipationRepository.removeParticipation(
       params.circleId,

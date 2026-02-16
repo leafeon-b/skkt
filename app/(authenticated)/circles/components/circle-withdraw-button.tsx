@@ -9,6 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc/client";
@@ -50,15 +51,16 @@ export function CircleWithdrawButton({
         if (!withdraw.isPending) setOpen(v);
       }}
     >
-      <Button
-        variant="ghost"
-        className="text-xs text-red-700 hover:bg-red-50 hover:text-red-800"
-        onClick={() => setOpen(true)}
-        aria-label={`「${circleName}」から脱退`}
-      >
-        <LogOut className="size-3.5" aria-hidden="true" />
-        脱退
-      </Button>
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="ghost"
+          className="text-xs text-red-700 hover:bg-red-50 hover:text-red-800"
+          aria-label={`「${circleName}」から脱退`}
+        >
+          <LogOut className="size-3.5" aria-hidden="true" />
+          脱退
+        </Button>
+      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>研究会から脱退</AlertDialogTitle>

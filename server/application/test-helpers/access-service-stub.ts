@@ -14,6 +14,7 @@ export const createAccessServiceStub = (): AccessService => {
     canListOwnCircles: notConfigured("canListOwnCircles"),
     canViewUser: notConfigured("canViewUser"),
     canViewCircle: notConfigured("canViewCircle"),
+    canWithdrawFromCircle: notConfigured("canWithdrawFromCircle"),
     canEditCircle: notConfigured("canEditCircle"),
     canDeleteCircle: notConfigured("canDeleteCircle"),
     canAddCircleMember: notConfigured("canAddCircleMember"),

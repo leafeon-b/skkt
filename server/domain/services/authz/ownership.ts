@@ -97,6 +97,14 @@ export const transferCircleOwnership = (
   return updated;
 };
 
+export const assertCanWithdraw = (targetRole: CircleRole): void => {
+  if (targetRole === CircleRole.CircleOwner) {
+    throw new Error(
+      "Owner cannot withdraw from circle. Use transferOwnership instead",
+    );
+  }
+};
+
 export const assertCanRemoveCircleMember = (targetRole: CircleRole): void => {
   if (targetRole === CircleRole.CircleOwner) {
     throw new Error("Use transferOwnership to remove owner");

@@ -6,6 +6,7 @@ import {
   assertCanChangeCircleSessionMemberRole,
   assertCanRemoveCircleMember,
   assertCanRemoveCircleSessionMember,
+  assertCanWithdraw,
   assertSingleCircleOwner,
   assertSingleCircleSessionOwner,
   transferCircleOwnership,
@@ -268,6 +269,22 @@ describe("assertCanAddParticipantWithRole", () => {
         CircleSessionRole.CircleSessionManager,
       ),
     ).not.toThrow();
+  });
+});
+
+describe("assertCanWithdraw", () => {
+  test("Owner は脱退できない", () => {
+    expect(() => assertCanWithdraw(CircleRole.CircleOwner)).toThrow(
+      "Owner cannot withdraw from circle. Use transferOwnership instead",
+    );
+  });
+
+  test("Manager は脱退できる", () => {
+    expect(() => assertCanWithdraw(CircleRole.CircleManager)).not.toThrow();
+  });
+
+  test("Member は脱退できる", () => {
+    expect(() => assertCanWithdraw(CircleRole.CircleMember)).not.toThrow();
   });
 });
 

@@ -129,6 +129,18 @@ describe("認可ポリシー", () => {
       });
     });
 
+    describe("canWithdrawFromCircle（研究会脱退）", () => {
+      test.each([
+        { membership: member("CircleMember"), expected: true },
+        { membership: noMember(), expected: false },
+      ])("メンバー=$expected", async (item) => {
+        setCircleMembership(item.membership);
+        await expect(
+          access.canWithdrawFromCircle(userId, circleId),
+        ).resolves.toBe(item.expected);
+      });
+    });
+
     describe("canAddCircleMember（研究会参加者追加）", () => {
       test.each([
         { membership: member("CircleMember"), expected: true },

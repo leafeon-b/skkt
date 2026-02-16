@@ -44,6 +44,14 @@ export function createAccessService(repository: AuthzRepository) {
       return isCircleMember(membership);
     },
 
+    async canWithdrawFromCircle(
+      userId: string,
+      circleId: string,
+    ): Promise<boolean> {
+      const membership = await findCircleMembership(userId, circleId);
+      return isCircleMember(membership);
+    },
+
     async canEditCircle(userId: string, circleId: string): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
       return (
