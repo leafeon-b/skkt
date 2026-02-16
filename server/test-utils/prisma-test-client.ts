@@ -2,12 +2,11 @@ import { PGlite } from "@electric-sql/pglite";
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPGlite } from "pglite-prisma-adapter";
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 
-const SCHEMA_SQL_PATH = resolve(process.cwd(), "tmp/test-schema.sql");
+import { TEST_SCHEMA_SQL_PATH } from "./constants";
 
 export function getSchemaSql(): string {
-  return readFileSync(SCHEMA_SQL_PATH, "utf-8");
+  return readFileSync(TEST_SCHEMA_SQL_PATH, "utf-8");
 }
 
 export type TestPrismaContext = {
