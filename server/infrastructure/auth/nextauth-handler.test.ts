@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { JWT } from "next-auth/jwt";
+import type { UserRepository } from "@/server/domain/models/user/user-repository";
 
-const prismaUserFindUnique = vi.hoisted(() => vi.fn());
 const prismaValue = vi.hoisted(() => ({
-  prisma: { user: { findUnique: prismaUserFindUnique } },
+  prisma: {},
 }));
 const nextAuthMock = vi.hoisted(() => vi.fn());
 const prismaAdapterMock = vi.hoisted(() => vi.fn());
@@ -27,6 +27,21 @@ import {
   createAuthOptions,
   createNextAuthHandler,
 } from "@/server/infrastructure/auth/nextauth-handler";
+
+const createMockUserRepository = (
+  overrides: Partial<UserRepository> = {},
+): UserRepository => ({
+  findById: vi.fn(),
+  findByIds: vi.fn(),
+  findByEmail: vi.fn(),
+  save: vi.fn(),
+  updateProfile: vi.fn(),
+  emailExists: vi.fn(),
+  findPasswordHashById: vi.fn(),
+  findPasswordChangedAt: vi.fn(),
+  updatePasswordHash: vi.fn(),
+  ...overrides,
+});
 
 const ORIGINAL_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const ORIGINAL_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -56,7 +71,8 @@ describe("NextAuth ハンドラ", () => {
     vi.mocked(Google).mockReturnValue(provider);
     vi.mocked(NextAuth).mockReturnValue("handler");
 
-    const handler = createNextAuthHandler();
+    const mockRepo = createMockUserRepository();
+    const handler = createNextAuthHandler({ userRepository: mockRepo });
 
     expect(handler).toBe("handler");
     expect(PrismaAdapter).toHaveBeenCalledWith(prisma);
@@ -88,7 +104,8 @@ describe("NextAuth ハンドラ", () => {
 });
 
 describe("JWT コールバック", () => {
-  const options = createAuthOptions();
+  const mockRepo = createMockUserRepository();
+  const options = createAuthOptions({ userRepository: mockRepo });
   const jwtCallback = options.callbacks!.jwt! as (params: {
     token: JWT;
     user?: { id: string };
@@ -104,11 +121,11 @@ describe("JWT コールバック", () => {
 
     expect(result.id).toBe("user-1");
     expect(result.iat).toBeDefined();
-    expect(prismaUserFindUnique).not.toHaveBeenCalled();
+    expect(mockRepo.findPasswordChangedAt).not.toHaveBeenCalled();
   });
 
   test("passwordChangedAt が null の場合はトークンをそのまま返す", async () => {
-    prismaUserFindUnique.mockResolvedValue({ passwordChangedAt: null });
+    vi.mocked(mockRepo.findPasswordChangedAt).mockResolvedValue(null);
 
     const token = { id: "user-1", iat: 1700000000 } as JWT;
     const result = await jwtCallback({ token });
@@ -117,9 +134,9 @@ describe("JWT コールバック", () => {
   });
 
   test("passwordChangedAt が iat より前の場合はトークンをそのまま返す", async () => {
-    prismaUserFindUnique.mockResolvedValue({
-      passwordChangedAt: new Date(1699999000 * 1000),
-    });
+    vi.mocked(mockRepo.findPasswordChangedAt).mockResolvedValue(
+      new Date(1699999000 * 1000),
+    );
 
     const token = { id: "user-1", iat: 1700000000 } as JWT;
     const result = await jwtCallback({ token });
@@ -128,9 +145,9 @@ describe("JWT コールバック", () => {
   });
 
   test("passwordChangedAt が iat より後の場合は空トークンを返す（セッション無効化）", async () => {
-    prismaUserFindUnique.mockResolvedValue({
-      passwordChangedAt: new Date(1700001000 * 1000),
-    });
+    vi.mocked(mockRepo.findPasswordChangedAt).mockResolvedValue(
+      new Date(1700001000 * 1000),
+    );
 
     const token = { id: "user-1", iat: 1700000000 } as JWT;
     const result = await jwtCallback({ token });
@@ -139,7 +156,7 @@ describe("JWT コールバック", () => {
   });
 
   test("ユーザーが存在しない場合はトークンをそのまま返す", async () => {
-    prismaUserFindUnique.mockResolvedValue(null);
+    vi.mocked(mockRepo.findPasswordChangedAt).mockResolvedValue(null);
 
     const token = { id: "user-1", iat: 1700000000 } as JWT;
     const result = await jwtCallback({ token });
@@ -150,7 +167,9 @@ describe("JWT コールバック", () => {
   test("パスワード変更直後のログインでは iat が更新されセッションが維持される", async () => {
     const now = Math.floor(Date.now() / 1000);
     const passwordChangedAt = new Date((now - 1) * 1000);
-    prismaUserFindUnique.mockResolvedValue({ passwordChangedAt });
+    vi.mocked(mockRepo.findPasswordChangedAt).mockResolvedValue(
+      passwordChangedAt,
+    );
 
     const token = { sub: "user-1" } as JWT;
     const result = await jwtCallback({ token, user: { id: "user-1" } });
@@ -164,11 +183,13 @@ describe("JWT コールバック", () => {
     const result = await jwtCallback({ token });
 
     expect(result.id).toBeUndefined();
-    expect(prismaUserFindUnique).not.toHaveBeenCalled();
+    expect(mockRepo.findPasswordChangedAt).not.toHaveBeenCalled();
   });
 
   test("DB障害時はトークンをそのまま返す（フェイルオープン）", async () => {
-    prismaUserFindUnique.mockRejectedValue(new Error("Connection refused"));
+    vi.mocked(mockRepo.findPasswordChangedAt).mockRejectedValue(
+      new Error("Connection refused"),
+    );
 
     const token = { id: "user-1", iat: 1700000000 } as JWT;
     const result = await jwtCallback({ token });
@@ -178,7 +199,8 @@ describe("JWT コールバック", () => {
 });
 
 describe("session コールバック", () => {
-  const options = createAuthOptions();
+  const mockRepo = createMockUserRepository();
+  const options = createAuthOptions({ userRepository: mockRepo });
   const sessionCallback = options.callbacks!.session! as unknown as (params: {
     session: { user?: { id?: string } };
     token: JWT;

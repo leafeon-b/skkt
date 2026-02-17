@@ -4,6 +4,7 @@ import type { User } from "@/server/domain/models/user/user";
 export type UserRepository = {
   findById(id: UserId): Promise<User | null>;
   findByIds(ids: readonly UserId[]): Promise<User[]>;
+  findByEmail(email: string): Promise<User | null>;
   save(user: User): Promise<void>;
   updateProfile(
     id: UserId,

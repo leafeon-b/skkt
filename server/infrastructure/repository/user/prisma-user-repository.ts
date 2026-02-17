@@ -22,6 +22,14 @@ export const createPrismaUserRepository = (
     return found ? mapUserToDomain(found) : null;
   },
 
+  async findByEmail(email: string): Promise<User | null> {
+    const found = await client.user.findUnique({
+      where: { email },
+    });
+
+    return found ? mapUserToDomain(found) : null;
+  },
+
   async findByIds(ids: readonly UserId[]): Promise<User[]> {
     if (ids.length === 0) {
       return [];

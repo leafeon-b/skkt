@@ -1,10 +1,13 @@
 import { getServerSession } from "next-auth";
 import type { SessionService } from "@/server/domain/services/auth/session-service";
 import { createAuthOptions } from "./nextauth-handler";
+import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
 
 export const nextAuthSessionService: SessionService = {
   async getSession() {
-    const session = await getServerSession(createAuthOptions());
+    const session = await getServerSession(
+      createAuthOptions({ userRepository: prismaUserRepository }),
+    );
     if (!session?.user) {
       return null;
     }
