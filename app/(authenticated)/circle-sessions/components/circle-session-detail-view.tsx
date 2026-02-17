@@ -549,7 +549,6 @@ export function CircleSessionDetailView({
       createMatch.mutate(
         {
           circleSessionId: detail.circleSessionId,
-          order: matches.length + 1,
           player1Id,
           player2Id,
           outcome,
