@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleParticipationService } from "@/server/application/circle/circle-participation-service";
+import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import { ForbiddenError } from "@/server/domain/common/errors";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
@@ -464,5 +465,157 @@ describe("Circle 参加関係サービス", () => {
     expect(
       circleParticipationRepository.removeParticipation,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-2"));
+  });
+});
+
+describe("UnitOfWork 経路", () => {
+  // deps用リポジトリ（UoW外）— circleRepository はUoW外で使われるため通常設定
+  const depsCircleRepository = {
+    findById: vi.fn(),
+    findByIds: vi.fn(),
+    save: vi.fn(),
+    delete: vi.fn(),
+  } satisfies CircleRepository;
+
+  // deps用（UoW内で使われるべきメソッドには mockResolvedValue を設定しない）
+  const depsCircleParticipationRepository = {
+    listByCircleId: vi.fn(),
+    listByUserId: vi.fn(),
+    addParticipation: vi.fn(),
+    updateParticipationRole: vi.fn(),
+    removeParticipation: vi.fn(),
+  } satisfies CircleParticipationRepository;
+
+  const depsCircleSessionParticipationRepository = {
+    listParticipations: vi.fn(),
+    listByUserId: vi.fn(),
+    addParticipation: vi.fn(),
+    updateParticipationRole: vi.fn(),
+    areUsersParticipating: vi.fn(),
+    removeParticipation: vi.fn(),
+    removeAllByCircleAndUser: vi.fn(),
+  } satisfies CircleSessionParticipationRepository;
+
+  // UoWコールバック用リポジトリ（UoW内専用）
+  const uowCircleParticipationRepository = {
+    listByCircleId: vi.fn(),
+    listByUserId: vi.fn(),
+    addParticipation: vi.fn(),
+    updateParticipationRole: vi.fn(),
+    removeParticipation: vi.fn(),
+  } satisfies CircleParticipationRepository;
+
+  const uowCircleSessionParticipationRepository = {
+    listParticipations: vi.fn(),
+    listByUserId: vi.fn(),
+    addParticipation: vi.fn(),
+    updateParticipationRole: vi.fn(),
+    areUsersParticipating: vi.fn(),
+    removeParticipation: vi.fn(),
+    removeAllByCircleAndUser: vi.fn(),
+  } satisfies CircleSessionParticipationRepository;
+
+  const unitOfWork: UnitOfWork = vi.fn(async (op) =>
+    op({
+      circleParticipationRepository: uowCircleParticipationRepository,
+      circleSessionParticipationRepository:
+        uowCircleSessionParticipationRepository,
+    } as never),
+  );
+
+  const uowAccessService = createAccessServiceStub();
+
+  const uowService = createCircleParticipationService({
+    circleParticipationRepository: depsCircleParticipationRepository,
+    circleSessionParticipationRepository:
+      depsCircleSessionParticipationRepository,
+    circleRepository: depsCircleRepository,
+    accessService: uowAccessService,
+    unitOfWork,
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(depsCircleRepository.findById).mockResolvedValue({
+      id: circleId("circle-1"),
+      name: "Circle One",
+      createdAt: new Date(),
+    });
+    vi.mocked(uowAccessService.canWithdrawFromCircle).mockResolvedValue(true);
+    vi.mocked(uowAccessService.canRemoveCircleMember).mockResolvedValue(true);
+    // listByCircleId はUoW外で呼ばれるためdeps側に設定
+    vi.mocked(
+      depsCircleParticipationRepository.listByCircleId,
+    ).mockResolvedValue([
+      {
+        circleId: circleId("circle-1"),
+        userId: userId("user-owner"),
+        role: "CircleOwner",
+        createdAt: new Date("2025-01-01T00:00:00Z"),
+      },
+      {
+        circleId: circleId("circle-1"),
+        userId: userId("user-member"),
+        role: "CircleMember",
+        createdAt: new Date("2025-01-02T00:00:00Z"),
+      },
+    ]);
+  });
+
+  test("withdrawParticipation は unitOfWork を呼び出す", async () => {
+    await uowService.withdrawParticipation({
+      actorId: "user-member",
+      circleId: circleId("circle-1"),
+    });
+
+    expect(unitOfWork).toHaveBeenCalledOnce();
+    expect(
+      uowCircleSessionParticipationRepository.removeAllByCircleAndUser,
+    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
+    expect(
+      uowCircleParticipationRepository.removeParticipation,
+    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
+    // deps側のリポジトリは呼ばれない
+    expect(
+      depsCircleSessionParticipationRepository.removeAllByCircleAndUser,
+    ).not.toHaveBeenCalled();
+    expect(
+      depsCircleParticipationRepository.removeParticipation,
+    ).not.toHaveBeenCalled();
+  });
+
+  test("removeParticipation は unitOfWork を呼び出す", async () => {
+    await uowService.removeParticipation({
+      actorId: "user-actor",
+      circleId: circleId("circle-1"),
+      userId: userId("user-member"),
+    });
+
+    expect(unitOfWork).toHaveBeenCalledOnce();
+    expect(
+      uowCircleSessionParticipationRepository.removeAllByCircleAndUser,
+    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
+    expect(
+      uowCircleParticipationRepository.removeParticipation,
+    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
+    expect(
+      depsCircleSessionParticipationRepository.removeAllByCircleAndUser,
+    ).not.toHaveBeenCalled();
+    expect(
+      depsCircleParticipationRepository.removeParticipation,
+    ).not.toHaveBeenCalled();
+  });
+
+  test("UoW 内でエラーが発生した場合に伝播する", async () => {
+    uowCircleSessionParticipationRepository.removeAllByCircleAndUser.mockRejectedValue(
+      new Error("DB error"),
+    );
+
+    await expect(
+      uowService.withdrawParticipation({
+        actorId: "user-member",
+        circleId: circleId("circle-1"),
+      }),
+    ).rejects.toThrow("DB error");
   });
 });

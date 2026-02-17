@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createMatchService } from "@/server/application/match/match-service";
+import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { MatchHistoryRepository } from "@/server/domain/models/match-history/match-history-repository";
@@ -303,5 +304,173 @@ describe("Match サービス", () => {
     );
     expect(updated.player1Id).toBe(userId("user-4"));
     expect(updated.player2Id).toBe(userId("user-5"));
+  });
+});
+
+describe("UnitOfWork 経路", () => {
+  // deps用リポジトリ（UoW外）— UoW内で使われるべきメソッドには mockResolvedValue を設定しない
+  const depsMatchRepository = {
+    findById: vi.fn(),
+    listByCircleSessionId: vi.fn(),
+    save: vi.fn(),
+  } satisfies MatchRepository;
+
+  const depsMatchHistoryRepository = {
+    listByMatchId: vi.fn(),
+    add: vi.fn(),
+  } satisfies MatchHistoryRepository;
+
+  const depsCircleSessionParticipationRepository = {
+    listParticipations: vi.fn(),
+    listByUserId: vi.fn(),
+    addParticipation: vi.fn(),
+    updateParticipationRole: vi.fn(),
+    areUsersParticipating: vi.fn(),
+    removeParticipation: vi.fn(),
+    removeAllByCircleAndUser: vi.fn(),
+  } satisfies CircleSessionParticipationRepository;
+
+  const depsCircleSessionRepository = {
+    findById: vi.fn(),
+    findByIds: vi.fn(),
+    listByCircleId: vi.fn(),
+    save: vi.fn(),
+    delete: vi.fn(),
+  } satisfies CircleSessionRepository;
+
+  // UoWコールバック用リポジトリ（UoW内専用）
+  const uowMatchRepository = {
+    findById: vi.fn(),
+    listByCircleSessionId: vi.fn(),
+    save: vi.fn(),
+  } satisfies MatchRepository;
+
+  const uowMatchHistoryRepository = {
+    listByMatchId: vi.fn(),
+    add: vi.fn(),
+  } satisfies MatchHistoryRepository;
+
+  const uowCircleSessionParticipationRepository = {
+    listParticipations: vi.fn(),
+    listByUserId: vi.fn(),
+    addParticipation: vi.fn(),
+    updateParticipationRole: vi.fn(),
+    areUsersParticipating: vi.fn(),
+    removeParticipation: vi.fn(),
+    removeAllByCircleAndUser: vi.fn(),
+  } satisfies CircleSessionParticipationRepository;
+
+  const uowCircleSessionRepository = {
+    findById: vi.fn(),
+    findByIds: vi.fn(),
+    listByCircleId: vi.fn(),
+    save: vi.fn(),
+    delete: vi.fn(),
+  } satisfies CircleSessionRepository;
+
+  const unitOfWork: UnitOfWork = vi.fn(async (op) =>
+    op({
+      matchRepository: uowMatchRepository,
+      matchHistoryRepository: uowMatchHistoryRepository,
+      circleSessionParticipationRepository:
+        uowCircleSessionParticipationRepository,
+      circleSessionRepository: uowCircleSessionRepository,
+    } as never),
+  );
+
+  const uowAccessService = createAccessServiceStub();
+
+  const uowService = createMatchService({
+    matchRepository: depsMatchRepository,
+    matchHistoryRepository: depsMatchHistoryRepository,
+    circleSessionParticipationRepository:
+      depsCircleSessionParticipationRepository,
+    circleSessionRepository: depsCircleSessionRepository,
+    accessService: uowAccessService,
+    generateMatchHistoryId: () => matchHistoryId("history-1"),
+    unitOfWork,
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(uowAccessService.canRecordMatch).mockResolvedValue(true);
+    vi.mocked(uowAccessService.canEditMatch).mockResolvedValue(true);
+    vi.mocked(uowAccessService.canDeleteMatch).mockResolvedValue(true);
+    vi.mocked(uowCircleSessionRepository.findById).mockResolvedValue(
+      baseSession(),
+    );
+    vi.mocked(
+      uowCircleSessionParticipationRepository.areUsersParticipating,
+    ).mockResolvedValue(true);
+  });
+
+  test("recordMatch は unitOfWork を呼び出す", async () => {
+    const result = await uowService.recordMatch({
+      actorId: userId("user-3"),
+      ...baseMatchParams,
+    });
+
+    expect(unitOfWork).toHaveBeenCalledOnce();
+    expect(uowMatchRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ id: baseMatchParams.id }),
+    );
+    expect(uowMatchHistoryRepository.add).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "CREATE" }),
+    );
+    // deps側のリポジトリは呼ばれない
+    expect(depsMatchRepository.save).not.toHaveBeenCalled();
+    expect(depsMatchHistoryRepository.add).not.toHaveBeenCalled();
+  });
+
+  test("updateMatch は unitOfWork を呼び出す", async () => {
+    const existing = createMatch(baseMatchParams);
+    vi.mocked(uowMatchRepository.findById).mockResolvedValue(existing);
+
+    const updated = await uowService.updateMatch({
+      actorId: userId("user-3"),
+      id: baseMatchParams.id,
+      outcome: "DRAW",
+    });
+
+    expect(unitOfWork).toHaveBeenCalledOnce();
+    expect(uowMatchRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ outcome: "DRAW" }),
+    );
+    expect(uowMatchHistoryRepository.add).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "UPDATE" }),
+    );
+    expect(depsMatchRepository.save).not.toHaveBeenCalled();
+    expect(depsMatchHistoryRepository.add).not.toHaveBeenCalled();
+  });
+
+  test("deleteMatch は unitOfWork を呼び出す", async () => {
+    const existing = createMatch(baseMatchParams);
+    vi.mocked(uowMatchRepository.findById).mockResolvedValue(existing);
+
+    const deleted = await uowService.deleteMatch({
+      actorId: userId("user-3"),
+      id: baseMatchParams.id,
+    });
+
+    expect(unitOfWork).toHaveBeenCalledOnce();
+    expect(uowMatchRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ deletedAt: expect.any(Date) }),
+    );
+    expect(uowMatchHistoryRepository.add).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "DELETE" }),
+    );
+    expect(depsMatchRepository.save).not.toHaveBeenCalled();
+    expect(depsMatchHistoryRepository.add).not.toHaveBeenCalled();
+  });
+
+  test("UoW 内でエラーが発生した場合に伝播する", async () => {
+    uowMatchRepository.save.mockRejectedValue(new Error("DB error"));
+
+    await expect(
+      uowService.recordMatch({
+        actorId: userId("user-3"),
+        ...baseMatchParams,
+      }),
+    ).rejects.toThrow("DB error");
   });
 });

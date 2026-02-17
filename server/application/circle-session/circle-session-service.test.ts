@@ -239,13 +239,34 @@ describe("CircleSession サービス", () => {
 });
 
 describe("UnitOfWork 経路", () => {
-  const uowCircleRepository = {
+  // deps用リポジトリ（UoW外）— circleRepository はUoW外で使われるため通常設定
+  const depsCircleRepository = {
     findById: vi.fn(),
     findByIds: vi.fn(),
     save: vi.fn(),
     delete: vi.fn(),
   } satisfies CircleRepository;
 
+  // deps用（UoW内で使われるべきメソッドには mockResolvedValue を設定しない）
+  const depsCircleSessionRepository = {
+    findById: vi.fn(),
+    findByIds: vi.fn(),
+    listByCircleId: vi.fn(),
+    save: vi.fn(),
+    delete: vi.fn(),
+  } satisfies CircleSessionRepository;
+
+  const depsCircleSessionParticipationRepository = {
+    listParticipations: vi.fn(),
+    listByUserId: vi.fn(),
+    addParticipation: vi.fn(),
+    updateParticipationRole: vi.fn(),
+    areUsersParticipating: vi.fn(),
+    removeParticipation: vi.fn(),
+    removeAllByCircleAndUser: vi.fn(),
+  } satisfies CircleSessionParticipationRepository;
+
+  // UoWコールバック用リポジトリ（UoW内専用）
   const uowCircleSessionRepository = {
     findById: vi.fn(),
     findByIds: vi.fn(),
@@ -275,10 +296,10 @@ describe("UnitOfWork 経路", () => {
   const uowAccessService = createAccessServiceStub();
 
   const uowService = createCircleSessionService({
-    circleRepository: uowCircleRepository,
-    circleSessionRepository: uowCircleSessionRepository,
+    circleRepository: depsCircleRepository,
+    circleSessionRepository: depsCircleSessionRepository,
     circleSessionParticipationRepository:
-      uowCircleSessionParticipationRepository,
+      depsCircleSessionParticipationRepository,
     accessService: uowAccessService,
     unitOfWork,
   });
@@ -292,7 +313,7 @@ describe("UnitOfWork 経路", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(uowAccessService.canCreateCircleSession).mockResolvedValue(true);
-    vi.mocked(uowCircleRepository.findById).mockResolvedValue(uowBaseCircle);
+    vi.mocked(depsCircleRepository.findById).mockResolvedValue(uowBaseCircle);
   });
 
   test("createCircleSession は unitOfWork を呼び出す", async () => {
@@ -306,6 +327,11 @@ describe("UnitOfWork 経路", () => {
     expect(
       uowCircleSessionParticipationRepository.addParticipation,
     ).toHaveBeenCalled();
+    // deps側のリポジトリは呼ばれない
+    expect(depsCircleSessionRepository.save).not.toHaveBeenCalled();
+    expect(
+      depsCircleSessionParticipationRepository.addParticipation,
+    ).not.toHaveBeenCalled();
   });
 
   test("addParticipation 失敗時にエラーが伝播する", async () => {
