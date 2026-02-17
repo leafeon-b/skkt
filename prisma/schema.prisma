@@ -44,7 +44,8 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  passwordHash  String?
+  passwordHash      String?
+  passwordChangedAt DateTime?
 
   circleMemberships        CircleMembership[]
   circleSessionMemberships CircleSessionMembership[]

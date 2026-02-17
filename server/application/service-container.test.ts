@@ -60,6 +60,7 @@ const createUserStub = () => ({
   updateProfile: vi.fn(),
   emailExists: vi.fn(),
   findPasswordHashById: vi.fn(),
+  findPasswordChangedAt: vi.fn(),
   updatePasswordHash: vi.fn(),
 });
 

@@ -33,6 +33,7 @@ describe("Prisma Authz リポジトリ", () => {
       emailVerified: null,
       image: null,
       passwordHash: null,
+      passwordChangedAt: null,
     });
 
     const result = await prismaAuthzRepository.isRegisteredUser("user-1");

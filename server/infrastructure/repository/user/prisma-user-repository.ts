@@ -81,10 +81,18 @@ export const createPrismaUserRepository = (
     return found?.passwordHash ?? null;
   },
 
+  async findPasswordChangedAt(id: UserId): Promise<Date | null> {
+    const found = await client.user.findUnique({
+      where: { id: toPersistenceId(id) },
+      select: { passwordChangedAt: true },
+    });
+    return found?.passwordChangedAt ?? null;
+  },
+
   async updatePasswordHash(id: UserId, passwordHash: string): Promise<void> {
     await client.user.update({
       where: { id: toPersistenceId(id) },
-      data: { passwordHash },
+      data: { passwordHash, passwordChangedAt: new Date() },
     });
   },
 });

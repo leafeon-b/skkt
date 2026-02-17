@@ -71,14 +71,41 @@ export const createAuthOptions = (): AuthOptions => ({
   session: { strategy: "jwt" },
   debug: isDebug,
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user?.id) {
         token.id = user.id;
+        token.iat = Math.floor(Date.now() / 1000);
+        return token;
       }
+
+      const userId = (token.id ?? token.sub) as string | undefined;
+      if (!userId) {
+        return {} as typeof token;
+      }
+
+      if (token.iat) {
+        try {
+          const found = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { passwordChangedAt: true },
+          });
+          if (found?.passwordChangedAt) {
+            const changedAtSec = Math.floor(
+              found.passwordChangedAt.getTime() / 1000,
+            );
+            if (changedAtSec > (token.iat as number)) {
+              return {} as typeof token;
+            }
+          }
+        } catch {
+          // Fail open: DB障害時は既存セッションを維持する
+        }
+      }
+
       return token;
     },
     session({ session, token }) {
-      if (session.user) {
+      if (session.user && token.id) {
         session.user.id = (token.id ?? token.sub) as string;
       }
       return session;

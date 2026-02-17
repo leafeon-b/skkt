@@ -12,5 +12,6 @@ export type UserRepository = {
   ): Promise<void>;
   emailExists(email: string, excludeUserId: UserId): Promise<boolean>;
   findPasswordHashById(id: UserId): Promise<string | null>;
+  findPasswordChangedAt(id: UserId): Promise<Date | null>;
   updatePasswordHash(id: UserId, passwordHash: string): Promise<void>;
 };

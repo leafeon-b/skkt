@@ -16,6 +16,7 @@ describe("User マッパー", () => {
       emailVerified: null,
       image: "https://example.com/icon.png",
       passwordHash: null,
+      passwordChangedAt: null,
       createdAt: new Date("2024-01-01T00:00:00Z"),
     };
 

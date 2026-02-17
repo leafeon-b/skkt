@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
+import type { JWT } from "next-auth/jwt";
 
-const prismaValue = vi.hoisted(() => ({ prisma: { kind: "prisma" } }));
+const prismaUserFindUnique = vi.hoisted(() => vi.fn());
+const prismaValue = vi.hoisted(() => ({
+  prisma: { user: { findUnique: prismaUserFindUnique } },
+}));
 const nextAuthMock = vi.hoisted(() => vi.fn());
 const prismaAdapterMock = vi.hoisted(() => vi.fn());
 const credentialsMock = vi.hoisted(() => vi.fn());
@@ -19,7 +23,10 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { createNextAuthHandler } from "@/server/infrastructure/auth/nextauth-handler";
+import {
+  createAuthOptions,
+  createNextAuthHandler,
+} from "@/server/infrastructure/auth/nextauth-handler";
 
 const ORIGINAL_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const ORIGINAL_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -77,5 +84,121 @@ describe("NextAuth ハンドラ", () => {
         },
       }),
     );
+  });
+});
+
+describe("JWT コールバック", () => {
+  const options = createAuthOptions();
+  const jwtCallback = options.callbacks!.jwt! as (params: {
+    token: JWT;
+    user?: { id: string };
+  }) => Promise<JWT>;
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("初回ログイン時に token.id と token.iat を設定しDBクエリせず早期リターンする", async () => {
+    const token = { sub: "user-1" } as JWT;
+    const result = await jwtCallback({ token, user: { id: "user-1" } });
+
+    expect(result.id).toBe("user-1");
+    expect(result.iat).toBeDefined();
+    expect(prismaUserFindUnique).not.toHaveBeenCalled();
+  });
+
+  test("passwordChangedAt が null の場合はトークンをそのまま返す", async () => {
+    prismaUserFindUnique.mockResolvedValue({ passwordChangedAt: null });
+
+    const token = { id: "user-1", iat: 1700000000 } as JWT;
+    const result = await jwtCallback({ token });
+
+    expect(result.id).toBe("user-1");
+  });
+
+  test("passwordChangedAt が iat より前の場合はトークンをそのまま返す", async () => {
+    prismaUserFindUnique.mockResolvedValue({
+      passwordChangedAt: new Date(1699999000 * 1000),
+    });
+
+    const token = { id: "user-1", iat: 1700000000 } as JWT;
+    const result = await jwtCallback({ token });
+
+    expect(result.id).toBe("user-1");
+  });
+
+  test("passwordChangedAt が iat より後の場合は空トークンを返す（セッション無効化）", async () => {
+    prismaUserFindUnique.mockResolvedValue({
+      passwordChangedAt: new Date(1700001000 * 1000),
+    });
+
+    const token = { id: "user-1", iat: 1700000000 } as JWT;
+    const result = await jwtCallback({ token });
+
+    expect(result.id).toBeUndefined();
+  });
+
+  test("ユーザーが存在しない場合はトークンをそのまま返す", async () => {
+    prismaUserFindUnique.mockResolvedValue(null);
+
+    const token = { id: "user-1", iat: 1700000000 } as JWT;
+    const result = await jwtCallback({ token });
+
+    expect(result.id).toBe("user-1");
+  });
+
+  test("パスワード変更直後のログインでは iat が更新されセッションが維持される", async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const passwordChangedAt = new Date((now - 1) * 1000);
+    prismaUserFindUnique.mockResolvedValue({ passwordChangedAt });
+
+    const token = { sub: "user-1" } as JWT;
+    const result = await jwtCallback({ token, user: { id: "user-1" } });
+
+    expect(result.id).toBe("user-1");
+    expect(result.iat).toBeGreaterThanOrEqual(now);
+  });
+
+  test("userId が無いトークンは空トークンを返す", async () => {
+    const token = {} as JWT;
+    const result = await jwtCallback({ token });
+
+    expect(result.id).toBeUndefined();
+    expect(prismaUserFindUnique).not.toHaveBeenCalled();
+  });
+
+  test("DB障害時はトークンをそのまま返す（フェイルオープン）", async () => {
+    prismaUserFindUnique.mockRejectedValue(new Error("Connection refused"));
+
+    const token = { id: "user-1", iat: 1700000000 } as JWT;
+    const result = await jwtCallback({ token });
+
+    expect(result.id).toBe("user-1");
+  });
+});
+
+describe("session コールバック", () => {
+  const options = createAuthOptions();
+  const sessionCallback = options.callbacks!.session! as unknown as (params: {
+    session: { user?: { id?: string } };
+    token: JWT;
+  }) => { user?: { id?: string } };
+
+  test("token.id がある場合は session.user.id を設定する", () => {
+    const session = { user: {} as { id?: string } };
+    const token = { id: "user-1" } as JWT;
+
+    const result = sessionCallback({ session, token });
+
+    expect(result.user?.id).toBe("user-1");
+  });
+
+  test("token.id が無い場合は session.user.id を設定しない", () => {
+    const session = { user: {} as { id?: string } };
+    const token = {} as JWT;
+
+    const result = sessionCallback({ session, token });
+
+    expect(result.user?.id).toBeUndefined();
   });
 });
