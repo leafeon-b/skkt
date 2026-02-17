@@ -16,6 +16,7 @@ export default defineConfig({
       "dist",
       "coverage",
       "**/*.integration.test.*",
+      "e2e",
     ],
   },
 });
