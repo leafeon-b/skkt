@@ -205,6 +205,7 @@ const sessionMemberships = demoUsers.flatMap((user) =>
   })),
 );
 
+const matchBaseTime = new Date("2026-01-15T10:00:00Z");
 const matches = [
   {
     id: "match-1",
@@ -212,6 +213,7 @@ const matches = [
     player1Id: "user-1",
     player2Id: "user-5",
     outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 0 * 60_000),
   },
   {
     id: "match-2",
@@ -219,6 +221,7 @@ const matches = [
     player1Id: "user-5",
     player2Id: "user-1",
     outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 1 * 60_000),
   },
   {
     id: "match-3",
@@ -226,6 +229,7 @@ const matches = [
     player1Id: "user-1",
     player2Id: "user-6",
     outcome: MatchOutcome.P2_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 2 * 60_000),
   },
   {
     id: "match-4",
@@ -233,6 +237,7 @@ const matches = [
     player1Id: "user-1",
     player2Id: "user-7",
     outcome: MatchOutcome.DRAW,
+    createdAt: new Date(matchBaseTime.getTime() + 3 * 60_000),
   },
   {
     id: "match-5",
@@ -240,6 +245,7 @@ const matches = [
     player1Id: "user-5",
     player2Id: "user-6",
     outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 4 * 60_000),
   },
   {
     id: "match-6",
@@ -247,6 +253,7 @@ const matches = [
     player1Id: "user-5",
     player2Id: "user-6",
     outcome: MatchOutcome.P2_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 5 * 60_000),
   },
   {
     id: "match-7",
@@ -254,6 +261,7 @@ const matches = [
     player1Id: "user-6",
     player2Id: "user-5",
     outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 6 * 60_000),
   },
   {
     id: "match-8",
@@ -261,6 +269,7 @@ const matches = [
     player1Id: "user-5",
     player2Id: "user-4",
     outcome: MatchOutcome.P2_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 7 * 60_000),
   },
   {
     id: "match-9",
@@ -268,6 +277,7 @@ const matches = [
     player1Id: "user-6",
     player2Id: "user-8",
     outcome: MatchOutcome.P2_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 8 * 60_000),
   },
   {
     id: "match-10",
@@ -275,6 +285,7 @@ const matches = [
     player1Id: "user-7",
     player2Id: "user-4",
     outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 9 * 60_000),
   },
   {
     id: "match-11",
@@ -282,6 +293,7 @@ const matches = [
     player1Id: "user-7",
     player2Id: "user-4",
     outcome: MatchOutcome.DRAW,
+    createdAt: new Date(matchBaseTime.getTime() + 10 * 60_000),
   },
   {
     id: "match-12",
@@ -289,6 +301,7 @@ const matches = [
     player1Id: "user-4",
     player2Id: "user-7",
     outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 11 * 60_000),
   },
   {
     id: "match-13",
@@ -296,6 +309,7 @@ const matches = [
     player1Id: "user-4",
     player2Id: "user-8",
     outcome: MatchOutcome.DRAW,
+    createdAt: new Date(matchBaseTime.getTime() + 12 * 60_000),
   },
 ];
 
