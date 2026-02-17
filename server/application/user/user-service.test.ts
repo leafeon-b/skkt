@@ -11,6 +11,7 @@ import { TooManyRequestsError } from "@/server/domain/common/errors";
 const userRepository = {
   findById: vi.fn(),
   findByIds: vi.fn(),
+  findByEmail: vi.fn(),
   save: vi.fn(),
   updateProfile: vi.fn(),
   emailExists: vi.fn(),

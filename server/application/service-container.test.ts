@@ -56,6 +56,7 @@ const createAuthzStub = () => ({
 const createUserStub = () => ({
   findById: vi.fn(),
   findByIds: vi.fn(),
+  findByEmail: vi.fn(),
   save: vi.fn(),
   updateProfile: vi.fn(),
   emailExists: vi.fn(),
