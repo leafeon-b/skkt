@@ -117,8 +117,10 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
               return {} as typeof token;
             }
           }
-        } catch {
-          // Fail open: DB障害時は既存セッションを維持する
+        } catch (error) {
+          // Fail closed: DB障害時はセッションを無効化する
+          console.error("[auth] passwordChangedAt check failed", error);
+          return {} as typeof token;
         }
       }
 
