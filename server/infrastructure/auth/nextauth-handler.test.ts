@@ -207,7 +207,7 @@ describe("JWT コールバック", () => {
     expect(mockRepo.findPasswordChangedAt).not.toHaveBeenCalled();
   });
 
-  test("DB障害時はトークンをそのまま返す（フェイルオープン）", async () => {
+  test("DB障害時は空トークンを返す（フェイルクローズド）", async () => {
     vi.mocked(mockRepo.findPasswordChangedAt).mockRejectedValue(
       new Error("Connection refused"),
     );
@@ -215,7 +215,7 @@ describe("JWT コールバック", () => {
     const token = { id: "user-1", iat: 1700000000 } as JWT;
     const result = await jwtCallback({ token });
 
-    expect(result.id).toBe("user-1");
+    expect(result.id).toBeUndefined();
   });
 });
 
