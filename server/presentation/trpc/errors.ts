@@ -6,6 +6,13 @@ const toMessage = (error: unknown): string =>
 
 export const toTrpcError = (error: unknown): TRPCError => {
   if (error instanceof TRPCError) {
+    if (error.code === "INTERNAL_SERVER_ERROR") {
+      console.error("TRPCError with INTERNAL_SERVER_ERROR:", error);
+      return new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Internal server error",
+      });
+    }
     return error;
   }
 

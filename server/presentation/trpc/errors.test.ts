@@ -19,6 +19,26 @@ describe("toTrpcError", () => {
     expect(result).toBe(original);
   });
 
+  test("INTERNAL_SERVER_ERROR の TRPCError はメッセージがサニタイズされる", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const original = new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "DB connection failed: host=secret-db",
+    });
+    const result = toTrpcError(original);
+
+    expect(result).not.toBe(original);
+    expect(result.code).toBe("INTERNAL_SERVER_ERROR");
+    expect(result.message).toBe("Internal server error");
+    expect(result.message).not.toContain("secret-db");
+
+    expect(spy).toHaveBeenCalledWith(
+      "TRPCError with INTERNAL_SERVER_ERROR:",
+      original,
+    );
+    spy.mockRestore();
+  });
+
   describe("DomainError は対応する TRPC エラーに変換される", () => {
     test("NotFoundError -> NOT_FOUND", () => {
       const result = toTrpcError(new NotFoundError("Circle"));
