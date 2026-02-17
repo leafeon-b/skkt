@@ -8,6 +8,9 @@ vi.mock("@/server/infrastructure/db", () => ({
       update: vi.fn(),
       deleteMany: vi.fn(),
     },
+    circleSessionMembership: {
+      deleteMany: vi.fn(),
+    },
   },
 }));
 
@@ -145,11 +148,32 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     });
   });
 
-  test("removeParticipation は参加者を削除する", async () => {
+  test("removeParticipation はセッションメンバーシップを先に削除し、その後参加者を削除する", async () => {
+    const callOrder: string[] = [];
+    mockedPrisma.circleSessionMembership.deleteMany.mockImplementation(
+      async () => {
+        callOrder.push("circleSessionMembership");
+        return { count: 0 };
+      },
+    );
+    mockedPrisma.circleMembership.deleteMany.mockImplementation(async () => {
+      callOrder.push("circleMembership");
+      return { count: 0 };
+    });
+
     await prismaCircleParticipationRepository.removeParticipation(
       circleId("circle-1"),
       userId("user-1"),
     );
+
+    expect(
+      mockedPrisma.circleSessionMembership.deleteMany,
+    ).toHaveBeenCalledWith({
+      where: {
+        userId: "user-1",
+        session: { circleId: "circle-1" },
+      },
+    });
 
     expect(mockedPrisma.circleMembership.deleteMany).toHaveBeenCalledWith({
       where: {
@@ -157,5 +181,25 @@ describe("Prisma Circle 参加者リポジトリ", () => {
         userId: "user-1",
       },
     });
+
+    expect(callOrder).toEqual([
+      "circleSessionMembership",
+      "circleMembership",
+    ]);
+  });
+
+  test("removeParticipation はセッションメンバーシップ削除失敗時にエラーを伝播し、研究会メンバーシップを削除しない", async () => {
+    mockedPrisma.circleSessionMembership.deleteMany.mockRejectedValue(
+      new Error("DB error"),
+    );
+
+    await expect(
+      prismaCircleParticipationRepository.removeParticipation(
+        circleId("circle-1"),
+        userId("user-1"),
+      ),
+    ).rejects.toThrow("DB error");
+
+    expect(mockedPrisma.circleMembership.deleteMany).not.toHaveBeenCalled();
   });
 });
