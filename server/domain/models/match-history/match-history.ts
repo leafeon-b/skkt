@@ -6,7 +6,6 @@ import type {
 import type { MatchOutcome } from "@/server/domain/models/match/match";
 import {
   assertDifferentIds,
-  assertPositiveInteger,
   assertValidDate,
 } from "@/server/domain/common/validation";
 
@@ -18,7 +17,6 @@ export type MatchHistory = {
   editorId: UserId;
   action: MatchHistoryAction;
   createdAt: Date;
-  order: number;
   player1Id: UserId;
   player2Id: UserId;
   outcome: MatchOutcome;
@@ -30,7 +28,6 @@ export type MatchHistoryCreateParams = {
   editorId: UserId;
   action: MatchHistoryAction;
   createdAt?: Date;
-  order: number;
   player1Id: UserId;
   player2Id: UserId;
   outcome: MatchOutcome;
@@ -50,7 +47,6 @@ export const createMatchHistory = (
     editorId: params.editorId,
     action: params.action,
     createdAt,
-    order: assertPositiveInteger(params.order, "order"),
     player1Id: params.player1Id,
     player2Id: params.player2Id,
     outcome: params.outcome,

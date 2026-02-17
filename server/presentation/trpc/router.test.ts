@@ -333,7 +333,7 @@ describe("tRPC router", () => {
       {
         id: matchId("match-1"),
         circleSessionId: circleSessionId("session-1"),
-        order: 1,
+        createdAt: new Date("2024-01-01T00:00:00Z"),
         player1Id: userId("user-1"),
         player2Id: userId("user-2"),
         outcome: "P1_WIN",
@@ -355,7 +355,7 @@ describe("tRPC router", () => {
     mocks.matchService.getMatch.mockResolvedValueOnce({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
       outcome: "P1_WIN",
@@ -388,7 +388,7 @@ describe("tRPC router", () => {
     mocks.matchService.recordMatch.mockResolvedValueOnce({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
       outcome: "P1_WIN",
@@ -398,7 +398,6 @@ describe("tRPC router", () => {
     const caller = appRouter.createCaller(context);
     const result = await caller.matches.create({
       circleSessionId: "session-1",
-      order: 1,
       player1Id: "user-1",
       player2Id: "user-2",
       outcome: "P1_WIN",
@@ -433,7 +432,7 @@ describe("tRPC router", () => {
     mocks.matchService.updateMatch.mockResolvedValueOnce({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
       outcome: "P2_WIN",
@@ -461,7 +460,7 @@ describe("tRPC router", () => {
     mocks.matchService.deleteMatch.mockResolvedValueOnce({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
       outcome: "P1_WIN",
@@ -487,7 +486,6 @@ describe("tRPC router", () => {
         editorId: userId("user-1"),
         action: "CREATE",
         createdAt: new Date("2025-02-02T00:00:00Z"),
-        order: 1,
         player1Id: userId("user-1"),
         player2Id: userId("user-2"),
         outcome: "P1_WIN",

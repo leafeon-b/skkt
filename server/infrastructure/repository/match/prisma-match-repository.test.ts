@@ -28,7 +28,7 @@ describe("Prisma Match リポジトリ", () => {
     const prismaMatch = {
       id: "match-1",
       circleSessionId: "session-1",
-      order: 1,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
       player1Id: "user-1",
       player2Id: "user-2",
       outcome: "P1_WIN",
@@ -57,7 +57,7 @@ describe("Prisma Match リポジトリ", () => {
     const prismaMatch = {
       id: "match-1",
       circleSessionId: "session-1",
-      order: 1,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
       player1Id: "user-1",
       player2Id: "user-2",
       outcome: "P1_WIN",
@@ -72,7 +72,7 @@ describe("Prisma Match リポジトリ", () => {
 
     expect(mockedPrisma.match.findMany).toHaveBeenCalledWith({
       where: { circleSessionId: "session-1" },
-      orderBy: { order: "asc" },
+      orderBy: { createdAt: "asc" },
     });
     expect(matches).toHaveLength(1);
   });
@@ -81,7 +81,6 @@ describe("Prisma Match リポジトリ", () => {
     const match = createMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
       outcome: "P2_WIN",
@@ -94,7 +93,6 @@ describe("Prisma Match リポジトリ", () => {
     expect(mockedPrisma.match.upsert).toHaveBeenCalledWith({
       where: { id: data.id },
       update: {
-        order: data.order,
         player1Id: data.player1Id,
         player2Id: data.player2Id,
         outcome: data.outcome,

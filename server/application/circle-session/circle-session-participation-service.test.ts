@@ -58,7 +58,7 @@ const baseMatch = () =>
   createMatch({
     id: matchId("match-1"),
     circleSessionId: circleSessionId("session-1"),
-    order: 1,
+
     player1Id: userId("user-1"),
     player2Id: userId("user-2"),
     outcome: "P1_WIN",
@@ -448,7 +448,7 @@ describe("CircleSession 参加関係サービス", () => {
         createMatch({
           id: matchId("match-1"),
           circleSessionId: circleSessionId("session-1"),
-          order: 1,
+      
           player1Id: userId("user-actor"),
           player2Id: userId("user-2"),
           outcome: "P1_WIN",

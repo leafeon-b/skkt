@@ -12,7 +12,7 @@ describe("Match マッパー", () => {
     const prismaMatch: PrismaMatch = {
       id: "match-1",
       circleSessionId: "session-1",
-      order: 1,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
       player1Id: "user-1",
       player2Id: "user-2",
       outcome: "P1_WIN",
@@ -31,7 +31,6 @@ describe("Match マッパー", () => {
     const match = createMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
       outcome: "P2_WIN",
@@ -42,7 +41,7 @@ describe("Match マッパー", () => {
     expect(mapped).toEqual({
       id: "match-1",
       circleSessionId: "session-1",
-      order: 1,
+      createdAt: expect.any(Date),
       player1Id: "user-1",
       player2Id: "user-2",
       outcome: "P2_WIN",

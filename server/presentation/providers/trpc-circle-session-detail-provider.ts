@@ -125,7 +125,7 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
 
     const matchViewModels: CircleSessionMatch[] = matches
       .filter((match) => match.deletedAt == null)
-      .sort((a, b) => a.order - b.order)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
       .map((match) => ({
         id: match.id,
         player1Id: match.player1Id,

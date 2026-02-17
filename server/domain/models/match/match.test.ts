@@ -10,16 +10,16 @@ import {
 } from "@/server/domain/models/match/match";
 
 describe("Match ドメイン", () => {
-  test("createMatch は対局者の違いと順序の正数を検証する", () => {
+  test("createMatch は対局者の違いを検証する", () => {
     const match = createMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
     });
 
     expect(match.outcome).toBe("UNKNOWN");
+    expect(match.createdAt).toBeInstanceOf(Date);
   });
 
   test("createMatch は同一対局者を拒否する", () => {
@@ -27,30 +27,16 @@ describe("Match ドメイン", () => {
       createMatch({
         id: matchId("match-1"),
         circleSessionId: circleSessionId("session-1"),
-        order: 1,
         player1Id: userId("user-1"),
         player2Id: userId("user-1"),
       }),
     ).toThrow("players must be different");
   });
 
-  test("createMatch は順序が正の整数でない場合に拒否する", () => {
-    expect(() =>
-      createMatch({
-        id: matchId("match-1"),
-        circleSessionId: circleSessionId("session-1"),
-        order: 0,
-        player1Id: userId("user-1"),
-        player2Id: userId("user-2"),
-      }),
-    ).toThrow("order must be a positive integer");
-  });
-
   test("updateMatchPlayers は対局者を正しく更新する", () => {
     const match = createMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
     });
@@ -69,7 +55,6 @@ describe("Match ドメイン", () => {
     const match = createMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
     });
@@ -83,7 +68,6 @@ describe("Match ドメイン", () => {
     const match = createMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
     });
@@ -96,7 +80,6 @@ describe("Match ドメイン", () => {
     const match = createMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
     });
@@ -110,7 +93,7 @@ describe("Match ドメイン", () => {
     const restored = restoreMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
       outcome: "P2_WIN",
@@ -125,7 +108,7 @@ describe("Match ドメイン", () => {
     const restored = restoreMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
       outcome: "P1_WIN",
@@ -139,7 +122,7 @@ describe("Match ドメイン", () => {
     const restored = restoreMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
       outcome: "P1_WIN",
@@ -149,11 +132,23 @@ describe("Match ドメイン", () => {
     expect(restored.deletedAt).toBeNull();
   });
 
+  test("restoreMatch は不正な createdAt を拒否する", () => {
+    expect(() =>
+      restoreMatch({
+        id: matchId("match-1"),
+        circleSessionId: circleSessionId("session-1"),
+        createdAt: new Date("invalid"),
+        player1Id: userId("user-1"),
+        player2Id: userId("user-2"),
+        outcome: "P1_WIN",
+      }),
+    ).toThrow("createdAt must be a valid date");
+  });
+
   test("deleteMatch は引数なしでデフォルトの日時を設定する", () => {
     const match = createMatch({
       id: matchId("match-1"),
       circleSessionId: circleSessionId("session-1"),
-      order: 1,
       player1Id: userId("user-1"),
       player2Id: userId("user-2"),
     });

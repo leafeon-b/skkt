@@ -12,7 +12,7 @@ export const matchOutcomeSchema = z.enum(matchOutcomeValues);
 export const matchDtoSchema = z.object({
   id: matchIdSchema,
   circleSessionId: circleSessionIdSchema,
-  order: z.number().int().positive(),
+  createdAt: z.date(),
   player1Id: userIdSchema,
   player2Id: userIdSchema,
   outcome: matchOutcomeSchema,
@@ -35,7 +35,6 @@ export type MatchListInput = z.infer<typeof matchListInputSchema>;
 
 export const matchCreateInputSchema = z.object({
   circleSessionId: circleSessionIdSchema,
-  order: z.number().int().positive(),
   player1Id: userIdSchema,
   player2Id: userIdSchema,
   outcome: matchOutcomeSchema.optional(),

@@ -55,7 +55,6 @@ export const matchRouter = router({
           actorId: userId(ctx.actorId),
           id: matchId(randomUUID()),
           circleSessionId: input.circleSessionId,
-          order: input.order,
           player1Id: input.player1Id,
           player2Id: input.player2Id,
           outcome: input.outcome,

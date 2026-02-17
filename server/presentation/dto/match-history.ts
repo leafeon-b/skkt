@@ -16,7 +16,6 @@ export const matchHistoryDtoSchema = z.object({
   editorId: userIdSchema,
   action: matchHistoryActionSchema,
   createdAt: z.date(),
-  order: z.number().int().positive(),
   player1Id: userIdSchema,
   player2Id: userIdSchema,
   outcome: matchOutcomeSchema,

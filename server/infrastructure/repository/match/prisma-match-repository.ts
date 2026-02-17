@@ -24,7 +24,7 @@ export const createPrismaMatchRepository = (
   ): Promise<Match[]> {
     const matches = await client.match.findMany({
       where: { circleSessionId: toPersistenceId(circleSessionId) },
-      orderBy: { order: "asc" },
+      orderBy: { createdAt: "asc" },
     });
 
     return matches.map(mapMatchToDomain);
@@ -36,7 +36,6 @@ export const createPrismaMatchRepository = (
     await client.match.upsert({
       where: { id: data.id },
       update: {
-        order: data.order,
         player1Id: data.player1Id,
         player2Id: data.player2Id,
         outcome: data.outcome,

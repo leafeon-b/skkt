@@ -73,7 +73,6 @@ export const createMatchService = (deps: MatchServiceDeps) => {
         matchId: match.id,
         editorId,
         action,
-        order: match.order,
         player1Id: match.player1Id,
         player2Id: match.player2Id,
         outcome: match.outcome,
@@ -85,7 +84,6 @@ export const createMatchService = (deps: MatchServiceDeps) => {
       actorId: UserId;
       id: MatchId;
       circleSessionId: CircleSessionId;
-      order: number;
       player1Id: UserId;
       player2Id: UserId;
       outcome?: Match["outcome"];
@@ -115,7 +113,6 @@ export const createMatchService = (deps: MatchServiceDeps) => {
         const match = createMatch({
           id: params.id,
           circleSessionId: params.circleSessionId,
-          order: params.order,
           player1Id: params.player1Id,
           player2Id: params.player2Id,
           outcome: params.outcome,

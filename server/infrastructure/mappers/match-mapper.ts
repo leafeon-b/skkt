@@ -8,7 +8,7 @@ export const mapMatchToDomain = (match: PrismaMatch): Match =>
   restoreMatch({
     id: matchId(match.id),
     circleSessionId: circleSessionId(match.circleSessionId),
-    order: match.order,
+    createdAt: match.createdAt,
     player1Id: userId(match.player1Id),
     player2Id: userId(match.player2Id),
     outcome: match.outcome as MatchOutcome,
@@ -18,7 +18,7 @@ export const mapMatchToDomain = (match: PrismaMatch): Match =>
 export const mapMatchToPersistence = (match: Match) => ({
   id: toPersistenceId(match.id),
   circleSessionId: toPersistenceId(match.circleSessionId),
-  order: match.order,
+  createdAt: match.createdAt,
   player1Id: toPersistenceId(match.player1Id),
   player2Id: toPersistenceId(match.player2Id),
   outcome: match.outcome,

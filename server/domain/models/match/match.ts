@@ -5,7 +5,6 @@ import type {
 } from "@/server/domain/common/ids";
 import {
   assertDifferentIds,
-  assertPositiveInteger,
   assertValidDate,
 } from "@/server/domain/common/validation";
 
@@ -14,7 +13,7 @@ export type MatchOutcome = "P1_WIN" | "P2_WIN" | "DRAW" | "UNKNOWN";
 export type Match = {
   id: MatchId;
   circleSessionId: CircleSessionId;
-  order: number;
+  createdAt: Date;
   player1Id: UserId;
   player2Id: UserId;
   outcome: MatchOutcome;
@@ -29,7 +28,6 @@ export const hasDifferentPlayers = (
 export type MatchCreateParams = {
   id: MatchId;
   circleSessionId: CircleSessionId;
-  order: number;
   player1Id: UserId;
   player2Id: UserId;
   outcome?: MatchOutcome;
@@ -38,7 +36,7 @@ export type MatchCreateParams = {
 export type MatchRestoreParams = {
   id: MatchId;
   circleSessionId: CircleSessionId;
-  order: number;
+  createdAt: Date;
   player1Id: UserId;
   player2Id: UserId;
   outcome: MatchOutcome;
@@ -51,7 +49,7 @@ export const createMatch = (params: MatchCreateParams): Match => {
   return {
     id: params.id,
     circleSessionId: params.circleSessionId,
-    order: assertPositiveInteger(params.order, "order"),
+    createdAt: new Date(),
     player1Id: params.player1Id,
     player2Id: params.player2Id,
     outcome: params.outcome ?? "UNKNOWN",
@@ -61,6 +59,7 @@ export const createMatch = (params: MatchCreateParams): Match => {
 
 export const restoreMatch = (params: MatchRestoreParams): Match => {
   assertDifferentIds(params.player1Id, params.player2Id, "players");
+  assertValidDate(params.createdAt, "createdAt");
   if (params.deletedAt != null) {
     assertValidDate(params.deletedAt, "deletedAt");
   }
@@ -68,7 +67,7 @@ export const restoreMatch = (params: MatchRestoreParams): Match => {
   return {
     id: params.id,
     circleSessionId: params.circleSessionId,
-    order: assertPositiveInteger(params.order, "order"),
+    createdAt: params.createdAt,
     player1Id: params.player1Id,
     player2Id: params.player2Id,
     outcome: params.outcome,
