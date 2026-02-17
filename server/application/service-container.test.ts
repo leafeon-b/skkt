@@ -56,6 +56,10 @@ const createUserStub = () => ({
   findById: vi.fn(),
   findByIds: vi.fn(),
   save: vi.fn(),
+  updateProfile: vi.fn(),
+  emailExists: vi.fn(),
+  findPasswordHashById: vi.fn(),
+  updatePasswordHash: vi.fn(),
 });
 
 const createSignupStub = () => ({
@@ -93,6 +97,7 @@ describe("Service container", () => {
       authzRepository,
       signupRepository,
       circleInviteLinkRepository,
+      passwordUtils: { hash: vi.fn(), verify: vi.fn() },
       generateMatchHistoryId: () => matchHistoryId("history-1"),
     });
 

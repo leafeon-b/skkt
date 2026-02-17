@@ -59,6 +59,9 @@ const createContext = () => {
   const userService = {
     getUser: vi.fn(),
     listUsers: vi.fn(),
+    getMe: vi.fn(),
+    updateProfile: vi.fn(),
+    changePassword: vi.fn(),
   };
   const signupService = {
     signup: vi.fn(),
@@ -905,5 +908,4 @@ describe("tRPC router", () => {
       caller.users.memberships.list({ userId: "user-1" }),
     ).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
   });
-
 });
