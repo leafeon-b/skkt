@@ -169,7 +169,7 @@ model MatchHistory {
   matchId   String
   editorId  String
   action    MatchHistoryAction
-  createdAt DateTime           @default(now())
+  createdAt DateTime
 
   // スナップショット（編集時点）
   player1Id String
