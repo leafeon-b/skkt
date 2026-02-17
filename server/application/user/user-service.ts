@@ -2,6 +2,7 @@ import type { User } from "@/server/domain/models/user/user";
 import type { UserId } from "@/server/domain/common/ids";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
+import type { RateLimiter } from "@/server/application/common/rate-limiter";
 import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -17,6 +18,7 @@ export type UserServiceDeps = {
   userRepository: UserRepository;
   accessService: AccessService;
   passwordUtils: PasswordUtils;
+  changePasswordRateLimiter: RateLimiter;
 };
 
 export const createUserService = (deps: UserServiceDeps) => ({
@@ -71,6 +73,8 @@ export const createUserService = (deps: UserServiceDeps) => ({
     currentPassword: string,
     newPassword: string,
   ): Promise<void> {
+    deps.changePasswordRateLimiter.check(actorId);
+
     const passwordHash =
       await deps.userRepository.findPasswordHashById(actorId);
     if (passwordHash === null) {
@@ -79,6 +83,7 @@ export const createUserService = (deps: UserServiceDeps) => ({
 
     const valid = deps.passwordUtils.verify(currentPassword, passwordHash);
     if (!valid) {
+      deps.changePasswordRateLimiter.recordFailure(actorId);
       throw new BadRequestError("Current password is incorrect");
     }
 
@@ -86,6 +91,7 @@ export const createUserService = (deps: UserServiceDeps) => ({
       throw new BadRequestError("Password too short");
     }
 
+    deps.changePasswordRateLimiter.reset(actorId);
     const newHash = deps.passwordUtils.hash(newPassword);
     await deps.userRepository.updatePasswordHash(actorId, newHash);
   },

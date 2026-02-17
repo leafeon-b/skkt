@@ -9,6 +9,7 @@ import { createAccessService } from "@/server/application/authz/access-service";
 import { createUserService } from "@/server/application/user/user-service";
 import { createSignupService } from "@/server/application/auth/signup-service";
 import { createCircleInviteLinkService } from "@/server/application/circle/circle-invite-link-service";
+import { createInMemoryRateLimiter } from "@/server/infrastructure/rate-limit/in-memory-rate-limiter";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
@@ -106,6 +107,10 @@ export const createServiceContainer = (
       userRepository: deps.userRepository,
       accessService,
       passwordUtils: deps.passwordUtils,
+      changePasswordRateLimiter: createInMemoryRateLimiter({
+        maxAttempts: 5,
+        windowMs: 60_000,
+      }),
     }),
     matchHistoryService: createMatchHistoryService({
       matchHistoryRepository: deps.matchHistoryRepository,

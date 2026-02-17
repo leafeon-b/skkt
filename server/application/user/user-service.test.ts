@@ -3,8 +3,10 @@ import { createUserService } from "@/server/application/user/user-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { PasswordUtils } from "@/server/application/user/user-service";
+import type { RateLimiter } from "@/server/application/common/rate-limiter";
 import { userId } from "@/server/domain/common/ids";
 import { createUser } from "@/server/domain/models/user/user";
+import { TooManyRequestsError } from "@/server/domain/common/errors";
 
 const userRepository = {
   findById: vi.fn(),
@@ -23,10 +25,17 @@ const passwordUtils: PasswordUtils = {
   verify: vi.fn((p: string, h: string) => h === `hashed:${p}`),
 };
 
+const changePasswordRateLimiter: RateLimiter = {
+  check: vi.fn(),
+  recordFailure: vi.fn(),
+  reset: vi.fn(),
+};
+
 const service = createUserService({
   userRepository,
   accessService,
   passwordUtils,
+  changePasswordRateLimiter,
 });
 
 const actorId = userId("user-1");
@@ -155,5 +164,37 @@ describe("changePassword", () => {
     ).rejects.toThrow("Password login is not enabled");
 
     expect(userRepository.updatePasswordHash).not.toHaveBeenCalled();
+  });
+
+  test("レート制限超過時に TooManyRequestsError", async () => {
+    vi.mocked(changePasswordRateLimiter.check).mockImplementationOnce(() => {
+      throw new TooManyRequestsError();
+    });
+
+    await expect(
+      service.changePassword(actorId, "oldpass", "newpass12"),
+    ).rejects.toThrow(TooManyRequestsError);
+
+    expect(userRepository.findPasswordHashById).not.toHaveBeenCalled();
+  });
+
+  test("パスワード不一致時に recordFailure が呼ばれる", async () => {
+    userRepository.findPasswordHashById.mockResolvedValue("hashed:correct");
+
+    await expect(
+      service.changePassword(actorId, "wrong", "newpass12"),
+    ).rejects.toThrow("Current password is incorrect");
+
+    expect(changePasswordRateLimiter.recordFailure).toHaveBeenCalledWith(
+      actorId,
+    );
+  });
+
+  test("パスワード変更成功時に reset が呼ばれる", async () => {
+    userRepository.findPasswordHashById.mockResolvedValue("hashed:oldpass");
+
+    await service.changePassword(actorId, "oldpass", "newpass12");
+
+    expect(changePasswordRateLimiter.reset).toHaveBeenCalledWith(actorId);
   });
 });
