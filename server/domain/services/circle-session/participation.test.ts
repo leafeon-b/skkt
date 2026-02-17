@@ -1,8 +1,8 @@
 import { circleSessionId, matchId, userId } from "@/server/domain/common/ids";
 import { createMatch } from "@/server/domain/models/match/match";
 import {
-    assertCanRemoveCircleSessionParticipation,
-    hasMatchParticipation,
+  assertCanRemoveCircleSessionParticipation,
+  hasMatchParticipation,
 } from "@/server/domain/services/circle-session/participation";
 import { describe, expect, test } from "vitest";
 

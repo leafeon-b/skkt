@@ -50,6 +50,43 @@ export const createPrismaUserRepository = (
       create: data,
     });
   },
+
+  async updateProfile(
+    id: UserId,
+    name: string | null,
+    email: string | null,
+  ): Promise<void> {
+    await client.user.update({
+      where: { id: toPersistenceId(id) },
+      data: { name, email },
+    });
+  },
+
+  async emailExists(email: string, excludeUserId: UserId): Promise<boolean> {
+    const found = await client.user.findFirst({
+      where: {
+        email,
+        id: { not: toPersistenceId(excludeUserId) },
+      },
+      select: { id: true },
+    });
+    return found !== null;
+  },
+
+  async findPasswordHashById(id: UserId): Promise<string | null> {
+    const found = await client.user.findUnique({
+      where: { id: toPersistenceId(id) },
+      select: { passwordHash: true },
+    });
+    return found?.passwordHash ?? null;
+  },
+
+  async updatePasswordHash(id: UserId, passwordHash: string): Promise<void> {
+    await client.user.update({
+      where: { id: toPersistenceId(id) },
+      data: { passwordHash },
+    });
+  },
 });
 
 export const prismaUserRepository = createPrismaUserRepository(prisma);

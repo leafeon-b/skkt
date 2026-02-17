@@ -108,13 +108,19 @@ export const trpcCircleSessionDetailProvider: CircleSessionDetailProvider = {
     const viewerId = input.viewerId ?? ctx.actorId ?? null;
     const viewerRole = getViewerRole(participations, viewerId);
     const canCreateCircleSession = viewerId
-      ? await ctx.accessService.canCreateCircleSession(viewerId, session.circleId)
+      ? await ctx.accessService.canCreateCircleSession(
+          viewerId,
+          session.circleId,
+        )
       : false;
     const canDeleteCircleSession = viewerId
       ? await ctx.accessService.canDeleteCircleSession(viewerId, session.id)
       : false;
     const canWithdrawFromCircleSession = viewerId
-      ? await ctx.accessService.canWithdrawFromCircleSession(viewerId, session.id)
+      ? await ctx.accessService.canWithdrawFromCircleSession(
+          viewerId,
+          session.id,
+        )
       : false;
 
     const matchViewModels: CircleSessionMatch[] = matches

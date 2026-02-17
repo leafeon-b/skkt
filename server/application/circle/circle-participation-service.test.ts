@@ -387,9 +387,7 @@ describe("Circle 参加関係サービス", () => {
   });
 
   test("removeParticipation は Owner の削除を拒否する", async () => {
-    vi.mocked(
-      circleParticipationRepository.listByCircleId,
-    ).mockResolvedValue([
+    vi.mocked(circleParticipationRepository.listByCircleId).mockResolvedValue([
       {
         circleId: circleId("circle-1"),
         userId: userId("user-1"),

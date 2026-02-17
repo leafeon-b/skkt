@@ -33,191 +33,192 @@ export type CircleSessionServiceDeps = {
 
 export const createCircleSessionService = (deps: CircleSessionServiceDeps) => {
   const uow: UnitOfWork =
-    deps.unitOfWork ??
-    (async (op) => op(deps as unknown as Repositories));
+    deps.unitOfWork ?? (async (op) => op(deps as unknown as Repositories));
 
   return {
-  async createCircleSession(params: {
-    actorId: string;
-    id: CircleSessionId;
-    circleId: CircleId;
-    title: string;
-    startsAt: Date;
-    endsAt: Date;
-    location?: string | null;
-    note?: string;
-    createdAt?: Date;
-  }): Promise<CircleSession> {
-    const circle = await deps.circleRepository.findById(params.circleId);
-    if (!circle) {
-      throw new NotFoundError("Circle");
-    }
-    const allowed = await deps.accessService.canCreateCircleSession(
-      params.actorId,
-      params.circleId as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
-
-    const session = createCircleSession({
-      id: params.id,
-      circleId: params.circleId,
-      title: params.title,
-      startsAt: params.startsAt,
-      endsAt: params.endsAt,
-      location: params.location,
-      note: params.note,
-      createdAt: params.createdAt,
-    });
-    await uow(async (repos) => {
-      await repos.circleSessionRepository.save(session);
-      await repos.circleSessionParticipationRepository.addParticipation(
-        session.id,
-        userId(params.actorId),
-        CircleSessionRole.CircleSessionOwner,
-      );
-    });
-    return session;
-  },
-
-  async rescheduleCircleSession(
-    actorId: string,
-    id: CircleSessionId,
-    startsAt: Date,
-    endsAt: Date,
-  ): Promise<CircleSession> {
-    const session = await deps.circleSessionRepository.findById(id);
-    if (!session) {
-      throw new NotFoundError("CircleSession");
-    }
-    const allowed = await deps.accessService.canEditCircleSession(
-      actorId,
-      id as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
-
-    const updated = rescheduleCircleSession(session, startsAt, endsAt);
-    await deps.circleSessionRepository.save(updated);
-    return updated;
-  },
-
-  async updateCircleSessionDetails(
-    actorId: string,
-    id: CircleSessionId,
-    params: {
-      title?: string;
-      startsAt?: Date;
-      endsAt?: Date;
+    async createCircleSession(params: {
+      actorId: string;
+      id: CircleSessionId;
+      circleId: CircleId;
+      title: string;
+      startsAt: Date;
+      endsAt: Date;
       location?: string | null;
       note?: string;
-    },
-  ): Promise<CircleSession> {
-    const session = await deps.circleSessionRepository.findById(id);
-    if (!session) {
-      throw new NotFoundError("CircleSession");
-    }
-    const allowed = await deps.accessService.canEditCircleSession(
-      actorId,
-      id as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
-
-    let updated = session;
-
-    if (params.startsAt || params.endsAt) {
-      if (!params.startsAt || !params.endsAt) {
-        throw new BadRequestError("startsAt and endsAt must both be provided");
+      createdAt?: Date;
+    }): Promise<CircleSession> {
+      const circle = await deps.circleRepository.findById(params.circleId);
+      if (!circle) {
+        throw new NotFoundError("Circle");
       }
-      updated = rescheduleCircleSession(
-        updated,
-        params.startsAt,
-        params.endsAt,
+      const allowed = await deps.accessService.canCreateCircleSession(
+        params.actorId,
+        params.circleId as string,
       );
-    }
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
 
-    if (params.title !== undefined) {
-      updated = {
-        ...updated,
-        title: assertNonEmpty(params.title, "CircleSession title"),
-      };
-    }
+      const session = createCircleSession({
+        id: params.id,
+        circleId: params.circleId,
+        title: params.title,
+        startsAt: params.startsAt,
+        endsAt: params.endsAt,
+        location: params.location,
+        note: params.note,
+        createdAt: params.createdAt,
+      });
+      await uow(async (repos) => {
+        await repos.circleSessionRepository.save(session);
+        await repos.circleSessionParticipationRepository.addParticipation(
+          session.id,
+          userId(params.actorId),
+          CircleSessionRole.CircleSessionOwner,
+        );
+      });
+      return session;
+    },
 
-    if (params.location !== undefined) {
-      updated = {
-        ...updated,
-        location: params.location ?? null,
-      };
-    }
+    async rescheduleCircleSession(
+      actorId: string,
+      id: CircleSessionId,
+      startsAt: Date,
+      endsAt: Date,
+    ): Promise<CircleSession> {
+      const session = await deps.circleSessionRepository.findById(id);
+      if (!session) {
+        throw new NotFoundError("CircleSession");
+      }
+      const allowed = await deps.accessService.canEditCircleSession(
+        actorId,
+        id as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
 
-    if (params.note !== undefined) {
-      updated = {
-        ...updated,
-        note: params.note.trim(),
-      };
-    }
+      const updated = rescheduleCircleSession(session, startsAt, endsAt);
+      await deps.circleSessionRepository.save(updated);
+      return updated;
+    },
 
-    await deps.circleSessionRepository.save(updated);
-    return updated;
-  },
+    async updateCircleSessionDetails(
+      actorId: string,
+      id: CircleSessionId,
+      params: {
+        title?: string;
+        startsAt?: Date;
+        endsAt?: Date;
+        location?: string | null;
+        note?: string;
+      },
+    ): Promise<CircleSession> {
+      const session = await deps.circleSessionRepository.findById(id);
+      if (!session) {
+        throw new NotFoundError("CircleSession");
+      }
+      const allowed = await deps.accessService.canEditCircleSession(
+        actorId,
+        id as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
 
-  async getCircleSession(
-    actorId: string,
-    id: CircleSessionId,
-  ): Promise<CircleSession | null> {
-    const session = await deps.circleSessionRepository.findById(id);
-    if (!session) {
-      return null;
-    }
-    const allowed = await deps.accessService.canViewCircleSession(
-      actorId,
-      session.circleId as string,
-      id as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
-    return session;
-  },
+      let updated = session;
 
-  async listByCircleId(
-    actorId: string,
-    circleId: CircleId,
-  ): Promise<CircleSession[]> {
-    const circle = await deps.circleRepository.findById(circleId);
-    if (!circle) {
-      throw new NotFoundError("Circle");
-    }
-    const allowed = await deps.accessService.canViewCircle(
-      actorId,
-      circleId as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
-    return deps.circleSessionRepository.listByCircleId(circleId);
-  },
+      if (params.startsAt || params.endsAt) {
+        if (!params.startsAt || !params.endsAt) {
+          throw new BadRequestError(
+            "startsAt and endsAt must both be provided",
+          );
+        }
+        updated = rescheduleCircleSession(
+          updated,
+          params.startsAt,
+          params.endsAt,
+        );
+      }
 
-  async deleteCircleSession(
-    actorId: string,
-    id: CircleSessionId,
-  ): Promise<void> {
-    const session = await deps.circleSessionRepository.findById(id);
-    if (!session) {
-      throw new NotFoundError("CircleSession");
-    }
-    const allowed = await deps.accessService.canDeleteCircleSession(
-      actorId,
-      id as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
-    await deps.circleSessionRepository.delete(id);
-  },
+      if (params.title !== undefined) {
+        updated = {
+          ...updated,
+          title: assertNonEmpty(params.title, "CircleSession title"),
+        };
+      }
+
+      if (params.location !== undefined) {
+        updated = {
+          ...updated,
+          location: params.location ?? null,
+        };
+      }
+
+      if (params.note !== undefined) {
+        updated = {
+          ...updated,
+          note: params.note.trim(),
+        };
+      }
+
+      await deps.circleSessionRepository.save(updated);
+      return updated;
+    },
+
+    async getCircleSession(
+      actorId: string,
+      id: CircleSessionId,
+    ): Promise<CircleSession | null> {
+      const session = await deps.circleSessionRepository.findById(id);
+      if (!session) {
+        return null;
+      }
+      const allowed = await deps.accessService.canViewCircleSession(
+        actorId,
+        session.circleId as string,
+        id as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
+      return session;
+    },
+
+    async listByCircleId(
+      actorId: string,
+      circleId: CircleId,
+    ): Promise<CircleSession[]> {
+      const circle = await deps.circleRepository.findById(circleId);
+      if (!circle) {
+        throw new NotFoundError("Circle");
+      }
+      const allowed = await deps.accessService.canViewCircle(
+        actorId,
+        circleId as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
+      return deps.circleSessionRepository.listByCircleId(circleId);
+    },
+
+    async deleteCircleSession(
+      actorId: string,
+      id: CircleSessionId,
+    ): Promise<void> {
+      const session = await deps.circleSessionRepository.findById(id);
+      if (!session) {
+        throw new NotFoundError("CircleSession");
+      }
+      const allowed = await deps.accessService.canDeleteCircleSession(
+        actorId,
+        id as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
+      await deps.circleSessionRepository.delete(id);
+    },
   };
 };

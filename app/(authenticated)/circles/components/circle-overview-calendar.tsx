@@ -62,7 +62,9 @@ export function CircleOverviewCalendar({
   return (
     <div className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-(--brand-ink)">開催カレンダー</h2>
+        <h2 className="text-sm font-semibold text-(--brand-ink)">
+          開催カレンダー
+        </h2>
         {createSessionHref ? (
           <Button
             variant="ghost"

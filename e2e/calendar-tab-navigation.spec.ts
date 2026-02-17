@@ -37,9 +37,10 @@ test.describe("カレンダー Tab キーナビゲーション", () => {
       }
     }
 
-    expect(false, "Tab キーでカレンダーセルにフォーカスが移りませんでした").toBe(
-      true,
-    );
+    expect(
+      false,
+      "Tab キーでカレンダーセルにフォーカスが移りませんでした",
+    ).toBe(true);
   });
 
   test("Shift+Tab でカレンダーグリッドからフォーカスが離れる", async ({
@@ -66,8 +67,9 @@ test.describe("カレンダー Tab キーナビゲーション", () => {
     );
 
     // 現在の月のヘッダーテキストを取得
-    const currentTitle =
-      await calendar.locator(".fc-toolbar-title").textContent();
+    const currentTitle = await calendar
+      .locator(".fc-toolbar-title")
+      .textContent();
 
     // 次月ボタンをクリック
     await calendar.locator(".fc-next-button").click();

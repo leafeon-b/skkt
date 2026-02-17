@@ -11,7 +11,9 @@ type CredentialsLoginFormProps = {
   callbackUrl?: string;
 };
 
-export default function CredentialsLoginForm({ callbackUrl }: CredentialsLoginFormProps) {
+export default function CredentialsLoginForm({
+  callbackUrl,
+}: CredentialsLoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +52,9 @@ export default function CredentialsLoginForm({ callbackUrl }: CredentialsLoginFo
   return (
     <form className="space-y-3" onSubmit={handleSubmit}>
       <p className="text-xs text-(--brand-ink-muted)">
-        <span className="text-red-600" aria-hidden="true">*</span>{" "}
+        <span className="text-red-600" aria-hidden="true">
+          *
+        </span>{" "}
         は必須項目です
       </p>
       <div className="space-y-2">
@@ -90,7 +94,9 @@ export default function CredentialsLoginForm({ callbackUrl }: CredentialsLoginFo
         />
       </div>
       {errorMessage ? (
-        <p role="alert" className="text-xs font-semibold text-red-600">{errorMessage}</p>
+        <p role="alert" className="text-xs font-semibold text-red-600">
+          {errorMessage}
+        </p>
       ) : null}
       <Button
         type="submit"

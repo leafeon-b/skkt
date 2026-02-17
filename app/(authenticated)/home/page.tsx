@@ -12,8 +12,9 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 export default function Home() {
-  const sessionsQuery =
-    trpc.users.circleSessions.participations.list.useQuery({});
+  const sessionsQuery = trpc.users.circleSessions.participations.list.useQuery(
+    {},
+  );
 
   const nextSession = useMemo(() => {
     const sessions = sessionsQuery.data;

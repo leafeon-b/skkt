@@ -132,15 +132,15 @@ describe("CircleSessionCreateForm", () => {
       />,
     );
 
-    expect(
-      (screen.getByLabelText("タイトル") as HTMLInputElement).value,
-    ).toBe("複製テスト");
-    expect(
-      (screen.getByLabelText("開始日時") as HTMLInputElement).value,
-    ).toBe("2025-06-15T10:00");
-    expect(
-      (screen.getByLabelText("終了日時") as HTMLInputElement).value,
-    ).toBe("2025-06-15T17:00");
+    expect((screen.getByLabelText("タイトル") as HTMLInputElement).value).toBe(
+      "複製テスト",
+    );
+    expect((screen.getByLabelText("開始日時") as HTMLInputElement).value).toBe(
+      "2025-06-15T10:00",
+    );
+    expect((screen.getByLabelText("終了日時") as HTMLInputElement).value).toBe(
+      "2025-06-15T17:00",
+    );
     expect(
       (screen.getByLabelText("場所（任意）") as HTMLInputElement).value,
     ).toBe("将棋会館");

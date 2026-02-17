@@ -1,4 +1,7 @@
 import {
+  changePasswordInputSchema,
+  meDtoSchema,
+  updateProfileInputSchema,
   userDtoSchema,
   userGetInputSchema,
   userListInputSchema,
@@ -12,6 +15,8 @@ import { handleTrpcError } from "@/server/presentation/trpc/errors";
 import { publicProcedure, router } from "@/server/presentation/trpc/trpc";
 import { userCircleRouter } from "@/server/presentation/trpc/routers/user-circle";
 import { userCircleSessionRouter } from "@/server/presentation/trpc/routers/user-circle-session";
+import { userId } from "@/server/domain/common/ids";
+import { z } from "zod";
 
 export const userRouter = router({
   get: publicProcedure
@@ -41,6 +46,41 @@ export const userRouter = router({
           input.userIds,
         );
         return toUserDtos(users);
+      }),
+    ),
+
+  me: publicProcedure.output(meDtoSchema).query(({ ctx }) =>
+    handleTrpcError(async () => {
+      const { user, hasPassword } = await ctx.userService.getMe(
+        userId(ctx.actorId),
+      );
+      return { ...toUserDto(user), hasPassword };
+    }),
+  ),
+
+  updateProfile: publicProcedure
+    .input(updateProfileInputSchema)
+    .output(z.void())
+    .mutation(({ ctx, input }) =>
+      handleTrpcError(async () => {
+        await ctx.userService.updateProfile(
+          userId(ctx.actorId),
+          input.name,
+          input.email,
+        );
+      }),
+    ),
+
+  changePassword: publicProcedure
+    .input(changePasswordInputSchema)
+    .output(z.void())
+    .mutation(({ ctx, input }) =>
+      handleTrpcError(async () => {
+        await ctx.userService.changePassword(
+          userId(ctx.actorId),
+          input.currentPassword,
+          input.newPassword,
+        );
       }),
     ),
 });

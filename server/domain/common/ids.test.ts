@@ -77,6 +77,8 @@ describe("circleInviteLinkId", () => {
 
   it("should throw BadRequestError for empty string", () => {
     expect(() => circleInviteLinkId("")).toThrow(BadRequestError);
-    expect(() => circleInviteLinkId("")).toThrow("Invalid circle invite link ID");
+    expect(() => circleInviteLinkId("")).toThrow(
+      "Invalid circle invite link ID",
+    );
   });
 });

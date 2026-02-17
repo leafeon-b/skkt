@@ -5,7 +5,17 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     environment: "node",
-    include: ["**/*.{test,spec}.ts", "**/*.{test,spec}.mts", "**/*.{test,spec}.tsx"],
-    exclude: ["node_modules", ".next", "dist", "coverage", "**/*.integration.test.*"],
+    include: [
+      "**/*.{test,spec}.ts",
+      "**/*.{test,spec}.mts",
+      "**/*.{test,spec}.tsx",
+    ],
+    exclude: [
+      "node_modules",
+      ".next",
+      "dist",
+      "coverage",
+      "**/*.integration.test.*",
+    ],
   },
 });

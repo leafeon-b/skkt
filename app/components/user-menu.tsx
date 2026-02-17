@@ -3,8 +3,9 @@
 import { useSession, signOut } from "next-auth/react";
 // TODO: ダークモード設計完了後に有効化する
 // import { useTheme } from "next-themes";
-import { User, LogOut, Trash2 } from "lucide-react";
+import { User, LogOut, Trash2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,6 +58,12 @@ export default function UserMenu() {
           )}
         </DropdownMenuItem>
         */}
+        <DropdownMenuItem asChild>
+          <Link href="/account">
+            <Settings className="mr-2 h-4 w-4" />
+            設定
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           ログアウト

@@ -9,7 +9,11 @@ type LoginButtonProps = {
   callbackUrl?: string;
 };
 
-export default function LoginButton({ className, label, callbackUrl }: LoginButtonProps) {
+export default function LoginButton({
+  className,
+  label,
+  callbackUrl,
+}: LoginButtonProps) {
   return (
     <Button
       className={className}

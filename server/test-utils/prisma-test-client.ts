@@ -28,7 +28,9 @@ export async function setupTestPrisma(): Promise<TestPrismaContext> {
   return { prisma, pglite };
 }
 
-export async function teardownTestPrisma(ctx: TestPrismaContext): Promise<void> {
+export async function teardownTestPrisma(
+  ctx: TestPrismaContext,
+): Promise<void> {
   await ctx.prisma.$disconnect();
   await ctx.pglite.close();
 }

@@ -44,7 +44,11 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               callbackUrl={callbackUrl}
             />
             <Link
-              href={callbackUrl ? `/?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/"}
+              href={
+                callbackUrl
+                  ? `/?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                  : "/"
+              }
               className="block text-center text-xs font-semibold text-(--brand-ink-muted) hover:text-(--brand-ink)"
             >
               既にアカウントを持っている場合はログインへ戻る

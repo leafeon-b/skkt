@@ -21,6 +21,7 @@ import type { AuthzRepository } from "@/server/domain/services/authz/authz-repos
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { SignupRepository } from "@/server/domain/models/user/signup-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
+import type { PasswordUtils } from "@/server/application/user/user-service";
 
 export type ServiceContainer = {
   circleService: ReturnType<typeof createCircleService>;
@@ -50,6 +51,7 @@ export type ServiceContainerDeps = {
   authzRepository: AuthzRepository;
   signupRepository: SignupRepository;
   circleInviteLinkRepository: CircleInviteLinkRepository;
+  passwordUtils: PasswordUtils;
   generateMatchHistoryId?: () => ReturnType<typeof matchHistoryId>;
   unitOfWork?: UnitOfWork;
 };
@@ -103,6 +105,7 @@ export const createServiceContainer = (
     userService: createUserService({
       userRepository: deps.userRepository,
       accessService,
+      passwordUtils: deps.passwordUtils,
     }),
     matchHistoryService: createMatchHistoryService({
       matchHistoryRepository: deps.matchHistoryRepository,

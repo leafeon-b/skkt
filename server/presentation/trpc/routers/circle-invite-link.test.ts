@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
-import { circleId, circleInviteLinkId, userId } from "@/server/domain/common/ids";
+import {
+  circleId,
+  circleInviteLinkId,
+  userId,
+} from "@/server/domain/common/ids";
 
 const createTestContext = () => {
   const circleInviteLinkService = {
@@ -57,6 +61,9 @@ const createTestContext = () => {
     userService: {
       getUser: vi.fn(),
       listUsers: vi.fn(),
+      getMe: vi.fn(),
+      updateProfile: vi.fn(),
+      changePassword: vi.fn(),
     },
     signupService: {
       signup: vi.fn(),
@@ -91,13 +98,13 @@ describe("circleInviteLink tRPC ルーター", () => {
 
     expect(result.token).toBe("test-token-123");
     expect(result.circleId).toBe("circle-1");
-    expect(
-      mocks.circleInviteLinkService.createInviteLink,
-    ).toHaveBeenCalledWith({
-      actorId: "user-1",
-      circleId: circleId("circle-1"),
-      expiryDays: undefined,
-    });
+    expect(mocks.circleInviteLinkService.createInviteLink).toHaveBeenCalledWith(
+      {
+        actorId: "user-1",
+        circleId: circleId("circle-1"),
+        expiryDays: undefined,
+      },
+    );
   });
 
   test("circles.inviteLinks.getInfo はリンク情報を返す", async () => {
@@ -132,12 +139,12 @@ describe("circleInviteLink tRPC ルーター", () => {
 
     expect(result.circleId).toBe("circle-1");
     expect(result.alreadyMember).toBe(false);
-    expect(
-      mocks.circleInviteLinkService.redeemInviteLink,
-    ).toHaveBeenCalledWith({
-      actorId: "user-1",
-      token: "test-token-123",
-    });
+    expect(mocks.circleInviteLinkService.redeemInviteLink).toHaveBeenCalledWith(
+      {
+        actorId: "user-1",
+        token: "test-token-123",
+      },
+    );
   });
 
   test("circles.inviteLinks.redeem は既存メンバーの場合 alreadyMember=true", async () => {

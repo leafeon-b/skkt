@@ -16,7 +16,10 @@ export default async function InviteLinkPage({ params }: InviteLinkPageProps) {
   }
 
   const ctx = await createContext();
-  const circle = await ctx.circleService.getCircle(ctx.actorId, toCircleId(circleId));
+  const circle = await ctx.circleService.getCircle(
+    ctx.actorId,
+    toCircleId(circleId),
+  );
   if (!circle) {
     notFound();
   }

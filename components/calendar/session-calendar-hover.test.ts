@@ -13,17 +13,13 @@ describe("buildSessionDates", () => {
   });
 
   it("start が Date オブジェクト → toISOString().slice(0, 10) で日付文字列を生成", () => {
-    const result = buildSessionDates([
-      { start: new Date(2025, 0, 15, 14, 0) },
-    ]);
+    const result = buildSessionDates([{ start: new Date(2025, 0, 15, 14, 0) }]);
     expect(result.has("2025-01-15")).toBe(true);
     expect(result.size).toBe(1);
   });
 
   it("start が ISO文字列 → .slice(0, 10) で日付文字列を生成", () => {
-    const result = buildSessionDates([
-      { start: "2025-03-10T09:00:00" },
-    ]);
+    const result = buildSessionDates([{ start: "2025-03-10T09:00:00" }]);
     expect(result.has("2025-03-10")).toBe(true);
     expect(result.size).toBe(1);
   });
@@ -41,9 +37,7 @@ describe("buildSessionDates", () => {
   });
 
   it("start が Date でも string でもない → 空文字列がセットに含まれる", () => {
-    const result = buildSessionDates([
-      { start: 12345 as unknown as string },
-    ]);
+    const result = buildSessionDates([{ start: 12345 as unknown as string }]);
     expect(result.has("")).toBe(true);
     expect(result.size).toBe(1);
   });

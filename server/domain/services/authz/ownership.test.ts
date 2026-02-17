@@ -320,12 +320,12 @@ describe("assertCanWithdrawFromSession", () => {
 
 describe("assertCanRemoveCircleMember", () => {
   test("Owner を削除しようとすると ForbiddenError", () => {
-    expect(() =>
-      assertCanRemoveCircleMember(CircleRole.CircleOwner),
-    ).toThrow(ForbiddenError);
-    expect(() =>
-      assertCanRemoveCircleMember(CircleRole.CircleOwner),
-    ).toThrow("Use transferOwnership to remove owner");
+    expect(() => assertCanRemoveCircleMember(CircleRole.CircleOwner)).toThrow(
+      ForbiddenError,
+    );
+    expect(() => assertCanRemoveCircleMember(CircleRole.CircleOwner)).toThrow(
+      "Use transferOwnership to remove owner",
+    );
   });
 
   test("Manager を削除できる", () => {
@@ -394,14 +394,10 @@ describe("assertCanChangeCircleMemberRole", () => {
 describe("assertCanRemoveCircleSessionMember", () => {
   test("Owner を削除しようとすると ForbiddenError", () => {
     expect(() =>
-      assertCanRemoveCircleSessionMember(
-        CircleSessionRole.CircleSessionOwner,
-      ),
+      assertCanRemoveCircleSessionMember(CircleSessionRole.CircleSessionOwner),
     ).toThrow(ForbiddenError);
     expect(() =>
-      assertCanRemoveCircleSessionMember(
-        CircleSessionRole.CircleSessionOwner,
-      ),
+      assertCanRemoveCircleSessionMember(CircleSessionRole.CircleSessionOwner),
     ).toThrow("Use transferOwnership to remove owner");
   });
 
@@ -415,9 +411,7 @@ describe("assertCanRemoveCircleSessionMember", () => {
 
   test("Member を削除できる", () => {
     expect(() =>
-      assertCanRemoveCircleSessionMember(
-        CircleSessionRole.CircleSessionMember,
-      ),
+      assertCanRemoveCircleSessionMember(CircleSessionRole.CircleSessionMember),
     ).not.toThrow();
   });
 });

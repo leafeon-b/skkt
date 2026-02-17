@@ -531,7 +531,6 @@ export function CircleSessionDetailView({
     applyMatchSelection(activeDialog.rowId, selected);
   };
 
-
   const handleDialogSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!activeDialog) {
@@ -579,9 +578,8 @@ export function CircleSessionDetailView({
       const selected =
         selectedMatchIndex === null
           ? pairMatches[0]
-          : (pairMatches.find(
-              (entry) => entry.index === selectedMatchIndex,
-            ) ?? pairMatches[0]);
+          : (pairMatches.find((entry) => entry.index === selectedMatchIndex) ??
+            pairMatches[0]);
       if (!selected) return;
 
       updateMatch.mutate(
@@ -752,7 +750,8 @@ export function CircleSessionDetailView({
                 <AlertDialog
                   open={showDeleteSessionDialog}
                   onOpenChange={(open) => {
-                    if (!deleteSession.isPending) setShowDeleteSessionDialog(open);
+                    if (!deleteSession.isPending)
+                      setShowDeleteSessionDialog(open);
                   }}
                 >
                   <Button
@@ -794,7 +793,9 @@ export function CircleSessionDetailView({
                   </AlertDialogContent>
                 </AlertDialog>
               ) : null}
-              {detail.canWithdrawFromCircleSession && detail.viewerRole && detail.viewerRole !== "owner" ? (
+              {detail.canWithdrawFromCircleSession &&
+              detail.viewerRole &&
+              detail.viewerRole !== "owner" ? (
                 <CircleSessionWithdrawButton
                   circleSessionId={detail.circleSessionId}
                   circleId={detail.circleId}
@@ -1061,7 +1062,10 @@ export function CircleSessionDetailView({
           if (!open) closeDialog();
         }}
       >
-        <DialogContent className="max-w-md rounded-2xl border-border/60 bg-white p-6 shadow-xl" onCloseAutoFocus={handleCloseAutoFocus}>
+        <DialogContent
+          className="max-w-md rounded-2xl border-border/60 bg-white p-6 shadow-xl"
+          onCloseAutoFocus={handleCloseAutoFocus}
+        >
           <DialogHeader>
             <p className="text-xs font-semibold text-(--brand-ink-muted)">
               対局結果
@@ -1111,7 +1115,9 @@ export function CircleSessionDetailView({
 
           <form onSubmit={handleDialogSubmit}>
             <p className="mb-3 text-xs text-(--brand-ink-muted)">
-              <span className="text-red-600" aria-hidden="true">*</span>{" "}
+              <span className="text-red-600" aria-hidden="true">
+                *
+              </span>{" "}
               は必須項目です
             </p>
             <label

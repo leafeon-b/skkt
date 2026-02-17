@@ -119,9 +119,7 @@ describe("CircleSessionDetailView 複製ボタン", () => {
         />,
       );
 
-      expect(
-        screen.getByRole("button", { name: /複製/ }),
-      ).toBeDefined();
+      expect(screen.getByRole("button", { name: /複製/ })).toBeDefined();
     });
 
     it("canCreateCircleSession: false の場合、複製ボタンが表示されない", () => {
@@ -227,7 +225,12 @@ const twoParticipations = [
 ];
 
 const oneMatch = [
-  { id: "match-1", player1Id: "p1", player2Id: "p2", outcome: "P1_WIN" as const },
+  {
+    id: "match-1",
+    player1Id: "p1",
+    player2Id: "p2",
+    outcome: "P1_WIN" as const,
+  },
 ];
 
 async function openAddDialogForEmptyCell() {
@@ -283,10 +286,15 @@ async function openDeleteDialogViaDropdown() {
 }
 
 describe("CircleSessionDetailView mutation エラーパス", () => {
-  let toastModule: { toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> } };
+  let toastModule: {
+    toast: {
+      success: ReturnType<typeof vi.fn>;
+      error: ReturnType<typeof vi.fn>;
+    };
+  };
 
   beforeEach(async () => {
-    toastModule = await import("sonner") as unknown as typeof toastModule;
+    toastModule = (await import("sonner")) as unknown as typeof toastModule;
     toastModule.toast.success.mockClear();
     toastModule.toast.error.mockClear();
   });

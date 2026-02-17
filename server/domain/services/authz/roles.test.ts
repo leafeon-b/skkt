@@ -1,8 +1,8 @@
 import {
-    CircleRole,
-    CircleSessionRole,
-    isSameOrHigherCircleRole,
-    isSameOrHigherCircleSessionRole,
+  CircleRole,
+  CircleSessionRole,
+  isSameOrHigherCircleRole,
+  isSameOrHigherCircleSessionRole,
 } from "@/server/domain/services/authz/roles";
 import { describe, expect, test } from "vitest";
 

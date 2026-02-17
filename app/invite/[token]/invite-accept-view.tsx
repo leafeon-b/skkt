@@ -59,9 +59,7 @@ export function InviteAcceptView({
             <a href={`/?callbackUrl=/invite/${token}`}>ログイン</a>
           </Button>
           <Button asChild variant="outline">
-            <a href={`/signup?callbackUrl=/invite/${token}`}>
-              アカウント作成
-            </a>
+            <a href={`/signup?callbackUrl=/invite/${token}`}>アカウント作成</a>
           </Button>
         </div>
       </div>

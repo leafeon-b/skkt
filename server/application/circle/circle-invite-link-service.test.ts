@@ -4,7 +4,11 @@ import { createAccessServiceStub } from "@/server/application/test-helpers/acces
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
-import { circleId, circleInviteLinkId, userId } from "@/server/domain/common/ids";
+import {
+  circleId,
+  circleInviteLinkId,
+  userId,
+} from "@/server/domain/common/ids";
 
 const circleInviteLinkRepository = {
   findByToken: vi.fn(),
@@ -87,9 +91,7 @@ describe("招待リンクサービス", () => {
         expiryDays: 14,
       });
 
-      const expectedMinExpiry = new Date(
-        Date.now() + 13 * 24 * 60 * 60 * 1000,
-      );
+      const expectedMinExpiry = new Date(Date.now() + 13 * 24 * 60 * 60 * 1000);
       expect(result.expiresAt.getTime()).toBeGreaterThan(
         expectedMinExpiry.getTime(),
       );

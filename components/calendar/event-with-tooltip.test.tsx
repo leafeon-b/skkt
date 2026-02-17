@@ -82,7 +82,10 @@ describe("EventWithTooltip", () => {
       arg: {
         event: {
           title: "テスト",
-          extendedProps: { startsAt: { foo: "bar" }, endsAt: "2025-01-15T16:00:00" },
+          extendedProps: {
+            startsAt: { foo: "bar" },
+            endsAt: "2025-01-15T16:00:00",
+          },
         } as unknown as EventImpl,
       } as unknown as EventContentArg,
     };

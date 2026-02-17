@@ -82,7 +82,9 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
   return (
     <form className="space-y-3" onSubmit={handleSubmit}>
       <p className="text-xs text-(--brand-ink-muted)">
-        <span className="text-red-600" aria-hidden="true">*</span>{" "}
+        <span className="text-red-600" aria-hidden="true">
+          *
+        </span>{" "}
         は必須項目です
       </p>
       <div className="space-y-2">
@@ -156,7 +158,9 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
         />
       </div>
       {errorMessage ? (
-        <p role="alert" className="text-xs font-semibold text-red-600">{errorMessage}</p>
+        <p role="alert" className="text-xs font-semibold text-red-600">
+          {errorMessage}
+        </p>
       ) : null}
       <Button
         type="submit"

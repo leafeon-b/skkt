@@ -79,10 +79,7 @@ export function getDayCellClassNames(
   return sessionDates.has(dateStr) ? [] : ["fc-day-clickable"];
 }
 
-export function SessionCalendar({
-  events,
-  onDateClick,
-}: SessionCalendarProps) {
+export function SessionCalendar({ events, onDateClick }: SessionCalendarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const onDateClickRef = useRef(onDateClick);
   useEffect(() => {
@@ -97,11 +94,7 @@ export function SessionCalendar({
     const container = containerRef.current;
     if (!container) return;
 
-    function moveFocus(
-      cells: HTMLElement[],
-      from: number,
-      to: number,
-    ) {
+    function moveFocus(cells: HTMLElement[], from: number, to: number) {
       if (to < 0 || to >= cells.length) return;
       cells[from].setAttribute("tabindex", "-1");
       cells[to].setAttribute("tabindex", "0");
@@ -130,10 +123,7 @@ export function SessionCalendar({
         );
         const activeIndex = todayIndex >= 0 ? todayIndex : 0;
         cells.forEach((cell, i) => {
-          cell.setAttribute(
-            "tabindex",
-            i === activeIndex ? "0" : "-1",
-          );
+          cell.setAttribute("tabindex", i === activeIndex ? "0" : "-1");
           if (cell.classList.contains("fc-day-today")) {
             cell.setAttribute("aria-current", "date");
           }

@@ -44,8 +44,7 @@ export type MatchServiceDeps = {
 
 export const createMatchService = (deps: MatchServiceDeps) => {
   const uow: UnitOfWork =
-    deps.unitOfWork ??
-    (async (op) => op(deps as unknown as Repositories));
+    deps.unitOfWork ?? (async (op) => op(deps as unknown as Repositories));
 
   const ensurePlayersParticipating = async (
     circleSessionParticipationRepository: CircleSessionParticipationRepository,
@@ -53,11 +52,10 @@ export const createMatchService = (deps: MatchServiceDeps) => {
     player1Id: UserId,
     player2Id: UserId,
   ) => {
-    const ok =
-      await circleSessionParticipationRepository.areUsersParticipating(
-        circleSessionId,
-        [player1Id, player2Id],
-      );
+    const ok = await circleSessionParticipationRepository.areUsersParticipating(
+      circleSessionId,
+      [player1Id, player2Id],
+    );
     if (!ok) {
       throw new BadRequestError("Players must belong to the circle session");
     }

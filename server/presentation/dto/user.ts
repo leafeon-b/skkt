@@ -24,3 +24,23 @@ export const userListInputSchema = z.object({
 });
 
 export type UserListInput = z.infer<typeof userListInputSchema>;
+
+export const meDtoSchema = userDtoSchema.extend({
+  hasPassword: z.boolean(),
+});
+
+export type MeDto = z.infer<typeof meDtoSchema>;
+
+export const updateProfileInputSchema = z.object({
+  name: z.string().trim().min(1).max(50).nullable(),
+  email: z.string().trim().min(1).max(254).nullable(),
+});
+
+export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
+
+export const changePasswordInputSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: z.string().min(8).max(128),
+});
+
+export type ChangePasswordInput = z.infer<typeof changePasswordInputSchema>;

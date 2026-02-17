@@ -48,7 +48,10 @@ export default async function LandingPage({ searchParams }: LandingPageProps) {
               </p>
             </div>
             <div className="space-y-4 rounded-2xl border border-border/60 bg-white/90 p-6">
-              <LoginButton className="w-full bg-(--brand-moss) text-white hover:bg-(--brand-moss)/90" callbackUrl={callbackUrl} />
+              <LoginButton
+                className="w-full bg-(--brand-moss) text-white hover:bg-(--brand-moss)/90"
+                callbackUrl={callbackUrl}
+              />
               <div className="flex items-center gap-3 text-xs text-(--brand-ink-muted)">
                 <span className="h-px flex-1 bg-border/80" />
                 メールでログイン
@@ -56,7 +59,11 @@ export default async function LandingPage({ searchParams }: LandingPageProps) {
               </div>
               <CredentialsLoginForm callbackUrl={callbackUrl} />
               <Link
-                href={callbackUrl ? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/signup"}
+                href={
+                  callbackUrl
+                    ? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                    : "/signup"
+                }
                 className="block text-center text-xs font-semibold text-(--brand-ink-muted) hover:text-(--brand-ink)"
               >
                 アカウントを作成する

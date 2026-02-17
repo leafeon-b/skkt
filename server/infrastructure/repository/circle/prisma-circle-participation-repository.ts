@@ -71,10 +71,7 @@ export const createPrismaCircleParticipationRepository = (
     });
   },
 
-  async removeParticipation(
-    circleId: CircleId,
-    userId: UserId,
-  ): Promise<void> {
+  async removeParticipation(circleId: CircleId, userId: UserId): Promise<void> {
     const persistedCircleId = toPersistenceId(circleId);
 
     await client.circleMembership.deleteMany({
