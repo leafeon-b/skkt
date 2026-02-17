@@ -100,7 +100,7 @@ export const transferCircleOwnership = (
 
 export const assertCanWithdraw = (targetRole: CircleRole): void => {
   if (targetRole === CircleRole.CircleOwner) {
-    throw new Error(
+    throw new ForbiddenError(
       "Owner cannot withdraw from circle. Use transferOwnership instead",
     );
   }
@@ -110,7 +110,7 @@ export const assertCanWithdrawFromSession = (
   targetRole: CircleSessionRole,
 ): void => {
   if (targetRole === CircleSessionRole.CircleSessionOwner) {
-    throw new Error(
+    throw new ForbiddenError(
       "Owner cannot withdraw from session. Use transferOwnership instead",
     );
   }
@@ -127,10 +127,10 @@ export const assertCanChangeCircleMemberRole = (
   newRole: CircleRole,
 ): void => {
   if (newRole === CircleRole.CircleOwner) {
-    throw new Error("Use transferOwnership to assign owner");
+    throw new ForbiddenError("Use transferOwnership to assign owner");
   }
   if (currentRole === CircleRole.CircleOwner) {
-    throw new Error("Use transferOwnership to change owner");
+    throw new ForbiddenError("Use transferOwnership to change owner");
   }
 };
 
@@ -138,7 +138,7 @@ export const assertCanRemoveCircleSessionMember = (
   targetRole: CircleSessionRole,
 ): void => {
   if (targetRole === CircleSessionRole.CircleSessionOwner) {
-    throw new Error("Use transferOwnership to remove owner");
+    throw new ForbiddenError("Use transferOwnership to remove owner");
   }
 };
 
@@ -147,10 +147,10 @@ export const assertCanChangeCircleSessionMemberRole = (
   newRole: CircleSessionRole,
 ): void => {
   if (newRole === CircleSessionRole.CircleSessionOwner) {
-    throw new Error("Use transferOwnership to assign owner");
+    throw new ForbiddenError("Use transferOwnership to assign owner");
   }
   if (currentRole === CircleSessionRole.CircleSessionOwner) {
-    throw new Error("Use transferOwnership to change owner");
+    throw new ForbiddenError("Use transferOwnership to change owner");
   }
 };
 
