@@ -209,7 +209,6 @@ const matches = [
   {
     id: "match-1",
     circleSessionId: "demo-session-42",
-    order: 1,
     player1Id: "user-1",
     player2Id: "user-5",
     outcome: MatchOutcome.P1_WIN,
@@ -217,7 +216,6 @@ const matches = [
   {
     id: "match-2",
     circleSessionId: "demo-session-42",
-    order: 2,
     player1Id: "user-5",
     player2Id: "user-1",
     outcome: MatchOutcome.P1_WIN,
@@ -225,7 +223,6 @@ const matches = [
   {
     id: "match-3",
     circleSessionId: "demo-session-42",
-    order: 3,
     player1Id: "user-1",
     player2Id: "user-6",
     outcome: MatchOutcome.P2_WIN,
@@ -233,7 +230,6 @@ const matches = [
   {
     id: "match-4",
     circleSessionId: "demo-session-42",
-    order: 4,
     player1Id: "user-1",
     player2Id: "user-7",
     outcome: MatchOutcome.DRAW,
@@ -241,7 +237,6 @@ const matches = [
   {
     id: "match-5",
     circleSessionId: "demo-session-42",
-    order: 5,
     player1Id: "user-5",
     player2Id: "user-6",
     outcome: MatchOutcome.P1_WIN,
@@ -249,7 +244,6 @@ const matches = [
   {
     id: "match-6",
     circleSessionId: "demo-session-42",
-    order: 6,
     player1Id: "user-5",
     player2Id: "user-6",
     outcome: MatchOutcome.P2_WIN,
@@ -257,7 +251,6 @@ const matches = [
   {
     id: "match-7",
     circleSessionId: "demo-session-42",
-    order: 7,
     player1Id: "user-6",
     player2Id: "user-5",
     outcome: MatchOutcome.P1_WIN,
@@ -265,7 +258,6 @@ const matches = [
   {
     id: "match-8",
     circleSessionId: "demo-session-42",
-    order: 8,
     player1Id: "user-5",
     player2Id: "user-4",
     outcome: MatchOutcome.P2_WIN,
@@ -273,7 +265,6 @@ const matches = [
   {
     id: "match-9",
     circleSessionId: "demo-session-42",
-    order: 9,
     player1Id: "user-6",
     player2Id: "user-8",
     outcome: MatchOutcome.P2_WIN,
@@ -281,7 +272,6 @@ const matches = [
   {
     id: "match-10",
     circleSessionId: "demo-session-42",
-    order: 10,
     player1Id: "user-7",
     player2Id: "user-4",
     outcome: MatchOutcome.P1_WIN,
@@ -289,7 +279,6 @@ const matches = [
   {
     id: "match-11",
     circleSessionId: "demo-session-42",
-    order: 11,
     player1Id: "user-7",
     player2Id: "user-4",
     outcome: MatchOutcome.DRAW,
@@ -297,7 +286,6 @@ const matches = [
   {
     id: "match-12",
     circleSessionId: "demo-session-42",
-    order: 12,
     player1Id: "user-4",
     player2Id: "user-7",
     outcome: MatchOutcome.P1_WIN,
@@ -305,7 +293,6 @@ const matches = [
   {
     id: "match-13",
     circleSessionId: "demo-session-42",
-    order: 13,
     player1Id: "user-4",
     player2Id: "user-8",
     outcome: MatchOutcome.DRAW,
@@ -370,12 +357,7 @@ async function main() {
 
   for (const match of matches) {
     await prisma.match.upsert({
-      where: {
-        circleSessionId_order: {
-          circleSessionId: match.circleSessionId,
-          order: match.order,
-        },
-      },
+      where: { id: match.id },
       update: {
         player1Id: match.player1Id,
         player2Id: match.player2Id,

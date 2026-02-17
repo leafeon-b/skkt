@@ -138,9 +138,9 @@ model CircleSessionMembership {
 }
 
 model Match {
-  id              String @id @default(cuid())
+  id              String   @id @default(cuid())
   circleSessionId String
-  order           Int
+  createdAt       DateTime @default(now())
 
   player1Id String
   player2Id String
@@ -159,7 +159,7 @@ model Match {
   /// NOTE:
   /// - player1Id != player2Id はDB CHECK制約で担保（migrationにSQL追加）
   /// - 対局者がセッション参加者であることはアプリ層で検証
-  @@unique([circleSessionId, order])
+  @@index([circleSessionId, createdAt])
   @@index([player1Id])
   @@index([player2Id])
 }
@@ -172,7 +172,6 @@ model MatchHistory {
   createdAt DateTime           @default(now())
 
   // スナップショット（編集時点）
-  order     Int
   player1Id String
   player2Id String
   outcome   MatchOutcome
