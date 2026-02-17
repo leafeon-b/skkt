@@ -9,6 +9,9 @@ export const toTrpcError = (error: unknown): TRPCError => {
     return error;
   }
 
+  // SECURITY: DomainError messages are sent to the client verbatim.
+  // Ensure all DomainError subclasses use static, client-safe messages only.
+  // Do not include dynamic data (IDs, emails, SQL, etc.) in DomainError messages.
   if (error instanceof DomainError) {
     return new TRPCError({ code: error.code, message: error.message });
   }
