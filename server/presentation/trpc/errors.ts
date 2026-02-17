@@ -25,10 +25,14 @@ export const toTrpcError = (error: unknown): TRPCError => {
   }
 
   if (message.endsWith("not found")) {
-    return new TRPCError({ code: "NOT_FOUND", message });
+    return new TRPCError({ code: "NOT_FOUND", message: "Resource not found" });
   }
 
-  return new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
+  console.error("Unhandled error in tRPC handler:", error);
+  return new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Internal server error",
+  });
 };
 
 export const handleTrpcError = async <T>(
