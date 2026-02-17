@@ -1,5 +1,8 @@
+// PrismaAdapter が NextAuth のアダプタ要件として prisma を直接必要とするため、この import のみリポジトリ抽象化の対象外
 import { prisma } from "@/server/infrastructure/db";
 import { verifyPassword } from "@/server/infrastructure/auth/password";
+import { userId } from "@/server/domain/common/ids";
+import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth, { type AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
@@ -7,7 +10,11 @@ import Google from "next-auth/providers/google";
 
 const isDebug = process.env.NODE_ENV !== "production";
 
-export const createAuthOptions = (): AuthOptions => ({
+export type AuthDeps = {
+  userRepository: UserRepository;
+};
+
+export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
   adapter: PrismaAdapter(prisma),
   providers: [
     Credentials({
@@ -25,23 +32,16 @@ export const createAuthOptions = (): AuthOptions => ({
           }
           return null;
         }
-        const user = await prisma.user.findUnique({
-          where: { email },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            image: true,
-            passwordHash: true,
-          },
-        });
+        const user = await deps.userRepository.findByEmail(email);
         if (!user) {
           if (isDebug) {
             console.warn("[auth] credentials user not found", { email });
           }
           return null;
         }
-        if (!user.passwordHash) {
+        const passwordHash =
+          await deps.userRepository.findPasswordHashById(user.id);
+        if (!passwordHash) {
           if (isDebug) {
             console.warn("[auth] credentials user missing password hash", {
               email,
@@ -49,7 +49,7 @@ export const createAuthOptions = (): AuthOptions => ({
           }
           return null;
         }
-        if (!verifyPassword(password, user.passwordHash)) {
+        if (!verifyPassword(password, passwordHash)) {
           if (isDebug) {
             console.warn("[auth] credentials password mismatch", { email });
           }
@@ -78,20 +78,20 @@ export const createAuthOptions = (): AuthOptions => ({
         return token;
       }
 
-      const userId = (token.id ?? token.sub) as string | undefined;
-      if (!userId) {
+      const rawUserId = (token.id ?? token.sub) as string | undefined;
+      if (!rawUserId) {
         return {} as typeof token;
       }
 
       if (token.iat) {
         try {
-          const found = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { passwordChangedAt: true },
-          });
-          if (found?.passwordChangedAt) {
+          const passwordChangedAt =
+            await deps.userRepository.findPasswordChangedAt(
+              userId(rawUserId),
+            );
+          if (passwordChangedAt) {
             const changedAtSec = Math.floor(
-              found.passwordChangedAt.getTime() / 1000,
+              passwordChangedAt.getTime() / 1000,
             );
             if (changedAtSec > (token.iat as number)) {
               return {} as typeof token;
@@ -113,4 +113,5 @@ export const createAuthOptions = (): AuthOptions => ({
   },
 });
 
-export const createNextAuthHandler = () => NextAuth(createAuthOptions());
+export const createNextAuthHandler = (deps: AuthDeps) =>
+  NextAuth(createAuthOptions(deps));
