@@ -140,7 +140,7 @@ model CircleSessionMembership {
 model Match {
   id              String   @id @default(cuid())
   circleSessionId String
-  createdAt       DateTime @default(now())
+  createdAt       DateTime
 
   player1Id String
   player2Id String
