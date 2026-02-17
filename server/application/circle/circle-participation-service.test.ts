@@ -3,6 +3,7 @@ import { createCircleParticipationService } from "@/server/application/circle/ci
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import { ForbiddenError } from "@/server/domain/common/errors";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
+import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import { circleId, userId } from "@/server/domain/common/ids";
 
@@ -13,6 +14,16 @@ const circleParticipationRepository = {
   updateParticipationRole: vi.fn(),
   removeParticipation: vi.fn(),
 } satisfies CircleParticipationRepository;
+
+const circleSessionParticipationRepository = {
+  listParticipations: vi.fn(),
+  listByUserId: vi.fn(),
+  addParticipation: vi.fn(),
+  updateParticipationRole: vi.fn(),
+  areUsersParticipating: vi.fn(),
+  removeParticipation: vi.fn(),
+  removeAllByCircleAndUser: vi.fn(),
+} satisfies CircleSessionParticipationRepository;
 
 const circleRepository = {
   findById: vi.fn(),
@@ -25,6 +36,7 @@ const accessService = createAccessServiceStub();
 
 const service = createCircleParticipationService({
   circleParticipationRepository,
+  circleSessionParticipationRepository,
   circleRepository,
   accessService,
 });
@@ -297,6 +309,9 @@ describe("Circle 参加関係サービス", () => {
       });
 
       expect(
+        circleSessionParticipationRepository.removeAllByCircleAndUser,
+      ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-manager"));
+      expect(
         circleParticipationRepository.removeParticipation,
       ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-manager"));
     });
@@ -324,6 +339,9 @@ describe("Circle 参加関係サービス", () => {
         circleId: circleId("circle-1"),
       });
 
+      expect(
+        circleSessionParticipationRepository.removeAllByCircleAndUser,
+      ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
       expect(
         circleParticipationRepository.removeParticipation,
       ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
@@ -440,6 +458,9 @@ describe("Circle 参加関係サービス", () => {
       userId: userId("user-2"),
     });
 
+    expect(
+      circleSessionParticipationRepository.removeAllByCircleAndUser,
+    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-2"));
     expect(
       circleParticipationRepository.removeParticipation,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-2"));

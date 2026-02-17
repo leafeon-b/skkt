@@ -44,6 +44,7 @@ const createSessionParticipationStub = () => ({
   updateParticipationRole: vi.fn(),
   areUsersParticipating: vi.fn(),
   removeParticipation: vi.fn(),
+  removeAllByCircleAndUser: vi.fn(),
 });
 
 const createAuthzStub = () => ({
