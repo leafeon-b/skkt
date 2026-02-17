@@ -7,6 +7,7 @@ import {
   ForbiddenError,
   UnauthorizedError,
   BadRequestError,
+  TooManyRequestsError,
 } from "@/server/domain/common/errors";
 
 describe("toTrpcError", () => {
@@ -66,6 +67,13 @@ describe("toTrpcError", () => {
       expect(result).toBeInstanceOf(TRPCError);
       expect(result.code).toBe("BAD_REQUEST");
       expect(result.message).toBe("invalid");
+    });
+
+    test("TooManyRequestsError -> TOO_MANY_REQUESTS", () => {
+      const result = toTrpcError(new TooManyRequestsError());
+      expect(result).toBeInstanceOf(TRPCError);
+      expect(result.code).toBe("TOO_MANY_REQUESTS");
+      expect(result.message).toBe("Too many requests");
     });
   });
 
