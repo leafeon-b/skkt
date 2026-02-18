@@ -10,10 +10,17 @@ export const formatDateTimeRange = (startsAt: Date, endsAt: Date) =>
   `${formatDate(startsAt)} ${formatTime(startsAt)} - ${formatTime(endsAt)}`;
 
 export const formatDateForInput = (date: Date) =>
-  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+  date.toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
 
-export const formatDateTimeForInput = (date: Date) =>
-  `${formatDateForInput(date)}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+export const formatDateTimeForInput = (date: Date) => {
+  const timePart = date.toLocaleTimeString("en-GB", {
+    timeZone: "Asia/Tokyo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  return `${formatDateForInput(date)}T${timePart}`;
+};
 
 export function formatTooltipDateTime(
   startsAt: string | Date,

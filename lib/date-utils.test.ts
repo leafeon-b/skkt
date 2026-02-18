@@ -37,19 +37,40 @@ describe("formatDateTimeRange", () => {
 });
 
 describe("formatDateForInput", () => {
-  it("YYYY-MM-DD 形式で返す", () => {
-    expect(formatDateForInput(new Date(2025, 0, 5))).toBe("2025-01-05");
+  it("YYYY-MM-DD 形式（JST）で返す", () => {
+    // 2025-01-05T10:00:00Z = 2025-01-05T19:00:00+09:00
+    expect(formatDateForInput(new Date("2025-01-05T10:00:00Z"))).toBe(
+      "2025-01-05",
+    );
   });
 
   it("月・日を2桁ゼロ埋めする", () => {
-    expect(formatDateForInput(new Date(2025, 11, 31))).toBe("2025-12-31");
+    // 2025-12-31T00:00:00Z = 2025-12-31T09:00:00+09:00
+    expect(formatDateForInput(new Date("2025-12-31T00:00:00Z"))).toBe(
+      "2025-12-31",
+    );
+  });
+
+  it("JST 深夜帯で日付がずれない（UTC では前日でも JST では当日）", () => {
+    // 2025-01-14T15:30:00Z = 2025-01-15T00:30:00+09:00
+    expect(formatDateForInput(new Date("2025-01-14T15:30:00Z"))).toBe(
+      "2025-01-15",
+    );
   });
 });
 
 describe("formatDateTimeForInput", () => {
-  it("YYYY-MM-DDThh:mm 形式で返す", () => {
-    expect(formatDateTimeForInput(new Date(2025, 0, 15, 9, 5))).toBe(
+  it("YYYY-MM-DDThh:mm 形式（JST）で返す", () => {
+    // 2025-01-15T00:05:00Z = 2025-01-15T09:05:00+09:00
+    expect(formatDateTimeForInput(new Date("2025-01-15T00:05:00Z"))).toBe(
       "2025-01-15T09:05",
+    );
+  });
+
+  it("JST 深夜帯で日付・時刻がずれない", () => {
+    // 2025-01-14T15:30:00Z = 2025-01-15T00:30:00+09:00
+    expect(formatDateTimeForInput(new Date("2025-01-14T15:30:00Z"))).toBe(
+      "2025-01-15T00:30",
     );
   });
 });
