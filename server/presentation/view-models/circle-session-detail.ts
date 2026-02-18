@@ -36,14 +36,3 @@ export type CircleSessionDetailViewModel = {
   participations: CircleSessionParticipation[];
   matches: CircleSessionMatch[];
 };
-
-export type CircleSessionDetailProviderInput = {
-  circleSessionId: string;
-  viewerId: string | null;
-};
-
-export type CircleSessionDetailProvider = {
-  getDetail(
-    input: CircleSessionDetailProviderInput,
-  ): Promise<CircleSessionDetailViewModel>;
-};

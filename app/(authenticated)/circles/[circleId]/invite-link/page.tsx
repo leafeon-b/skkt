@@ -1,5 +1,5 @@
+import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
-import { circleId as toCircleId } from "@/server/domain/common/ids";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
@@ -16,10 +16,8 @@ export default async function InviteLinkPage({ params }: InviteLinkPageProps) {
   }
 
   const ctx = await createContext();
-  const circle = await ctx.circleService.getCircle(
-    ctx.actorId,
-    toCircleId(circleId),
-  );
+  const caller = appRouter.createCaller(ctx);
+  const circle = await caller.circles.get({ circleId });
   if (!circle) {
     notFound();
   }

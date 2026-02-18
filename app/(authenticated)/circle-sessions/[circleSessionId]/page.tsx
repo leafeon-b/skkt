@@ -1,5 +1,5 @@
 import { CircleSessionDetailView } from "@/app/(authenticated)/circle-sessions/components/circle-session-detail-view";
-import { trpcCircleSessionDetailProvider } from "@/server/presentation/providers/trpc-circle-session-detail-provider";
+import { getCircleSessionDetailViewModel } from "@/server/presentation/providers/circle-session-detail-provider";
 import { notFound } from "next/navigation";
 import { TRPCError } from "@trpc/server";
 
@@ -17,10 +17,7 @@ export default async function CircleSessionDetailPage({
 
   let detail;
   try {
-    detail = await trpcCircleSessionDetailProvider.getDetail({
-      circleSessionId,
-      viewerId: null,
-    });
+    detail = await getCircleSessionDetailViewModel(circleSessionId);
   } catch (error) {
     if (error instanceof TRPCError && error.code === "NOT_FOUND") {
       notFound();

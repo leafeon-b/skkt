@@ -1,14 +1,12 @@
 import { formatDateTimeRange } from "@/lib/date-utils";
 import { CircleRole } from "@/server/domain/services/authz/roles";
-import { circleId, userId } from "@/server/domain/common/ids";
-import type { ServiceContainer } from "@/server/application/service-container";
+import { NotFoundError } from "@/server/domain/common/errors";
+import { appRouter } from "@/server/presentation/trpc/router";
+import { createContext } from "@/server/presentation/trpc/context";
 import type {
-  CircleOverviewProvider,
-  CircleOverviewProviderInput,
   CircleOverviewViewModel,
   CircleRoleKey,
 } from "@/server/presentation/view-models/circle-overview";
-import { NotFoundError } from "@/server/domain/common/errors";
 
 const roleKeyByDto: Record<CircleRole, CircleRoleKey> = {
   [CircleRole.CircleOwner]: "owner",
@@ -42,97 +40,64 @@ const getViewerRole = (
   return roleKeyByDto[participation.role] ?? null;
 };
 
-export type CircleOverviewProviderDeps = {
-  circleService: ServiceContainer["circleService"];
-  circleParticipationService: ServiceContainer["circleParticipationService"];
-  circleSessionService: ServiceContainer["circleSessionService"];
-  userService: ServiceContainer["userService"];
-  getActorId: () => Promise<string | null>;
-};
+export async function getCircleOverviewViewModel(
+  circleId: string,
+): Promise<CircleOverviewViewModel> {
+  const ctx = await createContext();
+  const caller = appRouter.createCaller(ctx);
 
-export const createCircleOverviewProvider = (
-  deps: CircleOverviewProviderDeps,
-): CircleOverviewProvider => ({
-  async getOverview(input: CircleOverviewProviderInput) {
-    const actorId = await deps.getActorId();
+  const [circle, participations, sessions] = await Promise.all([
+    caller.circles.get({ circleId }),
+    caller.circles.participations.list({ circleId }),
+    caller.circleSessions.list({ circleId }),
+  ]);
 
-    const [circle, participations, sessions] = await Promise.all([
-      deps.circleService.getCircle(actorId ?? "", circleId(input.circleId)),
-      deps.circleParticipationService.listByCircleId({
-        actorId: actorId ?? "",
-        circleId: circleId(input.circleId),
-      }),
-      deps.circleSessionService.listByCircleId(
-        actorId ?? "",
-        circleId(input.circleId),
-      ),
-    ]);
+  if (!circle) {
+    throw new NotFoundError("Circle");
+  }
 
-    if (!circle) {
-      throw new NotFoundError("Circle");
-    }
+  const users = await caller.users.list({
+    userIds: participations.map((p) => p.userId),
+  });
+  const userNameById = new Map(users.map((user) => [user.id, user.name]));
 
-    const users = await deps.userService.listUsers(
-      actorId ?? "",
-      participations.map((participation) => userId(participation.userId)),
-    );
-    const userNameById = new Map(
-      users.map((user) => [user.id as string, user.name]),
-    );
+  const viewerId = ctx.actorId ?? null;
+  const viewerRole = getViewerRole(participations, viewerId);
 
-    const viewerId = input.viewerId ?? actorId ?? null;
-    const viewerRole = getViewerRole(
-      participations.map((p) => ({
-        userId: p.userId as string,
-        role: p.role,
-      })),
-      viewerId,
-    );
+  const allSessions = sessions
+    .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())
+    .map((session) => toSessionViewModel(session));
 
-    const allSessions = sessions
-      .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())
-      .map((session) =>
-        toSessionViewModel({
-          id: session.id as string,
-          title: session.title,
-          startsAt: session.startsAt,
-          endsAt: session.endsAt,
-        }),
-      );
+  const now = new Date();
+  const upcomingSessions = sessions
+    .filter((session) => session.startsAt >= now)
+    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+  const nextSession = upcomingSessions[0];
 
-    const now = new Date();
-    const upcomingSessions = sessions
-      .filter((session) => session.startsAt >= now)
-      .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
-    const nextSession = upcomingSessions[0];
+  const overview: CircleOverviewViewModel = {
+    circleId: circle.id,
+    circleName: circle.name,
+    participationCount: participations.length,
+    scheduleNote: null,
+    nextSession: nextSession
+      ? {
+          id: nextSession.id,
+          title: nextSession.title,
+          dateTimeLabel: formatDateTimeRange(
+            nextSession.startsAt,
+            nextSession.endsAt,
+          ),
+          locationLabel: nextSession.location,
+        }
+      : null,
+    viewerRole,
+    sessions: allSessions,
+    members: participations.map((participation) => ({
+      userId: participation.userId,
+      name: userNameById.get(participation.userId) ?? participation.userId,
+      role: roleKeyByDto[participation.role] ?? "member",
+    })),
+  };
 
-    const overview: CircleOverviewViewModel = {
-      circleId: circle.id as string,
-      circleName: circle.name,
-      participationCount: participations.length,
-      scheduleNote: null,
-      nextSession: nextSession
-        ? {
-            id: nextSession.id as string,
-            title: nextSession.title,
-            dateTimeLabel: formatDateTimeRange(
-              nextSession.startsAt,
-              nextSession.endsAt,
-            ),
-            locationLabel: nextSession.location,
-          }
-        : null,
-      viewerRole,
-      sessions: allSessions,
-      members: participations.map((participation) => ({
-        userId: participation.userId as string,
-        name:
-          userNameById.get(participation.userId as string) ??
-          (participation.userId as string),
-        role: roleKeyByDto[participation.role] ?? "member",
-      })),
-    };
-
-    return overview;
-  },
-});
+  return overview;
+}

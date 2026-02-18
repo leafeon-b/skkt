@@ -28,14 +28,3 @@ export type CircleOverviewViewModel = {
   sessions: CircleOverviewSession[];
   members: CircleOverviewMember[];
 };
-
-export type CircleOverviewProviderInput = {
-  circleId: string;
-  viewerId: string | null;
-};
-
-export type CircleOverviewProvider = {
-  getOverview(
-    input: CircleOverviewProviderInput,
-  ): Promise<CircleOverviewViewModel>;
-};

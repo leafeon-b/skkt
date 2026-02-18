@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { inviteLinkProvider } from "@/server/presentation/providers/invite-link-provider.setup";
+import { getInviteLinkPageData } from "@/server/presentation/providers/invite-link-provider";
 import Footer from "@/app/components/footer";
 import { InviteAcceptView } from "./invite-accept-view";
 
@@ -13,7 +13,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
     notFound();
   }
 
-  const data = await inviteLinkProvider.getPageData(token);
+  const data = await getInviteLinkPageData(token);
   if (!data) {
     notFound();
   }
