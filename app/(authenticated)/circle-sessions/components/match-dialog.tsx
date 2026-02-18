@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Trash2 } from "lucide-react";
 import type { FormEvent } from "react";
 import {
   getMatchOutcome,
@@ -27,6 +28,7 @@ type MatchDialogProps = {
   outcomeOptions: Array<{ value: RowOutcome; label: string }>;
   createMatchIsPending: boolean;
   updateMatchIsPending: boolean;
+  onRequestDelete: (() => void) | undefined;
   handleMatchSelectChange: (nextIndex: number) => void;
   handleDialogSubmit: (event: FormEvent<HTMLFormElement>) => void;
   setSelectedOutcome: (outcome: RowOutcome) => void;
@@ -47,6 +49,7 @@ export function MatchDialog({
   outcomeOptions,
   createMatchIsPending,
   updateMatchIsPending,
+  onRequestDelete,
   handleMatchSelectChange,
   handleDialogSubmit,
   setSelectedOutcome,
@@ -157,6 +160,17 @@ export function MatchDialog({
             />
           </div>
           <DialogFooter className="mt-6">
+            {onRequestDelete ? (
+              <Button
+                type="button"
+                variant="destructive"
+                className="mr-auto"
+                onClick={onRequestDelete}
+              >
+                <Trash2 className="size-4" aria-hidden="true" />
+                削除
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="outline"
