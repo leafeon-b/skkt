@@ -1,5 +1,6 @@
 import { createCircleInviteLinkService } from "@/server/application/circle/circle-invite-link-service";
 import { createAccessService } from "@/server/application/authz/access-service";
+import { NotFoundError } from "@/server/domain/common/errors";
 import { nextAuthSessionService } from "@/server/infrastructure/auth/nextauth-session-service";
 import { prismaCircleInviteLinkRepository } from "@/server/infrastructure/repository/circle/prisma-circle-invite-link-repository";
 import { prismaCircleRepository } from "@/server/infrastructure/repository/circle/prisma-circle-repository";
@@ -26,8 +27,9 @@ export async function getInviteLinkPageData(
   let info;
   try {
     info = await circleInviteLinkService.getInviteLinkInfo({ token });
-  } catch {
-    return null;
+  } catch (e) {
+    if (e instanceof NotFoundError) return null;
+    throw e;
   }
 
   const session = await nextAuthSessionService.getSession();
