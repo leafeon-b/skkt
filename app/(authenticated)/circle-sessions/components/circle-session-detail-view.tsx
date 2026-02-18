@@ -11,48 +11,32 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { formatDateForInput } from "@/lib/date-utils";
 import { trpc } from "@/lib/trpc/client";
 import type {
   CircleSessionDetailViewModel,
-  CircleSessionMatchOutcome,
   CircleSessionRoleKey,
 } from "@/server/presentation/view-models/circle-session-detail";
 import { CircleSessionWithdrawButton } from "@/app/(authenticated)/circle-sessions/components/circle-session-withdraw-button";
 import { Copy, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useRef, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import { toast } from "sonner";
-
-type RowOutcome = "ROW_WIN" | "ROW_LOSS" | "DRAW" | "UNKNOWN";
-type DialogMode = "add" | "edit" | "delete";
-type ActiveDialog = {
-  mode: DialogMode;
-  rowId: string;
-  columnId: string;
-};
+import { MatchDeleteDialog } from "./match-delete-dialog";
+import { MatchDialog } from "./match-dialog";
+import { MatchMatrixTable } from "./match-matrix-table";
+import {
+  addDays,
+  convertRowOutcomeToApiOutcome,
+  getOutcomeLabel,
+  getPairMatches,
+  getRowOutcomeValue,
+  getTodayInputValue,
+  parseDateInput,
+  type ActiveDialog,
+  type DialogMode,
+  type RowOutcome,
+} from "./match-utils";
 
 type RoleAction = {
   label: string;
@@ -118,268 +102,22 @@ const roleConfigs: Record<CircleSessionRoleKey, RoleConfig> = {
   },
 };
 
-const getTodayInputValue = () => formatDateForInput(new Date());
-
-const addDays = (date: Date, amount: number) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);
-
-const parseDateInput = (value: string) => {
-  const [year, month, day] = value.split("-").map(Number);
-  if (!year || !month || !day) {
-    return new Date();
-  }
-  return new Date(year, month - 1, day);
-};
-
-const convertRowOutcomeToApiOutcome = (
-  rowOutcome: RowOutcome,
-  rowId: string,
-  player1Id: string,
-): CircleSessionMatchOutcome => {
-  if (rowOutcome === "DRAW") return "DRAW";
-  if (rowOutcome === "UNKNOWN") return "UNKNOWN";
-  const rowIsPlayer1 = rowId === player1Id;
-  if (rowOutcome === "ROW_WIN") return rowIsPlayer1 ? "P1_WIN" : "P2_WIN";
-  return rowIsPlayer1 ? "P2_WIN" : "P1_WIN";
-};
-
-const getNameInitial = (name: string) => Array.from(name.trim())[0] ?? name;
-
-const getOutcomeLabel = (
-  outcome: RowOutcome,
-  rowName: string,
-  columnName: string,
-) => {
-  switch (outcome) {
-    case "ROW_WIN":
-      return `${rowName}の勝ち`;
-    case "ROW_LOSS":
-      return `${columnName}の勝ち`;
-    case "DRAW":
-      return "引き分け";
-    case "UNKNOWN":
-      return "未記録";
-    default:
-      return "未記録";
-  }
-};
-
-const getRowOutcomeValue = (
-  rowId: string,
-  match: {
-    player1Id: string;
-    player2Id: string;
-    outcome: CircleSessionMatchOutcome;
-  },
-): RowOutcome => {
-  if (match.outcome === "UNKNOWN") {
-    return "UNKNOWN";
-  }
-  if (match.outcome === "DRAW") {
-    return "DRAW";
-  }
-
-  const rowIsPlayer1 = match.player1Id === rowId;
-  const rowWon =
-    (rowIsPlayer1 && match.outcome === "P1_WIN") ||
-    (!rowIsPlayer1 && match.outcome === "P2_WIN");
-
-  return rowWon ? "ROW_WIN" : "ROW_LOSS";
-};
-
-const getMatchOutcome = (
-  rowId: string,
-  match: {
-    player1Id: string;
-    player2Id: string;
-    outcome: CircleSessionMatchOutcome;
-  },
-) => {
-  if (match.outcome === "UNKNOWN") {
-    return {
-      label: "未",
-      className: "bg-white/70 text-(--brand-ink-muted)",
-      title: "未記録",
-      kind: "unknown",
-    } as const;
-  }
-
-  if (match.outcome === "DRAW") {
-    return {
-      label: "△",
-      className: "bg-(--brand-gold)/20 text-(--brand-ink)",
-      title: "引き分け",
-      kind: "draw",
-    } as const;
-  }
-
-  const rowIsPlayer1 = match.player1Id === rowId;
-  const rowWon =
-    (rowIsPlayer1 && match.outcome === "P1_WIN") ||
-    (!rowIsPlayer1 && match.outcome === "P2_WIN");
-
-  return rowWon
-    ? {
-        label: "○",
-        className: "bg-(--brand-moss)/20 text-(--brand-ink)",
-        title: "勝ち",
-        kind: "win",
-      }
-    : {
-        label: "●",
-        className: "bg-(--brand-ink)/10 text-(--brand-ink)",
-        title: "負け",
-        kind: "loss",
-      };
-};
-
 export function CircleSessionDetailView({
   detail,
 }: CircleSessionDetailViewProps) {
   const participations = detail.participations;
   const matches = detail.matches;
-  const participationsById = Object.fromEntries(
-    participations.map((participation) => [participation.id, participation]),
-  ) as Record<string, (typeof participations)[number]>;
   const todayInputValue = getTodayInputValue();
   const baseDateInput = detail.sessionDateInput || todayInputValue;
   const sessionBaseDate = parseDateInput(baseDateInput);
   const matchDatesByIndex = matches.map((_, index) =>
     formatDateForInput(addDays(sessionBaseDate, index)),
   );
-  const getParticipationName = (id: string) =>
-    participationsById[id]?.name ?? "不明";
-
-  const getPairMatches = (rowId: string, columnId: string) =>
-    matches
-      .map((match, index) => ({ match, index }))
-      .filter(
-        ({ match }) =>
-          (match.player1Id === rowId && match.player2Id === columnId) ||
-          (match.player1Id === columnId && match.player2Id === rowId),
-      );
-
-  const getCellResults = (rowId: string, columnId: string) => {
-    if (rowId === columnId) {
-      return {
-        type: "series",
-        results: [
-          {
-            label: "—",
-            className: "bg-(--brand-ink)/5 text-(--brand-ink-muted)",
-            title: "同一参加者",
-            kind: "self",
-          },
-        ],
-      } as const;
-    }
-
-    const pairMatches = getPairMatches(rowId, columnId).map(
-      ({ match }) => match,
-    );
-
-    if (pairMatches.length === 0) {
-      return {
-        type: "series",
-        results: [
-          {
-            label: "未",
-            className: "bg-white/70 text-(--brand-ink-muted)",
-            title: "未記録",
-            kind: "unknown",
-          },
-        ],
-      } as const;
-    }
-
-    const results = pairMatches.map((match) => getMatchOutcome(rowId, match));
-
-    if (results.length <= 2) {
-      return { type: "series", results } as const;
-    }
-
-    type ResultKind = "win" | "loss" | "draw" | "unknown" | "self";
-
-    const counts = results.reduce<Record<ResultKind, number>>(
-      (acc, result) => {
-        const k = result.kind as ResultKind;
-        acc[k] = (acc[k] ?? 0) + 1;
-        return acc;
-      },
-      { win: 0, loss: 0, draw: 0, unknown: 0, self: 0 },
-    );
-
-    const details = [
-      `勝ち${counts.win}`,
-      `負け${counts.loss}`,
-      counts.draw ? `引き分け${counts.draw}` : null,
-      counts.unknown ? `未記録${counts.unknown}` : null,
-    ].filter(Boolean);
-
-    return {
-      type: "aggregate",
-      label: counts.draw
-        ? `${counts.win}勝${counts.loss}敗${counts.draw}分`
-        : `${counts.win}勝${counts.loss}敗`,
-      title: details.join(" / "),
-    } as const;
-  };
-
-  const getCellDisplay = (rowId: string, columnId: string) => {
-    const cell = getCellResults(rowId, columnId);
-
-    if (cell.type === "aggregate") {
-      return { text: cell.label, title: cell.title, muted: false };
-    }
-
-    const labels = cell.results.map((result) => result.label);
-    const titles = cell.results.map((result) => result.title);
-    const allMuted = cell.results.every(
-      (result) => result.kind === "unknown" || result.kind === "self",
-    );
-    const text =
-      labels.length > 1 && labels.every((label) => label === "未")
-        ? "未"
-        : labels.join("");
-
-    return { text, title: titles.join(" / "), muted: allMuted };
-  };
-
-  const getRowTotals = (rowId: string) => {
-    let wins = 0;
-    let losses = 0;
-    let draws = 0;
-
-    for (const match of matches) {
-      const isRowParticipation =
-        match.player1Id === rowId || match.player2Id === rowId;
-
-      if (!isRowParticipation) {
-        continue;
-      }
-
-      if (match.outcome === "UNKNOWN") {
-        continue;
-      }
-
-      if (match.outcome === "DRAW") {
-        draws += 1;
-        continue;
-      }
-
-      const rowIsPlayer1 = match.player1Id === rowId;
-      const rowWon =
-        (rowIsPlayer1 && match.outcome === "P1_WIN") ||
-        (!rowIsPlayer1 && match.outcome === "P2_WIN");
-
-      if (rowWon) {
-        wins += 1;
-      } else {
-        losses += 1;
-      }
-    }
-
-    return { wins, losses, draws };
+  const getParticipationName = (id: string) => {
+    const participationsById = Object.fromEntries(
+      participations.map((participation) => [participation.id, participation]),
+    ) as Record<string, (typeof participations)[number]>;
+    return participationsById[id]?.name ?? "不明";
   };
 
   const router = useRouter();
@@ -496,7 +234,7 @@ export function CircleSessionDetailView({
       return;
     }
 
-    const pairMatches = getPairMatches(rowId, columnId);
+    const pairMatches = getPairMatches(matches, rowId, columnId);
     applyMatchSelection(rowId, pairMatches[0]);
   };
 
@@ -524,6 +262,7 @@ export function CircleSessionDetailView({
       return;
     }
     const pairMatches = getPairMatches(
+      matches,
       activeDialog.rowId,
       activeDialog.columnId,
     );
@@ -571,6 +310,7 @@ export function CircleSessionDetailView({
       );
     } else if (activeDialog.mode === "edit") {
       const pairMatches = getPairMatches(
+        matches,
         activeDialog.rowId,
         activeDialog.columnId,
       );
@@ -610,6 +350,7 @@ export function CircleSessionDetailView({
       return;
     }
     const pairMatches = getPairMatches(
+      matches,
       activeDialog.rowId,
       activeDialog.columnId,
     );
@@ -641,7 +382,7 @@ export function CircleSessionDetailView({
   };
 
   const activePairMatches = activeDialog
-    ? getPairMatches(activeDialog.rowId, activeDialog.columnId)
+    ? getPairMatches(matches, activeDialog.rowId, activeDialog.columnId)
     : [];
   const dialogRowName = activeDialog
     ? getParticipationName(activeDialog.rowId)
@@ -806,380 +547,44 @@ export function CircleSessionDetailView({
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-1">
-        <div className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-(--brand-ink)">
-                対局結果
-              </p>
-              <p className="mt-2 text-xs text-(--brand-ink-muted)">
-                ○=勝ち ●=負け △=引き分け 未=未記録
-              </p>
-            </div>
-            <p className="text-xs text-(--brand-ink-muted)">
-              {participations.length}名参加
-            </p>
-          </div>
-          <div className="relative mt-4 rounded-2xl border border-border/60 bg-white/70">
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 rounded-l-2xl bg-linear-to-r from-(--brand-ink)/20 to-transparent sm:hidden" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 rounded-r-2xl bg-linear-to-l from-(--brand-ink)/20 to-transparent sm:hidden" />
-            <Table className="min-w-130 border-collapse text-sm sm:min-w-160">
-              <TableHeader className="bg-white/80 [&_tr]:border-border/60">
-                <TableRow className="border-b border-border/60">
-                  <TableHead className="bg-(--brand-ink)/5 px-3 py-3 text-left text-xs font-semibold text-(--brand-ink)">
-                    自分＼相手
-                  </TableHead>
-                  {participations.map((participation) => (
-                    <TableHead
-                      key={participation.id}
-                      className="whitespace-nowrap bg-(--brand-ink)/5 px-3 py-3 text-center text-xs font-semibold text-(--brand-ink)"
-                      scope="col"
-                      title={participation.name}
-                    >
-                      <span className="block sm:hidden">
-                        {getNameInitial(participation.name)}
-                      </span>
-                      <span className="hidden sm:block">
-                        {participation.name}
-                      </span>
-                    </TableHead>
-                  ))}
-                  <TableHead className="whitespace-nowrap border-l border-border/60 bg-(--brand-ink)/5 px-3 py-3 text-center text-xs font-semibold text-(--brand-ink)">
-                    勝敗
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {participations.map((rowParticipation) => {
-                  const totals = getRowTotals(rowParticipation.id);
-                  return (
-                    <TableRow
-                      key={rowParticipation.id}
-                      className="border-b border-border/60 last:border-b-0"
-                    >
-                      <TableHead
-                        scope="row"
-                        className="whitespace-nowrap bg-(--brand-ink)/5 px-3 py-3 text-left text-xs font-semibold text-(--brand-ink)"
-                      >
-                        {rowParticipation.name}
-                      </TableHead>
-                      {participations.map((columnParticipation) => {
-                        const cellKey = `${rowParticipation.id}-${columnParticipation.id}`;
-                        const pairMatches = getPairMatches(
-                          rowParticipation.id,
-                          columnParticipation.id,
-                        );
-                        const hasMatches = pairMatches.length > 0;
-                        const isSelf =
-                          rowParticipation.id === columnParticipation.id;
-                        const cellDisplay = getCellDisplay(
-                          rowParticipation.id,
-                          columnParticipation.id,
-                        );
+      <MatchMatrixTable
+        participations={participations}
+        matches={matches}
+        openDialog={openDialog}
+      />
 
-                        const cellButtonClassName =
-                          `flex w-full items-center justify-center rounded-full px-2 py-1 text-xs transition ${
-                            cellDisplay.muted
-                              ? "text-(--brand-ink-muted)"
-                              : "text-(--brand-ink)"
-                          } ${
-                            hasMatches
-                              ? "hover:bg-(--brand-ink)/10"
-                              : "hover:bg-(--brand-ink)/5"
-                          }`.trim();
+      <MatchDeleteDialog
+        activeDialog={activeDialog}
+        dialogRowName={dialogRowName}
+        dialogColumnName={dialogColumnName}
+        activePairMatches={activePairMatches}
+        selectedMatch={selectedMatch}
+        deleteMatchIsPending={deleteMatch.isPending}
+        handleMatchSelectChange={handleMatchSelectChange}
+        handleDelete={handleDelete}
+        closeDialog={closeDialog}
+        handleCloseAutoFocus={handleCloseAutoFocus}
+      />
 
-                        return (
-                          <TableCell
-                            key={cellKey}
-                            className="border-l border-border/60 px-2 py-2 text-center text-xs"
-                          >
-                            {isSelf ? (
-                              <button
-                                type="button"
-                                className={cellButtonClassName}
-                                title={cellDisplay.title}
-                                disabled
-                              >
-                                {cellDisplay.text}
-                              </button>
-                            ) : hasMatches ? (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <button
-                                    type="button"
-                                    className={cellButtonClassName}
-                                    title={cellDisplay.title}
-                                    data-cell-id={cellKey}
-                                  >
-                                    {cellDisplay.text}
-                                  </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="center">
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      openDialog(
-                                        "add",
-                                        rowParticipation.id,
-                                        columnParticipation.id,
-                                      )
-                                    }
-                                  >
-                                    追加
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      openDialog(
-                                        "edit",
-                                        rowParticipation.id,
-                                        columnParticipation.id,
-                                      )
-                                    }
-                                  >
-                                    編集
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      openDialog(
-                                        "delete",
-                                        rowParticipation.id,
-                                        columnParticipation.id,
-                                      )
-                                    }
-                                  >
-                                    削除
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            ) : (
-                              <button
-                                type="button"
-                                className={cellButtonClassName}
-                                title={cellDisplay.title}
-                                data-cell-id={cellKey}
-                                onClick={() =>
-                                  openDialog(
-                                    "add",
-                                    rowParticipation.id,
-                                    columnParticipation.id,
-                                  )
-                                }
-                              >
-                                {cellDisplay.text}
-                              </button>
-                            )}
-                          </TableCell>
-                        );
-                      })}
-                      <TableCell className="border-l border-border/60 px-3 py-2 text-center text-xs text-(--brand-ink-muted)">
-                        {totals.wins}勝{totals.losses}敗
-                        {totals.draws ? `${totals.draws}分` : ""}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      </section>
-
-      <AlertDialog
-        open={activeDialog?.mode === "delete"}
-        onOpenChange={(open) => {
-          if (!open) closeDialog();
-        }}
-      >
-        <AlertDialogContent onCloseAutoFocus={handleCloseAutoFocus}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>対局結果を削除</AlertDialogTitle>
-            <AlertDialogDescription>
-              この対局結果を削除します。操作は取り消せません。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {activeDialog?.mode === "delete" ? (
-            <>
-              <div className="rounded-xl border border-border/60 bg-(--brand-ink)/5 px-3 py-2 text-sm font-semibold text-(--brand-ink)">
-                {dialogRowName} × {dialogColumnName}
-              </div>
-              <div>
-                <label
-                  htmlFor="delete-match-select"
-                  className="text-xs font-semibold text-(--brand-ink)"
-                >
-                  対象の対局結果
-                </label>
-                {activePairMatches.length > 1 ? (
-                  <select
-                    id="delete-match-select"
-                    className="mt-2 w-full rounded-lg border border-border/60 bg-white px-3 py-2 text-sm text-(--brand-ink) shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                    value={selectedMatch?.index ?? ""}
-                    onChange={(event) =>
-                      handleMatchSelectChange(Number(event.target.value))
-                    }
-                  >
-                    {activePairMatches.map((entry, index) => {
-                      const outcome = getMatchOutcome(
-                        activeDialog.rowId,
-                        entry.match,
-                      );
-                      return (
-                        <option key={entry.index} value={entry.index}>
-                          第{index + 1}局目: {outcome.title}
-                        </option>
-                      );
-                    })}
-                  </select>
-                ) : (
-                  <p className="mt-2 text-sm text-(--brand-ink-muted)">
-                    {selectedMatch
-                      ? `第1局目: ${getMatchOutcome(activeDialog.rowId, selectedMatch.match).title}`
-                      : "対局結果なし"}
-                  </p>
-                )}
-              </div>
-            </>
-          ) : null}
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMatch.isPending}>
-              キャンセル
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteMatch.isPending}
-            >
-              {deleteMatch.isPending ? "削除中…" : "削除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <Dialog
-        open={activeDialog != null && activeDialog.mode !== "delete"}
-        onOpenChange={(open) => {
-          if (!open) closeDialog();
-        }}
-      >
-        <DialogContent
-          className="max-w-md rounded-2xl border-border/60 bg-white p-6 shadow-xl"
-          onCloseAutoFocus={handleCloseAutoFocus}
-        >
-          <DialogHeader>
-            <p className="text-xs font-semibold text-(--brand-ink-muted)">
-              対局結果
-            </p>
-            <DialogTitle className="text-lg font-semibold text-(--brand-ink)">
-              {dialogTitle}
-            </DialogTitle>
-            <DialogDescription className="rounded-xl border border-border/60 bg-(--brand-ink)/5 px-3 py-2 text-sm font-semibold text-(--brand-ink)">
-              {dialogRowName} × {dialogColumnName}
-            </DialogDescription>
-          </DialogHeader>
-
-          {activeDialog?.mode === "edit" ? (
-            <div>
-              <label className="text-xs font-semibold text-(--brand-ink)">
-                対象の対局結果
-              </label>
-              {activePairMatches.length > 1 ? (
-                <select
-                  className="mt-2 w-full rounded-lg border border-border/60 bg-white px-3 py-2 text-sm text-(--brand-ink) shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                  value={selectedMatch?.index ?? ""}
-                  onChange={(event) =>
-                    handleMatchSelectChange(Number(event.target.value))
-                  }
-                >
-                  {activePairMatches.map((entry, index) => {
-                    const outcome = getMatchOutcome(
-                      activeDialog.rowId,
-                      entry.match,
-                    );
-                    return (
-                      <option key={entry.index} value={entry.index}>
-                        第{index + 1}局目: {outcome.title}
-                      </option>
-                    );
-                  })}
-                </select>
-              ) : (
-                <p className="mt-2 text-sm text-(--brand-ink-muted)">
-                  {selectedMatch
-                    ? `第1局目: ${getMatchOutcome(activeDialog.rowId, selectedMatch.match).title}`
-                    : "対局結果なし"}
-                </p>
-              )}
-            </div>
-          ) : null}
-
-          <form onSubmit={handleDialogSubmit}>
-            <p className="mb-3 text-xs text-(--brand-ink-muted)">
-              <span className="text-red-600" aria-hidden="true">
-                *
-              </span>{" "}
-              は必須項目です
-            </p>
-            <label
-              htmlFor="match-outcome"
-              className="block text-xs font-semibold text-(--brand-ink-muted) after:ml-0.5 after:text-red-600 after:content-['*']"
-            >
-              結果
-            </label>
-            <select
-              id="match-outcome"
-              className="mt-2 w-full rounded-lg border border-border/60 bg-white px-3 py-2 text-sm text-(--brand-ink) shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-              value={selectedOutcome}
-              onChange={(event) =>
-                setSelectedOutcome(event.target.value as RowOutcome)
-              }
-              required
-            >
-              {outcomeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <div className="mt-4">
-              <label
-                htmlFor="match-date"
-                className="block text-xs font-semibold text-(--brand-ink-muted) after:ml-0.5 after:text-red-600 after:content-['*']"
-              >
-                対局日
-              </label>
-              <input
-                id="match-date"
-                type="date"
-                className="mt-2 w-full rounded-lg border border-border/60 bg-white px-3 py-2 text-sm text-(--brand-ink) shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                value={selectedDate}
-                onChange={(event) => setSelectedDate(event.target.value)}
-                required
-              />
-            </div>
-            <DialogFooter className="mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                className="border-(--brand-ink)/20 bg-white/80 text-(--brand-ink)"
-                onClick={closeDialog}
-              >
-                キャンセル
-              </Button>
-              <Button
-                type="submit"
-                className="bg-(--brand-moss) text-white hover:bg-(--brand-moss)/90"
-                disabled={createMatch.isPending || updateMatch.isPending}
-              >
-                {createMatch.isPending || updateMatch.isPending
-                  ? "処理中…"
-                  : activeDialog?.mode === "add"
-                    ? "追加"
-                    : "保存"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <MatchDialog
+        activeDialog={activeDialog}
+        dialogTitle={dialogTitle}
+        dialogRowName={dialogRowName}
+        dialogColumnName={dialogColumnName}
+        activePairMatches={activePairMatches}
+        selectedMatch={selectedMatch}
+        selectedOutcome={selectedOutcome}
+        selectedDate={selectedDate}
+        outcomeOptions={outcomeOptions}
+        createMatchIsPending={createMatch.isPending}
+        updateMatchIsPending={updateMatch.isPending}
+        handleMatchSelectChange={handleMatchSelectChange}
+        handleDialogSubmit={handleDialogSubmit}
+        setSelectedOutcome={setSelectedOutcome}
+        setSelectedDate={setSelectedDate}
+        closeDialog={closeDialog}
+        handleCloseAutoFocus={handleCloseAutoFocus}
+      />
     </div>
   );
 }
