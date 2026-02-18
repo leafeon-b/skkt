@@ -578,6 +578,14 @@ export function CircleSessionDetailView({
         outcomeOptions={outcomeOptions}
         createMatchIsPending={createMatch.isPending}
         updateMatchIsPending={updateMatch.isPending}
+        onRequestDelete={
+          activeDialog?.mode === "edit"
+            ? () =>
+                setActiveDialog((prev) =>
+                  prev ? { ...prev, mode: "delete" } : null,
+                )
+            : undefined
+        }
         handleMatchSelectChange={handleMatchSelectChange}
         handleDialogSubmit={handleDialogSubmit}
         setSelectedOutcome={setSelectedOutcome}
