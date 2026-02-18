@@ -125,6 +125,7 @@ export async function getCircleSessionDetailViewModel(
       player1Id: match.player1Id,
       player2Id: match.player2Id,
       outcome: match.outcome,
+      createdAtInput: formatDateForInput(match.createdAt),
     }));
 
   const participationViewModels = mergeParticipationIds(

@@ -16,6 +16,7 @@ export type CircleSessionMatch = {
   player1Id: string;
   player2Id: string;
   outcome: CircleSessionMatchOutcome;
+  createdAtInput: string;
 };
 
 export type CircleSessionDetailViewModel = {

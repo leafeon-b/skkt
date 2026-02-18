@@ -11,7 +11,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { formatDateForInput } from "@/lib/date-utils";
 import { trpc } from "@/lib/trpc/client";
 import type {
   CircleSessionDetailViewModel,
@@ -26,13 +25,11 @@ import { MatchDeleteDialog } from "./match-delete-dialog";
 import { MatchDialog } from "./match-dialog";
 import { MatchMatrixTable } from "./match-matrix-table";
 import {
-  addDays,
   convertRowOutcomeToApiOutcome,
   getOutcomeLabel,
   getPairMatches,
   getRowOutcomeValue,
   getTodayInputValue,
-  parseDateInput,
   type ActiveDialog,
   type DialogMode,
   type RowOutcome,
@@ -108,11 +105,6 @@ export function CircleSessionDetailView({
   const participations = detail.participations;
   const matches = detail.matches;
   const todayInputValue = getTodayInputValue();
-  const baseDateInput = detail.sessionDateInput || todayInputValue;
-  const sessionBaseDate = parseDateInput(baseDateInput);
-  const matchDatesByIndex = matches.map((_, index) =>
-    formatDateForInput(addDays(sessionBaseDate, index)),
-  );
   const getParticipationName = (id: string) => {
     const participationsById = Object.fromEntries(
       participations.map((participation) => [participation.id, participation]),
@@ -219,7 +211,7 @@ export function CircleSessionDetailView({
 
     setSelectedMatchIndex(entry.index);
     setSelectedOutcome(getRowOutcomeValue(rowId, entry.match));
-    setSelectedDate(matchDatesByIndex[entry.index] ?? baseDateInput);
+    setSelectedDate(entry.match.createdAtInput);
   };
 
   const initializeDialogState = (

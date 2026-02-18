@@ -230,6 +230,7 @@ const oneMatch = [
     player1Id: "p1",
     player2Id: "p2",
     outcome: "P1_WIN" as const,
+    createdAtInput: "2025-01-01",
   },
 ];
 

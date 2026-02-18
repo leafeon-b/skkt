@@ -18,17 +18,6 @@ export type ActiveDialog = {
 
 export const getTodayInputValue = () => formatDateForInput(new Date());
 
-export const addDays = (date: Date, amount: number) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);
-
-export const parseDateInput = (value: string) => {
-  const [year, month, day] = value.split("-").map(Number);
-  if (!year || !month || !day) {
-    return new Date();
-  }
-  return new Date(year, month - 1, day);
-};
-
 export const convertRowOutcomeToApiOutcome = (
   rowOutcome: RowOutcome,
   rowId: string,
