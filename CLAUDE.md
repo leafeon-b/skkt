@@ -60,6 +60,38 @@ server/
 - **Branded Types**: 型安全なIDを `server/domain/common/ids.ts` で定義（例: `CircleId`, `UserId`）
 - **論理削除**: Match は `deletedAt` で論理削除、MatchHistory で変更履歴を記録
 
+### サーバーコンポーネントのデータ取得
+
+サーバーコンポーネントからのデータ取得には2つのパターンがあり、用途に応じて使い分ける。
+
+**パターン1: tRPC Caller**（データ取得に使用）
+
+```tsx
+const ctx = await createContext();
+const caller = appRouter.createCaller(ctx);
+const data = await caller.users.me();
+```
+
+- tRPC ルーターの認証ミドルウェアと DTO マッピングを再利用できる
+- クライアントと同じエンドポイントを通るため、レスポンス型が統一される
+- **用途**: ビジネスデータの取得（ユーザー情報、セッション一覧、対局記録など）
+
+**パターン2: 直接サービスアクセス**（認可チェック・補助的取得に使用）
+
+```tsx
+const ctx = await createContext();
+const canCreate = await ctx.accessService.canCreateCircleSession(ctx.actorId, circleId);
+```
+
+- サービス層に直接アクセスし、tRPC の DTO マッピングを経由しない
+- **用途**: 認可チェック（AccessService）、tRPC ルーターにないサービスメソッドの呼び出し
+
+**使い分けの基準:**
+
+- tRPC の認証ミドルウェアや DTO マッピングの恩恵がある → パターン1（tRPC Caller）
+- クライアントに公開する必要がなく、tRPC 化の恩恵もない（認可チェックなど） → パターン2（直接サービスアクセス）
+- 1つの Provider 内で両パターンの併用も可
+
 ### 認可
 
 ロールベースのアクセス制御。2つの階層がある:
