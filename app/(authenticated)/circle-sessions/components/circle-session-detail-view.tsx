@@ -200,7 +200,7 @@ export function CircleSessionDetailView({
   const [selectedMatchIndex, setSelectedMatchIndex] = useState<number | null>(
     null,
   );
-  const [selectedOutcome, setSelectedOutcome] = useState<RowOutcome>("UNKNOWN");
+  const [selectedOutcome, setSelectedOutcome] = useState<RowOutcome>("ROW_WIN");
   const [selectedDate, setSelectedDate] = useState<string>(todayInputValue);
 
   const applyMatchSelection = (
@@ -212,7 +212,7 @@ export function CircleSessionDetailView({
   ) => {
     if (!entry) {
       setSelectedMatchIndex(null);
-      setSelectedOutcome("UNKNOWN");
+      setSelectedOutcome("ROW_WIN");
       setSelectedDate(todayInputValue);
       return;
     }
@@ -229,7 +229,7 @@ export function CircleSessionDetailView({
   ) => {
     if (mode === "add") {
       setSelectedMatchIndex(null);
-      setSelectedOutcome("UNKNOWN");
+      setSelectedOutcome("ROW_WIN");
       setSelectedDate(todayInputValue);
       return;
     }
@@ -411,10 +411,6 @@ export function CircleSessionDetailView({
           {
             value: "DRAW",
             label: getOutcomeLabel("DRAW", dialogRowName, dialogColumnName),
-          },
-          {
-            value: "UNKNOWN",
-            label: getOutcomeLabel("UNKNOWN", dialogRowName, dialogColumnName),
           },
         ]
       : [];
