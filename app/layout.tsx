@@ -1,15 +1,15 @@
 import "./globals.css";
 
+import { Toaster } from "@/components/ui/sonner";
 import { Metadata } from "next";
 import { Shippori_Mincho_B1, Zen_Maru_Gothic } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
 import Providers from "./providers";
 
 const zenMaru = Zen_Maru_Gothic({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
   variable: "--font-body",
-  display: "swap",
+  display: "block",
   fallback: ["Hiragino Kaku Gothic ProN", "Yu Gothic", "sans-serif"],
 });
 
@@ -17,7 +17,7 @@ const shippori = Shippori_Mincho_B1({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-display",
-  display: "swap",
+  display: "block",
   fallback: ["Hiragino Mincho ProN", "Yu Mincho", "serif"],
 });
 
