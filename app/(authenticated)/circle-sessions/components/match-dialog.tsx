@@ -10,7 +10,8 @@ import {
 import { Trash2 } from "lucide-react";
 import type { FormEvent } from "react";
 import {
-  getMatchOutcome,
+  getOutcomeLabel,
+  getRowOutcomeValue,
   type ActiveDialog,
   type PairMatchEntry,
   type RowOutcome,
@@ -85,33 +86,30 @@ export function MatchDialog({
             <label className="text-xs font-semibold text-(--brand-ink)">
               対象の対局結果
             </label>
-            {activePairMatches.length > 1 ? (
-              <select
-                className="mt-2 w-full rounded-lg border border-border/60 bg-white px-3 py-2 text-sm text-(--brand-ink) shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                value={selectedMatch?.index ?? ""}
-                onChange={(event) =>
-                  handleMatchSelectChange(Number(event.target.value))
-                }
-              >
-                {activePairMatches.map((entry, index) => {
-                  const outcome = getMatchOutcome(
-                    activeDialog.rowId,
-                    entry.match,
-                  );
-                  return (
-                    <option key={entry.index} value={entry.index}>
-                      第{index + 1}局目: {outcome.title}
-                    </option>
-                  );
-                })}
-              </select>
-            ) : (
-              <p className="mt-2 text-sm text-(--brand-ink-muted)">
-                {selectedMatch
-                  ? `第1局目: ${getMatchOutcome(activeDialog.rowId, selectedMatch.match).title}`
-                  : "対局結果なし"}
-              </p>
-            )}
+            <select
+              className="mt-2 w-full rounded-lg border border-border/60 bg-white px-3 py-2 text-sm text-(--brand-ink) shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+              value={selectedMatch?.index ?? ""}
+              onChange={(event) =>
+                handleMatchSelectChange(Number(event.target.value))
+              }
+            >
+              {activePairMatches.map((entry, index) => {
+                const rowOutcome = getRowOutcomeValue(
+                  activeDialog.rowId,
+                  entry.match,
+                );
+                return (
+                  <option key={entry.index} value={entry.index}>
+                    第{index + 1}局目:{" "}
+                    {getOutcomeLabel(
+                      rowOutcome,
+                      dialogRowName,
+                      dialogColumnName,
+                    )}
+                  </option>
+                );
+              })}
+            </select>
           </div>
         ) : null}
 
