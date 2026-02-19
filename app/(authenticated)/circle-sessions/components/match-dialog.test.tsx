@@ -76,7 +76,7 @@ describe("MatchDialog", () => {
       const dialog = screen.getByRole("dialog");
       expect(
         within(dialog).getByRole("button", { name: /削除/ }),
-      ).toBeDefined();
+      ).toBeInTheDocument();
     });
 
     it("onRequestDelete が undefined の場合、削除ボタンが表示されない", () => {
@@ -130,7 +130,7 @@ describe("MatchDialog", () => {
         />,
       );
 
-      expect(screen.getByText("対象の対局結果")).toBeDefined();
+      expect(screen.getByText("対象の対局結果")).toBeInTheDocument();
     });
 
     it("送信ボタンのラベルが「保存」である", () => {
@@ -143,7 +143,7 @@ describe("MatchDialog", () => {
       const dialog = screen.getByRole("dialog");
       expect(
         within(dialog).getByRole("button", { name: "保存" }),
-      ).toBeDefined();
+      ).toBeInTheDocument();
     });
 
     it("対局選択ドロップダウンの変更で handleMatchSelectChange が呼ばれる", async () => {
@@ -218,7 +218,7 @@ describe("MatchDialog", () => {
       const dialog = screen.getByRole("dialog");
       expect(
         within(dialog).getByRole("button", { name: "追加" }),
-      ).toBeDefined();
+      ).toBeInTheDocument();
     });
   });
 
@@ -230,7 +230,7 @@ describe("MatchDialog", () => {
         />,
       );
 
-      expect(screen.getByText("テストタイトル")).toBeDefined();
+      expect(screen.getByText("テストタイトル")).toBeInTheDocument();
     });
 
     it("対局者名（dialogRowName × dialogColumnName）が表示される", () => {
@@ -243,7 +243,7 @@ describe("MatchDialog", () => {
         />,
       );
 
-      expect(screen.getByText("藤井太郎 × 羽生次郎")).toBeDefined();
+      expect(screen.getByText("藤井太郎 × 羽生次郎")).toBeInTheDocument();
     });
 
     it("キャンセルボタンクリック時に closeDialog が呼ばれる", async () => {
@@ -274,7 +274,7 @@ describe("MatchDialog", () => {
       const submitButton = within(dialog).getByRole("button", {
         name: "処理中…",
       });
-      expect(submitButton).toBeDefined();
+      expect(submitButton).toBeInTheDocument();
       expect(submitButton.hasAttribute("disabled")).toBe(true);
     });
 
@@ -289,7 +289,7 @@ describe("MatchDialog", () => {
       const submitButton = within(dialog).getByRole("button", {
         name: "処理中…",
       });
-      expect(submitButton).toBeDefined();
+      expect(submitButton).toBeInTheDocument();
       expect(submitButton.hasAttribute("disabled")).toBe(true);
     });
 
