@@ -58,7 +58,7 @@ server/
 - **リポジトリパターン**: インターフェースは `domain/models/*/`、実装は `infrastructure/repository/*/`
 - **サービスコンテナ**: DIコンテナは `server/application/service-container.ts`
 - **Branded Types**: 型安全なIDを `server/domain/common/ids.ts` で定義（例: `CircleId`, `UserId`）
-- **論理削除**: Match は `deletedAt` で論理削除、MatchHistory で変更履歴を記録
+- **論理削除**: Match, CircleMembership, CircleSessionMembership は `deletedAt` で論理削除。MatchHistory で変更履歴を記録
 
 ### サーバーコンポーネントのデータ取得
 
@@ -117,7 +117,7 @@ PostgreSQL（Vercel Postgres）+ Prisma ORM。主要モデル:
 
 - **Circle**: 研究会
 - **CircleSession**: セッション
-- **CircleMembership / CircleSessionMembership**: ロールベースの参加情報
+- **CircleMembership / CircleSessionMembership**: ロールベースの参加情報（論理削除対応）
 - **Match**: 対局記録（論理削除対応）
 - **MatchHistory**: 対局の変更履歴
 

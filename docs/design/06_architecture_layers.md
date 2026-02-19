@@ -80,6 +80,11 @@ graph TD
 - ルールに依存する更新はアプリケーション層でトランザクションを張る
 - Composition Root は Presentation に配置し、Infrastructure を参照して配線する
 
+## リポジトリ層のクエリフィルタリング方針
+
+- 論理削除対応モデル（Match, CircleMembership, CircleSessionMembership）のリポジトリは、デフォルトで `deletedAt IS NULL` 条件を付与する
+- 論理削除済みレコードを含めて取得する必要がある場合は、明示的なオプション指定（例: `includeDeleted: true`）を使用する
+
 ## 認可の実装ルール
 
 - API 層は `getSessionUserId()` でアクターを取得し、アクター ID はリクエストボディで受け取らない
