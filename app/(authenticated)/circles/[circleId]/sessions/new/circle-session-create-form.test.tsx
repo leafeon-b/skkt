@@ -116,8 +116,7 @@ describe("CircleSessionCreateForm", () => {
       />,
     );
 
-    const startsAtInput = screen.getByLabelText("開始日時") as HTMLInputElement;
-    expect(startsAtInput.value).toBe("2025-06-15T14:00");
+    expect(screen.getByLabelText("開始日時")).toHaveValue("2025-06-15T14:00");
   });
 
   it("プリフィル props が設定されるとフォームにデフォルト値が入る", () => {
@@ -132,21 +131,11 @@ describe("CircleSessionCreateForm", () => {
       />,
     );
 
-    expect((screen.getByLabelText("タイトル") as HTMLInputElement).value).toBe(
-      "複製テスト",
-    );
-    expect((screen.getByLabelText("開始日時") as HTMLInputElement).value).toBe(
-      "2025-06-15T10:00",
-    );
-    expect((screen.getByLabelText("終了日時") as HTMLInputElement).value).toBe(
-      "2025-06-15T17:00",
-    );
-    expect(
-      (screen.getByLabelText("場所（任意）") as HTMLInputElement).value,
-    ).toBe("将棋会館");
-    expect(
-      (screen.getByLabelText("備考（任意）") as HTMLTextAreaElement).value,
-    ).toBe("テストメモ");
+    expect(screen.getByLabelText("タイトル")).toHaveValue("複製テスト");
+    expect(screen.getByLabelText("開始日時")).toHaveValue("2025-06-15T10:00");
+    expect(screen.getByLabelText("終了日時")).toHaveValue("2025-06-15T17:00");
+    expect(screen.getByLabelText("場所（任意）")).toHaveValue("将棋会館");
+    expect(screen.getByLabelText("備考（任意）")).toHaveValue("テストメモ");
   });
 
   it("defaultStartsAt が日付のみの場合 T10:00 が付与される", () => {
@@ -157,8 +146,7 @@ describe("CircleSessionCreateForm", () => {
       />,
     );
 
-    const startsAtInput = screen.getByLabelText("開始日時") as HTMLInputElement;
-    expect(startsAtInput.value).toBe("2025-06-15T10:00");
+    expect(screen.getByLabelText("開始日時")).toHaveValue("2025-06-15T10:00");
   });
 
   it("defaultEndsAt が日付のみの場合 T18:00 が付与される", () => {
@@ -170,8 +158,7 @@ describe("CircleSessionCreateForm", () => {
       />,
     );
 
-    const endsAtInput = screen.getByLabelText("終了日時") as HTMLInputElement;
-    expect(endsAtInput.value).toBe("2025-06-15T18:00");
+    expect(screen.getByLabelText("終了日時")).toHaveValue("2025-06-15T18:00");
   });
 
   it("defaultStartsAt / defaultEndsAt 未指定の場合、当日の 10:00 / 18:00 が設定される", () => {
@@ -179,10 +166,8 @@ describe("CircleSessionCreateForm", () => {
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     render(<CircleSessionCreateForm circleId={circleId} />);
 
-    const startsAtInput = screen.getByLabelText("開始日時") as HTMLInputElement;
-    const endsAtInput = screen.getByLabelText("終了日時") as HTMLInputElement;
-    expect(startsAtInput.value).toBe(`${today}T10:00`);
-    expect(endsAtInput.value).toBe(`${today}T18:00`);
+    expect(screen.getByLabelText("開始日時")).toHaveValue(`${today}T10:00`);
+    expect(screen.getByLabelText("終了日時")).toHaveValue(`${today}T18:00`);
   });
 
   it("defaultEndsAt 未指定の場合、startsAt と同日の T18:00 が設定される", () => {
@@ -193,8 +178,7 @@ describe("CircleSessionCreateForm", () => {
       />,
     );
 
-    const endsAtInput = screen.getByLabelText("終了日時") as HTMLInputElement;
-    expect(endsAtInput.value).toBe("2025-08-20T18:00");
+    expect(screen.getByLabelText("終了日時")).toHaveValue("2025-08-20T18:00");
   });
 
   it("空白のみのタイトルで送信するとエラーメッセージが表示される", async () => {

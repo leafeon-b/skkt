@@ -399,9 +399,8 @@ describe("編集ダイアログの日付プリフィル", () => {
     await openEditDialogViaDropdown();
 
     const dialog = await screen.findByRole("dialog");
-    const dateInput = within(dialog).getByLabelText(
-      "対局日",
-    ) as HTMLInputElement;
-    expect(dateInput.value).toBe(oneMatch[0].createdAtInput);
+    expect(within(dialog).getByLabelText("対局日")).toHaveValue(
+      oneMatch[0].createdAtInput,
+    );
   });
 });
