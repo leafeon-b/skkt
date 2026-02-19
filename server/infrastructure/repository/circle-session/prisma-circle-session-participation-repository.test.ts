@@ -5,9 +5,7 @@ vi.mock("@/server/infrastructure/db", () => ({
     circleSessionMembership: {
       count: vi.fn(),
       findMany: vi.fn(),
-      findFirst: vi.fn(),
       create: vi.fn(),
-      update: vi.fn(),
       updateMany: vi.fn(),
     },
   },
@@ -200,14 +198,7 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
   });
 
   test("updateParticipationRole は参加者のロールを更新する", async () => {
-    mockedPrisma.circleSessionMembership.findFirst.mockResolvedValueOnce({
-      id: "membership-1",
-      userId: "user-1",
-      circleSessionId: "session-1",
-      role: "CircleSessionMember",
-      createdAt: new Date("2025-01-01T00:00:00Z"),
-      deletedAt: null,
-    });
+    mockedPrisma.circleSessionMembership.updateMany.mockResolvedValueOnce({ count: 1 });
 
     await prismaCircleSessionParticipationRepository.updateParticipationRole(
       circleSessionId("session-1"),
@@ -215,23 +206,18 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
       "CircleSessionManager",
     );
 
-    expect(
-      mockedPrisma.circleSessionMembership.findFirst,
-    ).toHaveBeenCalledWith({
+    expect(mockedPrisma.circleSessionMembership.updateMany).toHaveBeenCalledWith({
       where: {
         userId: "user-1",
         circleSessionId: "session-1",
         deletedAt: null,
       },
-    });
-    expect(mockedPrisma.circleSessionMembership.update).toHaveBeenCalledWith({
-      where: { id: "membership-1" },
       data: { role: "CircleSessionManager" },
     });
   });
 
   test("updateParticipationRole はレコードが見つからない場合エラーをスローする", async () => {
-    mockedPrisma.circleSessionMembership.findFirst.mockResolvedValueOnce(null);
+    mockedPrisma.circleSessionMembership.updateMany.mockResolvedValueOnce({ count: 0 });
 
     await expect(
       prismaCircleSessionParticipationRepository.updateParticipationRole(
@@ -240,6 +226,75 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
         "CircleSessionManager",
       ),
     ).rejects.toThrow("CircleSessionMembership not found");
+  });
+
+  test("論理削除後の再参加で create が呼ばれる", async () => {
+    // 1. removeParticipation で論理削除
+    await prismaCircleSessionParticipationRepository.removeParticipation(
+      circleSessionId("session-1"),
+      userId("user-1"),
+    );
+
+    expect(
+      mockedPrisma.circleSessionMembership.updateMany,
+    ).toHaveBeenCalledWith({
+      where: {
+        circleSessionId: "session-1",
+        userId: "user-1",
+        deletedAt: null,
+      },
+      data: { deletedAt: expect.any(Date) },
+    });
+
+    // 2. addParticipation で再参加（新レコード作成）
+    await prismaCircleSessionParticipationRepository.addParticipation(
+      circleSessionId("session-1"),
+      userId("user-1"),
+      "CircleSessionMember",
+    );
+
+    expect(mockedPrisma.circleSessionMembership.create).toHaveBeenCalledWith({
+      data: {
+        circleSessionId: "session-1",
+        userId: "user-1",
+        role: "CircleSessionMember",
+      },
+    });
+  });
+
+  test("再参加後に listParticipations はアクティブなメンバーのみ返す", async () => {
+    // 論理削除済みレコードと新規アクティブレコードが共存する想定
+    // findMany は deletedAt: null でフィルタするため、アクティブのみ返る
+    mockedPrisma.circleSessionMembership.findMany.mockResolvedValueOnce([
+      {
+        id: "membership-3",
+        userId: "user-1",
+        circleSessionId: "session-1",
+        role: "CircleSessionMember",
+        createdAt: new Date("2025-06-01T00:00:00Z"),
+        deletedAt: null,
+      },
+    ]);
+
+    const result =
+      await prismaCircleSessionParticipationRepository.listParticipations(
+        circleSessionId("session-1"),
+      );
+
+    expect(mockedPrisma.circleSessionMembership.findMany).toHaveBeenCalledWith({
+      where: { circleSessionId: "session-1", deletedAt: null },
+      select: { circleSessionId: true, userId: true, role: true, createdAt: true, deletedAt: true },
+    });
+    // 論理削除済みの旧レコードは含まれず、再参加後のアクティブレコードのみ
+    expect(result).toEqual([
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionMember",
+        createdAt: new Date("2025-06-01T00:00:00Z"),
+        deletedAt: null,
+      },
+    ]);
   });
 
   test("removeParticipation は参加者を論理削除する", async () => {
