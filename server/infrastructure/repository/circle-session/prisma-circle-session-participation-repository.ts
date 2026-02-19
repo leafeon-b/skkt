@@ -25,8 +25,8 @@ export const createPrismaCircleSessionParticipationRepository = (
     const persistedCircleSessionId = toPersistenceId(circleSessionId);
 
     const participations = await client.circleSessionMembership.findMany({
-      where: { circleSessionId: persistedCircleSessionId },
-      select: { circleSessionId: true, userId: true, role: true },
+      where: { circleSessionId: persistedCircleSessionId, deletedAt: null },
+      select: { circleSessionId: true, userId: true, role: true, createdAt: true, deletedAt: true },
     });
 
     return participations.map(mapCircleSessionParticipationFromPersistence);
@@ -36,8 +36,8 @@ export const createPrismaCircleSessionParticipationRepository = (
     const persistedUserId = toPersistenceId(userId);
 
     const participations = await client.circleSessionMembership.findMany({
-      where: { userId: persistedUserId },
-      select: { circleSessionId: true, userId: true, role: true },
+      where: { userId: persistedUserId, deletedAt: null },
+      select: { circleSessionId: true, userId: true, role: true, createdAt: true, deletedAt: true },
     });
 
     return participations.map(mapCircleSessionParticipationFromPersistence);
@@ -100,6 +100,7 @@ export const createPrismaCircleSessionParticipationRepository = (
       where: {
         circleSessionId: persistedCircleSessionId,
         userId: { in: uniqueIds },
+        deletedAt: null,
       },
     });
 
@@ -113,11 +114,13 @@ export const createPrismaCircleSessionParticipationRepository = (
     const persistedCircleSessionId = toPersistenceId(circleSessionId);
     const persistedUserId = toPersistenceId(userId);
 
-    await client.circleSessionMembership.deleteMany({
+    await client.circleSessionMembership.updateMany({
       where: {
         circleSessionId: persistedCircleSessionId,
         userId: persistedUserId,
+        deletedAt: null,
       },
+      data: { deletedAt: new Date() },
     });
   },
 
@@ -128,11 +131,13 @@ export const createPrismaCircleSessionParticipationRepository = (
     const persistedCircleId = toPersistenceId(circleId);
     const persistedUserId = toPersistenceId(userId);
 
-    await client.circleSessionMembership.deleteMany({
+    await client.circleSessionMembership.updateMany({
       where: {
         userId: persistedUserId,
         session: { circleId: persistedCircleId },
+        deletedAt: null,
       },
+      data: { deletedAt: new Date() },
     });
   },
 });

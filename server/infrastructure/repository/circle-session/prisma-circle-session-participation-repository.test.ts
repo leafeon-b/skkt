@@ -8,7 +8,7 @@ vi.mock("@/server/infrastructure/db", () => ({
       findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
-      deleteMany: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }));
@@ -37,6 +37,7 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
       where: {
         circleSessionId: "session-1",
         userId: { in: ["user-1", "user-2"] },
+        deletedAt: null,
       },
     });
     expect(result).toBe(true);
@@ -78,18 +79,22 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
       where: {
         circleSessionId: "session-1",
         userId: { in: ["user-1"] },
+        deletedAt: null,
       },
     });
     expect(result).toBe(true);
   });
 
   test("listParticipations は参加者一覧を返す", async () => {
+    const createdAt1 = new Date("2025-01-01T00:00:00Z");
+    const createdAt2 = new Date("2025-01-02T00:00:00Z");
     mockedPrisma.circleSessionMembership.findMany.mockResolvedValueOnce([
       {
         id: "membership-1",
         userId: "user-1",
         circleSessionId: "session-1",
         role: "CircleSessionOwner",
+        createdAt: createdAt1,
         deletedAt: null,
       },
       {
@@ -97,6 +102,7 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
         userId: "user-2",
         circleSessionId: "session-1",
         role: "CircleSessionMember",
+        createdAt: createdAt2,
         deletedAt: null,
       },
     ]);
@@ -107,30 +113,37 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
       );
 
     expect(mockedPrisma.circleSessionMembership.findMany).toHaveBeenCalledWith({
-      where: { circleSessionId: "session-1" },
-      select: { circleSessionId: true, userId: true, role: true },
+      where: { circleSessionId: "session-1", deletedAt: null },
+      select: { circleSessionId: true, userId: true, role: true, createdAt: true, deletedAt: true },
     });
     expect(result).toEqual([
       {
         circleSessionId: circleSessionId("session-1"),
         userId: userId("user-1"),
         role: "CircleSessionOwner",
+        createdAt: createdAt1,
+        deletedAt: null,
       },
       {
         circleSessionId: circleSessionId("session-1"),
         userId: userId("user-2"),
         role: "CircleSessionMember",
+        createdAt: createdAt2,
+        deletedAt: null,
       },
     ]);
   });
 
   test("listByUserId は参加関係を返す", async () => {
+    const createdAt1 = new Date("2025-01-01T00:00:00Z");
+    const createdAt2 = new Date("2025-01-02T00:00:00Z");
     mockedPrisma.circleSessionMembership.findMany.mockResolvedValueOnce([
       {
         id: "membership-1",
         userId: "user-1",
         circleSessionId: "session-1",
         role: "CircleSessionOwner",
+        createdAt: createdAt1,
         deletedAt: null,
       },
       {
@@ -138,6 +151,7 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
         userId: "user-1",
         circleSessionId: "session-2",
         role: "CircleSessionMember",
+        createdAt: createdAt2,
         deletedAt: null,
       },
     ]);
@@ -148,19 +162,23 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
       );
 
     expect(mockedPrisma.circleSessionMembership.findMany).toHaveBeenCalledWith({
-      where: { userId: "user-1" },
-      select: { circleSessionId: true, userId: true, role: true },
+      where: { userId: "user-1", deletedAt: null },
+      select: { circleSessionId: true, userId: true, role: true, createdAt: true, deletedAt: true },
     });
     expect(result).toEqual([
       {
         circleSessionId: circleSessionId("session-1"),
         userId: userId("user-1"),
         role: "CircleSessionOwner",
+        createdAt: createdAt1,
+        deletedAt: null,
       },
       {
         circleSessionId: circleSessionId("session-2"),
         userId: userId("user-1"),
         role: "CircleSessionMember",
+        createdAt: createdAt2,
+        deletedAt: null,
       },
     ]);
   });
@@ -187,6 +205,7 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
       userId: "user-1",
       circleSessionId: "session-1",
       role: "CircleSessionMember",
+      createdAt: new Date("2025-01-01T00:00:00Z"),
       deletedAt: null,
     });
 
@@ -223,35 +242,39 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
     ).rejects.toThrow("CircleSessionMembership not found");
   });
 
-  test("removeParticipation は参加者を削除する", async () => {
+  test("removeParticipation は参加者を論理削除する", async () => {
     await prismaCircleSessionParticipationRepository.removeParticipation(
       circleSessionId("session-1"),
       userId("user-1"),
     );
 
     expect(
-      mockedPrisma.circleSessionMembership.deleteMany,
+      mockedPrisma.circleSessionMembership.updateMany,
     ).toHaveBeenCalledWith({
       where: {
         circleSessionId: "session-1",
         userId: "user-1",
+        deletedAt: null,
       },
+      data: { deletedAt: expect.any(Date) },
     });
   });
 
-  test("removeAllByCircleAndUser は指定された研究会とユーザーに紐づく全セッション参加情報を削除する", async () => {
+  test("removeAllByCircleAndUser は指定された研究会とユーザーに紐づく全セッション参加情報を論理削除する", async () => {
     await prismaCircleSessionParticipationRepository.removeAllByCircleAndUser(
       circleId("circle-1"),
       userId("user-1"),
     );
 
     expect(
-      mockedPrisma.circleSessionMembership.deleteMany,
+      mockedPrisma.circleSessionMembership.updateMany,
     ).toHaveBeenCalledWith({
       where: {
         userId: "user-1",
         session: { circleId: "circle-1" },
+        deletedAt: null,
       },
+      data: { deletedAt: expect.any(Date) },
     });
   });
 });
