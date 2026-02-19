@@ -119,7 +119,7 @@ describe("CircleSessionDetailView 複製ボタン", () => {
         />,
       );
 
-      expect(screen.getByRole("button", { name: "セッションの複製" })).toBeDefined();
+      expect(screen.getByRole("button", { name: "セッションの複製" })).toBeInTheDocument();
     });
 
     it("canCreateCircleSession: false の場合、複製ボタンが表示されない", () => {
@@ -306,7 +306,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       const user = await openAddDialogForEmptyCell();
 
       const dialog = await screen.findByRole("dialog");
-      expect(dialog).toBeDefined();
+      expect(dialog).toBeInTheDocument();
 
       const submitButton = within(dialog).getByRole("button", { name: "追加" });
       await user.click(submitButton);
@@ -337,7 +337,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       const user = await openEditDialogViaDropdown();
 
       const dialog = await screen.findByRole("dialog");
-      expect(dialog).toBeDefined();
+      expect(dialog).toBeInTheDocument();
 
       const submitButton = within(dialog).getByRole("button", { name: "保存" });
       await user.click(submitButton);
@@ -368,7 +368,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       const user = await openDeleteDialogViaDropdown();
 
       const dialog = await screen.findByRole("alertdialog");
-      expect(dialog).toBeDefined();
+      expect(dialog).toBeInTheDocument();
 
       const deleteButton = within(dialog).getByRole("button", { name: "削除" });
       await user.click(deleteButton);
