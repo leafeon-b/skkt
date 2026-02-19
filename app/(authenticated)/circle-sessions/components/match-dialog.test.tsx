@@ -275,7 +275,7 @@ describe("MatchDialog", () => {
         name: "処理中…",
       });
       expect(submitButton).toBeInTheDocument();
-      expect(submitButton.hasAttribute("disabled")).toBe(true);
+      expect(submitButton).toBeDisabled();
     });
 
     it("updateMatchIsPending が true のとき送信ボタンが disabled かつラベルが「処理中…」", () => {
@@ -290,7 +290,7 @@ describe("MatchDialog", () => {
         name: "処理中…",
       });
       expect(submitButton).toBeInTheDocument();
-      expect(submitButton.hasAttribute("disabled")).toBe(true);
+      expect(submitButton).toBeDisabled();
     });
 
     it("activeDialog が null のときダイアログが開かない", () => {
