@@ -31,6 +31,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
         circleId: "circle-1",
         role: "CircleOwner",
         createdAt,
+        deletedAt: null,
       },
       {
         id: "membership-2",
@@ -38,6 +39,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
         circleId: "circle-1",
         role: "CircleMember",
         createdAt: new Date("2025-01-02T00:00:00Z"),
+        deletedAt: null,
       },
     ]);
 
@@ -74,6 +76,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
         circleId: "circle-1",
         role: "CircleOwner",
         createdAt,
+        deletedAt: null,
       },
       {
         id: "membership-2",
@@ -81,6 +84,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
         circleId: "circle-2",
         role: "CircleMember",
         createdAt: new Date("2025-02-02T00:00:00Z"),
+        deletedAt: null,
       },
     ]);
 

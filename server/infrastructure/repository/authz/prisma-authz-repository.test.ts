@@ -60,6 +60,7 @@ describe("Prisma Authz リポジトリ", () => {
       circleId: "circle-1",
       role: "CircleOwner",
       createdAt: new Date("2024-01-01T00:00:00Z"),
+      deletedAt: null,
     });
 
     const membership = await prismaAuthzRepository.findCircleMembership(
@@ -91,6 +92,7 @@ describe("Prisma Authz リポジトリ", () => {
       userId: "user-1",
       circleSessionId: "session-1",
       role: "CircleSessionMember",
+      deletedAt: null,
     });
 
     const membership = await prismaAuthzRepository.findCircleSessionMembership(
