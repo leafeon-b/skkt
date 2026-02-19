@@ -20,8 +20,8 @@ function buildArg(
   const event = {
     title,
     extendedProps: {
-      startsAt: overrides.startsAt ?? "2025-01-15T14:00:00",
-      endsAt: overrides.endsAt ?? "2025-01-15T16:00:00",
+      startsAt: overrides.startsAt ?? "2025-01-15T05:00:00Z",
+      endsAt: overrides.endsAt ?? "2025-01-15T07:00:00Z",
     },
   } as unknown as EventImpl;
 
@@ -145,11 +145,13 @@ describe("EventWithTooltip", () => {
   });
 
   it("Date 型の startsAt / endsAt で正しくレンダリングされる", () => {
+    // 2025-03-10T01:00:00Z = 2025-03-10T10:00:00+09:00
+    // 2025-03-10T03:30:00Z = 2025-03-10T12:30:00+09:00
     render(
       <EventWithTooltip
         {...buildArg({
-          startsAt: new Date(2025, 2, 10, 10, 0),
-          endsAt: new Date(2025, 2, 10, 12, 30),
+          startsAt: new Date("2025-03-10T01:00:00Z"),
+          endsAt: new Date("2025-03-10T03:30:00Z"),
         })}
       />,
     );
