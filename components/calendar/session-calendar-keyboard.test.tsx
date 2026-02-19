@@ -120,8 +120,8 @@ describe("SessionCalendar keyboard navigation", () => {
     const cells = getCells();
     expect(cells[10].getAttribute("aria-current")).toBe("date");
     // Other cells should not have aria-current
-    expect(cells[0].hasAttribute("aria-current")).toBe(false);
-    expect(cells[5].hasAttribute("aria-current")).toBe(false);
+    expect(cells[0]).not.toHaveAttribute("aria-current");
+    expect(cells[5]).not.toHaveAttribute("aria-current");
   });
 
   it("ArrowRight moves focus to the next cell", () => {
