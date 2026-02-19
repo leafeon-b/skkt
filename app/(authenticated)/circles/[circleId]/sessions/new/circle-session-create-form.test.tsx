@@ -219,6 +219,6 @@ describe("CircleSessionCreateForm", () => {
     expect(screen.getByRole("alert")).toBeTruthy();
 
     await user.type(titleInput, "テスト");
-    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

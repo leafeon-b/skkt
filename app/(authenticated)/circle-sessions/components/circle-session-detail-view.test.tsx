@@ -129,7 +129,7 @@ describe("CircleSessionDetailView 複製ボタン", () => {
         />,
       );
 
-      expect(screen.queryByRole("button", { name: "セッションの複製" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "セッションの複製" })).not.toBeInTheDocument();
     });
   });
 
@@ -245,7 +245,7 @@ async function openAddDialogForEmptyCell() {
     />,
   );
   const cell = document.querySelector('[data-cell-id="p1-p2"]');
-  expect(cell).not.toBeNull();
+  expect(cell).toBeInTheDocument();
   await user.click(cell!);
   return user;
 }
@@ -261,7 +261,7 @@ async function openEditDialogViaDropdown() {
     />,
   );
   const cell = document.querySelector('[data-cell-id="p1-p2"]');
-  expect(cell).not.toBeNull();
+  expect(cell).toBeInTheDocument();
   await user.click(cell!);
   const editItem = await screen.findByRole("menuitem", { name: "編集" });
   await user.click(editItem);
@@ -279,7 +279,7 @@ async function openDeleteDialogViaDropdown() {
     />,
   );
   const cell = document.querySelector('[data-cell-id="p1-p2"]');
-  expect(cell).not.toBeNull();
+  expect(cell).toBeInTheDocument();
   await user.click(cell!);
   const deleteItem = await screen.findByRole("menuitem", { name: "削除" });
   await user.click(deleteItem);
@@ -311,7 +311,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       const submitButton = within(dialog).getByRole("button", { name: "追加" });
       await user.click(submitButton);
 
-      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(toastModule.toast.error).toHaveBeenCalledWith(
         "対局結果の追加に失敗しました",
       );
@@ -325,7 +325,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       const submitButton = within(dialog).getByRole("button", { name: "追加" });
       await user.click(submitButton);
 
-      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(toastModule.toast.success).toHaveBeenCalledOnce();
       expect(refreshMock).toHaveBeenCalled();
     });
@@ -342,7 +342,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       const submitButton = within(dialog).getByRole("button", { name: "保存" });
       await user.click(submitButton);
 
-      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(toastModule.toast.error).toHaveBeenCalledWith(
         "対局結果の更新に失敗しました",
       );
@@ -356,7 +356,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       const submitButton = within(dialog).getByRole("button", { name: "保存" });
       await user.click(submitButton);
 
-      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(toastModule.toast.success).toHaveBeenCalledOnce();
       expect(refreshMock).toHaveBeenCalled();
     });
@@ -373,7 +373,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       const deleteButton = within(dialog).getByRole("button", { name: "削除" });
       await user.click(deleteButton);
 
-      expect(screen.queryByRole("alertdialog")).toBeNull();
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
       expect(toastModule.toast.error).toHaveBeenCalledWith(
         "対局結果の削除に失敗しました",
       );
@@ -387,7 +387,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       const deleteButton = within(dialog).getByRole("button", { name: "削除" });
       await user.click(deleteButton);
 
-      expect(screen.queryByRole("alertdialog")).toBeNull();
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
       expect(toastModule.toast.success).toHaveBeenCalledOnce();
       expect(refreshMock).toHaveBeenCalled();
     });

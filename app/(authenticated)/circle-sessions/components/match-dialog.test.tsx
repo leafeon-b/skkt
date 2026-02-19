@@ -92,7 +92,7 @@ describe("MatchDialog", () => {
       const dialog = screen.getByRole("dialog");
       expect(
         within(dialog).queryByRole("button", { name: /削除/ }),
-      ).toBeNull();
+      ).not.toBeInTheDocument();
     });
 
     it("削除ボタンクリック時に onRequestDelete コールバックが1回呼ばれる", async () => {
@@ -205,7 +205,7 @@ describe("MatchDialog", () => {
         />,
       );
 
-      expect(screen.queryByText("対象の対局結果")).toBeNull();
+      expect(screen.queryByText("対象の対局結果")).not.toBeInTheDocument();
     });
 
     it("送信ボタンのラベルが「追加」である", () => {
@@ -300,7 +300,7 @@ describe("MatchDialog", () => {
         />,
       );
 
-      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
 });

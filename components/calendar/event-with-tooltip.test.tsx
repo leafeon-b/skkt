@@ -43,7 +43,7 @@ describe("EventWithTooltip", () => {
     render(<EventWithTooltip {...buildArg()} />);
 
     const trigger = screen.getByText("月例会");
-    expect(trigger.closest("[aria-label]")).toBeNull();
+    expect(trigger.closest("[aria-label]")).not.toBeInTheDocument();
   });
 
   it("日時データがない場合 sr-only スパンを含まない", () => {
@@ -58,7 +58,7 @@ describe("EventWithTooltip", () => {
 
     render(<EventWithTooltip {...arg} />);
 
-    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).toBeNull();
+    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).not.toBeInTheDocument();
   });
 
   it("startsAt が number の場合ツールチップなし（タイトルのみ）", () => {
@@ -73,8 +73,8 @@ describe("EventWithTooltip", () => {
 
     render(<EventWithTooltip {...arg} />);
 
-    expect(screen.getByText("テスト")).not.toBeNull();
-    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).toBeNull();
+    expect(screen.getByText("テスト")).toBeInTheDocument();
+    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).not.toBeInTheDocument();
   });
 
   it("startsAt が object（非Date）の場合ツールチップなし", () => {
@@ -92,8 +92,8 @@ describe("EventWithTooltip", () => {
 
     render(<EventWithTooltip {...arg} />);
 
-    expect(screen.getByText("テスト")).not.toBeNull();
-    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).toBeNull();
+    expect(screen.getByText("テスト")).toBeInTheDocument();
+    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).not.toBeInTheDocument();
   });
 
   it("endsAt が number の場合ツールチップなし", () => {
@@ -108,8 +108,8 @@ describe("EventWithTooltip", () => {
 
     render(<EventWithTooltip {...arg} />);
 
-    expect(screen.getByText("テスト")).not.toBeNull();
-    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).toBeNull();
+    expect(screen.getByText("テスト")).toBeInTheDocument();
+    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).not.toBeInTheDocument();
   });
 
   it("startsAt が undefined の場合ツールチップなし", () => {
@@ -124,8 +124,8 @@ describe("EventWithTooltip", () => {
 
     render(<EventWithTooltip {...arg} />);
 
-    expect(screen.getByText("テスト")).not.toBeNull();
-    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).toBeNull();
+    expect(screen.getByText("テスト")).toBeInTheDocument();
+    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).not.toBeInTheDocument();
   });
 
   it("startsAt が null の場合ツールチップなし", () => {
@@ -140,8 +140,8 @@ describe("EventWithTooltip", () => {
 
     render(<EventWithTooltip {...arg} />);
 
-    expect(screen.getByText("テスト")).not.toBeNull();
-    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).toBeNull();
+    expect(screen.getByText("テスト")).toBeInTheDocument();
+    expect(screen.queryByText(/\d{4}\/\d{2}\/\d{2}/)).not.toBeInTheDocument();
   });
 
   it("Date 型の startsAt / endsAt で正しくレンダリングされる", () => {

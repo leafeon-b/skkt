@@ -90,7 +90,7 @@ describe("CircleOverviewView ロールベース表示制御", () => {
 
     const calendar = screen.getByTestId("calendar");
     expect(calendar.dataset.createHref).toBe("");
-    expect(screen.queryByTestId("create-link")).toBeNull();
+    expect(screen.queryByTestId("create-link")).not.toBeInTheDocument();
   });
 
   it("viewerRole が null の場合、createSessionHref が null になる", () => {
@@ -103,7 +103,7 @@ describe("CircleOverviewView ロールベース表示制御", () => {
 
     const calendar = screen.getByTestId("calendar");
     expect(calendar.dataset.createHref).toBe("");
-    expect(screen.queryByTestId("create-link")).toBeNull();
+    expect(screen.queryByTestId("create-link")).not.toBeInTheDocument();
   });
 
   it("getCreateSessionHref が未指定の場合、owner でも null になる", () => {
@@ -113,6 +113,6 @@ describe("CircleOverviewView ロールベース表示制御", () => {
 
     const calendar = screen.getByTestId("calendar");
     expect(calendar.dataset.createHref).toBe("");
-    expect(screen.queryByTestId("create-link")).toBeNull();
+    expect(screen.queryByTestId("create-link")).not.toBeInTheDocument();
   });
 });
