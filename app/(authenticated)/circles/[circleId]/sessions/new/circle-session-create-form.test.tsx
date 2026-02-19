@@ -191,7 +191,7 @@ describe("CircleSessionCreateForm", () => {
     await user.click(screen.getByRole("button", { name: /予定を作成/ }));
 
     const alert = screen.getByRole("alert");
-    expect(alert.textContent).toBe("タイトルを入力してください");
+    expect(alert).toHaveTextContent("タイトルを入力してください");
     expect(mutateMock).not.toHaveBeenCalled();
   });
 
@@ -205,7 +205,7 @@ describe("CircleSessionCreateForm", () => {
     await user.click(screen.getByRole("button", { name: /予定を作成/ }));
 
     const alert = screen.getByRole("alert");
-    expect(alert.textContent).toBe("タイトルを入力してください");
+    expect(alert).toHaveTextContent("タイトルを入力してください");
     expect(mutateMock).not.toHaveBeenCalled();
   });
 

@@ -109,9 +109,9 @@ describe("SessionCalendar keyboard navigation", () => {
     const cells = getCells();
     cells.forEach((cell, i) => {
       if (i === 10) {
-        expect(cell.getAttribute("tabindex")).toBe("0");
+        expect(cell).toHaveAttribute("tabindex", "0");
       } else {
-        expect(cell.getAttribute("tabindex")).toBe("-1");
+        expect(cell).toHaveAttribute("tabindex", "-1");
       }
     });
   });
@@ -129,8 +129,8 @@ describe("SessionCalendar keyboard navigation", () => {
     cells[10].focus();
     press(cells[10], "ArrowRight");
 
-    expect(cells[10].getAttribute("tabindex")).toBe("-1");
-    expect(cells[11].getAttribute("tabindex")).toBe("0");
+    expect(cells[10]).toHaveAttribute("tabindex", "-1");
+    expect(cells[11]).toHaveAttribute("tabindex", "0");
     expect(document.activeElement).toBe(cells[11]);
   });
 
@@ -139,8 +139,8 @@ describe("SessionCalendar keyboard navigation", () => {
     cells[10].focus();
     press(cells[10], "ArrowLeft");
 
-    expect(cells[10].getAttribute("tabindex")).toBe("-1");
-    expect(cells[9].getAttribute("tabindex")).toBe("0");
+    expect(cells[10]).toHaveAttribute("tabindex", "-1");
+    expect(cells[9]).toHaveAttribute("tabindex", "0");
     expect(document.activeElement).toBe(cells[9]);
   });
 
@@ -149,8 +149,8 @@ describe("SessionCalendar keyboard navigation", () => {
     cells[10].focus();
     press(cells[10], "ArrowUp");
 
-    expect(cells[10].getAttribute("tabindex")).toBe("-1");
-    expect(cells[3].getAttribute("tabindex")).toBe("0");
+    expect(cells[10]).toHaveAttribute("tabindex", "-1");
+    expect(cells[3]).toHaveAttribute("tabindex", "0");
     expect(document.activeElement).toBe(cells[3]);
   });
 
@@ -159,8 +159,8 @@ describe("SessionCalendar keyboard navigation", () => {
     cells[10].focus();
     press(cells[10], "ArrowDown");
 
-    expect(cells[10].getAttribute("tabindex")).toBe("-1");
-    expect(cells[17].getAttribute("tabindex")).toBe("0");
+    expect(cells[10]).toHaveAttribute("tabindex", "-1");
+    expect(cells[17]).toHaveAttribute("tabindex", "0");
     expect(document.activeElement).toBe(cells[17]);
   });
 
@@ -169,8 +169,8 @@ describe("SessionCalendar keyboard navigation", () => {
     cells[10].focus();
     press(cells[10], "Home");
 
-    expect(cells[10].getAttribute("tabindex")).toBe("-1");
-    expect(cells[7].getAttribute("tabindex")).toBe("0");
+    expect(cells[10]).toHaveAttribute("tabindex", "-1");
+    expect(cells[7]).toHaveAttribute("tabindex", "0");
     expect(document.activeElement).toBe(cells[7]);
   });
 
@@ -179,8 +179,8 @@ describe("SessionCalendar keyboard navigation", () => {
     cells[10].focus();
     press(cells[10], "End");
 
-    expect(cells[10].getAttribute("tabindex")).toBe("-1");
-    expect(cells[13].getAttribute("tabindex")).toBe("0");
+    expect(cells[10]).toHaveAttribute("tabindex", "-1");
+    expect(cells[13]).toHaveAttribute("tabindex", "0");
     expect(document.activeElement).toBe(cells[13]);
   });
 
@@ -193,7 +193,7 @@ describe("SessionCalendar keyboard navigation", () => {
 
     press(cells[0], "ArrowLeft");
 
-    expect(cells[0].getAttribute("tabindex")).toBe("0");
+    expect(cells[0]).toHaveAttribute("tabindex", "0");
     expect(document.activeElement).toBe(cells[0]);
   });
 
@@ -207,7 +207,7 @@ describe("SessionCalendar keyboard navigation", () => {
 
     press(cells[last], "ArrowRight");
 
-    expect(cells[last].getAttribute("tabindex")).toBe("0");
+    expect(cells[last]).toHaveAttribute("tabindex", "0");
     expect(document.activeElement).toBe(cells[last]);
   });
 
@@ -220,7 +220,7 @@ describe("SessionCalendar keyboard navigation", () => {
 
     press(cells[3], "ArrowUp");
 
-    expect(cells[3].getAttribute("tabindex")).toBe("0");
+    expect(cells[3]).toHaveAttribute("tabindex", "0");
     expect(document.activeElement).toBe(cells[3]);
   });
 

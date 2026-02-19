@@ -35,8 +35,8 @@ describe("EventWithTooltip", () => {
     render(<EventWithTooltip {...buildArg()} />);
 
     const srOnly = screen.getByText(/2025\/01\/15/);
-    expect(srOnly.className).toContain("sr-only");
-    expect(srOnly.textContent).toBe(", 2025/01/15 14:00 - 16:00");
+    expect(srOnly).toHaveClass("sr-only");
+    expect(srOnly).toHaveTextContent(", 2025/01/15 14:00 - 16:00");
   });
 
   it("aria-label 属性を使用しない", () => {
@@ -157,7 +157,7 @@ describe("EventWithTooltip", () => {
     );
 
     const srOnly = screen.getByText(/2025\/03\/10/);
-    expect(srOnly.className).toContain("sr-only");
-    expect(srOnly.textContent).toBe(", 2025/03/10 10:00 - 12:30");
+    expect(srOnly).toHaveClass("sr-only");
+    expect(srOnly).toHaveTextContent(", 2025/03/10 10:00 - 12:30");
   });
 });
