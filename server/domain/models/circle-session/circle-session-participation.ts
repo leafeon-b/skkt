@@ -5,4 +5,6 @@ export type CircleSessionParticipation = {
   circleSessionId: CircleSessionId;
   userId: UserId;
   role: CircleSessionRole;
+  createdAt: Date;
+  deletedAt: Date | null;
 };
