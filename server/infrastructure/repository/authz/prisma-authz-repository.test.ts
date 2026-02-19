@@ -69,7 +69,7 @@ describe("Prisma Authz リポジトリ", () => {
     );
 
     expect(mockedPrisma.circleMembership.findFirst).toHaveBeenCalledWith({
-      where: { userId: "user-1", circleId: "circle-1" },
+      where: { userId: "user-1", circleId: "circle-1", deletedAt: null },
       select: { role: true },
     });
     expect(membership).toEqual({ kind: "member", role: "CircleOwner" });
@@ -92,6 +92,7 @@ describe("Prisma Authz リポジトリ", () => {
       userId: "user-1",
       circleSessionId: "session-1",
       role: "CircleSessionMember",
+      createdAt: new Date("2025-01-01T00:00:00Z"),
       deletedAt: null,
     });
 
@@ -102,7 +103,7 @@ describe("Prisma Authz リポジトリ", () => {
 
     expect(mockedPrisma.circleSessionMembership.findFirst).toHaveBeenCalledWith(
       {
-        where: { userId: "user-1", circleSessionId: "session-1" },
+        where: { userId: "user-1", circleSessionId: "session-1", deletedAt: null },
         select: { role: true },
       },
     );
