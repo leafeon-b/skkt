@@ -1,10 +1,20 @@
-const pad2 = (value: number) => String(value).padStart(2, "0");
+const jstDateFormat = new Intl.DateTimeFormat("ja-JP", {
+  timeZone: "Asia/Tokyo",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
-export const formatDate = (date: Date) =>
-  `${date.getFullYear()}/${pad2(date.getMonth() + 1)}/${pad2(date.getDate())}`;
+const jstTimeFormat = new Intl.DateTimeFormat("ja-JP", {
+  timeZone: "Asia/Tokyo",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
 
-export const formatTime = (date: Date) =>
-  `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+export const formatDate = (date: Date) => jstDateFormat.format(date);
+
+export const formatTime = (date: Date) => jstTimeFormat.format(date);
 
 export const formatDateTimeRange = (startsAt: Date, endsAt: Date) =>
   `${formatDate(startsAt)} ${formatTime(startsAt)} - ${formatTime(endsAt)}`;
@@ -17,7 +27,7 @@ export const formatDateTimeForInput = (date: Date) => {
     timeZone: "Asia/Tokyo",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false,
+    hourCycle: "h23",
   });
   return `${formatDateForInput(date)}T${timePart}`;
 };
