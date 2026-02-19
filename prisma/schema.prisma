@@ -113,11 +113,13 @@ model CircleMembership {
   role      CircleRole
   createdAt DateTime   @default(now())
 
+  /// 論理削除（脱退・除名時にセットし、再参加時に新レコードを作成）
+  deletedAt DateTime?
+
   user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
   circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
-  /// 研究会参加（継続的所属）。1行=1ロール、userId+circleIdで一意。
-  @@unique([userId, circleId])
+  /// 研究会参加（継続的所属）。アクティブレコード（deletedAt IS NULL）の一意性は部分ユニークインデックスで担保。
   @@index([circleId, role])
 }
 
@@ -127,11 +129,13 @@ model CircleSessionMembership {
   circleSessionId String
   role            CircleSessionRole
 
+  /// 論理削除（退出時にセットし、再参加時に新レコードを作成）
+  deletedAt DateTime?
+
   user    User          @relation(fields: [userId], references: [id], onDelete: Restrict)
   session CircleSession @relation(fields: [circleSessionId], references: [id], onDelete: Cascade)
 
-  /// セッション参加（単発参加）。研究会参加とは独立。
-  @@unique([userId, circleSessionId])
+  /// セッション参加（単発参加）。アクティブレコード（deletedAt IS NULL）の一意性は部分ユニークインデックスで担保。
   @@index([circleSessionId])
   @@index([circleSessionId, role])
   @@map("CircleSessionMembership")
