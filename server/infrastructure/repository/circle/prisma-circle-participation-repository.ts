@@ -58,20 +58,17 @@ export const createPrismaCircleParticipationRepository = (
     const persistedCircleId = toPersistenceId(circleId);
     const persistedRole = mapCircleRoleToPersistence(role);
 
-    const existing = await client.circleMembership.findFirst({
+    const result = await client.circleMembership.updateMany({
       where: {
         userId: toPersistenceId(userId),
         circleId: persistedCircleId,
         deletedAt: null,
       },
-    });
-    if (!existing) {
-      throw new Error("CircleMembership not found");
-    }
-    await client.circleMembership.update({
-      where: { id: existing.id },
       data: { role: persistedRole },
     });
+    if (result.count === 0) {
+      throw new Error("CircleMembership not found");
+    }
   },
 
   async removeParticipation(circleId: CircleId, userId: UserId): Promise<void> {
