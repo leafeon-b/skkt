@@ -89,12 +89,14 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
         userId: "user-1",
         circleSessionId: "session-1",
         role: "CircleSessionOwner",
+        deletedAt: null,
       },
       {
         id: "membership-2",
         userId: "user-2",
         circleSessionId: "session-1",
         role: "CircleSessionMember",
+        deletedAt: null,
       },
     ]);
 
@@ -128,12 +130,14 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
         userId: "user-1",
         circleSessionId: "session-1",
         role: "CircleSessionOwner",
+        deletedAt: null,
       },
       {
         id: "membership-2",
         userId: "user-1",
         circleSessionId: "session-2",
         role: "CircleSessionMember",
+        deletedAt: null,
       },
     ]);
 
