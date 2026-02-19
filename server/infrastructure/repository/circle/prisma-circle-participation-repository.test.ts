@@ -4,6 +4,7 @@ vi.mock("@/server/infrastructure/db", () => ({
   prisma: {
     circleMembership: {
       findMany: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       deleteMany: vi.fn(),
@@ -130,23 +131,44 @@ describe("Prisma Circle 参加者リポジトリ", () => {
   });
 
   test("updateParticipationRole は参加者のロールを更新する", async () => {
+    mockedPrisma.circleMembership.findFirst.mockResolvedValueOnce({
+      id: "membership-1",
+      userId: "user-1",
+      circleId: "circle-1",
+      role: "CircleOwner",
+      createdAt: new Date("2025-01-01T00:00:00Z"),
+      deletedAt: null,
+    });
+
     await prismaCircleParticipationRepository.updateParticipationRole(
       circleId("circle-1"),
       userId("user-1"),
       "CircleMember",
     );
 
-    expect(mockedPrisma.circleMembership.update).toHaveBeenCalledWith({
+    expect(mockedPrisma.circleMembership.findFirst).toHaveBeenCalledWith({
       where: {
-        userId_circleId: {
-          userId: "user-1",
-          circleId: "circle-1",
-        },
-      },
-      data: {
-        role: "CircleMember",
+        userId: "user-1",
+        circleId: "circle-1",
+        deletedAt: null,
       },
     });
+    expect(mockedPrisma.circleMembership.update).toHaveBeenCalledWith({
+      where: { id: "membership-1" },
+      data: { role: "CircleMember" },
+    });
+  });
+
+  test("updateParticipationRole はレコードが見つからない場合エラーをスローする", async () => {
+    mockedPrisma.circleMembership.findFirst.mockResolvedValueOnce(null);
+
+    await expect(
+      prismaCircleParticipationRepository.updateParticipationRole(
+        circleId("circle-1"),
+        userId("user-1"),
+        "CircleMember",
+      ),
+    ).rejects.toThrow("CircleMembership not found");
   });
 
   test("removeParticipation は研究会メンバーシップのみを削除する", async () => {

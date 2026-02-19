@@ -70,16 +70,19 @@ export const createPrismaCircleSessionParticipationRepository = (
     const persistedUserId = toPersistenceId(userId);
     const persistedRole = mapCircleSessionRoleToPersistence(role);
 
-    await client.circleSessionMembership.update({
+    const existing = await client.circleSessionMembership.findFirst({
       where: {
-        userId_circleSessionId: {
-          userId: persistedUserId,
-          circleSessionId: persistedCircleSessionId,
-        },
+        userId: persistedUserId,
+        circleSessionId: persistedCircleSessionId,
+        deletedAt: null,
       },
-      data: {
-        role: persistedRole,
-      },
+    });
+    if (!existing) {
+      throw new Error("CircleSessionMembership not found");
+    }
+    await client.circleSessionMembership.update({
+      where: { id: existing.id },
+      data: { role: persistedRole },
     });
   },
 
