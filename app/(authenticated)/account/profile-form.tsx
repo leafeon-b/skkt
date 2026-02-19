@@ -11,9 +11,11 @@ import { toast } from "sonner";
 export function ProfileFormInner({
   initialName,
   initialEmail,
+  hasPassword,
 }: {
   initialName: string;
   initialEmail: string;
+  hasPassword: boolean;
 }) {
   const { update: updateSession } = useSession();
   const utils = trpc.useUtils();
@@ -71,7 +73,14 @@ export function ProfileFormInner({
           onChange={(e) => setEmail(e.target.value)}
           placeholder="メールアドレス"
           className="bg-white"
+          disabled={!hasPassword}
+          aria-describedby={!hasPassword ? "profile-email-desc" : undefined}
         />
+        {!hasPassword && (
+          <p id="profile-email-desc" className="text-xs text-(--brand-ink-muted)">
+            メールアドレスはOAuth連携先で管理されています
+          </p>
+        )}
       </div>
       <Button
         type="submit"

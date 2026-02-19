@@ -59,6 +59,12 @@ export const createUserService = (deps: UserServiceDeps) => ({
     }
 
     if (email !== null) {
+      const passwordHash =
+        await deps.userRepository.findPasswordHashById(actorId);
+      if (passwordHash === null) {
+        throw new BadRequestError("OAuth users cannot change email");
+      }
+
       const exists = await deps.userRepository.emailExists(email, actorId);
       if (exists) {
         throw new BadRequestError("Email already in use");

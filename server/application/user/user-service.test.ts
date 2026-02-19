@@ -82,6 +82,7 @@ describe("getMe", () => {
 describe("updateProfile", () => {
   test("プロフィールを更新する", async () => {
     userRepository.findById.mockResolvedValue(testUser);
+    userRepository.findPasswordHashById.mockResolvedValue("hashed:pass");
     userRepository.emailExists.mockResolvedValue(false);
 
     await service.updateProfile(actorId, "NewName", "new@example.com");
@@ -108,6 +109,7 @@ describe("updateProfile", () => {
 
   test("メール重複時に BadRequest エラー", async () => {
     userRepository.findById.mockResolvedValue(testUser);
+    userRepository.findPasswordHashById.mockResolvedValue("hashed:pass");
     userRepository.emailExists.mockResolvedValue(true);
 
     await expect(
@@ -128,6 +130,30 @@ describe("updateProfile", () => {
       null,
       null,
     );
+  });
+
+  test("OAuthユーザーでもメールがnullなら名前のみ更新できる", async () => {
+    userRepository.findById.mockResolvedValue(testUser);
+
+    await service.updateProfile(actorId, "NewName", null);
+
+    expect(userRepository.findPasswordHashById).not.toHaveBeenCalled();
+    expect(userRepository.updateProfile).toHaveBeenCalledWith(
+      actorId,
+      "NewName",
+      null,
+    );
+  });
+
+  test("OAuthユーザー（パスワード未設定）がメール変更を試みた場合 BadRequest エラー", async () => {
+    userRepository.findById.mockResolvedValue(testUser);
+    userRepository.findPasswordHashById.mockResolvedValue(null);
+
+    await expect(
+      service.updateProfile(actorId, "NewName", "new@example.com"),
+    ).rejects.toThrow("OAuth users cannot change email");
+
+    expect(userRepository.updateProfile).not.toHaveBeenCalled();
   });
 
   test("ユーザーが存在しない場合 Forbidden エラー", async () => {

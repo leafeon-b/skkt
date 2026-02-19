@@ -22,6 +22,7 @@ export default async function AccountPage() {
         <ProfileFormInner
           initialName={viewModel.name}
           initialEmail={viewModel.email}
+          hasPassword={viewModel.hasPassword}
         />
       </section>
 
