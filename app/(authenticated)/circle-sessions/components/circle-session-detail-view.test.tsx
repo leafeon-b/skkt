@@ -393,3 +393,15 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
     });
   });
 });
+
+describe("編集ダイアログの日付プリフィル", () => {
+  it("編集ダイアログを開くと対局日にcreatedAtInputの値がプリフィルされる", async () => {
+    await openEditDialogViaDropdown();
+
+    const dialog = await screen.findByRole("dialog");
+    const dateInput = within(dialog).getByLabelText(
+      "対局日",
+    ) as HTMLInputElement;
+    expect(dateInput.value).toBe(oneMatch[0].createdAtInput);
+  });
+});
