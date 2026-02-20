@@ -22,7 +22,7 @@ export default async function AuthenticatedLayout({
     <SidebarProvider>
       <div className="flex min-h-svh w-full">
         <AppSidebar />
-        <SidebarInset className="flex min-w-0 w-full max-w-none flex-1 flex-col overflow-hidden">
+        <SidebarInset className="flex min-w-0 w-full max-w-none flex-1 flex-col overflow-hidden bg-transparent!">
           <Header />
           <main className="w-full flex-1 overflow-auto p-6">{children}</main>
           <Footer />

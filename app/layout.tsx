@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <body
-        className={`${zenMaru.variable} ${shippori.variable} min-h-svh w-screen bg-background overflow-x-hidden`}
+        className={`${zenMaru.variable} ${shippori.variable} min-h-svh w-screen overflow-x-hidden`}
       >
         <Providers>{children}</Providers>
         <Toaster />
