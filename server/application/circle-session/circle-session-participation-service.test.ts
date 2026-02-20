@@ -331,7 +331,7 @@ describe("CircleSession 参加関係サービス", () => {
   });
 
   describe("withdrawParticipation", () => {
-    test("メンバーは脱退できる", async () => {
+    test("メンバーは退会できる", async () => {
       vi.mocked(
         circleSessionParticipationRepository.listParticipations,
       ).mockResolvedValueOnce([
@@ -357,7 +357,7 @@ describe("CircleSession 参加関係サービス", () => {
       );
     });
 
-    test("オーナーは脱退できない", async () => {
+    test("オーナーは退会できない", async () => {
       vi.mocked(
         circleSessionParticipationRepository.listParticipations,
       ).mockResolvedValueOnce([
@@ -382,7 +382,7 @@ describe("CircleSession 参加関係サービス", () => {
       ).not.toHaveBeenCalled();
     });
 
-    test("対局記録があっても脱退できる", async () => {
+    test("対局記録があっても退会できる", async () => {
       vi.mocked(
         circleSessionParticipationRepository.listParticipations,
       ).mockResolvedValueOnce([

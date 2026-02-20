@@ -275,7 +275,7 @@ describe("assertCanAddParticipantWithRole", () => {
 });
 
 describe("assertCanWithdraw", () => {
-  test("Owner は脱退できない", () => {
+  test("Owner は退会できない", () => {
     expect(() => assertCanWithdraw(CircleRole.CircleOwner)).toThrow(
       ForbiddenError,
     );
@@ -284,17 +284,17 @@ describe("assertCanWithdraw", () => {
     );
   });
 
-  test("Manager は脱退できる", () => {
+  test("Manager は退会できる", () => {
     expect(() => assertCanWithdraw(CircleRole.CircleManager)).not.toThrow();
   });
 
-  test("Member は脱退できる", () => {
+  test("Member は退会できる", () => {
     expect(() => assertCanWithdraw(CircleRole.CircleMember)).not.toThrow();
   });
 });
 
 describe("assertCanWithdrawFromSession", () => {
-  test("Owner は脱退できない", () => {
+  test("Owner は退会できない", () => {
     expect(() =>
       assertCanWithdrawFromSession(CircleSessionRole.CircleSessionOwner),
     ).toThrow(ForbiddenError);
@@ -305,13 +305,13 @@ describe("assertCanWithdrawFromSession", () => {
     );
   });
 
-  test("Manager は脱退できる", () => {
+  test("Manager は退会できる", () => {
     expect(() =>
       assertCanWithdrawFromSession(CircleSessionRole.CircleSessionManager),
     ).not.toThrow();
   });
 
-  test("Member は脱退できる", () => {
+  test("Member は退会できる", () => {
     expect(() =>
       assertCanWithdrawFromSession(CircleSessionRole.CircleSessionMember),
     ).not.toThrow();

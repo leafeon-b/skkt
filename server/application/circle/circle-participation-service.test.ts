@@ -273,8 +273,8 @@ describe("Circle 参加関係サービス", () => {
     );
   });
 
-  describe("withdrawParticipation（自己脱退）", () => {
-    test("Manager は脱退できる", async () => {
+  describe("withdrawParticipation（自己退会）", () => {
+    test("Manager は退会できる", async () => {
       vi.mocked(
         circleParticipationRepository.listByCircleId,
       ).mockResolvedValueOnce([
@@ -302,7 +302,7 @@ describe("Circle 参加関係サービス", () => {
       ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-manager"));
     });
 
-    test("Member は脱退できる", async () => {
+    test("Member は退会できる", async () => {
       vi.mocked(
         circleParticipationRepository.listByCircleId,
       ).mockResolvedValueOnce([
@@ -330,7 +330,7 @@ describe("Circle 参加関係サービス", () => {
       ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
     });
 
-    test("Owner は脱退を拒否される", async () => {
+    test("Owner は退会を拒否される", async () => {
       vi.mocked(
         circleParticipationRepository.listByCircleId,
       ).mockResolvedValueOnce([

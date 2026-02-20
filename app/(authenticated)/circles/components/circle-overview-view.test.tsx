@@ -26,7 +26,7 @@ vi.mock(
   "@/app/(authenticated)/circles/components/circle-withdraw-button",
   () => ({
     CircleWithdrawButton: () => (
-      <button data-testid="withdraw-button">脱退</button>
+      <button data-testid="withdraw-button">退会</button>
     ),
   }),
 );

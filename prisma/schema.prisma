@@ -113,7 +113,7 @@ model CircleMembership {
   role      CircleRole
   createdAt DateTime   @default(now())
 
-  /// 論理削除（脱退・除名時にセットし、再参加時に新レコードを作成）
+  /// 論理削除（退会・除名時にセットし、再参加時に新レコードを作成）
   deletedAt DateTime?
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)

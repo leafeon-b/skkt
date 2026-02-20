@@ -36,7 +36,7 @@ export function CircleWithdrawButton({
     },
     onError: () => {
       setOpen(false);
-      toast.error("脱退に失敗しました");
+      toast.error("退会に失敗しました");
     },
   });
 
@@ -55,17 +55,17 @@ export function CircleWithdrawButton({
         <Button
           variant="ghost"
           className="text-xs text-red-700 hover:bg-red-50 hover:text-red-800"
-          aria-label={`「${circleName}」から脱退`}
+          aria-label={`「${circleName}」から退会`}
         >
           <LogOut className="size-3.5" aria-hidden="true" />
-          脱退
+          退会
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>研究会から脱退</AlertDialogTitle>
+          <AlertDialogTitle>研究会から退会</AlertDialogTitle>
           <AlertDialogDescription>
-            この研究会から脱退します。再度参加するには招待が必要です。
+            この研究会から退会します。再度参加するには招待が必要です。
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="rounded-xl border border-border/60 bg-(--brand-ink)/5 px-3 py-2 text-sm font-semibold text-(--brand-ink)">
@@ -83,7 +83,7 @@ export function CircleWithdrawButton({
             }}
             disabled={withdraw.isPending}
           >
-            {withdraw.isPending ? "脱退中…" : "脱退する"}
+            {withdraw.isPending ? "退会中…" : "退会する"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

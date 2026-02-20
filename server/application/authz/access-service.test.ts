@@ -129,7 +129,7 @@ describe("認可ポリシー", () => {
       });
     });
 
-    describe("canWithdrawFromCircle（研究会脱退）", () => {
+    describe("canWithdrawFromCircle（研究会退会）", () => {
       test.each([
         { membership: member("CircleMember"), expected: true },
         { membership: noMember(), expected: false },
@@ -322,7 +322,7 @@ describe("認可ポリシー", () => {
       });
     });
 
-    describe("canWithdrawFromCircleSession（セッション脱退）", () => {
+    describe("canWithdrawFromCircleSession（セッション退会）", () => {
       test.each([
         { membership: sessionMember("CircleSessionMember"), expected: true },
         { membership: noSessionMember(), expected: false },
