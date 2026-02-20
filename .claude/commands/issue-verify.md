@@ -25,7 +25,6 @@ Supported intents:
 - safety
 - design
 - implementation
-- accessibility
 
 Agent resolution is an external responsibility.
 
@@ -63,15 +62,6 @@ IF changes include:
 - performance
 - error handling
 
-### accessibility
-
-IF changes include:
-
-- UI markup
-- semantics
-- interaction
-- visual components
-
 Multiple intents are allowed.
 
 If inference result is empty or ambiguous:
@@ -81,8 +71,7 @@ ASK USER:
 
 - safety
 - design
-- implementation
-- accessibility"
+- implementation"
 
 ---
 
@@ -164,16 +153,15 @@ Each issue MUST have exactly TWO labels: one type label and one priority label.
 
 #### Type Labels (select one)
 
-| Label                 | When to use                                 |
-| --------------------- | ------------------------------------------- |
-| `bug`                 | Incorrect behavior or defect found          |
-| `enhancement`         | New feature or functional improvement       |
-| `documentation`       | Documentation additions or corrections      |
-| `type: security`      | Security vulnerability or hardening         |
-| `type: accessibility` | Accessibility (WCAG) compliance improvement |
-| `type: testing`       | Test coverage addition or test improvement  |
-| `type: ui/ux`         | UI/UX design or usability improvement       |
-| `type: refactoring`   | Code structure, readability, architecture   |
+| Label               | When to use                                |
+| ------------------- | ------------------------------------------ |
+| `bug`               | Incorrect behavior or defect found         |
+| `enhancement`       | New feature or functional improvement      |
+| `documentation`     | Documentation additions or corrections     |
+| `type: security`    | Security vulnerability or hardening        |
+| `type: testing`     | Test coverage addition or test improvement |
+| `type: ui/ux`       | UI/UX design or usability improvement      |
+| `type: refactoring` | Code structure, readability, architecture  |
 
 #### Priority Labels (select one)
 
