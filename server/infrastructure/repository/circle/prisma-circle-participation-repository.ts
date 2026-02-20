@@ -16,8 +16,8 @@ export const createPrismaCircleParticipationRepository = (
     const persistedCircleId = toPersistenceId(circleId);
 
     const participations = await client.circleMembership.findMany({
-      where: { circleId: persistedCircleId },
-      select: { circleId: true, userId: true, role: true, createdAt: true },
+      where: { circleId: persistedCircleId, deletedAt: null },
+      select: { circleId: true, userId: true, role: true, createdAt: true, deletedAt: true },
     });
 
     return participations.map(mapCircleParticipationFromPersistence);
@@ -25,9 +25,9 @@ export const createPrismaCircleParticipationRepository = (
 
   async listByUserId(userId: UserId): Promise<CircleParticipation[]> {
     const participations = await client.circleMembership.findMany({
-      where: { userId: toPersistenceId(userId) },
+      where: { userId: toPersistenceId(userId), deletedAt: null },
       orderBy: { createdAt: "desc" },
-      select: { circleId: true, userId: true, role: true, createdAt: true },
+      select: { circleId: true, userId: true, role: true, createdAt: true, deletedAt: true },
     });
 
     return participations.map(mapCircleParticipationFromPersistence);
@@ -58,29 +58,34 @@ export const createPrismaCircleParticipationRepository = (
     const persistedCircleId = toPersistenceId(circleId);
     const persistedRole = mapCircleRoleToPersistence(role);
 
-    await client.circleMembership.update({
+    const result = await client.circleMembership.updateMany({
       where: {
-        userId_circleId: {
-          userId: toPersistenceId(userId),
-          circleId: persistedCircleId,
-        },
+        userId: toPersistenceId(userId),
+        circleId: persistedCircleId,
+        deletedAt: null,
       },
-      data: {
-        role: persistedRole,
-      },
+      data: { role: persistedRole },
     });
+    if (result.count === 0) {
+      throw new Error("CircleMembership not found");
+    }
   },
 
   async removeParticipation(circleId: CircleId, userId: UserId): Promise<void> {
     const persistedCircleId = toPersistenceId(circleId);
     const persistedUserId = toPersistenceId(userId);
 
-    await client.circleMembership.deleteMany({
+    const result = await client.circleMembership.updateMany({
       where: {
         circleId: persistedCircleId,
         userId: persistedUserId,
+        deletedAt: null,
       },
+      data: { deletedAt: new Date() },
     });
+    if (result.count === 0) {
+      throw new Error("CircleMembership not found");
+    }
   },
 });
 

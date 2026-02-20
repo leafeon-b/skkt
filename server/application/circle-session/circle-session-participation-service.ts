@@ -5,10 +5,8 @@ import {
   type UserId,
 } from "@/server/domain/common/ids";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
-import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
-import { assertCanRemoveCircleSessionParticipation } from "@/server/domain/services/circle-session/participation";
 import {
   assertCanAddParticipantWithRole,
   assertCanChangeCircleSessionMemberRole,
@@ -29,7 +27,6 @@ import {
 type AccessService = ReturnType<typeof createAccessService>;
 
 export type CircleSessionParticipationServiceDeps = {
-  matchRepository: MatchRepository;
   circleRepository: CircleRepository;
   circleSessionRepository: CircleSessionRepository;
   circleSessionParticipationRepository: CircleSessionParticipationRepository;
@@ -296,10 +293,6 @@ export const createCircleSessionParticipationService = (
 
     assertCanRemoveCircleSessionMember(target.role);
 
-    const matches = await deps.matchRepository.listByCircleSessionId(
-      params.circleSessionId,
-    );
-    assertCanRemoveCircleSessionParticipation(matches, params.userId);
     await deps.circleSessionParticipationRepository.removeParticipation(
       params.circleSessionId,
       params.userId,
@@ -338,11 +331,6 @@ export const createCircleSessionParticipationService = (
     }
 
     assertCanWithdrawFromSession(actor.role);
-
-    const matches = await deps.matchRepository.listByCircleSessionId(
-      params.circleSessionId,
-    );
-    assertCanRemoveCircleSessionParticipation(matches, userId(params.actorId));
 
     await deps.circleSessionParticipationRepository.removeParticipation(
       params.circleSessionId,

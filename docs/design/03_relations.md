@@ -17,11 +17,20 @@ erDiagram
 
   ユーザー ||--o{ 研究会参加 : has
   研究会 ||--o{ 研究会参加 : has
+  研究会参加 {
+    DateTime deletedAt "論理削除"
+  }
 
   ユーザー ||--o{ セッション参加 : has
   セッション ||--o{ セッション参加 : has
+  セッション参加 {
+    DateTime deletedAt "論理削除"
+  }
 
   セッション ||--o{ 対局結果 : has
   ユーザー ||--o{ 対局結果 : asSente
   ユーザー ||--o{ 対局結果 : asGote
+  対局結果 {
+    DateTime deletedAt "論理削除"
+  }
 ```

@@ -6,4 +6,5 @@ export type CircleParticipation = {
   userId: UserId;
   role: CircleRole;
   createdAt: Date;
+  deletedAt: Date | null;
 };

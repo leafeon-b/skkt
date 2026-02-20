@@ -39,16 +39,21 @@ describe("CircleSession 参加者マッパー", () => {
   });
 
   test("永続化データを参加関係に変換できる", () => {
+    const createdAt = new Date("2025-01-01T00:00:00Z");
     const mapped = mapCircleSessionParticipationFromPersistence({
       circleSessionId: "session-1",
       userId: "user-1",
       role: "CircleSessionManager",
+      createdAt,
+      deletedAt: null,
     });
 
     expect(mapped).toEqual({
       circleSessionId: circleSessionId("session-1"),
       userId: userId("user-1"),
       role: CircleSessionRole.CircleSessionManager,
+      createdAt,
+      deletedAt: null,
     });
   });
 });

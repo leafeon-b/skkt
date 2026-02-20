@@ -66,6 +66,21 @@ export function InviteAcceptView({
     );
   }
 
+  if (redeemMutation.isSuccess) {
+    return (
+      <div className="flex flex-col items-center gap-4 rounded-3xl border border-border/60 bg-white/85 p-8 text-center shadow-sm">
+        <p className="text-sm font-semibold text-(--brand-ink)">
+          {redeemMutation.data.alreadyMember
+            ? `「${circleName}」に再参加しました`
+            : `「${circleName}」に参加しました`}
+        </p>
+        <p className="text-xs text-(--brand-ink-muted)">
+          リダイレクト中...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center gap-4 rounded-3xl border border-border/60 bg-white/85 p-8 text-center shadow-sm">
       <p className="text-sm font-semibold text-(--brand-ink)">

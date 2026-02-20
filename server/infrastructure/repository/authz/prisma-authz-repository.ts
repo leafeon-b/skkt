@@ -19,7 +19,7 @@ export const createPrismaAuthzRepository = (
 
   async findCircleMembership(userId: string, circleId: string) {
     const membership = await client.circleMembership.findFirst({
-      where: { userId, circleId },
+      where: { userId, circleId, deletedAt: null },
       select: { role: true },
     });
 
@@ -28,7 +28,7 @@ export const createPrismaAuthzRepository = (
 
   async findCircleSessionMembership(userId: string, circleSessionId: string) {
     const membership = await client.circleSessionMembership.findFirst({
-      where: { userId, circleSessionId },
+      where: { userId, circleSessionId, deletedAt: null },
       select: { role: true },
     });
 

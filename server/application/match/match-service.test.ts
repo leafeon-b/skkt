@@ -33,7 +33,6 @@ const circleSessionParticipationRepository = {
   updateParticipationRole: vi.fn(),
   areUsersParticipating: vi.fn(),
   removeParticipation: vi.fn(),
-  removeAllByCircleAndUser: vi.fn(),
 } satisfies CircleSessionParticipationRepository;
 
 const circleSessionRepository = {
@@ -326,7 +325,6 @@ describe("UnitOfWork 経路", () => {
     updateParticipationRole: vi.fn(),
     areUsersParticipating: vi.fn(),
     removeParticipation: vi.fn(),
-    removeAllByCircleAndUser: vi.fn(),
   } satisfies CircleSessionParticipationRepository;
 
   const depsCircleSessionRepository = {
@@ -356,7 +354,6 @@ describe("UnitOfWork 経路", () => {
     updateParticipationRole: vi.fn(),
     areUsersParticipating: vi.fn(),
     removeParticipation: vi.fn(),
-    removeAllByCircleAndUser: vi.fn(),
   } satisfies CircleSessionParticipationRepository;
 
   const uowCircleSessionRepository = {

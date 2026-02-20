@@ -1,6 +1,5 @@
 import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
 import type {
-  CircleId,
   CircleSessionId,
   UserId,
 } from "@/server/domain/common/ids";
@@ -25,8 +24,8 @@ export const createPrismaCircleSessionParticipationRepository = (
     const persistedCircleSessionId = toPersistenceId(circleSessionId);
 
     const participations = await client.circleSessionMembership.findMany({
-      where: { circleSessionId: persistedCircleSessionId },
-      select: { circleSessionId: true, userId: true, role: true },
+      where: { circleSessionId: persistedCircleSessionId, deletedAt: null },
+      select: { circleSessionId: true, userId: true, role: true, createdAt: true, deletedAt: true },
     });
 
     return participations.map(mapCircleSessionParticipationFromPersistence);
@@ -36,8 +35,8 @@ export const createPrismaCircleSessionParticipationRepository = (
     const persistedUserId = toPersistenceId(userId);
 
     const participations = await client.circleSessionMembership.findMany({
-      where: { userId: persistedUserId },
-      select: { circleSessionId: true, userId: true, role: true },
+      where: { userId: persistedUserId, deletedAt: null },
+      select: { circleSessionId: true, userId: true, role: true, createdAt: true, deletedAt: true },
     });
 
     return participations.map(mapCircleSessionParticipationFromPersistence);
@@ -70,17 +69,17 @@ export const createPrismaCircleSessionParticipationRepository = (
     const persistedUserId = toPersistenceId(userId);
     const persistedRole = mapCircleSessionRoleToPersistence(role);
 
-    await client.circleSessionMembership.update({
+    const result = await client.circleSessionMembership.updateMany({
       where: {
-        userId_circleSessionId: {
-          userId: persistedUserId,
-          circleSessionId: persistedCircleSessionId,
-        },
+        userId: persistedUserId,
+        circleSessionId: persistedCircleSessionId,
+        deletedAt: null,
       },
-      data: {
-        role: persistedRole,
-      },
+      data: { role: persistedRole },
     });
+    if (result.count === 0) {
+      throw new Error("CircleSessionMembership not found");
+    }
   },
 
   async areUsersParticipating(
@@ -97,6 +96,7 @@ export const createPrismaCircleSessionParticipationRepository = (
       where: {
         circleSessionId: persistedCircleSessionId,
         userId: { in: uniqueIds },
+        deletedAt: null,
       },
     });
 
@@ -110,28 +110,19 @@ export const createPrismaCircleSessionParticipationRepository = (
     const persistedCircleSessionId = toPersistenceId(circleSessionId);
     const persistedUserId = toPersistenceId(userId);
 
-    await client.circleSessionMembership.deleteMany({
+    const result = await client.circleSessionMembership.updateMany({
       where: {
         circleSessionId: persistedCircleSessionId,
         userId: persistedUserId,
+        deletedAt: null,
       },
+      data: { deletedAt: new Date() },
     });
+    if (result.count === 0) {
+      throw new Error("CircleSessionMembership not found");
+    }
   },
 
-  async removeAllByCircleAndUser(
-    circleId: CircleId,
-    userId: UserId,
-  ): Promise<void> {
-    const persistedCircleId = toPersistenceId(circleId);
-    const persistedUserId = toPersistenceId(userId);
-
-    await client.circleSessionMembership.deleteMany({
-      where: {
-        userId: persistedUserId,
-        session: { circleId: persistedCircleId },
-      },
-    });
-  },
 });
 
 export const prismaCircleSessionParticipationRepository =

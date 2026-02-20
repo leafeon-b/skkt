@@ -34,6 +34,7 @@ describe("Circle 参加者マッパー", () => {
       userId: "user-1",
       role: "CircleManager",
       createdAt,
+      deletedAt: null,
     });
 
     expect(mapped).toEqual({
@@ -41,6 +42,7 @@ describe("Circle 参加者マッパー", () => {
       userId: userId("user-1"),
       role: CircleRole.CircleManager,
       createdAt,
+      deletedAt: null,
     });
   });
 });

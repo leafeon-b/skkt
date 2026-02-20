@@ -333,13 +333,23 @@ async function main() {
   });
 
   for (const membership of circleMemberships) {
-    await prisma.circleMembership.upsert({
+    const existing = await prisma.circleMembership.findFirst({
       where: {
-        userId_circleId: { userId: membership.userId, circleId: circle.id },
+        userId: membership.userId,
+        circleId: circle.id,
+        deletedAt: null,
       },
-      update: { role: membership.role },
-      create: { ...membership, circleId: circle.id },
     });
+    if (existing) {
+      await prisma.circleMembership.update({
+        where: { id: existing.id },
+        data: { role: membership.role },
+      });
+    } else {
+      await prisma.circleMembership.create({
+        data: { ...membership, circleId: circle.id },
+      });
+    }
   }
 
   for (const session of sessions) {
@@ -357,16 +367,23 @@ async function main() {
   }
 
   for (const membership of sessionMemberships) {
-    await prisma.circleSessionMembership.upsert({
+    const existing = await prisma.circleSessionMembership.findFirst({
       where: {
-        userId_circleSessionId: {
-          userId: membership.userId,
-          circleSessionId: membership.circleSessionId,
-        },
+        userId: membership.userId,
+        circleSessionId: membership.circleSessionId,
+        deletedAt: null,
       },
-      update: { role: membership.role },
-      create: membership,
     });
+    if (existing) {
+      await prisma.circleSessionMembership.update({
+        where: { id: existing.id },
+        data: { role: membership.role },
+      });
+    } else {
+      await prisma.circleSessionMembership.create({
+        data: membership,
+      });
+    }
   }
 
   for (const match of matches) {

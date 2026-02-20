@@ -73,8 +73,6 @@ export const createServiceContainer = (
     }),
     circleParticipationService: createCircleParticipationService({
       circleParticipationRepository: deps.circleParticipationRepository,
-      circleSessionParticipationRepository:
-        deps.circleSessionParticipationRepository,
       circleRepository: deps.circleRepository,
       accessService,
       unitOfWork: deps.unitOfWork,
@@ -88,7 +86,6 @@ export const createServiceContainer = (
       unitOfWork: deps.unitOfWork,
     }),
     circleSessionParticipationService: createCircleSessionParticipationService({
-      matchRepository: deps.matchRepository,
       circleRepository: deps.circleRepository,
       circleSessionRepository: deps.circleSessionRepository,
       circleSessionParticipationRepository:
