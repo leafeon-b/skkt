@@ -74,9 +74,7 @@ export function InviteAcceptView({
             ? `「${circleName}」に再参加しました`
             : `「${circleName}」に参加しました`}
         </p>
-        <p className="text-xs text-(--brand-ink-muted)">
-          リダイレクト中...
-        </p>
+        <p className="text-xs text-(--brand-ink-muted)">リダイレクト中...</p>
       </div>
     );
   }

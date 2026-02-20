@@ -103,7 +103,11 @@ describe("Prisma Authz リポジトリ", () => {
 
     expect(mockedPrisma.circleSessionMembership.findFirst).toHaveBeenCalledWith(
       {
-        where: { userId: "user-1", circleSessionId: "session-1", deletedAt: null },
+        where: {
+          userId: "user-1",
+          circleSessionId: "session-1",
+          deletedAt: null,
+        },
         select: { role: true },
       },
     );

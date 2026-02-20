@@ -48,7 +48,13 @@ describe("Prisma Circle 参加者リポジトリ", () => {
 
     expect(mockedPrisma.circleMembership.findMany).toHaveBeenCalledWith({
       where: { circleId: "circle-1", deletedAt: null },
-      select: { circleId: true, userId: true, role: true, createdAt: true, deletedAt: true },
+      select: {
+        circleId: true,
+        userId: true,
+        role: true,
+        createdAt: true,
+        deletedAt: true,
+      },
     });
     expect(result).toEqual([
       {
@@ -96,7 +102,13 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     expect(mockedPrisma.circleMembership.findMany).toHaveBeenCalledWith({
       where: { userId: "user-1", deletedAt: null },
       orderBy: { createdAt: "desc" },
-      select: { circleId: true, userId: true, role: true, createdAt: true, deletedAt: true },
+      select: {
+        circleId: true,
+        userId: true,
+        role: true,
+        createdAt: true,
+        deletedAt: true,
+      },
     });
     expect(result).toEqual([
       {
@@ -133,7 +145,9 @@ describe("Prisma Circle 参加者リポジトリ", () => {
   });
 
   test("updateParticipationRole は参加者のロールを更新する", async () => {
-    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({ count: 1 });
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
+      count: 1,
+    });
 
     await prismaCircleParticipationRepository.updateParticipationRole(
       circleId("circle-1"),
@@ -152,7 +166,9 @@ describe("Prisma Circle 参加者リポジトリ", () => {
   });
 
   test("updateParticipationRole はレコードが見つからない場合エラーをスローする", async () => {
-    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({ count: 0 });
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
+      count: 0,
+    });
 
     await expect(
       prismaCircleParticipationRepository.updateParticipationRole(
@@ -165,7 +181,9 @@ describe("Prisma Circle 参加者リポジトリ", () => {
 
   test("論理削除後の再参加で create が呼ばれる", async () => {
     // 1. removeParticipation で論理削除
-    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({ count: 1 });
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
+      count: 1,
+    });
     await prismaCircleParticipationRepository.removeParticipation(
       circleId("circle-1"),
       userId("user-1"),
@@ -216,7 +234,13 @@ describe("Prisma Circle 参加者リポジトリ", () => {
 
     expect(mockedPrisma.circleMembership.findMany).toHaveBeenCalledWith({
       where: { circleId: "circle-1", deletedAt: null },
-      select: { circleId: true, userId: true, role: true, createdAt: true, deletedAt: true },
+      select: {
+        circleId: true,
+        userId: true,
+        role: true,
+        createdAt: true,
+        deletedAt: true,
+      },
     });
     // 論理削除済みの旧レコードは含まれず、再参加後のアクティブレコードのみ
     expect(result).toEqual([
@@ -231,7 +255,9 @@ describe("Prisma Circle 参加者リポジトリ", () => {
   });
 
   test("removeParticipation はレコードが見つからない場合エラーをスローする", async () => {
-    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({ count: 0 });
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
+      count: 0,
+    });
 
     await expect(
       prismaCircleParticipationRepository.removeParticipation(
@@ -242,7 +268,9 @@ describe("Prisma Circle 参加者リポジトリ", () => {
   });
 
   test("removeParticipation は研究会メンバーシップを論理削除する", async () => {
-    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({ count: 1 });
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
+      count: 1,
+    });
     await prismaCircleParticipationRepository.removeParticipation(
       circleId("circle-1"),
       userId("user-1"),

@@ -136,7 +136,10 @@ describe("formatTooltipDateTime", () => {
   });
 
   it("開始日のみ不正な場合、空文字列を返す", () => {
-    const result = formatTooltipDateTime("invalid-date", "2025-01-15T12:00:00Z");
+    const result = formatTooltipDateTime(
+      "invalid-date",
+      "2025-01-15T12:00:00Z",
+    );
     expect(result).toBe("");
   });
 

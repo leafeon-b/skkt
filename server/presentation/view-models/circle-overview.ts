@@ -27,4 +27,5 @@ export type CircleOverviewViewModel = {
   viewerRole: CircleRoleKey | null;
   sessions: CircleOverviewSession[];
   members: CircleOverviewMember[];
+  holidayDates: string[];
 };

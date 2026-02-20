@@ -17,7 +17,13 @@ export const createPrismaCircleParticipationRepository = (
 
     const participations = await client.circleMembership.findMany({
       where: { circleId: persistedCircleId, deletedAt: null },
-      select: { circleId: true, userId: true, role: true, createdAt: true, deletedAt: true },
+      select: {
+        circleId: true,
+        userId: true,
+        role: true,
+        createdAt: true,
+        deletedAt: true,
+      },
     });
 
     return participations.map(mapCircleParticipationFromPersistence);
@@ -27,7 +33,13 @@ export const createPrismaCircleParticipationRepository = (
     const participations = await client.circleMembership.findMany({
       where: { userId: toPersistenceId(userId), deletedAt: null },
       orderBy: { createdAt: "desc" },
-      select: { circleId: true, userId: true, role: true, createdAt: true, deletedAt: true },
+      select: {
+        circleId: true,
+        userId: true,
+        role: true,
+        createdAt: true,
+        deletedAt: true,
+      },
     });
 
     return participations.map(mapCircleParticipationFromPersistence);

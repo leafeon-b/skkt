@@ -119,7 +119,9 @@ describe("CircleSessionDetailView 複製ボタン", () => {
         />,
       );
 
-      expect(screen.getByRole("button", { name: "セッションの複製" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "セッションの複製" }),
+      ).toBeInTheDocument();
     });
 
     it("canCreateCircleSession: false の場合、複製ボタンが表示されない", () => {
@@ -129,7 +131,9 @@ describe("CircleSessionDetailView 複製ボタン", () => {
         />,
       );
 
-      expect(screen.queryByRole("button", { name: "セッションの複製" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "セッションの複製" }),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -148,7 +152,9 @@ describe("CircleSessionDetailView 複製ボタン", () => {
         />,
       );
 
-      await user.click(screen.getByRole("button", { name: "セッションの複製" }));
+      await user.click(
+        screen.getByRole("button", { name: "セッションの複製" }),
+      );
 
       expect(pushMock).toHaveBeenCalledOnce();
       const url = pushMock.mock.calls[0][0] as string;
@@ -172,7 +178,9 @@ describe("CircleSessionDetailView 複製ボタン", () => {
         />,
       );
 
-      await user.click(screen.getByRole("button", { name: "セッションの複製" }));
+      await user.click(
+        screen.getByRole("button", { name: "セッションの複製" }),
+      );
 
       const url = pushMock.mock.calls[0][0] as string;
       const params = new URLSearchParams(url.split("?")[1]);
@@ -190,7 +198,9 @@ describe("CircleSessionDetailView 複製ボタン", () => {
         />,
       );
 
-      await user.click(screen.getByRole("button", { name: "セッションの複製" }));
+      await user.click(
+        screen.getByRole("button", { name: "セッションの複製" }),
+      );
 
       const url = pushMock.mock.calls[0][0] as string;
       const params = new URLSearchParams(url.split("?")[1]);
@@ -209,7 +219,9 @@ describe("CircleSessionDetailView 複製ボタン", () => {
         />,
       );
 
-      await user.click(screen.getByRole("button", { name: "セッションの複製" }));
+      await user.click(
+        screen.getByRole("button", { name: "セッションの複製" }),
+      );
 
       const url = pushMock.mock.calls[0][0] as string;
       const params = new URLSearchParams(url.split("?")[1]);

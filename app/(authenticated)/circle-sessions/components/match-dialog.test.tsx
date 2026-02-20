@@ -108,9 +108,7 @@ describe("MatchDialog", () => {
       );
 
       const dialog = screen.getByRole("dialog");
-      await user.click(
-        within(dialog).getByRole("button", { name: /削除/ }),
-      );
+      await user.click(within(dialog).getByRole("button", { name: /削除/ }));
 
       expect(onRequestDelete).toHaveBeenCalledOnce();
     });
@@ -125,9 +123,7 @@ describe("MatchDialog", () => {
 
     it("対局選択ドロップダウン（「対象の対局結果」ラベル）が表示される", () => {
       render(
-        <MatchDialog
-          {...buildDefaultProps({ activeDialog: editDialog })}
-        />,
+        <MatchDialog {...buildDefaultProps({ activeDialog: editDialog })} />,
       );
 
       expect(screen.getByText("対象の対局結果")).toBeInTheDocument();
@@ -135,9 +131,7 @@ describe("MatchDialog", () => {
 
     it("送信ボタンのラベルが「保存」である", () => {
       render(
-        <MatchDialog
-          {...buildDefaultProps({ activeDialog: editDialog })}
-        />,
+        <MatchDialog {...buildDefaultProps({ activeDialog: editDialog })} />,
       );
 
       const dialog = screen.getByRole("dialog");
@@ -200,9 +194,7 @@ describe("MatchDialog", () => {
 
     it("対局選択ドロップダウンが表示されない", () => {
       render(
-        <MatchDialog
-          {...buildDefaultProps({ activeDialog: addDialog })}
-        />,
+        <MatchDialog {...buildDefaultProps({ activeDialog: addDialog })} />,
       );
 
       expect(screen.queryByText("対象の対局結果")).not.toBeInTheDocument();
@@ -210,9 +202,7 @@ describe("MatchDialog", () => {
 
     it("送信ボタンのラベルが「追加」である", () => {
       render(
-        <MatchDialog
-          {...buildDefaultProps({ activeDialog: addDialog })}
-        />,
+        <MatchDialog {...buildDefaultProps({ activeDialog: addDialog })} />,
       );
 
       const dialog = screen.getByRole("dialog");
@@ -249,11 +239,7 @@ describe("MatchDialog", () => {
     it("キャンセルボタンクリック時に closeDialog が呼ばれる", async () => {
       const user = userEvent.setup();
       const closeDialog = vi.fn();
-      render(
-        <MatchDialog
-          {...buildDefaultProps({ closeDialog })}
-        />,
-      );
+      render(<MatchDialog {...buildDefaultProps({ closeDialog })} />);
 
       const dialog = screen.getByRole("dialog");
       await user.click(
@@ -265,9 +251,7 @@ describe("MatchDialog", () => {
 
     it("createMatchIsPending が true のとき送信ボタンが disabled かつラベルが「処理中…」", () => {
       render(
-        <MatchDialog
-          {...buildDefaultProps({ createMatchIsPending: true })}
-        />,
+        <MatchDialog {...buildDefaultProps({ createMatchIsPending: true })} />,
       );
 
       const dialog = screen.getByRole("dialog");
@@ -280,9 +264,7 @@ describe("MatchDialog", () => {
 
     it("updateMatchIsPending が true のとき送信ボタンが disabled かつラベルが「処理中…」", () => {
       render(
-        <MatchDialog
-          {...buildDefaultProps({ updateMatchIsPending: true })}
-        />,
+        <MatchDialog {...buildDefaultProps({ updateMatchIsPending: true })} />,
       );
 
       const dialog = screen.getByRole("dialog");
@@ -294,11 +276,7 @@ describe("MatchDialog", () => {
     });
 
     it("activeDialog が null のときダイアログが開かない", () => {
-      render(
-        <MatchDialog
-          {...buildDefaultProps({ activeDialog: null })}
-        />,
-      );
+      render(<MatchDialog {...buildDefaultProps({ activeDialog: null })} />);
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });

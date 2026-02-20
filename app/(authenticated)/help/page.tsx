@@ -139,9 +139,7 @@ export default function HelpPage() {
       <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-(--brand-ink)">補足</h2>
         <ul className="mt-4 space-y-3 text-sm text-(--brand-ink-muted)">
-          <li>
-            ・オーナー移譲時、移譲元のオーナーはマネージャーになります。
-          </li>
+          <li>・オーナー移譲時、移譲元のオーナーはマネージャーになります。</li>
           <li>
             ・対局結果の記録・閲覧・修正・削除・編集履歴の閲覧は、研究会参加者またはセッション参加者であればロールを問わず可能です。
           </li>

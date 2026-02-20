@@ -15,11 +15,13 @@ import { useCallback, useMemo } from "react";
 type CircleOverviewCalendarProps = {
   sessions: CircleOverviewSession[];
   createSessionHref: string | null;
+  holidayDates: string[];
 };
 
 export function CircleOverviewCalendar({
   sessions,
   createSessionHref,
+  holidayDates,
 }: CircleOverviewCalendarProps) {
   const router = useRouter();
 
@@ -82,6 +84,7 @@ export function CircleOverviewCalendar({
       <SessionCalendar
         events={events}
         onDateClick={createSessionHref ? handleDateClick : undefined}
+        holidayDates={holidayDates}
       />
     </div>
   );

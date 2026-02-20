@@ -47,6 +47,7 @@ function buildOverview(
     viewerRole: null,
     sessions: [],
     members: [],
+    holidayDates: [],
     ...overrides,
   };
 }

@@ -4,11 +4,7 @@ import { createAccessServiceStub } from "@/server/application/test-helpers/acces
 import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import {
-  circleId,
-  circleSessionId,
-  userId,
-} from "@/server/domain/common/ids";
+import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 
 const circleSessionParticipationRepository = {
   listParticipations: vi.fn(),

@@ -17,6 +17,15 @@ vi.mock("@fullcalendar/react", () => ({
 }));
 vi.mock("@fullcalendar/daygrid", () => ({ default: {} }));
 vi.mock("@fullcalendar/interaction", () => ({ default: {} }));
+vi.mock("@/lib/trpc/client", () => ({
+  trpc: {
+    holidays: {
+      list: {
+        useQuery: () => ({ data: undefined }),
+      },
+    },
+  },
+}));
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -79,7 +88,7 @@ describe("SessionCalendar keyboard navigation", () => {
 
     // Instead, let's just render the component and inject grid into it.
     const { container: rendered } = render(
-      <mod.SessionCalendar onDateClick={() => {}} />,
+      <mod.SessionCalendar onDateClick={() => {}} holidayDates={[]} />,
       { container },
     );
 
@@ -236,7 +245,7 @@ describe("SessionCalendar keyboard navigation", () => {
     // We need to dynamically import again for the new render
     return import("./session-calendar").then(async (mod) => {
       const { container: rendered } = render(
-        <mod.SessionCalendar onDateClick={onDateClick} />,
+        <mod.SessionCalendar onDateClick={onDateClick} holidayDates={[]} />,
         { container: newContainer },
       );
 
@@ -272,7 +281,7 @@ describe("SessionCalendar keyboard navigation", () => {
 
     return import("./session-calendar").then(async (mod) => {
       const { container: rendered } = render(
-        <mod.SessionCalendar onDateClick={onDateClick} />,
+        <mod.SessionCalendar onDateClick={onDateClick} holidayDates={[]} />,
         { container: newContainer },
       );
 
@@ -305,7 +314,7 @@ describe("SessionCalendar keyboard navigation", () => {
 
       const mod = await import("./session-calendar");
       const { container: rendered } = render(
-        <mod.SessionCalendar onDateClick={onDateClick} />,
+        <mod.SessionCalendar onDateClick={onDateClick} holidayDates={[]} />,
         { container: newContainer },
       );
 

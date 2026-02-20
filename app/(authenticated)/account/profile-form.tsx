@@ -77,7 +77,10 @@ export function ProfileFormInner({
           aria-describedby={!hasPassword ? "profile-email-desc" : undefined}
         />
         {!hasPassword && (
-          <p id="profile-email-desc" className="text-xs text-(--brand-ink-muted)">
+          <p
+            id="profile-email-desc"
+            className="text-xs text-(--brand-ink-muted)"
+          >
             メールアドレスはOAuth連携先で管理されています
           </p>
         )}

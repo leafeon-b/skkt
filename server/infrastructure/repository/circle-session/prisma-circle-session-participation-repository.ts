@@ -1,8 +1,5 @@
 import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
-import type {
-  CircleSessionId,
-  UserId,
-} from "@/server/domain/common/ids";
+import type { CircleSessionId, UserId } from "@/server/domain/common/ids";
 import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
 import {
   mapCircleSessionParticipationFromPersistence,
@@ -25,7 +22,13 @@ export const createPrismaCircleSessionParticipationRepository = (
 
     const participations = await client.circleSessionMembership.findMany({
       where: { circleSessionId: persistedCircleSessionId, deletedAt: null },
-      select: { circleSessionId: true, userId: true, role: true, createdAt: true, deletedAt: true },
+      select: {
+        circleSessionId: true,
+        userId: true,
+        role: true,
+        createdAt: true,
+        deletedAt: true,
+      },
     });
 
     return participations.map(mapCircleSessionParticipationFromPersistence);
@@ -36,7 +39,13 @@ export const createPrismaCircleSessionParticipationRepository = (
 
     const participations = await client.circleSessionMembership.findMany({
       where: { userId: persistedUserId, deletedAt: null },
-      select: { circleSessionId: true, userId: true, role: true, createdAt: true, deletedAt: true },
+      select: {
+        circleSessionId: true,
+        userId: true,
+        role: true,
+        createdAt: true,
+        deletedAt: true,
+      },
     });
 
     return participations.map(mapCircleSessionParticipationFromPersistence);
@@ -122,7 +131,6 @@ export const createPrismaCircleSessionParticipationRepository = (
       throw new Error("CircleSessionMembership not found");
     }
   },
-
 });
 
 export const prismaCircleSessionParticipationRepository =

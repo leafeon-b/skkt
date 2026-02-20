@@ -45,8 +45,8 @@
 
 :root {
   --radius: 0.625rem;
-  --bg-gradient-from: #F7F2ED;
-  --bg-gradient-to: #EBE3DA;
+  --bg-gradient-from: #f7f2ed;
+  --bg-gradient-to: #ebe3da;
   --brand-ink: oklch(0.22 0.03 252);
   --brand-ink-muted: oklch(0.4 0.04 252);
   --brand-paper: oklch(0.98 0.02 92);
@@ -88,8 +88,8 @@
 }
 
 .dark {
-  --bg-gradient-from: #1E1B18;
-  --bg-gradient-to: #15130F;
+  --bg-gradient-from: #1e1b18;
+  --bg-gradient-to: #15130f;
   --brand-ink: oklch(0.92 0.02 92);
   --brand-ink-muted: oklch(0.75 0.03 92);
   --brand-paper: oklch(0.2 0.02 252);
@@ -167,7 +167,11 @@
   }
   body {
     @apply text-foreground font-sans;
-    background: linear-gradient(180deg, var(--bg-gradient-from), var(--bg-gradient-to));
+    background: linear-gradient(
+      180deg,
+      var(--bg-gradient-from),
+      var(--bg-gradient-to)
+    );
     background-attachment: fixed;
   }
 }

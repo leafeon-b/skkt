@@ -1,7 +1,4 @@
-import type {
-  CircleSessionId,
-  UserId,
-} from "@/server/domain/common/ids";
+import type { CircleSessionId, UserId } from "@/server/domain/common/ids";
 import type { CircleSessionParticipation } from "@/server/domain/models/circle-session/circle-session-participation";
 import type { CircleSessionRole } from "@/server/domain/services/authz/roles";
 

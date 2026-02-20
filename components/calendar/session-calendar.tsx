@@ -1,18 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DateClickArg } from "@fullcalendar/interaction";
-import type { EventContentArg, EventInput } from "@fullcalendar/core";
+import type {
+  DatesSetArg,
+  EventContentArg,
+  EventInput,
+} from "@fullcalendar/core";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { formatTooltipDateTime } from "@/lib/date-utils";
-import { isJapaneseHoliday } from "./japanese-holidays";
+import { trpc } from "@/lib/trpc/client";
 
 const FC_PLUGINS = [dayGridPlugin, interactionPlugin];
 
@@ -58,6 +62,7 @@ export function EventWithTooltip({ arg }: { arg: EventContentArg }) {
 type SessionCalendarProps = {
   events?: EventInput[];
   onDateClick?: (arg: DateClickArg) => void;
+  holidayDates: string[];
 };
 
 export function buildSessionDates(events?: EventInput[]): Set<string> {
@@ -72,22 +77,35 @@ export function buildSessionDates(events?: EventInput[]): Set<string> {
 }
 
 export function getDayCellClassNames(
-  date: Date,
   dateStr: string,
   sessionDates: Set<string>,
   hasDateClick: boolean,
+  holidayDates: Set<string>,
 ): string[] {
   const classes: string[] = [];
   if (hasDateClick && !sessionDates.has(dateStr)) {
     classes.push("fc-day-clickable");
   }
-  if (isJapaneseHoliday(date)) {
+  if (holidayDates.has(dateStr)) {
     classes.push("fc-day-holiday");
   }
   return classes;
 }
 
-export function SessionCalendar({ events, onDateClick }: SessionCalendarProps) {
+/** 初期範囲（Provider が返す ±1年）を計算 */
+function getInitialRange(): { start: Date; end: Date } {
+  const now = new Date();
+  return {
+    start: new Date(now.getFullYear() - 1, 0, 1),
+    end: new Date(now.getFullYear() + 1, 11, 31),
+  };
+}
+
+export function SessionCalendar({
+  events,
+  onDateClick,
+  holidayDates,
+}: SessionCalendarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const onDateClickRef = useRef(onDateClick);
   useEffect(() => {
@@ -95,6 +113,44 @@ export function SessionCalendar({ events, onDateClick }: SessionCalendarProps) {
   }, [onDateClick]);
 
   const sessionDates = useMemo(() => buildSessionDates(events), [events]);
+
+  // 初期範囲外の祝日を動的取得するための state
+  const initialRange = useMemo(() => getInitialRange(), []);
+  const [dynamicRange, setDynamicRange] = useState<{
+    start: Date;
+    end: Date;
+  } | null>(null);
+
+  const handleDatesSet = useCallback(
+    (arg: DatesSetArg) => {
+      const viewStart = arg.start;
+      const viewEnd = arg.end;
+      // 初期範囲外に遷移した場合のみ動的取得を行う
+      if (viewStart < initialRange.start || viewEnd > initialRange.end) {
+        setDynamicRange({ start: viewStart, end: viewEnd });
+      }
+    },
+    [initialRange],
+  );
+
+  const { data: dynamicHolidays } = trpc.holidays.list.useQuery(
+    {
+      start: dynamicRange?.start ?? new Date(),
+      end: dynamicRange?.end ?? new Date(),
+    },
+    { enabled: dynamicRange !== null },
+  );
+
+  // 初期 props + 動的取得結果をマージした Set
+  const mergedHolidayDates = useMemo(() => {
+    const set = new Set(holidayDates);
+    if (dynamicHolidays) {
+      for (const d of dynamicHolidays) {
+        set.add(d);
+      }
+    }
+    return set;
+  }, [holidayDates, dynamicHolidays]);
 
   useEffect(() => {
     if (!onDateClick) return;
@@ -226,13 +282,14 @@ export function SessionCalendar({ events, onDateClick }: SessionCalendarProps) {
         buttonHints={{ prev: "前の$0", next: "次の$0" }}
         events={events}
         dateClick={onDateClick}
+        datesSet={handleDatesSet}
         dayCellClassNames={(arg) => {
           const dateStr = arg.date.toISOString().slice(0, 10);
           return getDayCellClassNames(
-            arg.date,
             dateStr,
             sessionDates,
             !!onDateClick,
+            mergedHolidayDates,
           );
         }}
         eventContent={(arg) => <EventWithTooltip arg={arg} />}
