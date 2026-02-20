@@ -53,6 +53,7 @@
   --brand-gold: oklch(0.82 0.12 78);
   --brand-moss: oklch(0.55 0.11 150);
   --brand-sky: oklch(0.72 0.09 230);
+  --brand-holiday: oklch(0.55 0.2 25);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -95,6 +96,7 @@
   --brand-gold: oklch(0.62 0.12 78);
   --brand-moss: oklch(0.6 0.11 150);
   --brand-sky: oklch(0.55 0.09 230);
+  --brand-holiday: oklch(0.65 0.2 25);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { formatTooltipDateTime } from "@/lib/date-utils";
+import { isJapaneseHoliday } from "./japanese-holidays";
 
 const FC_PLUGINS = [dayGridPlugin, interactionPlugin];
 
@@ -71,12 +72,19 @@ export function buildSessionDates(events?: EventInput[]): Set<string> {
 }
 
 export function getDayCellClassNames(
+  date: Date,
   dateStr: string,
   sessionDates: Set<string>,
   hasDateClick: boolean,
 ): string[] {
-  if (!hasDateClick) return [];
-  return sessionDates.has(dateStr) ? [] : ["fc-day-clickable"];
+  const classes: string[] = [];
+  if (hasDateClick && !sessionDates.has(dateStr)) {
+    classes.push("fc-day-clickable");
+  }
+  if (isJapaneseHoliday(date)) {
+    classes.push("fc-day-holiday");
+  }
+  return classes;
 }
 
 export function SessionCalendar({ events, onDateClick }: SessionCalendarProps) {
@@ -209,7 +217,7 @@ export function SessionCalendar({ events, onDateClick }: SessionCalendarProps) {
       ref={containerRef}
       role="region"
       aria-label="開催カレンダー"
-      className="[&_.fc-daygrid-day:focus-visible]:ring-2 [&_.fc-daygrid-day:focus-visible]:ring-ring [&_.fc-daygrid-day:focus-visible]:ring-offset-1 [&_.fc-daygrid-day:focus-visible]:outline-none [&_.fc-day-clickable]:cursor-pointer [&_.fc-day-clickable:hover]:bg-(--brand-moss)/10"
+      className="[&_.fc-daygrid-day:focus-visible]:ring-2 [&_.fc-daygrid-day:focus-visible]:ring-ring [&_.fc-daygrid-day:focus-visible]:ring-offset-1 [&_.fc-daygrid-day:focus-visible]:outline-none [&_.fc-day-clickable]:cursor-pointer [&_.fc-day-clickable:hover]:bg-(--brand-moss)/10 [&_.fc-day-sat_.fc-daygrid-day-number]:text-(--brand-sky) [&_.fc-day-sat.fc-col-header-cell]:text-(--brand-sky) [&_.fc-day-sun_.fc-daygrid-day-number]:text-(--brand-holiday) [&_.fc-day-sun.fc-col-header-cell]:text-(--brand-holiday) [&_.fc-day-holiday_.fc-daygrid-day-number]:text-(--brand-holiday)"
     >
       <FullCalendar
         plugins={FC_PLUGINS}
@@ -220,7 +228,12 @@ export function SessionCalendar({ events, onDateClick }: SessionCalendarProps) {
         dateClick={onDateClick}
         dayCellClassNames={(arg) => {
           const dateStr = arg.date.toISOString().slice(0, 10);
-          return getDayCellClassNames(dateStr, sessionDates, !!onDateClick);
+          return getDayCellClassNames(
+            arg.date,
+            dateStr,
+            sessionDates,
+            !!onDateClick,
+          );
         }}
         eventContent={(arg) => <EventWithTooltip arg={arg} />}
       />
