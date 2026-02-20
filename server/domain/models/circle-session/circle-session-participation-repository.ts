@@ -1,5 +1,4 @@
 import type {
-  CircleId,
   CircleSessionId,
   UserId,
 } from "@/server/domain/common/ids";
@@ -29,5 +28,4 @@ export type CircleSessionParticipationRepository = {
     circleSessionId: CircleSessionId,
     userId: UserId,
   ): Promise<void>;
-  removeAllByCircleAndUser(circleId: CircleId, userId: UserId): Promise<void>;
 };

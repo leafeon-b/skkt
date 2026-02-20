@@ -32,7 +32,6 @@ const circleSessionParticipationRepository = {
   updateParticipationRole: vi.fn(),
   areUsersParticipating: vi.fn(),
   removeParticipation: vi.fn(),
-  removeAllByCircleAndUser: vi.fn(),
 } satisfies CircleSessionParticipationRepository;
 
 const accessService = createAccessServiceStub();
@@ -263,8 +262,7 @@ describe("UnitOfWork 経路", () => {
     updateParticipationRole: vi.fn(),
     areUsersParticipating: vi.fn(),
     removeParticipation: vi.fn(),
-    removeAllByCircleAndUser: vi.fn(),
-  } satisfies CircleSessionParticipationRepository;
+    } satisfies CircleSessionParticipationRepository;
 
   // UoWコールバック用リポジトリ（UoW内専用）
   const uowCircleSessionRepository = {
@@ -282,8 +280,7 @@ describe("UnitOfWork 経路", () => {
     updateParticipationRole: vi.fn(),
     areUsersParticipating: vi.fn(),
     removeParticipation: vi.fn(),
-    removeAllByCircleAndUser: vi.fn(),
-  } satisfies CircleSessionParticipationRepository;
+    } satisfies CircleSessionParticipationRepository;
 
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({

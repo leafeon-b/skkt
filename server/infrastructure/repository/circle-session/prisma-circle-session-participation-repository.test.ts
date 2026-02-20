@@ -12,7 +12,7 @@ vi.mock("@/server/infrastructure/db", () => ({
 }));
 
 import { prisma } from "@/server/infrastructure/db";
-import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
+import { circleSessionId, userId } from "@/server/domain/common/ids";
 import { prismaCircleSessionParticipationRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-participation-repository";
 
 const mockedPrisma = vi.mocked(prisma, { deep: true });
@@ -315,21 +315,4 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
     });
   });
 
-  test("removeAllByCircleAndUser は指定された研究会とユーザーに紐づく全セッション参加情報を論理削除する", async () => {
-    await prismaCircleSessionParticipationRepository.removeAllByCircleAndUser(
-      circleId("circle-1"),
-      userId("user-1"),
-    );
-
-    expect(
-      mockedPrisma.circleSessionMembership.updateMany,
-    ).toHaveBeenCalledWith({
-      where: {
-        userId: "user-1",
-        session: { circleId: "circle-1" },
-        deletedAt: null,
-      },
-      data: { deletedAt: expect.any(Date) },
-    });
-  });
 });
