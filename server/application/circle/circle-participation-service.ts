@@ -2,7 +2,6 @@ import { userId, type CircleId, type UserId } from "@/server/domain/common/ids";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
 import type { CircleParticipation } from "@/server/domain/models/circle/circle-participation";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import type {
   Repositories,
@@ -27,7 +26,6 @@ type AccessService = ReturnType<typeof createAccessService>;
 
 export type CircleParticipationServiceDeps = {
   circleParticipationRepository: CircleParticipationRepository;
-  circleSessionParticipationRepository: CircleSessionParticipationRepository;
   circleRepository: CircleRepository;
   accessService: AccessService;
   unitOfWork?: UnitOfWork;
@@ -260,10 +258,6 @@ export const createCircleParticipationService = (
       assertCanWithdraw(actor.role);
 
       await uow(async (repos) => {
-        await repos.circleSessionParticipationRepository.removeAllByCircleAndUser(
-          params.circleId,
-          actor.userId,
-        );
         await repos.circleParticipationRepository.removeParticipation(
           params.circleId,
           actor.userId,
@@ -304,10 +298,6 @@ export const createCircleParticipationService = (
       assertCanRemoveCircleMember(target.role);
 
       await uow(async (repos) => {
-        await repos.circleSessionParticipationRepository.removeAllByCircleAndUser(
-          params.circleId,
-          params.userId,
-        );
         await repos.circleParticipationRepository.removeParticipation(
           params.circleId,
           params.userId,

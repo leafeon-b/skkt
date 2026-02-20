@@ -4,7 +4,6 @@ import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import { ForbiddenError } from "@/server/domain/common/errors";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import { circleId, userId } from "@/server/domain/common/ids";
 
@@ -15,16 +14,6 @@ const circleParticipationRepository = {
   updateParticipationRole: vi.fn(),
   removeParticipation: vi.fn(),
 } satisfies CircleParticipationRepository;
-
-const circleSessionParticipationRepository = {
-  listParticipations: vi.fn(),
-  listByUserId: vi.fn(),
-  addParticipation: vi.fn(),
-  updateParticipationRole: vi.fn(),
-  areUsersParticipating: vi.fn(),
-  removeParticipation: vi.fn(),
-  removeAllByCircleAndUser: vi.fn(),
-} satisfies CircleSessionParticipationRepository;
 
 const circleRepository = {
   findById: vi.fn(),
@@ -37,7 +26,6 @@ const accessService = createAccessServiceStub();
 
 const service = createCircleParticipationService({
   circleParticipationRepository,
-  circleSessionParticipationRepository,
   circleRepository,
   accessService,
 });
@@ -310,9 +298,6 @@ describe("Circle 参加関係サービス", () => {
       });
 
       expect(
-        circleSessionParticipationRepository.removeAllByCircleAndUser,
-      ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-manager"));
-      expect(
         circleParticipationRepository.removeParticipation,
       ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-manager"));
     });
@@ -340,9 +325,6 @@ describe("Circle 参加関係サービス", () => {
         circleId: circleId("circle-1"),
       });
 
-      expect(
-        circleSessionParticipationRepository.removeAllByCircleAndUser,
-      ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
       expect(
         circleParticipationRepository.removeParticipation,
       ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
@@ -460,9 +442,6 @@ describe("Circle 参加関係サービス", () => {
     });
 
     expect(
-      circleSessionParticipationRepository.removeAllByCircleAndUser,
-    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-2"));
-    expect(
       circleParticipationRepository.removeParticipation,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-2"));
   });
@@ -486,16 +465,6 @@ describe("UnitOfWork 経路", () => {
     removeParticipation: vi.fn(),
   } satisfies CircleParticipationRepository;
 
-  const depsCircleSessionParticipationRepository = {
-    listParticipations: vi.fn(),
-    listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    updateParticipationRole: vi.fn(),
-    areUsersParticipating: vi.fn(),
-    removeParticipation: vi.fn(),
-    removeAllByCircleAndUser: vi.fn(),
-  } satisfies CircleSessionParticipationRepository;
-
   // UoWコールバック用リポジトリ（UoW内専用）
   const uowCircleParticipationRepository = {
     listByCircleId: vi.fn(),
@@ -505,21 +474,9 @@ describe("UnitOfWork 経路", () => {
     removeParticipation: vi.fn(),
   } satisfies CircleParticipationRepository;
 
-  const uowCircleSessionParticipationRepository = {
-    listParticipations: vi.fn(),
-    listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    updateParticipationRole: vi.fn(),
-    areUsersParticipating: vi.fn(),
-    removeParticipation: vi.fn(),
-    removeAllByCircleAndUser: vi.fn(),
-  } satisfies CircleSessionParticipationRepository;
-
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({
       circleParticipationRepository: uowCircleParticipationRepository,
-      circleSessionParticipationRepository:
-        uowCircleSessionParticipationRepository,
     } as never),
   );
 
@@ -527,8 +484,6 @@ describe("UnitOfWork 経路", () => {
 
   const uowService = createCircleParticipationService({
     circleParticipationRepository: depsCircleParticipationRepository,
-    circleSessionParticipationRepository:
-      depsCircleSessionParticipationRepository,
     circleRepository: depsCircleRepository,
     accessService: uowAccessService,
     unitOfWork,
@@ -570,15 +525,9 @@ describe("UnitOfWork 経路", () => {
 
     expect(unitOfWork).toHaveBeenCalledOnce();
     expect(
-      uowCircleSessionParticipationRepository.removeAllByCircleAndUser,
-    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
-    expect(
       uowCircleParticipationRepository.removeParticipation,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
     // deps側のリポジトリは呼ばれない
-    expect(
-      depsCircleSessionParticipationRepository.removeAllByCircleAndUser,
-    ).not.toHaveBeenCalled();
     expect(
       depsCircleParticipationRepository.removeParticipation,
     ).not.toHaveBeenCalled();
@@ -593,21 +542,15 @@ describe("UnitOfWork 経路", () => {
 
     expect(unitOfWork).toHaveBeenCalledOnce();
     expect(
-      uowCircleSessionParticipationRepository.removeAllByCircleAndUser,
-    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
-    expect(
       uowCircleParticipationRepository.removeParticipation,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
-    expect(
-      depsCircleSessionParticipationRepository.removeAllByCircleAndUser,
-    ).not.toHaveBeenCalled();
     expect(
       depsCircleParticipationRepository.removeParticipation,
     ).not.toHaveBeenCalled();
   });
 
   test("UoW 内でエラーが発生した場合に伝播する", async () => {
-    uowCircleSessionParticipationRepository.removeAllByCircleAndUser.mockRejectedValue(
+    uowCircleParticipationRepository.removeParticipation.mockRejectedValue(
       new Error("DB error"),
     );
 
