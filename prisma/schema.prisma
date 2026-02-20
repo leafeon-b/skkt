@@ -120,6 +120,8 @@ model CircleMembership {
   circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
   /// 研究会参加（継続的所属）。アクティブレコード（deletedAt IS NULL）の一意性は部分ユニークインデックスで担保。
+  /// 部分ユニークインデックスは migration 20260219083336 で作成。
+  /// ⚠ @@unique を再追加しないこと（deletedAt を含む論理削除レコードが一意性制約に違反するため）。
   @@index([circleId, role])
 }
 
@@ -137,6 +139,8 @@ model CircleSessionMembership {
   session CircleSession @relation(fields: [circleSessionId], references: [id], onDelete: Cascade)
 
   /// セッション参加（単発参加）。アクティブレコード（deletedAt IS NULL）の一意性は部分ユニークインデックスで担保。
+  /// 部分ユニークインデックスは migration 20260219083336 で作成。
+  /// ⚠ @@unique を再追加しないこと（deletedAt を含む論理削除レコードが一意性制約に違反するため）。
   @@index([circleSessionId])
   @@index([circleSessionId, role])
   @@map("CircleSessionMembership")
