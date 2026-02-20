@@ -87,7 +87,10 @@ export function HomeView({ viewModel }: { viewModel: HomeViewModel }) {
           <p className="mb-4 text-sm font-semibold text-(--brand-ink)">
             カレンダー
           </p>
-          <SessionCalendar events={calendarEvents} />
+          <SessionCalendar
+            events={calendarEvents}
+            holidayDates={viewModel.holidayDates}
+          />
         </div>
       </section>
     </div>

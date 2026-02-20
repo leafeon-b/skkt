@@ -17,4 +17,5 @@ export type HomeCalendarEvent = {
 export type HomeViewModel = {
   nextSession: HomeNextSession | null;
   calendarEvents: HomeCalendarEvent[];
+  holidayDates: string[];
 };

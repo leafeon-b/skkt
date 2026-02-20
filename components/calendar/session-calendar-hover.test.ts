@@ -44,14 +44,15 @@ describe("buildSessionDates", () => {
 });
 
 describe("getDayCellClassNames", () => {
+  const emptyHolidays = new Set<string>();
+
   it("hasDateClick が false + 平日 → 空配列を返す", () => {
     const sessionDates = new Set(["2025-01-15"]);
-    // 2025-01-15 は平日（水曜）
     const result = getDayCellClassNames(
-      new Date(2025, 0, 15),
       "2025-01-15",
       sessionDates,
       false,
+      emptyHolidays,
     );
     expect(result).toEqual([]);
   });
@@ -59,46 +60,45 @@ describe("getDayCellClassNames", () => {
   it("hasDateClick が true + sessionDates にその日付が含まれる + 平日 → 空配列を返す", () => {
     const sessionDates = new Set(["2025-01-15"]);
     const result = getDayCellClassNames(
-      new Date(2025, 0, 15),
       "2025-01-15",
       sessionDates,
       true,
+      emptyHolidays,
     );
     expect(result).toEqual([]);
   });
 
   it("hasDateClick が true + sessionDates にその日付が含まれない + 平日 → ['fc-day-clickable']", () => {
     const sessionDates = new Set(["2025-01-15"]);
-    // 2025-02-03 は月曜
     const result = getDayCellClassNames(
-      new Date(2025, 1, 3),
       "2025-02-03",
       sessionDates,
       true,
+      emptyHolidays,
     );
     expect(result).toEqual(["fc-day-clickable"]);
   });
 
   it("祝日の場合 → fc-day-holiday クラスを含む", () => {
     const sessionDates = new Set<string>();
-    // 2026-01-01 は元日（祝日）
+    const holidays = new Set(["2026-01-01"]);
     const result = getDayCellClassNames(
-      new Date(2026, 0, 1),
       "2026-01-01",
       sessionDates,
       false,
+      holidays,
     );
     expect(result).toContain("fc-day-holiday");
   });
 
   it("祝日 + hasDateClick + セッションなし → fc-day-clickable と fc-day-holiday の両方", () => {
     const sessionDates = new Set<string>();
-    // 2026-02-11 は建国記念の日（祝日）
+    const holidays = new Set(["2026-02-11"]);
     const result = getDayCellClassNames(
-      new Date(2026, 1, 11),
       "2026-02-11",
       sessionDates,
       true,
+      holidays,
     );
     expect(result).toContain("fc-day-clickable");
     expect(result).toContain("fc-day-holiday");
@@ -106,12 +106,11 @@ describe("getDayCellClassNames", () => {
 
   it("平日（祝日でない） → fc-day-holiday を含まない", () => {
     const sessionDates = new Set<string>();
-    // 2026-02-20 は平日
     const result = getDayCellClassNames(
-      new Date(2026, 1, 20),
       "2026-02-20",
       sessionDates,
       false,
+      emptyHolidays,
     );
     expect(result).not.toContain("fc-day-holiday");
   });

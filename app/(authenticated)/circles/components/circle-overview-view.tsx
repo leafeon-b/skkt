@@ -139,6 +139,7 @@ export function CircleOverviewView({
               ? (getCreateSessionHref?.() ?? null)
               : null
           }
+          holidayDates={overview.holidayDates}
         />
 
         <div className="flex flex-col gap-6">
