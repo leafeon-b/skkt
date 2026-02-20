@@ -110,7 +110,7 @@ export const createPrismaCircleSessionParticipationRepository = (
     const persistedCircleSessionId = toPersistenceId(circleSessionId);
     const persistedUserId = toPersistenceId(userId);
 
-    await client.circleSessionMembership.updateMany({
+    const result = await client.circleSessionMembership.updateMany({
       where: {
         circleSessionId: persistedCircleSessionId,
         userId: persistedUserId,
@@ -118,6 +118,9 @@ export const createPrismaCircleSessionParticipationRepository = (
       },
       data: { deletedAt: new Date() },
     });
+    if (result.count === 0) {
+      throw new Error("CircleSessionMembership not found");
+    }
   },
 
 });

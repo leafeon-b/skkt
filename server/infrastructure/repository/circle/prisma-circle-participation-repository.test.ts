@@ -165,6 +165,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
 
   test("論理削除後の再参加で create が呼ばれる", async () => {
     // 1. removeParticipation で論理削除
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({ count: 1 });
     await prismaCircleParticipationRepository.removeParticipation(
       circleId("circle-1"),
       userId("user-1"),
@@ -229,7 +230,19 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     ]);
   });
 
+  test("removeParticipation はレコードが見つからない場合エラーをスローする", async () => {
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({ count: 0 });
+
+    await expect(
+      prismaCircleParticipationRepository.removeParticipation(
+        circleId("circle-1"),
+        userId("user-1"),
+      ),
+    ).rejects.toThrow("CircleMembership not found");
+  });
+
   test("removeParticipation は研究会メンバーシップを論理削除する", async () => {
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({ count: 1 });
     await prismaCircleParticipationRepository.removeParticipation(
       circleId("circle-1"),
       userId("user-1"),
