@@ -106,14 +106,6 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": "off",
     },
   },
-  // TODO: #456 — invite-link-provider の infrastructure 直接参照解消後に削除
-  {
-    files: ["server/presentation/providers/invite-link-provider.ts"],
-    rules: {
-      "no-restricted-imports": "off",
-    },
-  },
-
   // infrastructure: no importing presentation, application
   {
     files: ["server/infrastructure/**/*.{ts,tsx}"],

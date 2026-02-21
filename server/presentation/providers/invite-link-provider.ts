@@ -1,11 +1,5 @@
-import { createCircleInviteLinkService } from "@/server/application/circle/circle-invite-link-service";
-import { createAccessService } from "@/server/application/authz/access-service";
 import { NotFoundError } from "@/server/domain/common/errors";
-import { nextAuthSessionService } from "@/server/infrastructure/auth/nextauth-session-service";
-import { prismaCircleInviteLinkRepository } from "@/server/infrastructure/repository/circle/prisma-circle-invite-link-repository";
-import { prismaCircleRepository } from "@/server/infrastructure/repository/circle/prisma-circle-repository";
-import { prismaCircleParticipationRepository } from "@/server/infrastructure/repository/circle/prisma-circle-participation-repository";
-import { prismaAuthzRepository } from "@/server/infrastructure/repository/authz/prisma-authz-repository";
+import { createPublicContext } from "@/server/presentation/trpc/context";
 
 export type InviteLinkPageData = {
   circleName: string;
@@ -14,31 +8,23 @@ export type InviteLinkPageData = {
   isAuthenticated: boolean;
 };
 
-const circleInviteLinkService = createCircleInviteLinkService({
-  circleInviteLinkRepository: prismaCircleInviteLinkRepository,
-  circleRepository: prismaCircleRepository,
-  circleParticipationRepository: prismaCircleParticipationRepository,
-  accessService: createAccessService(prismaAuthzRepository),
-});
-
 export async function getInviteLinkPageData(
   token: string,
 ): Promise<InviteLinkPageData | null> {
+  const ctx = await createPublicContext();
+
   let info;
   try {
-    info = await circleInviteLinkService.getInviteLinkInfo({ token });
+    info = await ctx.circleInviteLinkService.getInviteLinkInfo({ token });
   } catch (e) {
     if (e instanceof NotFoundError) return null;
     throw e;
   }
 
-  const session = await nextAuthSessionService.getSession();
-  const isAuthenticated = !!session?.user;
-
   return {
     circleName: info.circleName,
-    circleId: info.circleId as string,
+    circleId: info.circleId,
     expired: info.expired,
-    isAuthenticated,
+    isAuthenticated: ctx.actorId !== null,
   };
 }

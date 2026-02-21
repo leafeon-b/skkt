@@ -1,5 +1,9 @@
-import { createGetSessionUserId } from "@/server/application/auth/session";
+import {
+  createGetSession,
+  createGetSessionUserId,
+} from "@/server/application/auth/session";
 import { createServiceContainer } from "@/server/application/service-container";
+import type { ServiceContainer } from "@/server/application/service-container";
 import { nextAuthSessionService } from "@/server/infrastructure/auth/nextauth-session-service";
 import { prismaAuthzRepository } from "@/server/infrastructure/repository/authz/prisma-authz-repository";
 import { prismaCircleParticipationRepository } from "@/server/infrastructure/repository/circle/prisma-circle-participation-repository";
@@ -18,10 +22,10 @@ import {
 } from "@/server/infrastructure/auth/password";
 
 const getSessionUserId = createGetSessionUserId(nextAuthSessionService);
+const getSession = createGetSession(nextAuthSessionService);
 
-export const createContext = async () => {
-  const actorId = await getSessionUserId();
-  const services = createServiceContainer({
+const buildServiceContainer = (): ServiceContainer =>
+  createServiceContainer({
     circleRepository: prismaCircleRepository,
     circleParticipationRepository: prismaCircleParticipationRepository,
     circleSessionRepository: prismaCircleSessionRepository,
@@ -37,6 +41,10 @@ export const createContext = async () => {
     unitOfWork: prismaUnitOfWork,
   });
 
+export const createContext = async () => {
+  const actorId = await getSessionUserId();
+  const services = buildServiceContainer();
+
   return {
     actorId,
     ...services,
@@ -44,3 +52,20 @@ export const createContext = async () => {
 };
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
+
+/**
+ * 公開ページ（未認証ユーザーもアクセス可能）向けコンテキスト。
+ * tRPC ルーターでは使用しないこと。
+ */
+export const createPublicContext = async () => {
+  const session = await getSession();
+  const actorId = session?.user?.id ?? null;
+  const services = buildServiceContainer();
+
+  return {
+    actorId,
+    ...services,
+  };
+};
+
+export type PublicContext = Awaited<ReturnType<typeof createPublicContext>>;
