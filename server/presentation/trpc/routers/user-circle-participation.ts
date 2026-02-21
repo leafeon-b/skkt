@@ -1,4 +1,3 @@
-import { userId } from "@/server/domain/common/ids";
 import {
   userCircleParticipationDtoSchema,
   userCircleParticipationListInputSchema,
@@ -16,7 +15,7 @@ export const userCircleParticipationRouter = router({
         const participations =
           await ctx.circleParticipationService.listByUserId({
             actorId: ctx.actorId,
-            userId: userId(ctx.actorId),
+            userId: ctx.actorId,
           });
         return toUserCircleParticipationDtos(participations);
       }),
