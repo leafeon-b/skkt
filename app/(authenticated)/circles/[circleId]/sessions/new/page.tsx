@@ -20,6 +20,9 @@ export default async function NewCircleSessionPage({
   const { circleId } = await params;
 
   const ctx = await createContext();
+  if (ctx.actorId === null) {
+    forbidden();
+  }
   const canCreate = await ctx.accessService.canCreateCircleSession(
     ctx.actorId,
     circleId,
