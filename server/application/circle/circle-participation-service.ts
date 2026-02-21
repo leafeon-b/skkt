@@ -17,7 +17,7 @@ import {
 } from "@/server/domain/services/authz/ownership";
 import { CircleRole } from "@/server/domain/services/authz/roles";
 import {
-  BadRequestError,
+  ConflictError,
   ForbiddenError,
   NotFoundError,
 } from "@/server/domain/common/errors";
@@ -127,7 +127,7 @@ export const createCircleParticipationService = (
         );
 
       if (participations.some((member) => member.userId === params.userId)) {
-        throw new BadRequestError("Participation already exists");
+        throw new ConflictError("Participation already exists");
       }
 
       assertCanAddCircleMemberWithRole(participations, params.role);

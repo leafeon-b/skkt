@@ -7,7 +7,8 @@ import {
   mapCircleParticipationFromPersistence,
   mapCircleRoleToPersistence,
 } from "@/server/infrastructure/mappers/circle-participation-mapper";
-import { NotFoundError } from "@/server/domain/common/errors";
+import { ConflictError, NotFoundError } from "@/server/domain/common/errors";
+import { Prisma } from "@/generated/prisma/client";
 import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 
 export const createPrismaCircleParticipationRepository = (
@@ -54,13 +55,23 @@ export const createPrismaCircleParticipationRepository = (
     const persistedCircleId = toPersistenceId(circleId);
     const persistedRole = mapCircleRoleToPersistence(role);
 
-    await client.circleMembership.create({
-      data: {
-        circleId: persistedCircleId,
-        userId: toPersistenceId(userId),
-        role: persistedRole,
-      },
-    });
+    try {
+      await client.circleMembership.create({
+        data: {
+          circleId: persistedCircleId,
+          userId: toPersistenceId(userId),
+          role: persistedRole,
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ConflictError("Participation already exists");
+      }
+      throw error;
+    }
   },
 
   async updateParticipationRole(

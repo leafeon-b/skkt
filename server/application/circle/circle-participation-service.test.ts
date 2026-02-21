@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleParticipationService } from "@/server/application/circle/circle-participation-service";
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import { ForbiddenError } from "@/server/domain/common/errors";
+import { ConflictError, ForbiddenError } from "@/server/domain/common/errors";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import { circleId, userId } from "@/server/domain/common/ids";
@@ -189,6 +189,32 @@ describe("Circle 参加関係サービス", () => {
         userId: userId("user-1"),
       }),
     ).rejects.toThrow("Circle not found");
+  });
+
+  test("addParticipation は既存メンバーの重複追加で ConflictError", async () => {
+    vi.mocked(
+      circleParticipationRepository.listByCircleId,
+    ).mockResolvedValueOnce([
+      {
+        circleId: circleId("circle-1"),
+        userId: userId("user-1"),
+        role: "CircleOwner",
+        createdAt: new Date("2025-01-01T00:00:00Z"),
+      },
+    ]);
+
+    await expect(
+      service.addParticipation({
+        actorId: "user-actor",
+        circleId: circleId("circle-1"),
+        userId: userId("user-1"),
+        role: "CircleMember",
+      }),
+    ).rejects.toThrow(ConflictError);
+
+    expect(
+      circleParticipationRepository.addParticipation,
+    ).not.toHaveBeenCalled();
   });
 
   test("addParticipation は Owner がいない状態で Member を拒否する", async () => {
