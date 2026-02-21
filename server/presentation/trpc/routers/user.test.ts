@@ -8,7 +8,7 @@ import {
   TooManyRequestsError,
 } from "@/server/domain/common/errors";
 
-const createTestContext = (actorIdValue = "user-1") => {
+const createTestContext = (actorIdValue: ReturnType<typeof userId> | null = userId("user-1")) => {
   const userService = {
     getUser: vi.fn(),
     listUsers: vi.fn(),
@@ -204,18 +204,18 @@ describe("user tRPC ルーター", () => {
   });
 
   describe("未認証アクセス", () => {
-    test("me: actorId 空文字で userId() が BAD_REQUEST を返す", async () => {
-      const { context } = createTestContext("");
+    test("me: actorId null で UNAUTHORIZED を返す", async () => {
+      const { context } = createTestContext(null);
 
       const caller = appRouter.createCaller(context);
 
       await expect(caller.users.me()).rejects.toMatchObject({
-        code: "BAD_REQUEST",
+        code: "UNAUTHORIZED",
       });
     });
 
-    test("updateProfile: actorId 空文字で userId() が BAD_REQUEST を返す", async () => {
-      const { context } = createTestContext("");
+    test("updateProfile: actorId null で UNAUTHORIZED を返す", async () => {
+      const { context } = createTestContext(null);
 
       const caller = appRouter.createCaller(context);
 
@@ -224,11 +224,11 @@ describe("user tRPC ルーター", () => {
           name: "Name",
           email: "email@example.com",
         }),
-      ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+      ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     });
 
-    test("changePassword: actorId 空文字で userId() が BAD_REQUEST を返す", async () => {
-      const { context } = createTestContext("");
+    test("changePassword: actorId null で UNAUTHORIZED を返す", async () => {
+      const { context } = createTestContext(null);
 
       const caller = appRouter.createCaller(context);
 
@@ -237,7 +237,7 @@ describe("user tRPC ルーター", () => {
           currentPassword: "oldpass12",
           newPassword: "newpass12",
         }),
-      ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+      ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     });
   });
 });
