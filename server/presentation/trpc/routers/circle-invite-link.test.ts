@@ -1,13 +1,12 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
-import { appRouter } from "@/server/presentation/trpc/router";
-import type { Context } from "@/server/presentation/trpc/context";
+import { ForbiddenError } from "@/server/domain/common/errors";
 import {
   circleId,
   circleInviteLinkId,
-  inviteLinkToken,
   userId,
 } from "@/server/domain/common/ids";
-import { ForbiddenError } from "@/server/domain/common/errors";
+import type { Context } from "@/server/presentation/trpc/context";
+import { appRouter } from "@/server/presentation/trpc/router";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 const TEST_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440000";
 
