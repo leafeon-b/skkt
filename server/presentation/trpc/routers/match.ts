@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { NotFoundError } from "@/server/domain/common/errors";
 import { matchId } from "@/server/domain/common/ids";
 import {
   matchCreateInputSchema,
@@ -40,7 +41,7 @@ export const matchRouter = router({
           id: input.matchId,
         });
         if (!match) {
-          throw new Error("Match not found");
+          throw new NotFoundError("Match");
         }
         return toMatchDto(match);
       }),
