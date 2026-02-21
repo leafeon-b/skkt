@@ -1,5 +1,5 @@
 import { formatDateTimeRange } from "@/lib/date-utils";
-import { getHolidayDateStringsForRange } from "@/lib/japanese-holidays.server";
+import { getHolidayDateStringsForRange } from "@/server/infrastructure/holiday/japanese-holiday-provider";
 import { CircleRole } from "@/server/domain/services/authz/roles";
 import { NotFoundError } from "@/server/domain/common/errors";
 import { appRouter } from "@/server/presentation/trpc/router";
