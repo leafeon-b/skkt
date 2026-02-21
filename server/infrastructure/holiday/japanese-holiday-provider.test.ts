@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getHolidayDateStrings } from "./japanese-holidays.server";
+import { getHolidayDateStrings } from "./japanese-holiday-provider";
 
 describe("getHolidayDateStrings", () => {
   it("元日（1月1日）を含む", () => {
