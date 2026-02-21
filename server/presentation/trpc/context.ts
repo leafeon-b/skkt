@@ -1,7 +1,4 @@
-import {
-  createGetSession,
-  createGetSessionUserId,
-} from "@/server/application/auth/session";
+import { createGetSession } from "@/server/application/auth/session";
 import { createServiceContainer } from "@/server/application/service-container";
 import type { ServiceContainer } from "@/server/application/service-container";
 import { nextAuthSessionService } from "@/server/infrastructure/auth/nextauth-session-service";
@@ -21,7 +18,6 @@ import {
   verifyPassword,
 } from "@/server/infrastructure/auth/password";
 
-const getSessionUserId = createGetSessionUserId(nextAuthSessionService);
 const getSession = createGetSession(nextAuthSessionService);
 
 const buildServiceContainer = (): ServiceContainer =>
@@ -42,7 +38,8 @@ const buildServiceContainer = (): ServiceContainer =>
   });
 
 export const createContext = async () => {
-  const actorId = await getSessionUserId();
+  const session = await getSession();
+  const actorId = session?.user?.id ?? null;
   const services = buildServiceContainer();
 
   return {
@@ -52,23 +49,3 @@ export const createContext = async () => {
 };
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
-
-/**
- * 公開ページ（未認証ユーザーもアクセス可能）向けコンテキスト。
- * tRPC ルーターでは使用しないこと。
- *
- * 認証なしでアクセス可能なため、サービスの追加は最小限に留めること。
- * 使用箇所は ESLint ルールで invite-link-provider に制限されている。
- */
-export const createPublicContext = async () => {
-  const session = await getSession();
-  const actorId = session?.user?.id ?? null;
-  const { circleInviteLinkService } = buildServiceContainer();
-
-  return {
-    actorId,
-    circleInviteLinkService,
-  };
-};
-
-export type PublicContext = Awaited<ReturnType<typeof createPublicContext>>;
