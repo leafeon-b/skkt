@@ -56,15 +56,18 @@ export type Context = Awaited<ReturnType<typeof createContext>>;
 /**
  * 公開ページ（未認証ユーザーもアクセス可能）向けコンテキスト。
  * tRPC ルーターでは使用しないこと。
+ *
+ * 認証なしでアクセス可能なため、サービスの追加は最小限に留めること。
+ * 使用箇所は ESLint ルールで invite-link-provider に制限されている。
  */
 export const createPublicContext = async () => {
   const session = await getSession();
   const actorId = session?.user?.id ?? null;
-  const services = buildServiceContainer();
+  const { circleInviteLinkService } = buildServiceContainer();
 
   return {
     actorId,
-    ...services,
+    circleInviteLinkService,
   };
 };
 
