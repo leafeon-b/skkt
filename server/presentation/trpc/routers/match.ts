@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { matchId, userId } from "@/server/domain/common/ids";
+import { matchId } from "@/server/domain/common/ids";
 import {
   matchCreateInputSchema,
   matchDeleteInputSchema,
@@ -23,7 +23,7 @@ export const matchRouter = router({
     .query(({ ctx, input }) =>
       handleTrpcError(async () => {
         const matches = await ctx.matchService.listByCircleSessionId({
-          actorId: userId(ctx.actorId),
+          actorId: ctx.actorId,
           circleSessionId: input.circleSessionId,
         });
         return toMatchDtos(matches);
@@ -36,7 +36,7 @@ export const matchRouter = router({
     .query(({ ctx, input }) =>
       handleTrpcError(async () => {
         const match = await ctx.matchService.getMatch({
-          actorId: userId(ctx.actorId),
+          actorId: ctx.actorId,
           id: input.matchId,
         });
         if (!match) {
@@ -52,7 +52,7 @@ export const matchRouter = router({
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
         const match = await ctx.matchService.recordMatch({
-          actorId: userId(ctx.actorId),
+          actorId: ctx.actorId,
           id: matchId(randomUUID()),
           circleSessionId: input.circleSessionId,
           player1Id: input.player1Id,
@@ -69,7 +69,7 @@ export const matchRouter = router({
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
         const match = await ctx.matchService.updateMatch({
-          actorId: userId(ctx.actorId),
+          actorId: ctx.actorId,
           id: input.matchId,
           player1Id: input.player1Id,
           player2Id: input.player2Id,
@@ -85,7 +85,7 @@ export const matchRouter = router({
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
         const match = await ctx.matchService.deleteMatch({
-          actorId: userId(ctx.actorId),
+          actorId: ctx.actorId,
           id: input.matchId,
         });
         return toMatchDto(match);

@@ -73,7 +73,7 @@ const createContext = () => {
   };
 
   const context: Context = {
-    actorId: "user-1",
+    actorId: userId("user-1"),
     circleService,
     circleParticipationService,
     circleSessionService,
@@ -147,7 +147,7 @@ describe("tRPC router", () => {
     expect(
       mocks.circleParticipationService.addParticipation,
     ).toHaveBeenCalledWith({
-      actorId: "user-1",
+      actorId: userId("user-1"),
       circleId: circleId("circle-1"),
       userId: userId("user-2"),
       role: CircleRole.CircleMember,
@@ -175,7 +175,7 @@ describe("tRPC router", () => {
       },
     ]);
     expect(mocks.circleParticipationService.listByUserId).toHaveBeenCalledWith({
-      actorId: "user-1",
+      actorId: userId("user-1"),
       userId: userId("user-1"),
     });
   });
@@ -213,7 +213,7 @@ describe("tRPC router", () => {
     expect(
       mocks.circleSessionParticipationService.listByUserId,
     ).toHaveBeenCalledWith({
-      actorId: "user-1",
+      actorId: userId("user-1"),
       userId: userId("user-1"),
       limit: 3,
     });
@@ -551,7 +551,7 @@ describe("tRPC router", () => {
     expect(result.name).toBe("新しい研究会");
     expect(mocks.circleService.createCircle).toHaveBeenCalledWith(
       expect.objectContaining({
-        actorId: "user-1",
+        actorId: userId("user-1"),
         name: "新しい研究会",
       }),
     );
@@ -589,7 +589,7 @@ describe("tRPC router", () => {
     expect(
       mocks.circleParticipationService.listByCircleId,
     ).toHaveBeenCalledWith({
-      actorId: "user-1",
+      actorId: userId("user-1"),
       circleId: circleId("circle-1"),
     });
   });
@@ -611,7 +611,7 @@ describe("tRPC router", () => {
     expect(
       mocks.circleParticipationService.changeParticipationRole,
     ).toHaveBeenCalledWith({
-      actorId: "user-1",
+      actorId: userId("user-1"),
       circleId: circleId("circle-1"),
       userId: userId("user-2"),
       role: CircleRole.CircleManager,
@@ -634,7 +634,7 @@ describe("tRPC router", () => {
     expect(
       mocks.circleParticipationService.removeParticipation,
     ).toHaveBeenCalledWith({
-      actorId: "user-1",
+      actorId: userId("user-1"),
       circleId: circleId("circle-1"),
       userId: userId("user-2"),
     });
@@ -657,7 +657,7 @@ describe("tRPC router", () => {
     expect(
       mocks.circleParticipationService.transferOwnership,
     ).toHaveBeenCalledWith({
-      actorId: "user-1",
+      actorId: userId("user-1"),
       circleId: circleId("circle-1"),
       fromUserId: userId("user-1"),
       toUserId: userId("user-2"),
@@ -777,7 +777,7 @@ describe("tRPC router", () => {
     expect(
       mocks.circleSessionParticipationService.listParticipations,
     ).toHaveBeenCalledWith({
-      actorId: "user-1",
+      actorId: userId("user-1"),
       circleSessionId: circleSessionId("session-1"),
     });
   });
@@ -799,7 +799,7 @@ describe("tRPC router", () => {
     expect(
       mocks.circleSessionParticipationService.addParticipation,
     ).toHaveBeenCalledWith({
-      actorId: "user-1",
+      actorId: userId("user-1"),
       circleSessionId: circleSessionId("session-1"),
       userId: userId("user-3"),
       role: CircleSessionRole.CircleSessionMember,
@@ -822,7 +822,7 @@ describe("tRPC router", () => {
     expect(
       mocks.circleSessionParticipationService.removeParticipation,
     ).toHaveBeenCalledWith({
-      actorId: "user-1",
+      actorId: userId("user-1"),
       circleSessionId: circleSessionId("session-1"),
       userId: userId("user-3"),
     });

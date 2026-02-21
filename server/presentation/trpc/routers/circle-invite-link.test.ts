@@ -18,7 +18,7 @@ const createTestContext = () => {
   };
 
   const context: Context = {
-    actorId: "user-1",
+    actorId: userId("user-1"),
     circleService: {
       getCircle: vi.fn(),
       createCircle: vi.fn(),
@@ -103,7 +103,7 @@ describe("circleInviteLink tRPC ルーター", () => {
     expect(result.circleId).toBe("circle-1");
     expect(mocks.circleInviteLinkService.createInviteLink).toHaveBeenCalledWith(
       {
-        actorId: "user-1",
+        actorId: userId("user-1"),
         circleId: circleId("circle-1"),
         expiryDays: undefined,
       },
@@ -144,7 +144,7 @@ describe("circleInviteLink tRPC ルーター", () => {
     expect(result.alreadyMember).toBe(false);
     expect(mocks.circleInviteLinkService.redeemInviteLink).toHaveBeenCalledWith(
       {
-        actorId: "user-1",
+        actorId: userId("user-1"),
         token: TEST_TOKEN_UUID,
       },
     );

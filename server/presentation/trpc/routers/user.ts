@@ -15,7 +15,6 @@ import { handleTrpcError } from "@/server/presentation/trpc/errors";
 import { protectedProcedure, router } from "@/server/presentation/trpc/trpc";
 import { userCircleRouter } from "@/server/presentation/trpc/routers/user-circle";
 import { userCircleSessionRouter } from "@/server/presentation/trpc/routers/user-circle-session";
-import { userId } from "@/server/domain/common/ids";
 import { z } from "zod";
 
 export const userRouter = router({
@@ -52,7 +51,7 @@ export const userRouter = router({
   me: protectedProcedure.output(meDtoSchema).query(({ ctx }) =>
     handleTrpcError(async () => {
       const { user, hasPassword } = await ctx.userService.getMe(
-        userId(ctx.actorId),
+        ctx.actorId,
       );
       return { ...toUserDto(user), hasPassword };
     }),
@@ -64,7 +63,7 @@ export const userRouter = router({
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
         await ctx.userService.updateProfile(
-          userId(ctx.actorId),
+          ctx.actorId,
           input.name,
           input.email,
         );
@@ -77,7 +76,7 @@ export const userRouter = router({
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
         await ctx.userService.changePassword(
-          userId(ctx.actorId),
+          ctx.actorId,
           input.currentPassword,
           input.newPassword,
         );
