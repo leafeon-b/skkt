@@ -43,7 +43,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       data: {
         id: "link-active",
         circleId: CIRCLE_ID,
-        token: "token-active",
+        token: "a0000000-0000-4000-8000-000000000001",
         createdByUserId: USER_ID,
         expiresAt: activeExpiresAt,
       },
@@ -55,7 +55,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       data: {
         id: "link-expired",
         circleId: CIRCLE_ID,
-        token: "token-expired",
+        token: "a0000000-0000-4000-8000-000000000002",
         createdByUserId: USER_ID,
         expiresAt: expiredExpiresAt,
       },
@@ -65,7 +65,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
 
     expect(result).not.toBeNull();
     expect(result!.id).toBe("link-active");
-    expect(result!.token).toBe("token-active");
+    expect(result!.token).toBe("a0000000-0000-4000-8000-000000000001");
   });
 
   it("AC2: すべて期限切れの場合、null を返す", async () => {
@@ -77,7 +77,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       data: {
         id: "link-expired-1",
         circleId: CIRCLE_ID,
-        token: "token-expired-1",
+        token: "a0000000-0000-4000-8000-000000000003",
         createdByUserId: USER_ID,
         expiresAt: new Date(now.getTime() - 60 * 60 * 1000),
       },
@@ -86,7 +86,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       data: {
         id: "link-expired-2",
         circleId: CIRCLE_ID,
-        token: "token-expired-2",
+        token: "a0000000-0000-4000-8000-000000000004",
         createdByUserId: USER_ID,
         expiresAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
       },
@@ -109,7 +109,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       data: {
         id: "link-boundary",
         circleId: CIRCLE_ID,
-        token: "token-boundary",
+        token: "a0000000-0000-4000-8000-000000000005",
         createdByUserId: USER_ID,
         expiresAt,
       },
@@ -129,7 +129,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       data: {
         id: "link-active-old",
         circleId: CIRCLE_ID,
-        token: "token-active-old",
+        token: "a0000000-0000-4000-8000-000000000006",
         createdByUserId: USER_ID,
         expiresAt: new Date(now.getTime() + 2 * 60 * 60 * 1000),
         createdAt: new Date(now.getTime() - 60 * 60 * 1000),
@@ -141,7 +141,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       data: {
         id: "link-active-new",
         circleId: CIRCLE_ID,
-        token: "token-active-new",
+        token: "a0000000-0000-4000-8000-000000000007",
         createdByUserId: USER_ID,
         expiresAt: new Date(now.getTime() + 2 * 60 * 60 * 1000),
         createdAt: now,
@@ -163,7 +163,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       data: {
         id: "link-active",
         circleId: CIRCLE_ID,
-        token: "token-active",
+        token: "a0000000-0000-4000-8000-000000000008",
         createdByUserId: USER_ID,
         expiresAt: new Date(now.getTime() + 60 * 60 * 1000),
       },
@@ -174,7 +174,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       data: {
         id: "link-expired-1",
         circleId: CIRCLE_ID,
-        token: "token-expired-1",
+        token: "a0000000-0000-4000-8000-000000000009",
         createdByUserId: USER_ID,
         expiresAt: new Date(now.getTime() - 60 * 60 * 1000),
       },
@@ -185,7 +185,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       data: {
         id: "link-expired-2",
         circleId: CIRCLE_ID,
-        token: "token-expired-2",
+        token: "a0000000-0000-4000-8000-00000000000a",
         createdByUserId: USER_ID,
         expiresAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
       },
