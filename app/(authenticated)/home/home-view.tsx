@@ -1,6 +1,5 @@
 "use client";
 
-import CircleCreateForm from "@/app/(authenticated)/home/circle-create-form";
 import {
   SessionCalendar,
   type SessionExtendedProps,
@@ -38,7 +37,7 @@ export function HomeView({ viewModel }: { viewModel: HomeViewModel }) {
         <div className="absolute inset-0 opacity-25 bg-[linear-gradient(90deg,rgba(0,0,0,0.04)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.04)_1px,transparent_1px)] bg-size-[32px_32px]" />
       </div>
 
-      <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+      <section>
         {nextSession ? (
           <Link
             href={`/circle-sessions/${nextSession.circleSessionId}`}
@@ -73,13 +72,6 @@ export function HomeView({ viewModel }: { viewModel: HomeViewModel }) {
             </p>
           </div>
         )}
-
-        <div
-          className="flex items-center rounded-2xl border border-border/60 bg-white/85 p-6 shadow-sm motion-safe:animate-[rise_0.7s_ease-out]"
-          style={{ animationDelay: "140ms" }}
-        >
-          <CircleCreateForm />
-        </div>
       </section>
 
       <section>

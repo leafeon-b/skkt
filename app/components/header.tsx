@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { CircleCreateDialog } from "./circle-create-dialog";
 import UserMenu from "./user-menu";
 
 export default function Header() {
@@ -19,7 +20,10 @@ export default function Header() {
         />
       </div>
 
-      <UserMenu />
+      <div className="flex items-center gap-3">
+        <CircleCreateDialog />
+        <UserMenu />
+      </div>
     </header>
   );
 }
