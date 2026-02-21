@@ -23,7 +23,7 @@ export const toTrpcError = (error: unknown): TRPCError => {
     return new TRPCError({ code: error.code, message: error.message });
   }
 
-  // フォールバック（移行期間中の互換性維持）
+  // フォールバック（移行期間中の互換性維持: Unauthorized, Forbidden）
   const message = toMessage(error);
 
   if (message === "Unauthorized") {
@@ -32,10 +32,6 @@ export const toTrpcError = (error: unknown): TRPCError => {
 
   if (message === "Forbidden") {
     return new TRPCError({ code: "FORBIDDEN", message });
-  }
-
-  if (message.endsWith("not found")) {
-    return new TRPCError({ code: "NOT_FOUND", message: "Resource not found" });
   }
 
   console.error("Unhandled error in tRPC handler:", error);

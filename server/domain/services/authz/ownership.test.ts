@@ -85,7 +85,7 @@ describe("Owner の不変条件", () => {
         userId("user-1"),
         userId("user-2"),
       ),
-    ).toThrow("Target member not found");
+    ).toThrow("TargetMember not found");
   });
 
   test("transferCircleOwnership は同一ユーザーへの移譲を拒否する", () => {
@@ -211,7 +211,7 @@ describe("Owner の不変条件", () => {
         userId("user-1"),
         userId("user-2"),
       ),
-    ).toThrow("Target member not found");
+    ).toThrow("TargetMember not found");
   });
 });
 

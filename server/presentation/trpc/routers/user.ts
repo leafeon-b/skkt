@@ -11,6 +11,7 @@ import {
   toUserDto,
   toUserDtos,
 } from "@/server/presentation/mappers/user-mapper";
+import { NotFoundError } from "@/server/domain/common/errors";
 import { handleTrpcError } from "@/server/presentation/trpc/errors";
 import { protectedProcedure, router } from "@/server/presentation/trpc/trpc";
 import { userCircleRouter } from "@/server/presentation/trpc/routers/user-circle";
@@ -25,7 +26,7 @@ export const userRouter = router({
       handleTrpcError(async () => {
         const user = await ctx.userService.getUser(ctx.actorId, input.userId);
         if (!user) {
-          throw new Error("User not found");
+          throw new NotFoundError("User");
         }
         return toUserDto(user);
       }),

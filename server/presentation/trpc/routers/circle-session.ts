@@ -14,6 +14,7 @@ import {
   toCircleSessionDtos,
 } from "@/server/presentation/mappers/circle-session-mapper";
 import { circleSessionParticipationRouter } from "@/server/presentation/trpc/routers/circle-session-participation";
+import { NotFoundError } from "@/server/domain/common/errors";
 import { handleTrpcError } from "@/server/presentation/trpc/errors";
 import { protectedProcedure, router } from "@/server/presentation/trpc/trpc";
 
@@ -41,7 +42,7 @@ export const circleSessionRouter = router({
           input.circleSessionId,
         );
         if (!session) {
-          throw new Error("CircleSession not found");
+          throw new NotFoundError("CircleSession");
         }
         return toCircleSessionDto(session);
       }),

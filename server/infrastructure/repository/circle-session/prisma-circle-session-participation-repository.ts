@@ -7,6 +7,7 @@ import {
 } from "@/server/infrastructure/mappers/circle-session-participation-mapper";
 import type { CircleSessionRole } from "@/server/domain/services/authz/roles";
 import type { CircleSessionParticipation } from "@/server/domain/models/circle-session/circle-session-participation";
+import { NotFoundError } from "@/server/domain/common/errors";
 import {
   toPersistenceId,
   toPersistenceIds,
@@ -87,7 +88,7 @@ export const createPrismaCircleSessionParticipationRepository = (
       data: { role: persistedRole },
     });
     if (result.count === 0) {
-      throw new Error("CircleSessionMembership not found");
+      throw new NotFoundError("CircleSessionMembership");
     }
   },
 
@@ -128,7 +129,7 @@ export const createPrismaCircleSessionParticipationRepository = (
       data: { deletedAt: new Date() },
     });
     if (result.count === 0) {
-      throw new Error("CircleSessionMembership not found");
+      throw new NotFoundError("CircleSessionMembership");
     }
   },
 });
