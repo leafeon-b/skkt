@@ -132,6 +132,34 @@ describe("CircleSession 参加関係サービス", () => {
     ]);
   });
 
+  test("addParticipation は論理削除済みユーザーをセッションに再参加できる", async () => {
+    // listParticipations はアクティブメンバーのみ返す（論理削除済みユーザーは含まれない）
+    vi.mocked(
+      circleSessionParticipationRepository.listParticipations,
+    ).mockResolvedValueOnce([
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionOwner",
+      },
+    ]);
+
+    await service.addParticipation({
+      actorId: "user-actor",
+      circleSessionId: circleSessionId("session-1"),
+      userId: userId("user-rejoining"),
+      role: "CircleSessionMember",
+    });
+
+    expect(
+      circleSessionParticipationRepository.addParticipation,
+    ).toHaveBeenCalledWith(
+      circleSessionId("session-1"),
+      userId("user-rejoining"),
+      "CircleSessionMember",
+    );
+  });
+
   test("addParticipation は既存メンバーの重複追加で ConflictError", async () => {
     vi.mocked(
       circleSessionParticipationRepository.listParticipations,
