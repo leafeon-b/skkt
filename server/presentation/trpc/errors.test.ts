@@ -76,18 +76,8 @@ describe("toTrpcError", () => {
     });
   });
 
-  describe("フォールバック文字列マッチ", () => {
-    test('"Unauthorized" -> UNAUTHORIZED', () => {
-      const result = toTrpcError(new Error("Unauthorized"));
-      expect(result.code).toBe("UNAUTHORIZED");
-    });
-
-    test('"Forbidden" -> FORBIDDEN', () => {
-      const result = toTrpcError(new Error("Forbidden"));
-      expect(result.code).toBe("FORBIDDEN");
-    });
-
-    test('"xxx not found" -> INTERNAL_SERVER_ERROR（フォールバック削除済み）', () => {
+  describe("未分類エラーのフォールバック", () => {
+    test('"xxx not found" 文字列エラーは INTERNAL_SERVER_ERROR になる', () => {
       const spy = vi.spyOn(console, "error").mockImplementation(() => {});
       const result = toTrpcError(new Error("User cid_secret not found"));
       expect(result.code).toBe("INTERNAL_SERVER_ERROR");
@@ -95,9 +85,7 @@ describe("toTrpcError", () => {
       expect(result.message).not.toContain("cid_secret");
       spy.mockRestore();
     });
-  });
 
-  describe("未分類エラーのフォールバック", () => {
     test("生メッセージが漏洩せず INTERNAL_SERVER_ERROR が返る", () => {
       const spy = vi.spyOn(console, "error").mockImplementation(() => {});
       const original = new Error("DB connection failed: host=secret-db");

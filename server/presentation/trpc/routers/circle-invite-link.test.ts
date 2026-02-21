@@ -7,6 +7,7 @@ import {
   inviteLinkToken,
   userId,
 } from "@/server/domain/common/ids";
+import { ForbiddenError } from "@/server/domain/common/errors";
 
 const TEST_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440000";
 
@@ -168,7 +169,7 @@ describe("circleInviteLink tRPC ルーター", () => {
   test("circles.inviteLinks.create はエラー時に適切なTRPCエラーを返す", async () => {
     const { context, mocks } = createTestContext();
     mocks.circleInviteLinkService.createInviteLink.mockRejectedValueOnce(
-      new Error("Forbidden"),
+      new ForbiddenError(),
     );
 
     const caller = appRouter.createCaller(context);

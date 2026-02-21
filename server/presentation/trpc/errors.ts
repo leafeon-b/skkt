@@ -1,9 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { DomainError } from "@/server/domain/common/errors";
 
-const toMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : "Unknown error";
-
 export const toTrpcError = (error: unknown): TRPCError => {
   if (error instanceof TRPCError) {
     if (error.code === "INTERNAL_SERVER_ERROR") {
@@ -21,17 +18,6 @@ export const toTrpcError = (error: unknown): TRPCError => {
   // Do not include dynamic data (IDs, emails, SQL, etc.) in DomainError messages.
   if (error instanceof DomainError) {
     return new TRPCError({ code: error.code, message: error.message });
-  }
-
-  // フォールバック（移行期間中の互換性維持: Unauthorized, Forbidden）
-  const message = toMessage(error);
-
-  if (message === "Unauthorized") {
-    return new TRPCError({ code: "UNAUTHORIZED", message });
-  }
-
-  if (message === "Forbidden") {
-    return new TRPCError({ code: "FORBIDDEN", message });
   }
 
   console.error("Unhandled error in tRPC handler:", error);

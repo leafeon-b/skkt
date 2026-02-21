@@ -12,6 +12,7 @@ import {
   CircleRole,
   CircleSessionRole,
 } from "@/server/domain/services/authz/roles";
+import { ForbiddenError } from "@/server/domain/common/errors";
 
 const createContext = () => {
   const circleService = {
@@ -258,7 +259,7 @@ describe("tRPC router", () => {
   test("circles.delete は権限エラーで FORBIDDEN", async () => {
     const { context, mocks } = createContext();
     mocks.circleService.deleteCircle.mockRejectedValueOnce(
-      new Error("Forbidden"),
+      new ForbiddenError(),
     );
 
     const caller = appRouter.createCaller(context);
