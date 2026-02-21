@@ -7,6 +7,7 @@ import {
   mapCircleParticipationFromPersistence,
   mapCircleRoleToPersistence,
 } from "@/server/infrastructure/mappers/circle-participation-mapper";
+import { NotFoundError } from "@/server/domain/common/errors";
 import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 
 export const createPrismaCircleParticipationRepository = (
@@ -79,7 +80,7 @@ export const createPrismaCircleParticipationRepository = (
       data: { role: persistedRole },
     });
     if (result.count === 0) {
-      throw new Error("CircleMembership not found");
+      throw new NotFoundError("CircleMembership");
     }
   },
 
@@ -96,7 +97,7 @@ export const createPrismaCircleParticipationRepository = (
       data: { deletedAt: new Date() },
     });
     if (result.count === 0) {
-      throw new Error("CircleMembership not found");
+      throw new NotFoundError("CircleMembership");
     }
   },
 });

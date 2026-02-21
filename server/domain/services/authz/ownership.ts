@@ -1,4 +1,4 @@
-import { ForbiddenError } from "@/server/domain/common/errors";
+import { ForbiddenError, NotFoundError } from "@/server/domain/common/errors";
 import type { UserId } from "@/server/domain/common/ids";
 import { assertDifferentIds } from "@/server/domain/common/validation";
 import {
@@ -81,7 +81,7 @@ export const transferCircleOwnership = (
 
   const target = members.find((member) => member.userId === toUserId);
   if (!target) {
-    throw new Error("Target member not found");
+    throw new NotFoundError("TargetMember");
   }
 
   const updated = members.map((member) => {
@@ -172,7 +172,7 @@ export const transferCircleSessionOwnership = (
 
   const target = members.find((member) => member.userId === toUserId);
   if (!target) {
-    throw new Error("Target member not found");
+    throw new NotFoundError("TargetMember");
   }
 
   const updated = members.map((member) => {

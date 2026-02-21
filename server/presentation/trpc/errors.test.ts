@@ -87,11 +87,13 @@ describe("toTrpcError", () => {
       expect(result.code).toBe("FORBIDDEN");
     });
 
-    test('"xxx not found" -> NOT_FOUND（生メッセージは漏洩しない）', () => {
+    test('"xxx not found" -> INTERNAL_SERVER_ERROR（フォールバック削除済み）', () => {
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
       const result = toTrpcError(new Error("User cid_secret not found"));
-      expect(result.code).toBe("NOT_FOUND");
-      expect(result.message).toBe("Resource not found");
+      expect(result.code).toBe("INTERNAL_SERVER_ERROR");
+      expect(result.message).toBe("Internal server error");
       expect(result.message).not.toContain("cid_secret");
+      spy.mockRestore();
     });
   });
 

@@ -11,6 +11,7 @@ import {
 import { circleParticipationRouter } from "@/server/presentation/trpc/routers/circle-participation";
 import { circleInviteLinkRouter } from "@/server/presentation/trpc/routers/circle-invite-link";
 import { toCircleDto } from "@/server/presentation/mappers/circle-mapper";
+import { NotFoundError } from "@/server/domain/common/errors";
 import { handleTrpcError } from "@/server/presentation/trpc/errors";
 import { protectedProcedure, router } from "@/server/presentation/trpc/trpc";
 
@@ -25,7 +26,7 @@ export const circleRouter = router({
           input.circleId,
         );
         if (!circle) {
-          throw new Error("Circle not found");
+          throw new NotFoundError("Circle");
         }
         return toCircleDto(circle);
       }),
