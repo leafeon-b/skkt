@@ -191,6 +191,35 @@ describe("Circle 参加関係サービス", () => {
     ).rejects.toThrow("Circle not found");
   });
 
+  test("addParticipation は論理削除済みユーザーを再加入できる", async () => {
+    // listByCircleId はアクティブメンバーのみ返す（論理削除済みユーザーは含まれない）
+    vi.mocked(
+      circleParticipationRepository.listByCircleId,
+    ).mockResolvedValueOnce([
+      {
+        circleId: circleId("circle-1"),
+        userId: userId("user-owner"),
+        role: "CircleOwner",
+        createdAt: new Date("2025-01-01T00:00:00Z"),
+      },
+    ]);
+
+    await service.addParticipation({
+      actorId: "user-actor",
+      circleId: circleId("circle-1"),
+      userId: userId("user-rejoining"),
+      role: "CircleMember",
+    });
+
+    expect(
+      circleParticipationRepository.addParticipation,
+    ).toHaveBeenCalledWith(
+      circleId("circle-1"),
+      userId("user-rejoining"),
+      "CircleMember",
+    );
+  });
+
   test("addParticipation は既存メンバーの重複追加で ConflictError", async () => {
     vi.mocked(
       circleParticipationRepository.listByCircleId,
