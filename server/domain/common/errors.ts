@@ -10,6 +10,7 @@ export type DomainErrorCode =
   | "FORBIDDEN"
   | "UNAUTHORIZED"
   | "BAD_REQUEST"
+  | "CONFLICT"
   | "TOO_MANY_REQUESTS";
 
 export class DomainError extends Error {
@@ -47,6 +48,13 @@ export class BadRequestError extends DomainError {
   constructor(message: string) {
     super(message, "BAD_REQUEST");
     this.name = "BadRequestError";
+  }
+}
+
+export class ConflictError extends DomainError {
+  constructor(message: string) {
+    super(message, "CONFLICT");
+    this.name = "ConflictError";
   }
 }
 

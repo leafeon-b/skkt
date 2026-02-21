@@ -19,7 +19,7 @@ import { CircleSessionRole } from "@/server/domain/services/authz/roles";
 import type { CircleSessionParticipation } from "@/server/domain/models/circle-session/circle-session-participation";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import {
-  BadRequestError,
+  ConflictError,
   ForbiddenError,
   NotFoundError,
 } from "@/server/domain/common/errors";
@@ -162,7 +162,7 @@ export const createCircleSessionParticipationService = (
       );
 
     if (participations.some((member) => member.userId === params.userId)) {
-      throw new BadRequestError("Participation already exists");
+      throw new ConflictError("Participation already exists");
     }
 
     assertCanAddParticipantWithRole(participations, params.role);

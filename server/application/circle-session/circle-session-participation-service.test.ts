@@ -4,6 +4,7 @@ import { createAccessServiceStub } from "@/server/application/test-helpers/acces
 import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
+import { ConflictError } from "@/server/domain/common/errors";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 
 const circleSessionParticipationRepository = {
@@ -129,6 +130,31 @@ describe("CircleSession 参加関係サービス", () => {
         role: "CircleSessionOwner",
       },
     ]);
+  });
+
+  test("addParticipation は既存メンバーの重複追加で ConflictError", async () => {
+    vi.mocked(
+      circleSessionParticipationRepository.listParticipations,
+    ).mockResolvedValueOnce([
+      {
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionOwner",
+      },
+    ]);
+
+    await expect(
+      service.addParticipation({
+        actorId: "user-actor",
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionMember",
+      }),
+    ).rejects.toThrow(ConflictError);
+
+    expect(
+      circleSessionParticipationRepository.addParticipation,
+    ).not.toHaveBeenCalled();
   });
 
   test("addParticipation は Owner がいない状態で Member を拒否する", async () => {

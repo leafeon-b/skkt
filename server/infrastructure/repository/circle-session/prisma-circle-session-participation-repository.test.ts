@@ -11,7 +11,9 @@ vi.mock("@/server/infrastructure/db", () => ({
   },
 }));
 
+import { ConflictError } from "@/server/domain/common/errors";
 import { prisma } from "@/server/infrastructure/db";
+import { Prisma } from "@/generated/prisma/client";
 import { circleSessionId, userId } from "@/server/domain/common/ids";
 import { prismaCircleSessionParticipationRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-participation-repository";
 
@@ -207,6 +209,41 @@ describe("Prisma CircleSession 参加者リポジトリ", () => {
         role: "CircleSessionMember",
       },
     });
+  });
+
+  test("addParticipation は P2002（一意制約違反）で ConflictError をスローする", async () => {
+    mockedPrisma.circleSessionMembership.create.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+        code: "P2002",
+        clientVersion: "0.0.0",
+      }),
+    );
+
+    await expect(
+      prismaCircleSessionParticipationRepository.addParticipation(
+        circleSessionId("session-1"),
+        userId("user-1"),
+        "CircleSessionMember",
+      ),
+    ).rejects.toThrow(ConflictError);
+  });
+
+  test("addParticipation は P2002 以外の Prisma エラーはそのまま伝播する", async () => {
+    const otherError = new Prisma.PrismaClientKnownRequestError(
+      "Foreign key constraint failed",
+      { code: "P2003", clientVersion: "0.0.0" },
+    );
+    mockedPrisma.circleSessionMembership.create.mockRejectedValueOnce(
+      otherError,
+    );
+
+    await expect(
+      prismaCircleSessionParticipationRepository.addParticipation(
+        circleSessionId("session-1"),
+        userId("user-1"),
+        "CircleSessionMember",
+      ),
+    ).rejects.toThrow(otherError);
   });
 
   test("updateParticipationRole は参加者のロールを更新する", async () => {
