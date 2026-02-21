@@ -174,4 +174,8 @@
     );
     background-attachment: fixed;
   }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
 }
