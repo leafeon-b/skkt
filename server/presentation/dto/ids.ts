@@ -3,6 +3,7 @@ import type {
   CircleId,
   CircleInviteLinkId,
   CircleSessionId,
+  InviteLinkToken,
   MatchHistoryId,
   MatchId,
   UserId,
@@ -11,6 +12,7 @@ import {
   circleId,
   circleInviteLinkId,
   circleSessionId,
+  inviteLinkToken,
   matchHistoryId,
   matchId,
   userId,
@@ -31,3 +33,9 @@ export const matchHistoryIdSchema =
   makeIdSchema<MatchHistoryId>(matchHistoryId);
 export const circleInviteLinkIdSchema =
   makeIdSchema<CircleInviteLinkId>(circleInviteLinkId);
+
+export const inviteLinkTokenSchema: z.ZodType<
+  InviteLinkToken,
+  z.ZodTypeDef,
+  string
+> = z.string().uuid().transform(inviteLinkToken);

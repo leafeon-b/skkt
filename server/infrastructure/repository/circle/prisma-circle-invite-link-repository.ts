@@ -1,5 +1,5 @@
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
-import type { CircleId } from "@/server/domain/common/ids";
+import type { CircleId, InviteLinkToken } from "@/server/domain/common/ids";
 import type { CircleInviteLink } from "@/server/domain/models/circle/circle-invite-link";
 import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
 import {
@@ -11,7 +11,7 @@ import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 export const createPrismaCircleInviteLinkRepository = (
   client: PrismaClientLike,
 ): CircleInviteLinkRepository => ({
-  async findByToken(token: string): Promise<CircleInviteLink | null> {
+  async findByToken(token: InviteLinkToken): Promise<CircleInviteLink | null> {
     const found = await client.circleInviteLink.findUnique({
       where: { token },
     });

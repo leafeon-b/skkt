@@ -4,8 +4,11 @@ import type { Context } from "@/server/presentation/trpc/context";
 import {
   circleId,
   circleInviteLinkId,
+  inviteLinkToken,
   userId,
 } from "@/server/domain/common/ids";
+
+const TEST_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440000";
 
 const createTestContext = () => {
   const circleInviteLinkService = {
@@ -85,7 +88,7 @@ describe("circleInviteLink tRPC ルーター", () => {
     mocks.circleInviteLinkService.createInviteLink.mockResolvedValueOnce({
       id: circleInviteLinkId("link-1"),
       circleId: circleId("circle-1"),
-      token: "test-token-123",
+      token: TEST_TOKEN_UUID,
       createdByUserId: userId("user-1"),
       expiresAt: new Date("2026-02-23T00:00:00Z"),
       createdAt: new Date("2026-02-16T00:00:00Z"),
@@ -96,7 +99,7 @@ describe("circleInviteLink tRPC ルーター", () => {
       circleId: "circle-1",
     });
 
-    expect(result.token).toBe("test-token-123");
+    expect(result.token).toBe(TEST_TOKEN_UUID);
     expect(result.circleId).toBe("circle-1");
     expect(mocks.circleInviteLinkService.createInviteLink).toHaveBeenCalledWith(
       {
@@ -110,7 +113,7 @@ describe("circleInviteLink tRPC ルーター", () => {
   test("circles.inviteLinks.getInfo はリンク情報を返す", async () => {
     const { context, mocks } = createTestContext();
     mocks.circleInviteLinkService.getInviteLinkInfo.mockResolvedValueOnce({
-      token: "test-token-123",
+      token: TEST_TOKEN_UUID,
       circleName: "テスト研究会",
       circleId: circleId("circle-1"),
       expired: false,
@@ -118,7 +121,7 @@ describe("circleInviteLink tRPC ルーター", () => {
 
     const caller = appRouter.createCaller(context);
     const result = await caller.circles.inviteLinks.getInfo({
-      token: "test-token-123",
+      token: TEST_TOKEN_UUID,
     });
 
     expect(result.circleName).toBe("テスト研究会");
@@ -134,7 +137,7 @@ describe("circleInviteLink tRPC ルーター", () => {
 
     const caller = appRouter.createCaller(context);
     const result = await caller.circles.inviteLinks.redeem({
-      token: "test-token-123",
+      token: TEST_TOKEN_UUID,
     });
 
     expect(result.circleId).toBe("circle-1");
@@ -142,7 +145,7 @@ describe("circleInviteLink tRPC ルーター", () => {
     expect(mocks.circleInviteLinkService.redeemInviteLink).toHaveBeenCalledWith(
       {
         actorId: "user-1",
-        token: "test-token-123",
+        token: TEST_TOKEN_UUID,
       },
     );
   });
@@ -156,7 +159,7 @@ describe("circleInviteLink tRPC ルーター", () => {
 
     const caller = appRouter.createCaller(context);
     const result = await caller.circles.inviteLinks.redeem({
-      token: "test-token-123",
+      token: TEST_TOKEN_UUID,
     });
 
     expect(result.alreadyMember).toBe(true);
@@ -173,5 +176,14 @@ describe("circleInviteLink tRPC ルーター", () => {
     await expect(
       caller.circles.inviteLinks.create({ circleId: "circle-1" }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  test("不正な形式のトークンはバリデーションエラーになる", async () => {
+    const { context } = createTestContext();
+    const caller = appRouter.createCaller(context);
+
+    await expect(
+      caller.circles.inviteLinks.getInfo({ token: "not-a-uuid" }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });

@@ -1,8 +1,10 @@
 import { randomUUID } from "crypto";
 import {
   circleInviteLinkId,
+  inviteLinkToken,
   userId,
   type CircleId,
+  type InviteLinkToken,
 } from "@/server/domain/common/ids";
 import {
   BadRequestError,
@@ -34,7 +36,7 @@ export type CircleInviteLinkServiceDeps = {
 };
 
 export type InviteLinkInfo = {
-  token: string;
+  token: InviteLinkToken;
   circleName: string;
   circleId: CircleId;
   expired: boolean;
@@ -80,7 +82,7 @@ export const createCircleInviteLinkService = (
     const link = createCircleInviteLink({
       id: circleInviteLinkId(generateId()),
       circleId: params.circleId,
-      token: generateToken(),
+      token: inviteLinkToken(generateToken()),
       createdByUserId: userId(params.actorId),
       expiresAt,
     });
@@ -90,7 +92,7 @@ export const createCircleInviteLinkService = (
     return link;
   },
 
-  async getInviteLinkInfo(params: { token: string }): Promise<InviteLinkInfo> {
+  async getInviteLinkInfo(params: { token: InviteLinkToken }): Promise<InviteLinkInfo> {
     const link = await deps.circleInviteLinkRepository.findByToken(
       params.token,
     );
@@ -113,7 +115,7 @@ export const createCircleInviteLinkService = (
 
   async redeemInviteLink(params: {
     actorId: string;
-    token: string;
+    token: InviteLinkToken;
   }): Promise<{ circleId: CircleId; alreadyMember: boolean }> {
     const link = await deps.circleInviteLinkRepository.findByToken(
       params.token,

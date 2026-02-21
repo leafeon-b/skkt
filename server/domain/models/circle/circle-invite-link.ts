@@ -1,13 +1,14 @@
 import type {
   CircleId,
   CircleInviteLinkId,
+  InviteLinkToken,
   UserId,
 } from "@/server/domain/common/ids";
 
 export type CircleInviteLink = {
   id: CircleInviteLinkId;
   circleId: CircleId;
-  token: string;
+  token: InviteLinkToken;
   createdByUserId: UserId;
   expiresAt: Date;
   createdAt: Date;
@@ -16,7 +17,7 @@ export type CircleInviteLink = {
 export type CircleInviteLinkCreateParams = {
   id: CircleInviteLinkId;
   circleId: CircleId;
-  token: string;
+  token: InviteLinkToken;
   createdByUserId: UserId;
   expiresAt: Date;
   createdAt?: Date;

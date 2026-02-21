@@ -7,6 +7,7 @@ import type { CircleParticipationRepository } from "@/server/domain/models/circl
 import {
   circleId,
   circleInviteLinkId,
+  inviteLinkToken,
   userId,
 } from "@/server/domain/common/ids";
 
@@ -33,12 +34,15 @@ const circleParticipationRepository = {
 
 const accessService = createAccessServiceStub();
 
+const TEST_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440000";
+const NONEXISTENT_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440099";
+
 const service = createCircleInviteLinkService({
   circleInviteLinkRepository,
   circleRepository,
   circleParticipationRepository,
   accessService,
-  generateToken: () => "test-token",
+  generateToken: () => TEST_TOKEN_UUID,
   generateId: () => "test-id",
 });
 
@@ -51,7 +55,7 @@ const baseCircle = () => ({
 const baseLink = () => ({
   id: circleInviteLinkId("link-1"),
   circleId: circleId("circle-1"),
-  token: "test-token",
+  token: inviteLinkToken(TEST_TOKEN_UUID),
   createdByUserId: userId("user-1"),
   expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   createdAt: new Date(),
@@ -74,11 +78,11 @@ describe("招待リンクサービス", () => {
         circleId: circleId("circle-1"),
       });
 
-      expect(result.token).toBe("test-token");
+      expect(result.token).toBe(TEST_TOKEN_UUID);
       expect(result.circleId).toBe("circle-1");
       expect(circleInviteLinkRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
-          token: "test-token",
+          token: inviteLinkToken(TEST_TOKEN_UUID),
           circleId: circleId("circle-1"),
         }),
       );
@@ -131,7 +135,7 @@ describe("招待リンクサービス", () => {
         circleId: circleId("circle-1"),
       });
 
-      expect(result.token).toBe("test-token");
+      expect(result.token).toBe(TEST_TOKEN_UUID);
       expect(circleInviteLinkRepository.save).toHaveBeenCalled();
     });
 
@@ -155,7 +159,9 @@ describe("招待リンクサービス", () => {
         baseLink(),
       );
 
-      const result = await service.getInviteLinkInfo({ token: "test-token" });
+      const result = await service.getInviteLinkInfo({
+        token: inviteLinkToken(TEST_TOKEN_UUID),
+      });
 
       expect(result.circleName).toBe("テスト研究会");
       expect(result.circleId).toBe("circle-1");
@@ -171,7 +177,9 @@ describe("招待リンクサービス", () => {
         expiredLink,
       );
 
-      const result = await service.getInviteLinkInfo({ token: "test-token" });
+      const result = await service.getInviteLinkInfo({
+        token: inviteLinkToken(TEST_TOKEN_UUID),
+      });
 
       expect(result.expired).toBe(true);
     });
@@ -180,7 +188,9 @@ describe("招待リンクサービス", () => {
       vi.mocked(circleInviteLinkRepository.findByToken).mockResolvedValue(null);
 
       await expect(
-        service.getInviteLinkInfo({ token: "nonexistent" }),
+        service.getInviteLinkInfo({
+          token: inviteLinkToken(NONEXISTENT_TOKEN_UUID),
+        }),
       ).rejects.toThrow("InviteLink not found");
     });
   });
@@ -198,7 +208,7 @@ describe("招待リンクサービス", () => {
     test("新規ユーザーが招待リンクで参加できる", async () => {
       const result = await service.redeemInviteLink({
         actorId: "user-new",
-        token: "test-token",
+        token: inviteLinkToken(TEST_TOKEN_UUID),
       });
 
       expect(result.circleId).toBe("circle-1");
@@ -226,7 +236,7 @@ describe("招待リンクサービス", () => {
 
       const result = await service.redeemInviteLink({
         actorId: "user-existing",
-        token: "test-token",
+        token: inviteLinkToken(TEST_TOKEN_UUID),
       });
 
       expect(result.alreadyMember).toBe(true);
@@ -247,7 +257,7 @@ describe("招待リンクサービス", () => {
       await expect(
         service.redeemInviteLink({
           actorId: "user-new",
-          token: "test-token",
+          token: inviteLinkToken(TEST_TOKEN_UUID),
         }),
       ).rejects.toThrow("Invite link has expired");
     });
@@ -258,7 +268,7 @@ describe("招待リンクサービス", () => {
       await expect(
         service.redeemInviteLink({
           actorId: "user-new",
-          token: "nonexistent",
+          token: inviteLinkToken(NONEXISTENT_TOKEN_UUID),
         }),
       ).rejects.toThrow("InviteLink not found");
     });

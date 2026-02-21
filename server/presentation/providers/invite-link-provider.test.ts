@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { NotFoundError } from "@/server/domain/common/errors";
+import { inviteLinkToken } from "@/server/domain/common/ids";
 
 const mockGetInviteLinkInfo = vi.fn();
 const mockActorId = vi.fn<() => string | null>();
+
+const VALID_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440000";
+const UNKNOWN_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440099";
 
 vi.mock("@/server/presentation/trpc/context", () => ({
   createPublicContext: () =>
@@ -24,16 +28,18 @@ describe("getInviteLinkPageData", () => {
 
   test("有効なトークンで InviteLinkPageData を返す", async () => {
     mockGetInviteLinkInfo.mockResolvedValueOnce({
-      token: "valid-token",
+      token: inviteLinkToken(VALID_TOKEN_UUID),
       circleName: "テスト研究会",
       circleId: "circle-1",
       expired: false,
     });
     mockActorId.mockReturnValueOnce("user-1");
 
-    const result = await getInviteLinkPageData("valid-token");
+    const result = await getInviteLinkPageData(VALID_TOKEN_UUID);
 
-    expect(mockGetInviteLinkInfo).toHaveBeenCalledWith({ token: "valid-token" });
+    expect(mockGetInviteLinkInfo).toHaveBeenCalledWith({
+      token: inviteLinkToken(VALID_TOKEN_UUID),
+    });
     expect(result).toEqual({
       circleName: "テスト研究会",
       circleId: "circle-1",
@@ -48,9 +54,18 @@ describe("getInviteLinkPageData", () => {
     );
     mockActorId.mockReturnValueOnce(null);
 
-    const result = await getInviteLinkPageData("unknown-token");
+    const result = await getInviteLinkPageData(UNKNOWN_TOKEN_UUID);
 
     expect(result).toBeNull();
+  });
+
+  test("不正な形式のトークンは null を返す", async () => {
+    mockActorId.mockReturnValueOnce(null);
+
+    const result = await getInviteLinkPageData("not-a-uuid");
+
+    expect(result).toBeNull();
+    expect(mockGetInviteLinkInfo).not.toHaveBeenCalled();
   });
 
   test("予期しないエラーは re-throw される", async () => {
@@ -58,8 +73,8 @@ describe("getInviteLinkPageData", () => {
     mockGetInviteLinkInfo.mockRejectedValueOnce(unexpected);
     mockActorId.mockReturnValueOnce(null);
 
-    await expect(getInviteLinkPageData("any-token")).rejects.toThrow(
-      unexpected,
-    );
+    await expect(
+      getInviteLinkPageData(VALID_TOKEN_UUID),
+    ).rejects.toThrow(unexpected);
   });
 });

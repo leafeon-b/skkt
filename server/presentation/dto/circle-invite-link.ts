@@ -2,12 +2,13 @@ import { z } from "zod";
 import {
   circleIdSchema,
   circleInviteLinkIdSchema,
+  inviteLinkTokenSchema,
 } from "@/server/presentation/dto/ids";
 
 export const circleInviteLinkDtoSchema = z.object({
   id: circleInviteLinkIdSchema,
   circleId: circleIdSchema,
-  token: z.string(),
+  token: inviteLinkTokenSchema,
   expiresAt: z.date(),
   createdAt: z.date(),
 });
@@ -24,7 +25,7 @@ export type CircleInviteLinkCreateInput = z.infer<
 >;
 
 export const circleInviteLinkInfoInputSchema = z.object({
-  token: z.string().trim().min(1),
+  token: inviteLinkTokenSchema,
 });
 
 export type CircleInviteLinkInfoInput = z.infer<
@@ -32,7 +33,7 @@ export type CircleInviteLinkInfoInput = z.infer<
 >;
 
 export const circleInviteLinkInfoDtoSchema = z.object({
-  token: z.string(),
+  token: inviteLinkTokenSchema,
   circleName: z.string(),
   circleId: circleIdSchema,
   expired: z.boolean(),
@@ -43,7 +44,7 @@ export type CircleInviteLinkInfoDto = z.infer<
 >;
 
 export const circleInviteLinkRedeemInputSchema = z.object({
-  token: z.string().trim().min(1),
+  token: inviteLinkTokenSchema,
 });
 
 export type CircleInviteLinkRedeemInput = z.infer<
