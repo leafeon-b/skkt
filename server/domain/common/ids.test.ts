@@ -6,6 +6,7 @@ import {
   matchId,
   matchHistoryId,
   circleInviteLinkId,
+  inviteLinkToken,
 } from "./ids";
 import { BadRequestError } from "./errors";
 
@@ -79,6 +80,36 @@ describe("circleInviteLinkId", () => {
     expect(() => circleInviteLinkId("")).toThrow(BadRequestError);
     expect(() => circleInviteLinkId("")).toThrow(
       "Invalid circle invite link ID",
+    );
+  });
+});
+
+describe("inviteLinkToken", () => {
+  it("should return branded InviteLinkToken for valid UUID string", () => {
+    const token = inviteLinkToken("550e8400-e29b-41d4-a716-446655440000");
+    expect(token).toBe("550e8400-e29b-41d4-a716-446655440000");
+  });
+
+  it("should throw BadRequestError for non-UUID string", () => {
+    expect(() => inviteLinkToken("not-a-uuid")).toThrow(BadRequestError);
+    expect(() => inviteLinkToken("not-a-uuid")).toThrow(
+      "Invalid invite link token",
+    );
+  });
+
+  it("should throw BadRequestError for empty string", () => {
+    expect(() => inviteLinkToken("")).toThrow(BadRequestError);
+    expect(() => inviteLinkToken("")).toThrow("Invalid invite link token");
+  });
+
+  it("should accept uppercase hex UUID", () => {
+    const token = inviteLinkToken("550E8400-E29B-41D4-A716-446655440000");
+    expect(token).toBe("550E8400-E29B-41D4-A716-446655440000");
+  });
+
+  it("should throw BadRequestError for UUID-like string with wrong length", () => {
+    expect(() => inviteLinkToken("550e8400-e29b-41d4-a716-44665544000")).toThrow(
+      BadRequestError,
     );
   });
 });
