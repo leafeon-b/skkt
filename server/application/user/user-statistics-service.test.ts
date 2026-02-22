@@ -7,16 +7,14 @@ import {
   matchId,
   userId,
 } from "@/server/domain/common/ids";
-import type {
-  MatchOutcome,
-  MatchWithCircle,
-} from "@/server/domain/models/match/match";
+import type { MatchOutcome } from "@/server/domain/models/match/match";
+import type { MatchWithCircle } from "@/server/domain/models/match/match-read-models";
 
 const matchRepository = {
   findById: vi.fn(),
   listByCircleSessionId: vi.fn(),
   listByUserId: vi.fn(),
-  listByUserIdWithCircleSession: vi.fn(),
+  listByUserIdWithCircle: vi.fn(),
   save: vi.fn(),
 } satisfies MatchRepository;
 
@@ -55,18 +53,18 @@ describe("UserStatisticsService", () => {
 
   describe("getMatchStatisticsAll - total", () => {
     test("対局なしの場合、全て0を返す", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([]);
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([]);
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
       expect(result.total).toEqual({ wins: 0, losses: 0, draws: 0 });
       expect(
-        matchRepository.listByUserIdWithCircleSession,
+        matchRepository.listByUserIdWithCircle,
       ).toHaveBeenCalledWith(TARGET_USER);
     });
 
     test("player1として勝った場合、winsが1増える", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([
         createTestMatchWithCircle({
           player1Id: TARGET_USER,
           player2Id: OPPONENT,
@@ -80,7 +78,7 @@ describe("UserStatisticsService", () => {
     });
 
     test("player1として負けた場合、lossesが1増える", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([
         createTestMatchWithCircle({
           player1Id: TARGET_USER,
           player2Id: OPPONENT,
@@ -94,7 +92,7 @@ describe("UserStatisticsService", () => {
     });
 
     test("player2として勝った場合、winsが1増える", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([
         createTestMatchWithCircle({
           player1Id: OPPONENT,
           player2Id: TARGET_USER,
@@ -108,7 +106,7 @@ describe("UserStatisticsService", () => {
     });
 
     test("player2として負けた場合、lossesが1増える", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([
         createTestMatchWithCircle({
           player1Id: OPPONENT,
           player2Id: TARGET_USER,
@@ -122,7 +120,7 @@ describe("UserStatisticsService", () => {
     });
 
     test("引き分けの場合、drawsが1増える", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([
         createTestMatchWithCircle({ outcome: "DRAW" }),
       ]);
 
@@ -132,7 +130,7 @@ describe("UserStatisticsService", () => {
     });
 
     test("UNKNOWNの対局は集計から除外される", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([
         createTestMatchWithCircle({ outcome: "UNKNOWN" }),
       ]);
 
@@ -144,7 +142,7 @@ describe("UserStatisticsService", () => {
 
   describe("getMatchStatisticsAll - byCircle", () => {
     test("対局なしの場合、空配列を返す", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([]);
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([]);
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -152,7 +150,7 @@ describe("UserStatisticsService", () => {
     });
 
     test("1つの研究会のみの場合、その研究会の統計を返す", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([
         createTestMatchWithCircle({
           player1Id: TARGET_USER,
           player2Id: OPPONENT,
@@ -183,7 +181,7 @@ describe("UserStatisticsService", () => {
     });
 
     test("複数の研究会にまたがる対局データで正しく集計される", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([
         // 研究会A: 勝ち
         createTestMatchWithCircle({
           player1Id: TARGET_USER,
@@ -252,7 +250,7 @@ describe("UserStatisticsService", () => {
 
   describe("getMatchStatisticsAll - 統合テスト", () => {
     test("トータルと研究会別が同時に正しく計算される", async () => {
-      matchRepository.listByUserIdWithCircleSession.mockResolvedValue([
+      matchRepository.listByUserIdWithCircle.mockResolvedValue([
         // 研究会A: 勝ち
         createTestMatchWithCircle({
           player1Id: TARGET_USER,
@@ -315,7 +313,7 @@ describe("UserStatisticsService", () => {
 
       // DBクエリは1回のみ
       expect(
-        matchRepository.listByUserIdWithCircleSession,
+        matchRepository.listByUserIdWithCircle,
       ).toHaveBeenCalledTimes(1);
     });
   });

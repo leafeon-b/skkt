@@ -19,7 +19,7 @@ const matchRepository = {
   findById: vi.fn(),
   listByCircleSessionId: vi.fn(),
   listByUserId: vi.fn(),
-  listByUserIdWithCircleSession: vi.fn(),
+  listByUserIdWithCircle: vi.fn(),
   save: vi.fn(),
 } satisfies MatchRepository;
 
@@ -313,7 +313,7 @@ describe("UnitOfWork 経路", () => {
     findById: vi.fn(),
     listByCircleSessionId: vi.fn(),
     listByUserId: vi.fn(),
-    listByUserIdWithCircleSession: vi.fn(),
+    listByUserIdWithCircle: vi.fn(),
     save: vi.fn(),
   } satisfies MatchRepository;
 
@@ -344,7 +344,7 @@ describe("UnitOfWork 経路", () => {
     findById: vi.fn(),
     listByCircleSessionId: vi.fn(),
     listByUserId: vi.fn(),
-    listByUserIdWithCircleSession: vi.fn(),
+    listByUserIdWithCircle: vi.fn(),
     save: vi.fn(),
   } satisfies MatchRepository;
 

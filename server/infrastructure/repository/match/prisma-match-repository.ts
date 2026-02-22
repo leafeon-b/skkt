@@ -4,7 +4,8 @@ import {
   mapMatchToDomain,
   mapMatchToPersistence,
 } from "@/server/infrastructure/mappers/match-mapper";
-import type { Match, MatchWithCircle } from "@/server/domain/models/match/match";
+import type { Match } from "@/server/domain/models/match/match";
+import type { MatchWithCircle } from "@/server/domain/models/match/match-read-models";
 import type {
   CircleSessionId,
   MatchId,
@@ -50,7 +51,7 @@ export const createPrismaMatchRepository = (
     return matches.map(mapMatchToDomain);
   },
 
-  async listByUserIdWithCircleSession(
+  async listByUserIdWithCircle(
     userId: UserId,
   ): Promise<MatchWithCircle[]> {
     const matches = await client.match.findMany({
