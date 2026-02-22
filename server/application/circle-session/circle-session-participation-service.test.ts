@@ -144,13 +144,14 @@ describe("CircleSession 参加関係サービス", () => {
       },
     ]);
 
-    await service.addParticipation({
+    const result = await service.addParticipation({
       actorId: "user-actor",
       circleSessionId: circleSessionId("session-1"),
       userId: userId("user-rejoining"),
       role: "CircleSessionMember",
     });
 
+    expect(result).toBeUndefined();
     expect(
       circleSessionParticipationRepository.addParticipation,
     ).toHaveBeenCalledWith(
@@ -280,13 +281,14 @@ describe("CircleSession 参加関係サービス", () => {
       },
     ]);
 
-    await service.addParticipation({
+    const result = await service.addParticipation({
       actorId: "user-actor",
       circleSessionId: circleSessionId("session-1"),
       userId: userId("user-2"),
       role: "CircleSessionMember",
     });
 
+    expect(result).toBeUndefined();
     expect(
       circleSessionParticipationRepository.addParticipation,
     ).toHaveBeenCalledWith(

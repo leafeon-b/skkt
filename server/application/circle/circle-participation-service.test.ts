@@ -204,13 +204,14 @@ describe("Circle 参加関係サービス", () => {
       },
     ]);
 
-    await service.addParticipation({
+    const result = await service.addParticipation({
       actorId: "user-actor",
       circleId: circleId("circle-1"),
       userId: userId("user-rejoining"),
       role: "CircleMember",
     });
 
+    expect(result).toBeUndefined();
     expect(
       circleParticipationRepository.addParticipation,
     ).toHaveBeenCalledWith(
