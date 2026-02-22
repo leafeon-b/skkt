@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleSessionParticipationService } from "@/server/application/circle-session/circle-session-participation-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
@@ -473,6 +473,172 @@ describe("CircleSession 参加関係サービス", () => {
       expect(
         circleSessionParticipationRepository.removeParticipation,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("countPastSessionsByUserId", () => {
+    const NOW = new Date("2025-06-01T00:00:00Z");
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(NOW);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    test("参加データ0件 → 0を返す", async () => {
+      vi.mocked(
+        circleSessionParticipationRepository.listByUserId,
+      ).mockResolvedValueOnce([]);
+
+      const result = await service.countPastSessionsByUserId(
+        userId("user-1"),
+      );
+
+      expect(result).toBe(0);
+      expect(circleSessionRepository.findByIds).not.toHaveBeenCalled();
+    });
+
+    test("全セッションが過去 → 全件カウント", async () => {
+      vi.mocked(
+        circleSessionParticipationRepository.listByUserId,
+      ).mockResolvedValueOnce([
+        {
+          circleSessionId: circleSessionId("session-1"),
+          userId: userId("user-1"),
+          role: "CircleSessionMember",
+        },
+        {
+          circleSessionId: circleSessionId("session-2"),
+          userId: userId("user-1"),
+          role: "CircleSessionMember",
+        },
+      ]);
+      vi.mocked(circleSessionRepository.findByIds).mockResolvedValueOnce([
+        {
+          ...baseSession(),
+          id: circleSessionId("session-1"),
+          endsAt: new Date("2025-05-01T12:00:00Z"),
+        },
+        {
+          ...baseSession(),
+          id: circleSessionId("session-2"),
+          endsAt: new Date("2025-05-15T12:00:00Z"),
+        },
+      ]);
+
+      const result = await service.countPastSessionsByUserId(
+        userId("user-1"),
+      );
+
+      expect(result).toBe(2);
+    });
+
+    test("全セッションが未来 → 0を返す", async () => {
+      vi.mocked(
+        circleSessionParticipationRepository.listByUserId,
+      ).mockResolvedValueOnce([
+        {
+          circleSessionId: circleSessionId("session-1"),
+          userId: userId("user-1"),
+          role: "CircleSessionMember",
+        },
+        {
+          circleSessionId: circleSessionId("session-2"),
+          userId: userId("user-1"),
+          role: "CircleSessionMember",
+        },
+      ]);
+      vi.mocked(circleSessionRepository.findByIds).mockResolvedValueOnce([
+        {
+          ...baseSession(),
+          id: circleSessionId("session-1"),
+          endsAt: new Date("2025-07-01T12:00:00Z"),
+        },
+        {
+          ...baseSession(),
+          id: circleSessionId("session-2"),
+          endsAt: new Date("2025-08-01T12:00:00Z"),
+        },
+      ]);
+
+      const result = await service.countPastSessionsByUserId(
+        userId("user-1"),
+      );
+
+      expect(result).toBe(0);
+    });
+
+    test("過去・未来混在 → 過去のみカウント", async () => {
+      vi.mocked(
+        circleSessionParticipationRepository.listByUserId,
+      ).mockResolvedValueOnce([
+        {
+          circleSessionId: circleSessionId("session-1"),
+          userId: userId("user-1"),
+          role: "CircleSessionMember",
+        },
+        {
+          circleSessionId: circleSessionId("session-2"),
+          userId: userId("user-1"),
+          role: "CircleSessionMember",
+        },
+        {
+          circleSessionId: circleSessionId("session-3"),
+          userId: userId("user-1"),
+          role: "CircleSessionMember",
+        },
+      ]);
+      vi.mocked(circleSessionRepository.findByIds).mockResolvedValueOnce([
+        {
+          ...baseSession(),
+          id: circleSessionId("session-1"),
+          endsAt: new Date("2025-04-01T12:00:00Z"),
+        },
+        {
+          ...baseSession(),
+          id: circleSessionId("session-2"),
+          endsAt: new Date("2025-05-15T12:00:00Z"),
+        },
+        {
+          ...baseSession(),
+          id: circleSessionId("session-3"),
+          endsAt: new Date("2025-07-01T12:00:00Z"),
+        },
+      ]);
+
+      const result = await service.countPastSessionsByUserId(
+        userId("user-1"),
+      );
+
+      expect(result).toBe(2);
+    });
+
+    test("境界値: endsAt === now → 過去としてカウント", async () => {
+      vi.mocked(
+        circleSessionParticipationRepository.listByUserId,
+      ).mockResolvedValueOnce([
+        {
+          circleSessionId: circleSessionId("session-1"),
+          userId: userId("user-1"),
+          role: "CircleSessionMember",
+        },
+      ]);
+      vi.mocked(circleSessionRepository.findByIds).mockResolvedValueOnce([
+        {
+          ...baseSession(),
+          id: circleSessionId("session-1"),
+          endsAt: new Date("2025-06-01T00:00:00Z"),
+        },
+      ]);
+
+      const result = await service.countPastSessionsByUserId(
+        userId("user-1"),
+      );
+
+      expect(result).toBe(1);
     });
   });
 });
