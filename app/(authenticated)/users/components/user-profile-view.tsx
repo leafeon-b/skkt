@@ -30,6 +30,16 @@ export function UserProfileView({ profile }: UserProfileViewProps) {
           </div>
         </div>
       </section>
+
+      <section className="rounded-2xl border border-border/60 bg-white/90 p-8 shadow-sm">
+        <h2 className="mb-4 text-lg font-bold text-(--brand-ink)">活動記録</h2>
+        <div className="flex items-baseline gap-2">
+          <span className="text-3xl font-bold text-(--brand-moss)">
+            {profile.sessionParticipationCount}
+          </span>
+          <span className="text-sm text-muted-foreground">回参加</span>
+        </div>
+      </section>
     </div>
   );
 }
