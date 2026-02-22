@@ -23,22 +23,20 @@ export async function getUserProfileViewModel(
 
   const brandedUserId = userIdBrand(userId);
 
-  const [sessionParticipationCount, matchStatistics, circleMatchStatistics] =
-    await Promise.all([
-      ctx.circleSessionParticipationService.countPastSessionsByUserId(
-        brandedUserId,
-      ),
-      ctx.userStatisticsService.getMatchStatistics(brandedUserId),
-      ctx.userStatisticsService.getMatchStatisticsByCircle(brandedUserId),
-    ]);
+  const [sessionParticipationCount, { total, byCircle }] = await Promise.all([
+    ctx.circleSessionParticipationService.countPastSessionsByUserId(
+      brandedUserId,
+    ),
+    ctx.userStatisticsService.getMatchStatisticsAll(brandedUserId),
+  ]);
 
   return {
     userId: user.id,
     name: user.name ?? "名前未設定",
     image: user.image ?? null,
     sessionParticipationCount,
-    matchStatistics,
-    circleMatchStatistics: circleMatchStatistics.map((s) => ({
+    matchStatistics: total,
+    circleMatchStatistics: byCircle.map((s) => ({
       circleId: s.circleId,
       circleName: s.circleName,
       wins: s.wins,
