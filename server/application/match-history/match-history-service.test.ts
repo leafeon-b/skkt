@@ -14,7 +14,7 @@ const matchHistoryRepository = {
 const matchRepository = {
   findById: vi.fn(),
   listByCircleSessionId: vi.fn(),
-  listByUserId: vi.fn(),
+  listByPlayerId: vi.fn(),
   listByUserIdWithCircle: vi.fn(),
   save: vi.fn(),
 } satisfies MatchRepository;

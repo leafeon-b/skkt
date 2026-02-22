@@ -10,8 +10,8 @@ export type MatchRepository = {
   findById(id: MatchId): Promise<Match | null>;
   /** Returns matches ordered by createdAt ascending. */
   listByCircleSessionId(circleSessionId: CircleSessionId): Promise<Match[]>;
-  /** Returns non-deleted matches where the user is player1 or player2. */
-  listByUserId(userId: UserId): Promise<Match[]>;
+  /** Returns non-deleted matches where the player is player1 or player2. */
+  listByPlayerId(playerId: UserId): Promise<Match[]>;
   /** Returns non-deleted matches with circle info via CircleSession. */
   listByUserIdWithCircle(userId: UserId): Promise<MatchWithCircle[]>;
   save(match: Match): Promise<void>;

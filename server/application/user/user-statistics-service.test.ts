@@ -13,7 +13,7 @@ import type { MatchWithCircle } from "@/server/domain/models/match/match-read-mo
 const matchRepository = {
   findById: vi.fn(),
   listByCircleSessionId: vi.fn(),
-  listByUserId: vi.fn(),
+  listByPlayerId: vi.fn(),
   listByUserIdWithCircle: vi.fn(),
   save: vi.fn(),
 } satisfies MatchRepository;
