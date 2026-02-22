@@ -18,6 +18,7 @@ import { createMatch } from "@/server/domain/models/match/match";
 const matchRepository = {
   findById: vi.fn(),
   listByCircleSessionId: vi.fn(),
+  listByUserId: vi.fn(),
   save: vi.fn(),
 } satisfies MatchRepository;
 
@@ -310,6 +311,7 @@ describe("UnitOfWork 経路", () => {
   const depsMatchRepository = {
     findById: vi.fn(),
     listByCircleSessionId: vi.fn(),
+    listByUserId: vi.fn(),
     save: vi.fn(),
   } satisfies MatchRepository;
 
@@ -339,6 +341,7 @@ describe("UnitOfWork 経路", () => {
   const uowMatchRepository = {
     findById: vi.fn(),
     listByCircleSessionId: vi.fn(),
+    listByUserId: vi.fn(),
     save: vi.fn(),
   } satisfies MatchRepository;
 

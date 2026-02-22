@@ -3,4 +3,9 @@ export type UserProfileViewModel = {
   name: string;
   image: string | null;
   sessionParticipationCount: number;
+  matchStatistics: {
+    wins: number;
+    losses: number;
+    draws: number;
+  };
 };

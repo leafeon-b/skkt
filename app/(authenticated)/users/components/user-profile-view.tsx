@@ -39,6 +39,26 @@ export function UserProfileView({ profile }: UserProfileViewProps) {
           </span>
           <span className="text-sm text-muted-foreground">回参加</span>
         </div>
+        <div className="mt-4 flex gap-6">
+          <div className="flex items-baseline gap-1">
+            <span className="text-3xl font-bold text-(--brand-moss)">
+              {profile.matchStatistics.wins}
+            </span>
+            <span className="text-sm text-muted-foreground">勝</span>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-3xl font-bold text-(--brand-ink)">
+              {profile.matchStatistics.losses}
+            </span>
+            <span className="text-sm text-muted-foreground">敗</span>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-3xl font-bold text-muted-foreground">
+              {profile.matchStatistics.draws}
+            </span>
+            <span className="text-sm text-muted-foreground">分</span>
+          </div>
+        </div>
       </section>
     </div>
   );

@@ -5,7 +5,11 @@ import {
   mapMatchToPersistence,
 } from "@/server/infrastructure/mappers/match-mapper";
 import type { Match } from "@/server/domain/models/match/match";
-import type { CircleSessionId, MatchId } from "@/server/domain/common/ids";
+import type {
+  CircleSessionId,
+  MatchId,
+  UserId,
+} from "@/server/domain/common/ids";
 import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 
 export const createPrismaMatchRepository = (
@@ -24,6 +28,21 @@ export const createPrismaMatchRepository = (
   ): Promise<Match[]> {
     const matches = await client.match.findMany({
       where: { circleSessionId: toPersistenceId(circleSessionId) },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return matches.map(mapMatchToDomain);
+  },
+
+  async listByUserId(userId: UserId): Promise<Match[]> {
+    const matches = await client.match.findMany({
+      where: {
+        deletedAt: null,
+        OR: [
+          { player1Id: toPersistenceId(userId) },
+          { player2Id: toPersistenceId(userId) },
+        ],
+      },
       orderBy: { createdAt: "asc" },
     });
 

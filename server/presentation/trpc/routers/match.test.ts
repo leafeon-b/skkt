@@ -77,6 +77,7 @@ const createTestContext = (
       redeemInviteLink: vi.fn(),
     },
     accessService: {} as Context["accessService"],
+    userStatisticsService: {} as Context["userStatisticsService"],
     holidayProvider: {} as Context["holidayProvider"],
   };
 

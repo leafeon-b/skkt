@@ -21,15 +21,20 @@ export async function getUserProfileViewModel(
     throw error;
   }
 
-  const sessionParticipationCount =
-    await ctx.circleSessionParticipationService.countPastSessionsByUserId(
-      userIdBrand(userId),
-    );
+  const brandedUserId = userIdBrand(userId);
+
+  const [sessionParticipationCount, matchStatistics] = await Promise.all([
+    ctx.circleSessionParticipationService.countPastSessionsByUserId(
+      brandedUserId,
+    ),
+    ctx.userStatisticsService.getMatchStatistics(brandedUserId),
+  ]);
 
   return {
     userId: user.id,
     name: user.name ?? "名前未設定",
     image: user.image ?? null,
     sessionParticipationCount,
+    matchStatistics,
   };
 }

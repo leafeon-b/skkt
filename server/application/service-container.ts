@@ -9,6 +9,7 @@ import { createAccessService } from "@/server/application/authz/access-service";
 import { createUserService } from "@/server/application/user/user-service";
 import { createSignupService } from "@/server/application/auth/signup-service";
 import { createCircleInviteLinkService } from "@/server/application/circle/circle-invite-link-service";
+import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
 import { createInMemoryRateLimiter } from "@/server/infrastructure/rate-limit/in-memory-rate-limiter";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
@@ -40,6 +41,7 @@ export type ServiceContainer = {
   matchHistoryService: ReturnType<typeof createMatchHistoryService>;
   signupService: ReturnType<typeof createSignupService>;
   circleInviteLinkService: ReturnType<typeof createCircleInviteLinkService>;
+  userStatisticsService: ReturnType<typeof createUserStatisticsService>;
   holidayProvider: HolidayProvider;
 };
 
@@ -129,6 +131,9 @@ export const createServiceContainer = (
       circleRepository: deps.circleRepository,
       circleParticipationRepository: deps.circleParticipationRepository,
       accessService,
+    }),
+    userStatisticsService: createUserStatisticsService({
+      matchRepository: deps.matchRepository,
     }),
     holidayProvider: deps.holidayProvider,
   };
