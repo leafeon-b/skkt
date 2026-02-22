@@ -1,4 +1,5 @@
 import type {
+  CircleId,
   CircleSessionId,
   MatchId,
   UserId,
@@ -101,3 +102,8 @@ export const deleteMatch = (match: Match, deletedAt?: Date): Match => ({
   ...match,
   deletedAt: deletedAt ?? new Date(),
 });
+
+export type MatchWithCircle = Match & {
+  circleId: CircleId;
+  circleName: string;
+};
