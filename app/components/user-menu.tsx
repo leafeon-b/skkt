@@ -58,6 +58,14 @@ export default function UserMenu() {
           )}
         </DropdownMenuItem>
         */}
+        {session?.user?.id && (
+          <DropdownMenuItem asChild>
+            <Link href={`/users/${session.user.id}`}>
+              <User className="mr-2 h-4 w-4" />
+              マイページ
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link href="/account">
             <Settings className="mr-2 h-4 w-4" />
