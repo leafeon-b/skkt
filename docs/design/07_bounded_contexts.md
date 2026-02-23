@@ -20,8 +20,9 @@
 
 ### 主要エンティティ/値
 
-- Circle
+- **Circle**（Aggregate Root）
 - CircleMembership（研究会参加）
+- **CircleInviteLink**（独立した Aggregate Root）
 
 ### 代表的な不変条件
 
@@ -43,7 +44,7 @@
 
 ### 主要エンティティ/値
 
-- CircleSession
+- **CircleSession**（Aggregate Root）
 - CircleSessionMembership（セッション参加）
 
 ### 代表的な不変条件
@@ -67,7 +68,7 @@
 
 ### 主要エンティティ/値
 
-- Match
+- **Match**（Aggregate Root）
 - MatchHistory
 
 ### 代表的な不変条件
@@ -89,7 +90,7 @@
 
 ### 主要エンティティ/値
 
-- User（登録済みユーザー）
+- **User**（Aggregate Root）
 - CircleRole / CircleSessionRole
 
 ### 代表的な不変条件
