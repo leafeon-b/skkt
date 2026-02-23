@@ -12,5 +12,6 @@ export async function getAccountViewModel(): Promise<AccountViewModel> {
     name: me.name ?? "",
     email: me.email ?? "",
     hasPassword: me.hasPassword,
+    profileVisibility: me.profileVisibility,
   };
 }

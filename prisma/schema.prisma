@@ -36,6 +36,11 @@ enum MatchHistoryAction {
   DELETE
 }
 
+enum ProfileVisibility {
+  PUBLIC
+  PRIVATE
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String?
@@ -46,6 +51,8 @@ model User {
   image         String?
   passwordHash      String?
   passwordChangedAt DateTime?
+
+  profileVisibility ProfileVisibility @default(PUBLIC)
 
   circleMemberships        CircleMembership[]
   circleSessionMemberships CircleSessionMembership[]

@@ -67,6 +67,7 @@ const createTestContext = () => {
       listUsers: vi.fn(),
       getMe: vi.fn(),
       updateProfile: vi.fn(),
+      updateProfileVisibility: vi.fn(),
       changePassword: vi.fn(),
     },
     signupService: {

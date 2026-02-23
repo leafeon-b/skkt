@@ -17,6 +17,7 @@ const createTestContext = (
     getMe: vi.fn(),
     updateProfile: vi.fn(),
     changePassword: vi.fn(),
+    updateProfileVisibility: vi.fn(),
   };
 
   const context: Context = {
@@ -95,6 +96,7 @@ describe("user tRPC ルーター", () => {
           name: "Taro",
           email: "taro@example.com",
           image: null,
+          profileVisibility: "PUBLIC",
           createdAt: new Date("2024-01-01"),
         },
         hasPassword: true,
@@ -107,6 +109,7 @@ describe("user tRPC ルーター", () => {
       expect(result.name).toBe("Taro");
       expect(result.email).toBe("taro@example.com");
       expect(result.hasPassword).toBe(true);
+      expect(result.profileVisibility).toBe("PUBLIC");
       expect(mocks.userService.getMe).toHaveBeenCalledWith(userId("user-1"));
     });
 
@@ -208,6 +211,38 @@ describe("user tRPC ルーター", () => {
     });
   });
 
+  describe("updateProfileVisibility", () => {
+    test("正常入力で userService.updateProfileVisibility が正しい引数で呼ばれる", async () => {
+      const { context, mocks } = createTestContext();
+      mocks.userService.updateProfileVisibility.mockResolvedValueOnce(
+        undefined,
+      );
+
+      const caller = appRouter.createCaller(context);
+      await caller.users.updateProfileVisibility({
+        visibility: "PRIVATE",
+      });
+
+      expect(mocks.userService.updateProfileVisibility).toHaveBeenCalledWith(
+        userId("user-1"),
+        "PRIVATE",
+      );
+    });
+
+    test("ForbiddenError → FORBIDDEN", async () => {
+      const { context, mocks } = createTestContext();
+      mocks.userService.updateProfileVisibility.mockRejectedValueOnce(
+        new ForbiddenError(),
+      );
+
+      const caller = appRouter.createCaller(context);
+
+      await expect(
+        caller.users.updateProfileVisibility({ visibility: "PRIVATE" }),
+      ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    });
+  });
+
   describe("未認証アクセス", () => {
     test("me: actorId null で UNAUTHORIZED を返す", async () => {
       const { context } = createTestContext(null);
@@ -242,6 +277,16 @@ describe("user tRPC ルーター", () => {
           currentPassword: "oldpass12",
           newPassword: "newpass12",
         }),
+      ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    });
+
+    test("updateProfileVisibility: actorId null で UNAUTHORIZED を返す", async () => {
+      const { context } = createTestContext(null);
+
+      const caller = appRouter.createCaller(context);
+
+      await expect(
+        caller.users.updateProfileVisibility({ visibility: "PRIVATE" }),
       ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     });
   });

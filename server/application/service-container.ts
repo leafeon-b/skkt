@@ -65,7 +65,10 @@ export type ServiceContainerDeps = {
 export const createServiceContainer = (
   deps: ServiceContainerDeps,
 ): ServiceContainer => {
-  const accessService = createAccessService(deps.authzRepository);
+  const accessService = createAccessService({
+    authzRepository: deps.authzRepository,
+    userRepository: deps.userRepository,
+  });
   const generateMatchHistoryId =
     deps.generateMatchHistoryId ?? (() => matchHistoryId(randomUUID()));
 

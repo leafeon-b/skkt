@@ -73,6 +73,7 @@ export const createMockUserRepository = () =>
     findPasswordHashById: vi.fn(),
     findPasswordChangedAt: vi.fn(),
     updatePasswordHash: vi.fn(),
+    updateProfileVisibility: vi.fn(),
   }) satisfies UserRepository;
 
 export const createMockCircleInviteLinkRepository = () =>

@@ -5,7 +5,10 @@ import { createMockUserRepository } from "@/server/application/test-helpers/mock
 import type { PasswordUtils } from "@/server/application/user/user-service";
 import type { RateLimiter } from "@/server/application/common/rate-limiter";
 import { userId } from "@/server/domain/common/ids";
-import { createUser } from "@/server/domain/models/user/user";
+import {
+  createUser,
+  ProfileVisibility,
+} from "@/server/domain/models/user/user";
 import { TooManyRequestsError } from "@/server/domain/common/errors";
 
 const userRepository = createMockUserRepository();
@@ -227,5 +230,26 @@ describe("changePassword", () => {
     await service.changePassword(actorId, "oldpass", "newpass12");
 
     expect(changePasswordRateLimiter.reset).toHaveBeenCalledWith(actorId);
+  });
+});
+
+describe("updateProfileVisibility", () => {
+  test("プロフィール公開設定を更新する", async () => {
+    userRepository.findById.mockResolvedValue(testUser);
+
+    await service.updateProfileVisibility(actorId, ProfileVisibility.PRIVATE);
+
+    expect(userRepository.updateProfileVisibility).toHaveBeenCalledWith(
+      actorId,
+      ProfileVisibility.PRIVATE,
+    );
+  });
+
+  test("ユーザーが存在しない場合 Forbidden エラー", async () => {
+    userRepository.findById.mockResolvedValue(null);
+
+    await expect(
+      service.updateProfileVisibility(actorId, ProfileVisibility.PRIVATE),
+    ).rejects.toThrow("Forbidden");
   });
 });

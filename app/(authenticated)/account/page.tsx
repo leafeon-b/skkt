@@ -1,5 +1,6 @@
 import { PasswordForm } from "@/app/(authenticated)/account/password-form";
 import { ProfileFormInner } from "@/app/(authenticated)/account/profile-form";
+import { VisibilityForm } from "@/app/(authenticated)/account/visibility-form";
 import { getAccountViewModel } from "@/server/presentation/providers/account-provider";
 
 export default async function AccountPage() {
@@ -24,6 +25,19 @@ export default async function AccountPage() {
           initialEmail={viewModel.email}
           hasPassword={viewModel.hasPassword}
         />
+      </section>
+
+      <section
+        aria-labelledby="section-privacy"
+        className="rounded-2xl border border-border/60 bg-white/85 p-6 shadow-sm"
+      >
+        <h2
+          id="section-privacy"
+          className="mb-4 text-lg font-semibold text-(--brand-ink)"
+        >
+          プライバシー
+        </h2>
+        <VisibilityForm initialVisibility={viewModel.profileVisibility} />
       </section>
 
       {viewModel.hasPassword && (

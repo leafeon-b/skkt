@@ -3,6 +3,10 @@ import { userIdSchema } from "@/server/presentation/dto/ids";
 
 const optionalTextSchema = z.string().trim().min(1).nullable();
 
+export const profileVisibilitySchema = z.enum(["PUBLIC", "PRIVATE"]);
+
+export type ProfileVisibilityDto = z.infer<typeof profileVisibilitySchema>;
+
 export const userDtoSchema = z.object({
   id: userIdSchema,
   name: optionalTextSchema,
@@ -27,6 +31,7 @@ export type UserListInput = z.infer<typeof userListInputSchema>;
 
 export const meDtoSchema = userDtoSchema.extend({
   hasPassword: z.boolean(),
+  profileVisibility: profileVisibilitySchema,
 });
 
 export type MeDto = z.infer<typeof meDtoSchema>;
@@ -44,6 +49,14 @@ export const changePasswordInputSchema = z.object({
 });
 
 export type ChangePasswordInput = z.infer<typeof changePasswordInputSchema>;
+
+export const updateProfileVisibilityInputSchema = z.object({
+  visibility: profileVisibilitySchema,
+});
+
+export type UpdateProfileVisibilityInput = z.infer<
+  typeof updateProfileVisibilityInputSchema
+>;
 
 export const opponentsInputSchema = z.object({
   targetUserId: userIdSchema,

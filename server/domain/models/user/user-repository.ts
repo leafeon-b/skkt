@@ -1,5 +1,5 @@
 import type { UserId } from "@/server/domain/common/ids";
-import type { User } from "@/server/domain/models/user/user";
+import type { User, ProfileVisibility } from "@/server/domain/models/user/user";
 
 export type UserRepository = {
   findById(id: UserId): Promise<User | null>;
@@ -15,4 +15,8 @@ export type UserRepository = {
   findPasswordHashById(id: UserId): Promise<string | null>;
   findPasswordChangedAt(id: UserId): Promise<Date | null>;
   updatePasswordHash(id: UserId, passwordHash: string): Promise<void>;
+  updateProfileVisibility(
+    id: UserId,
+    visibility: ProfileVisibility,
+  ): Promise<void>;
 };

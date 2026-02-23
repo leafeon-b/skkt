@@ -1,5 +1,5 @@
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
-import type { User } from "@/server/domain/models/user/user";
+import type { User, ProfileVisibility } from "@/server/domain/models/user/user";
 import type { UserId } from "@/server/domain/common/ids";
 import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
 import {
@@ -101,6 +101,16 @@ export const createPrismaUserRepository = (
     await client.user.update({
       where: { id: toPersistenceId(id) },
       data: { passwordHash, passwordChangedAt: new Date() },
+    });
+  },
+
+  async updateProfileVisibility(
+    id: UserId,
+    visibility: ProfileVisibility,
+  ): Promise<void> {
+    await client.user.update({
+      where: { id: toPersistenceId(id) },
+      data: { profileVisibility: visibility },
     });
   },
 });
