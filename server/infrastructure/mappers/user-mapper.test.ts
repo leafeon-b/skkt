@@ -17,6 +17,7 @@ describe("User マッパー", () => {
       image: "https://example.com/icon.png",
       passwordHash: null,
       passwordChangedAt: null,
+      profileVisibility: "PUBLIC",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     };
 
@@ -45,6 +46,7 @@ describe("User マッパー", () => {
       name: "Alice",
       email: "alice@example.com",
       image: "https://example.com/icon.png",
+      profileVisibility: "PUBLIC",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
   });

@@ -10,6 +10,7 @@ export const mapUserToDomain = (user: PrismaUser): User =>
     name: user.name,
     email: user.email,
     image: user.image,
+    profileVisibility: user.profileVisibility,
     createdAt: user.createdAt,
   });
 
@@ -18,5 +19,6 @@ export const mapUserToPersistence = (user: User) => ({
   name: user.name,
   email: user.email,
   image: user.image,
+  profileVisibility: user.profileVisibility,
   createdAt: user.createdAt,
 });
