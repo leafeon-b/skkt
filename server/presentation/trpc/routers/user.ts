@@ -2,6 +2,7 @@ import {
   changePasswordInputSchema,
   meDtoSchema,
   updateProfileInputSchema,
+  updateProfileVisibilityInputSchema,
   userDtoSchema,
   userGetInputSchema,
   userListInputSchema,
@@ -54,7 +55,11 @@ export const userRouter = router({
   me: protectedProcedure.output(meDtoSchema).query(({ ctx }) =>
     handleTrpcError(async () => {
       const { user, hasPassword } = await ctx.userService.getMe(ctx.actorId);
-      return { ...toUserDto(user), hasPassword };
+      return {
+        ...toUserDto(user),
+        hasPassword,
+        profileVisibility: user.profileVisibility,
+      };
     }),
   ),
 
@@ -80,6 +85,18 @@ export const userRouter = router({
           ctx.actorId,
           input.currentPassword,
           input.newPassword,
+        );
+      }),
+    ),
+
+  updateProfileVisibility: protectedProcedure
+    .input(updateProfileVisibilityInputSchema)
+    .output(z.void())
+    .mutation(({ ctx, input }) =>
+      handleTrpcError(async () => {
+        await ctx.userService.updateProfileVisibility(
+          ctx.actorId,
+          input.visibility,
         );
       }),
     ),

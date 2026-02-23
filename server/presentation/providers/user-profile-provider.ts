@@ -23,6 +23,23 @@ export async function getUserProfileViewModel(
 
   const brandedUserId = userIdBrand(userId);
 
+  const isProfilePublic = await ctx.accessService.canViewUserProfile(
+    ctx.actorId!,
+    brandedUserId,
+  );
+
+  if (!isProfilePublic) {
+    return {
+      userId: user.id,
+      name: user.name ?? "名前未設定",
+      image: user.image ?? null,
+      isProfilePublic: false,
+      sessionParticipationCount: 0,
+      matchStatistics: { wins: 0, losses: 0, draws: 0 },
+      circleMatchStatistics: [],
+    };
+  }
+
   const [sessionParticipationCount, { total, byCircle }] = await Promise.all([
     ctx.circleSessionParticipationService.countPastSessionsByUserId(
       brandedUserId,
@@ -34,6 +51,7 @@ export async function getUserProfileViewModel(
     userId: user.id,
     name: user.name ?? "名前未設定",
     image: user.image ?? null,
+    isProfilePublic: true,
     sessionParticipationCount,
     matchStatistics: total,
     circleMatchStatistics: byCircle.map((s) => ({

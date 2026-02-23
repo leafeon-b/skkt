@@ -32,79 +32,94 @@ export function UserProfileView({ profile }: UserProfileViewProps) {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border/60 bg-white/90 p-8 shadow-sm">
-        <h2 className="mb-4 text-lg font-bold text-(--brand-ink)">活動記録</h2>
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-(--brand-moss)">
-            {profile.sessionParticipationCount}
-          </span>
-          <span className="text-sm text-muted-foreground">回参加</span>
-        </div>
-        <div className="mt-4 flex gap-6">
-          <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-bold text-(--brand-moss)">
-              {profile.matchStatistics.wins}
-            </span>
-            <span className="text-sm text-muted-foreground">勝</span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-bold text-(--brand-ink)">
-              {profile.matchStatistics.losses}
-            </span>
-            <span className="text-sm text-muted-foreground">敗</span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-bold text-muted-foreground">
-              {profile.matchStatistics.draws}
-            </span>
-            <span className="text-sm text-muted-foreground">分</span>
-          </div>
-        </div>
-
-        {profile.circleMatchStatistics.length > 0 && (
-          <div className="mt-6 border-t border-border/60 pt-4">
-            <h3 className="mb-3 text-sm font-bold text-(--brand-ink)">
-              研究会別
-            </h3>
-            <div className="flex flex-col gap-3">
-              {profile.circleMatchStatistics.map((circle) => (
-                <div key={circle.circleId} className="flex items-center gap-4">
-                  <span className="min-w-0 shrink truncate text-sm font-medium text-(--brand-ink)">
-                    {circle.circleName}
-                  </span>
-                  <div className="ml-auto flex gap-3">
-                    <span className="text-sm">
-                      <span className="font-bold text-(--brand-moss)">
-                        {circle.wins}
-                      </span>
-                      <span className="text-muted-foreground">勝</span>
-                    </span>
-                    <span className="text-sm">
-                      <span className="font-bold text-(--brand-ink)">
-                        {circle.losses}
-                      </span>
-                      <span className="text-muted-foreground">敗</span>
-                    </span>
-                    <span className="text-sm">
-                      <span className="font-bold text-muted-foreground">
-                        {circle.draws}
-                      </span>
-                      <span className="text-muted-foreground">分</span>
-                    </span>
-                  </div>
-                </div>
-              ))}
+      {profile.isProfilePublic ? (
+        <>
+          <section className="rounded-2xl border border-border/60 bg-white/90 p-8 shadow-sm">
+            <h2 className="mb-4 text-lg font-bold text-(--brand-ink)">
+              活動記録
+            </h2>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-(--brand-moss)">
+                {profile.sessionParticipationCount}
+              </span>
+              <span className="text-sm text-muted-foreground">回参加</span>
             </div>
-          </div>
-        )}
-      </section>
+            <div className="mt-4 flex gap-6">
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-(--brand-moss)">
+                  {profile.matchStatistics.wins}
+                </span>
+                <span className="text-sm text-muted-foreground">勝</span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-(--brand-ink)">
+                  {profile.matchStatistics.losses}
+                </span>
+                <span className="text-sm text-muted-foreground">敗</span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-muted-foreground">
+                  {profile.matchStatistics.draws}
+                </span>
+                <span className="text-sm text-muted-foreground">分</span>
+              </div>
+            </div>
 
-      <section className="rounded-2xl border border-border/60 bg-white/90 p-8 shadow-sm">
-        <h2 className="mb-4 text-lg font-bold text-(--brand-ink)">
-          対戦相手別成績
-        </h2>
-        <OpponentRecordSearch userId={profile.userId} />
-      </section>
+            {profile.circleMatchStatistics.length > 0 && (
+              <div className="mt-6 border-t border-border/60 pt-4">
+                <h3 className="mb-3 text-sm font-bold text-(--brand-ink)">
+                  研究会別
+                </h3>
+                <div className="flex flex-col gap-3">
+                  {profile.circleMatchStatistics.map((circle) => (
+                    <div
+                      key={circle.circleId}
+                      className="flex items-center gap-4"
+                    >
+                      <span className="min-w-0 shrink truncate text-sm font-medium text-(--brand-ink)">
+                        {circle.circleName}
+                      </span>
+                      <div className="ml-auto flex gap-3">
+                        <span className="text-sm">
+                          <span className="font-bold text-(--brand-moss)">
+                            {circle.wins}
+                          </span>
+                          <span className="text-muted-foreground">勝</span>
+                        </span>
+                        <span className="text-sm">
+                          <span className="font-bold text-(--brand-ink)">
+                            {circle.losses}
+                          </span>
+                          <span className="text-muted-foreground">敗</span>
+                        </span>
+                        <span className="text-sm">
+                          <span className="font-bold text-muted-foreground">
+                            {circle.draws}
+                          </span>
+                          <span className="text-muted-foreground">分</span>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-2xl border border-border/60 bg-white/90 p-8 shadow-sm">
+            <h2 className="mb-4 text-lg font-bold text-(--brand-ink)">
+              対戦相手別成績
+            </h2>
+            <OpponentRecordSearch userId={profile.userId} />
+          </section>
+        </>
+      ) : (
+        <section className="rounded-2xl border border-border/60 bg-white/90 p-8 shadow-sm">
+          <p className="text-sm text-muted-foreground">
+            このユーザーの統計情報は非公開です
+          </p>
+        </section>
+      )}
     </div>
   );
 }

@@ -34,6 +34,7 @@ describe("Prisma Authz リポジトリ", () => {
       image: null,
       passwordHash: null,
       passwordChangedAt: null,
+      profileVisibility: "PUBLIC",
     });
 
     const result = await prismaAuthzRepository.isRegisteredUser("user-1");

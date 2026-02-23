@@ -42,6 +42,7 @@ const createMockUserRepository = (
   findByEmail: vi.fn(),
   save: vi.fn(),
   updateProfile: vi.fn(),
+  updateProfileVisibility: vi.fn(),
   emailExists: vi.fn(),
   findPasswordHashById: vi.fn(),
   findPasswordChangedAt: vi.fn(),
