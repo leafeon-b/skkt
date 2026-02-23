@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
-import type { MatchRepository } from "@/server/domain/models/match/match-repository";
-import type { UserRepository } from "@/server/domain/models/user/user-repository";
+import {
+  createMockMatchRepository,
+  createMockUserRepository,
+} from "@/server/application/test-helpers/mock-repositories";
 import {
   circleId,
   circleSessionId,
@@ -11,29 +13,14 @@ import {
 import type { MatchOutcome, Match } from "@/server/domain/models/match/match";
 import type { MatchWithCircle } from "@/server/domain/models/match/match-read-models";
 
-const matchRepository = {
-  findById: vi.fn(),
-  listByCircleSessionId: vi.fn(),
-  listByPlayerId: vi.fn(),
-  listByBothPlayerIds: vi.fn(),
-  listByPlayerIdWithCircle: vi.fn(),
-  listDistinctOpponentIds: vi.fn(),
-  save: vi.fn(),
-} satisfies MatchRepository;
+const matchRepository = createMockMatchRepository();
 
-const userRepository = {
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  findByEmail: vi.fn(),
-  save: vi.fn(),
-  updateProfile: vi.fn(),
-  emailExists: vi.fn(),
-  findPasswordHashById: vi.fn(),
-  findPasswordChangedAt: vi.fn(),
-  updatePasswordHash: vi.fn(),
-} satisfies UserRepository;
+const userRepository = createMockUserRepository();
 
-const service = createUserStatisticsService({ matchRepository, userRepository });
+const service = createUserStatisticsService({
+  matchRepository,
+  userRepository,
+});
 
 const TARGET_USER = userId("target-user");
 const OPPONENT = userId("opponent");
@@ -91,9 +78,9 @@ describe("UserStatisticsService", () => {
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
       expect(result.total).toEqual({ wins: 0, losses: 0, draws: 0 });
-      expect(
-        matchRepository.listByPlayerIdWithCircle,
-      ).toHaveBeenCalledWith(TARGET_USER);
+      expect(matchRepository.listByPlayerIdWithCircle).toHaveBeenCalledWith(
+        TARGET_USER,
+      );
     });
 
     test("player1として勝った場合、winsが1増える", async () => {
@@ -373,9 +360,7 @@ describe("UserStatisticsService", () => {
       ]);
 
       // DBクエリは1回のみ
-      expect(
-        matchRepository.listByPlayerIdWithCircle,
-      ).toHaveBeenCalledTimes(1);
+      expect(matchRepository.listByPlayerIdWithCircle).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -390,10 +375,25 @@ describe("UserStatisticsService", () => {
     });
 
     test("対戦相手を名前付きで返す", async () => {
-      matchRepository.listDistinctOpponentIds.mockResolvedValue([OPPONENT, OPPONENT_B]);
+      matchRepository.listDistinctOpponentIds.mockResolvedValue([
+        OPPONENT,
+        OPPONENT_B,
+      ]);
       userRepository.findByIds.mockResolvedValue([
-        { id: OPPONENT, name: "対戦相手A", email: null, image: null, createdAt: new Date() },
-        { id: OPPONENT_B, name: "対戦相手B", email: null, image: null, createdAt: new Date() },
+        {
+          id: OPPONENT,
+          name: "対戦相手A",
+          email: null,
+          image: null,
+          createdAt: new Date(),
+        },
+        {
+          id: OPPONENT_B,
+          name: "対戦相手B",
+          email: null,
+          image: null,
+          createdAt: new Date(),
+        },
       ]);
 
       const result = await service.getOpponents(TARGET_USER);
@@ -407,14 +407,18 @@ describe("UserStatisticsService", () => {
     test("名前がnullのユーザーは「名前未設定」として返す", async () => {
       matchRepository.listDistinctOpponentIds.mockResolvedValue([OPPONENT]);
       userRepository.findByIds.mockResolvedValue([
-        { id: OPPONENT, name: null, email: null, image: null, createdAt: new Date() },
+        {
+          id: OPPONENT,
+          name: null,
+          email: null,
+          image: null,
+          createdAt: new Date(),
+        },
       ]);
 
       const result = await service.getOpponents(TARGET_USER);
 
-      expect(result).toEqual([
-        { userId: OPPONENT, name: "名前未設定" },
-      ]);
+      expect(result).toEqual([{ userId: OPPONENT, name: "名前未設定" }]);
     });
   });
 
@@ -433,11 +437,31 @@ describe("UserStatisticsService", () => {
 
     test("勝敗引き分けを正しく集計する", async () => {
       matchRepository.listByBothPlayerIds.mockResolvedValue([
-        createTestMatch({ player1Id: TARGET_USER, player2Id: OPPONENT, outcome: "P1_WIN" }),
-        createTestMatch({ player1Id: TARGET_USER, player2Id: OPPONENT, outcome: "P2_WIN" }),
-        createTestMatch({ player1Id: OPPONENT, player2Id: TARGET_USER, outcome: "P1_WIN" }),
-        createTestMatch({ player1Id: TARGET_USER, player2Id: OPPONENT, outcome: "DRAW" }),
-        createTestMatch({ player1Id: TARGET_USER, player2Id: OPPONENT, outcome: "UNKNOWN" }),
+        createTestMatch({
+          player1Id: TARGET_USER,
+          player2Id: OPPONENT,
+          outcome: "P1_WIN",
+        }),
+        createTestMatch({
+          player1Id: TARGET_USER,
+          player2Id: OPPONENT,
+          outcome: "P2_WIN",
+        }),
+        createTestMatch({
+          player1Id: OPPONENT,
+          player2Id: TARGET_USER,
+          outcome: "P1_WIN",
+        }),
+        createTestMatch({
+          player1Id: TARGET_USER,
+          player2Id: OPPONENT,
+          outcome: "DRAW",
+        }),
+        createTestMatch({
+          player1Id: TARGET_USER,
+          player2Id: OPPONENT,
+          outcome: "UNKNOWN",
+        }),
       ]);
 
       const result = await service.getOpponentRecord(TARGET_USER, OPPONENT);

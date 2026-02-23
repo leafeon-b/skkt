@@ -53,9 +53,7 @@ export const userRouter = router({
 
   me: protectedProcedure.output(meDtoSchema).query(({ ctx }) =>
     handleTrpcError(async () => {
-      const { user, hasPassword } = await ctx.userService.getMe(
-        ctx.actorId,
-      );
+      const { user, hasPassword } = await ctx.userService.getMe(ctx.actorId);
       return { ...toUserDto(user), hasPassword };
     }),
   ),

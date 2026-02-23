@@ -1,15 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
-import {
-  circleSessionId,
-  matchId,
-  userId,
-} from "@/server/domain/common/ids";
-import {
-  BadRequestError,
-  ForbiddenError,
-} from "@/server/domain/common/errors";
+import { circleSessionId, matchId, userId } from "@/server/domain/common/ids";
+import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
 
 const createTestContext = (
   actorIdValue: ReturnType<typeof userId> | null = userId("user-1"),
@@ -187,9 +180,7 @@ describe("match tRPC ルーター", () => {
 
     test("ForbiddenError → FORBIDDEN", async () => {
       const { context, mocks } = createTestContext();
-      mocks.matchService.getMatch.mockRejectedValueOnce(
-        new ForbiddenError(),
-      );
+      mocks.matchService.getMatch.mockRejectedValueOnce(new ForbiddenError());
 
       const caller = appRouter.createCaller(context);
 

@@ -54,10 +54,7 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": [
         "error",
         {
-          patterns: [
-            "@/server/presentation/**",
-            "@/server/infrastructure/**",
-          ],
+          patterns: ["@/server/presentation/**", "@/server/infrastructure/**"],
         },
       ],
     },
@@ -115,10 +112,7 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": [
         "error",
         {
-          patterns: [
-            "@/server/presentation/**",
-            "@/server/application/**",
-          ],
+          patterns: ["@/server/presentation/**", "@/server/application/**"],
         },
       ],
     },

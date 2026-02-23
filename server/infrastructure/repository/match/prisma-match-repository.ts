@@ -75,9 +75,7 @@ export const createPrismaMatchRepository = (
     return matches.map(mapMatchToDomain);
   },
 
-  async listByPlayerIdWithCircle(
-    playerId: UserId,
-  ): Promise<MatchWithCircle[]> {
+  async listByPlayerIdWithCircle(playerId: UserId): Promise<MatchWithCircle[]> {
     const matches = await client.match.findMany({
       where: {
         deletedAt: null,

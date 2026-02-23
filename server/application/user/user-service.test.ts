@@ -1,24 +1,14 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createUserService } from "@/server/application/user/user-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import type { UserRepository } from "@/server/domain/models/user/user-repository";
+import { createMockUserRepository } from "@/server/application/test-helpers/mock-repositories";
 import type { PasswordUtils } from "@/server/application/user/user-service";
 import type { RateLimiter } from "@/server/application/common/rate-limiter";
 import { userId } from "@/server/domain/common/ids";
 import { createUser } from "@/server/domain/models/user/user";
 import { TooManyRequestsError } from "@/server/domain/common/errors";
 
-const userRepository = {
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  findByEmail: vi.fn(),
-  save: vi.fn(),
-  updateProfile: vi.fn(),
-  emailExists: vi.fn(),
-  findPasswordHashById: vi.fn(),
-  findPasswordChangedAt: vi.fn(),
-  updatePasswordHash: vi.fn(),
-} satisfies UserRepository;
+const userRepository = createMockUserRepository();
 
 const accessService = createAccessServiceStub();
 

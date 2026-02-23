@@ -1,38 +1,23 @@
 import { createCircleSessionService } from "@/server/application/circle-session/circle-session-service";
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
+import {
+  createMockCircleRepository,
+  createMockCircleSessionRepository,
+  createMockCircleSessionParticipationRepository,
+} from "@/server/application/test-helpers/mock-repositories";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
-import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import { createCircle } from "@/server/domain/models/circle/circle";
-import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import { CircleSessionRole } from "@/server/domain/services/authz/roles";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const circleRepository = {
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  save: vi.fn(),
-  delete: vi.fn(),
-} satisfies CircleRepository;
+const circleRepository = createMockCircleRepository();
 
-const circleSessionRepository = {
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  listByCircleId: vi.fn(),
-  save: vi.fn(),
-  delete: vi.fn(),
-} satisfies CircleSessionRepository;
+const circleSessionRepository = createMockCircleSessionRepository();
 
-const circleSessionParticipationRepository = {
-  listParticipations: vi.fn(),
-  listByUserId: vi.fn(),
-  addParticipation: vi.fn(),
-  updateParticipationRole: vi.fn(),
-  areUsersParticipating: vi.fn(),
-  removeParticipation: vi.fn(),
-} satisfies CircleSessionParticipationRepository;
+const circleSessionParticipationRepository =
+  createMockCircleSessionParticipationRepository();
 
 const accessService = createAccessServiceStub();
 
@@ -239,48 +224,19 @@ describe("CircleSession サービス", () => {
 
 describe("UnitOfWork 経路", () => {
   // deps用リポジトリ（UoW外）— circleRepository はUoW外で使われるため通常設定
-  const depsCircleRepository = {
-    findById: vi.fn(),
-    findByIds: vi.fn(),
-    save: vi.fn(),
-    delete: vi.fn(),
-  } satisfies CircleRepository;
+  const depsCircleRepository = createMockCircleRepository();
 
   // deps用（UoW内で使われるべきメソッドには mockResolvedValue を設定しない）
-  const depsCircleSessionRepository = {
-    findById: vi.fn(),
-    findByIds: vi.fn(),
-    listByCircleId: vi.fn(),
-    save: vi.fn(),
-    delete: vi.fn(),
-  } satisfies CircleSessionRepository;
+  const depsCircleSessionRepository = createMockCircleSessionRepository();
 
-  const depsCircleSessionParticipationRepository = {
-    listParticipations: vi.fn(),
-    listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    updateParticipationRole: vi.fn(),
-    areUsersParticipating: vi.fn(),
-    removeParticipation: vi.fn(),
-  } satisfies CircleSessionParticipationRepository;
+  const depsCircleSessionParticipationRepository =
+    createMockCircleSessionParticipationRepository();
 
   // UoWコールバック用リポジトリ（UoW内専用）
-  const uowCircleSessionRepository = {
-    findById: vi.fn(),
-    findByIds: vi.fn(),
-    listByCircleId: vi.fn(),
-    save: vi.fn(),
-    delete: vi.fn(),
-  } satisfies CircleSessionRepository;
+  const uowCircleSessionRepository = createMockCircleSessionRepository();
 
-  const uowCircleSessionParticipationRepository = {
-    listParticipations: vi.fn(),
-    listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    updateParticipationRole: vi.fn(),
-    areUsersParticipating: vi.fn(),
-    removeParticipation: vi.fn(),
-  } satisfies CircleSessionParticipationRepository;
+  const uowCircleSessionParticipationRepository =
+    createMockCircleSessionParticipationRepository();
 
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({

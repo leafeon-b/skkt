@@ -1,26 +1,17 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleService } from "@/server/application/circle/circle-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
+import {
+  createMockCircleRepository,
+  createMockCircleParticipationRepository,
+} from "@/server/application/test-helpers/mock-repositories";
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { circleId } from "@/server/domain/common/ids";
 import { createCircle } from "@/server/domain/models/circle/circle";
 
-const circleRepository = {
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  save: vi.fn(),
-  delete: vi.fn(),
-} satisfies CircleRepository;
+const circleRepository = createMockCircleRepository();
 
-const circleParticipationRepository = {
-  listByCircleId: vi.fn(),
-  listByUserId: vi.fn(),
-  addParticipation: vi.fn(),
-  updateParticipationRole: vi.fn(),
-  removeParticipation: vi.fn(),
-} satisfies CircleParticipationRepository;
+const circleParticipationRepository = createMockCircleParticipationRepository();
 
 const accessService = createAccessServiceStub();
 
@@ -115,36 +106,16 @@ describe("Circle サービス", () => {
 
 describe("UnitOfWork 経路", () => {
   // deps用リポジトリ（UoW外）— UoW内で使われるべきメソッドには mockResolvedValue を設定しない
-  const depsCircleRepository = {
-    findById: vi.fn(),
-    findByIds: vi.fn(),
-    save: vi.fn(),
-    delete: vi.fn(),
-  } satisfies CircleRepository;
+  const depsCircleRepository = createMockCircleRepository();
 
-  const depsCircleParticipationRepository = {
-    listByCircleId: vi.fn(),
-    listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    updateParticipationRole: vi.fn(),
-    removeParticipation: vi.fn(),
-  } satisfies CircleParticipationRepository;
+  const depsCircleParticipationRepository =
+    createMockCircleParticipationRepository();
 
   // UoWコールバック用リポジトリ（UoW内専用）
-  const uowCircleRepository = {
-    findById: vi.fn(),
-    findByIds: vi.fn(),
-    save: vi.fn(),
-    delete: vi.fn(),
-  } satisfies CircleRepository;
+  const uowCircleRepository = createMockCircleRepository();
 
-  const uowCircleParticipationRepository = {
-    listByCircleId: vi.fn(),
-    listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    updateParticipationRole: vi.fn(),
-    removeParticipation: vi.fn(),
-  } satisfies CircleParticipationRepository;
+  const uowCircleParticipationRepository =
+    createMockCircleParticipationRepository();
 
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({

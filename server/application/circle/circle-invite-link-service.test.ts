@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleInviteLinkService } from "@/server/application/circle/circle-invite-link-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
-import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
+import {
+  createMockCircleInviteLinkRepository,
+  createMockCircleRepository,
+  createMockCircleParticipationRepository,
+} from "@/server/application/test-helpers/mock-repositories";
 import {
   circleId,
   circleInviteLinkId,
@@ -11,26 +13,11 @@ import {
   userId,
 } from "@/server/domain/common/ids";
 
-const circleInviteLinkRepository = {
-  findByToken: vi.fn(),
-  findActiveByCircleId: vi.fn(),
-  save: vi.fn(),
-} satisfies CircleInviteLinkRepository;
+const circleInviteLinkRepository = createMockCircleInviteLinkRepository();
 
-const circleRepository = {
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  save: vi.fn(),
-  delete: vi.fn(),
-} satisfies CircleRepository;
+const circleRepository = createMockCircleRepository();
 
-const circleParticipationRepository = {
-  listByCircleId: vi.fn(),
-  listByUserId: vi.fn(),
-  addParticipation: vi.fn(),
-  updateParticipationRole: vi.fn(),
-  removeParticipation: vi.fn(),
-} satisfies CircleParticipationRepository;
+const circleParticipationRepository = createMockCircleParticipationRepository();
 
 const accessService = createAccessServiceStub();
 

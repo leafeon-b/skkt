@@ -1,5 +1,5 @@
 import { createAccessService } from "@/server/application/authz/access-service";
-import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
+import { createMockAuthzRepository } from "@/server/application/test-helpers/mock-repositories";
 import type {
   CircleMembership,
   CircleSessionMembership,
@@ -21,11 +21,7 @@ const targetUserId = "user-2";
 const circleId = "circle-1";
 const circleSessionId = "circle-session-1";
 
-const repository = {
-  isRegisteredUser: vi.fn(),
-  findCircleMembership: vi.fn(),
-  findCircleSessionMembership: vi.fn(),
-} satisfies AuthzRepository;
+const repository = createMockAuthzRepository();
 
 const access = createAccessService(repository);
 

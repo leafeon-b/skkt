@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createMatchService } from "@/server/application/match/match-service";
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import type { MatchRepository } from "@/server/domain/models/match/match-repository";
-import type { MatchHistoryRepository } from "@/server/domain/models/match-history/match-history-repository";
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
-import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
+import {
+  createMockMatchRepository,
+  createMockMatchHistoryRepository,
+  createMockCircleSessionParticipationRepository,
+  createMockCircleSessionRepository,
+} from "@/server/application/test-helpers/mock-repositories";
 import {
   circleId,
   circleSessionId,
@@ -15,37 +17,14 @@ import {
 } from "@/server/domain/common/ids";
 import { createMatch } from "@/server/domain/models/match/match";
 
-const matchRepository = {
-  findById: vi.fn(),
-  listByCircleSessionId: vi.fn(),
-  listByPlayerId: vi.fn(),
-  listByBothPlayerIds: vi.fn(),
-  listByPlayerIdWithCircle: vi.fn(),
-  listDistinctOpponentIds: vi.fn(),
-  save: vi.fn(),
-} satisfies MatchRepository;
+const matchRepository = createMockMatchRepository();
 
-const matchHistoryRepository = {
-  listByMatchId: vi.fn(),
-  add: vi.fn(),
-} satisfies MatchHistoryRepository;
+const matchHistoryRepository = createMockMatchHistoryRepository();
 
-const circleSessionParticipationRepository = {
-  listParticipations: vi.fn(),
-  listByUserId: vi.fn(),
-  addParticipation: vi.fn(),
-  updateParticipationRole: vi.fn(),
-  areUsersParticipating: vi.fn(),
-  removeParticipation: vi.fn(),
-} satisfies CircleSessionParticipationRepository;
+const circleSessionParticipationRepository =
+  createMockCircleSessionParticipationRepository();
 
-const circleSessionRepository = {
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  listByCircleId: vi.fn(),
-  save: vi.fn(),
-  delete: vi.fn(),
-} satisfies CircleSessionRepository;
+const circleSessionRepository = createMockCircleSessionRepository();
 
 const accessService = createAccessServiceStub();
 
@@ -311,70 +290,24 @@ describe("Match サービス", () => {
 
 describe("UnitOfWork 経路", () => {
   // deps用リポジトリ（UoW外）— UoW内で使われるべきメソッドには mockResolvedValue を設定しない
-  const depsMatchRepository = {
-    findById: vi.fn(),
-    listByCircleSessionId: vi.fn(),
-    listByPlayerId: vi.fn(),
-    listByBothPlayerIds: vi.fn(),
-    listByPlayerIdWithCircle: vi.fn(),
-    listDistinctOpponentIds: vi.fn(),
-    save: vi.fn(),
-  } satisfies MatchRepository;
+  const depsMatchRepository = createMockMatchRepository();
 
-  const depsMatchHistoryRepository = {
-    listByMatchId: vi.fn(),
-    add: vi.fn(),
-  } satisfies MatchHistoryRepository;
+  const depsMatchHistoryRepository = createMockMatchHistoryRepository();
 
-  const depsCircleSessionParticipationRepository = {
-    listParticipations: vi.fn(),
-    listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    updateParticipationRole: vi.fn(),
-    areUsersParticipating: vi.fn(),
-    removeParticipation: vi.fn(),
-  } satisfies CircleSessionParticipationRepository;
+  const depsCircleSessionParticipationRepository =
+    createMockCircleSessionParticipationRepository();
 
-  const depsCircleSessionRepository = {
-    findById: vi.fn(),
-    findByIds: vi.fn(),
-    listByCircleId: vi.fn(),
-    save: vi.fn(),
-    delete: vi.fn(),
-  } satisfies CircleSessionRepository;
+  const depsCircleSessionRepository = createMockCircleSessionRepository();
 
   // UoWコールバック用リポジトリ（UoW内専用）
-  const uowMatchRepository = {
-    findById: vi.fn(),
-    listByCircleSessionId: vi.fn(),
-    listByPlayerId: vi.fn(),
-    listByBothPlayerIds: vi.fn(),
-    listByPlayerIdWithCircle: vi.fn(),
-    listDistinctOpponentIds: vi.fn(),
-    save: vi.fn(),
-  } satisfies MatchRepository;
+  const uowMatchRepository = createMockMatchRepository();
 
-  const uowMatchHistoryRepository = {
-    listByMatchId: vi.fn(),
-    add: vi.fn(),
-  } satisfies MatchHistoryRepository;
+  const uowMatchHistoryRepository = createMockMatchHistoryRepository();
 
-  const uowCircleSessionParticipationRepository = {
-    listParticipations: vi.fn(),
-    listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    updateParticipationRole: vi.fn(),
-    areUsersParticipating: vi.fn(),
-    removeParticipation: vi.fn(),
-  } satisfies CircleSessionParticipationRepository;
+  const uowCircleSessionParticipationRepository =
+    createMockCircleSessionParticipationRepository();
 
-  const uowCircleSessionRepository = {
-    findById: vi.fn(),
-    findByIds: vi.fn(),
-    listByCircleId: vi.fn(),
-    save: vi.fn(),
-    delete: vi.fn(),
-  } satisfies CircleSessionRepository;
+  const uowCircleSessionRepository = createMockCircleSessionRepository();
 
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({
