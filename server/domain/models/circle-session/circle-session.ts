@@ -6,6 +6,8 @@ import {
   assertValidDate,
 } from "@/server/domain/common/validation";
 
+export const CIRCLE_SESSION_TITLE_MAX_LENGTH = 100;
+
 export type CircleSession = {
   id: CircleSessionId;
   circleId: CircleId;
@@ -36,7 +38,7 @@ export const createCircleSession = (
   assertStartBeforeEnd(startsAt, endsAt, "CircleSession");
   const title = assertMaxLength(
     assertNonEmpty(params.title, "CircleSession title"),
-    100,
+    CIRCLE_SESSION_TITLE_MAX_LENGTH,
     "CircleSession title",
   );
 

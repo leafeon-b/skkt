@@ -4,6 +4,8 @@ import {
   assertNonEmpty,
 } from "@/server/domain/common/validation";
 
+export const CIRCLE_NAME_MAX_LENGTH = 50;
+
 export type Circle = {
   id: CircleId;
   name: string;
@@ -20,7 +22,7 @@ export const createCircle = (params: CircleCreateParams): Circle => ({
   id: params.id,
   name: assertMaxLength(
     assertNonEmpty(params.name, "Circle name"),
-    50,
+    CIRCLE_NAME_MAX_LENGTH,
     "Circle name",
   ),
   createdAt: params.createdAt ?? new Date(),
@@ -30,7 +32,7 @@ export const renameCircle = (circle: Circle, name: string): Circle => ({
   ...circle,
   name: assertMaxLength(
     assertNonEmpty(name, "Circle name"),
-    50,
+    CIRCLE_NAME_MAX_LENGTH,
     "Circle name",
   ),
 });
