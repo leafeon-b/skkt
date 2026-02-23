@@ -8,7 +8,9 @@ import {
   TooManyRequestsError,
 } from "@/server/domain/common/errors";
 
-const createTestContext = (actorIdValue: ReturnType<typeof userId> | null = userId("user-1")) => {
+const createTestContext = (
+  actorIdValue: ReturnType<typeof userId> | null = userId("user-1"),
+) => {
   const userService = {
     getUser: vi.fn(),
     listUsers: vi.fn(),

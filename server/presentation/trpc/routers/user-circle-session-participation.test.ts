@@ -101,8 +101,9 @@ describe("userCircleSessionParticipation tRPC ルーター", () => {
       );
 
       const caller = appRouter.createCaller(context);
-      const result =
-        await caller.users.circleSessions.participations.list({ limit: 5 });
+      const result = await caller.users.circleSessions.participations.list({
+        limit: 5,
+      });
 
       expect(result).toHaveLength(1);
       expect(result[0].circleSessionId).toBe("session-1");
@@ -126,8 +127,7 @@ describe("userCircleSessionParticipation tRPC ルーター", () => {
       );
 
       const caller = appRouter.createCaller(context);
-      const result =
-        await caller.users.circleSessions.participations.list({});
+      const result = await caller.users.circleSessions.participations.list({});
 
       expect(result).toHaveLength(1);
       expect(
@@ -146,8 +146,7 @@ describe("userCircleSessionParticipation tRPC ルーター", () => {
       );
 
       const caller = appRouter.createCaller(context);
-      const result =
-        await caller.users.circleSessions.participations.list({});
+      const result = await caller.users.circleSessions.participations.list({});
 
       expect(result).toEqual([]);
     });
@@ -159,8 +158,7 @@ describe("userCircleSessionParticipation tRPC ルーター", () => {
       );
 
       const caller = appRouter.createCaller(context);
-      const result =
-        await caller.users.circleSessions.participations.list({});
+      const result = await caller.users.circleSessions.participations.list({});
 
       expect(result[0].location).toBeNull();
     });

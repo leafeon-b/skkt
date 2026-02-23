@@ -1,72 +1,17 @@
 import { describe, expect, test, vi } from "vitest";
 import { createServiceContainer } from "@/server/application/service-container";
 import { matchHistoryId } from "@/server/domain/common/ids";
-import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
-
-const createStub = () => ({
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  save: vi.fn(),
-  delete: vi.fn(),
-});
-
-const createParticipationStub = () => ({
-  listByCircleId: vi.fn(),
-  listByUserId: vi.fn(),
-  addParticipation: vi.fn(),
-  updateParticipationRole: vi.fn(),
-  removeParticipation: vi.fn(),
-});
-
-const createSessionStub = () => ({
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  listByCircleId: vi.fn(),
-  save: vi.fn(),
-  delete: vi.fn(),
-});
-
-const createMatchStub = () => ({
-  findById: vi.fn(),
-  listByCircleSessionId: vi.fn(),
-  listByPlayerId: vi.fn(),
-  listByBothPlayerIds: vi.fn(),
-  listByPlayerIdWithCircle: vi.fn(),
-  listDistinctOpponentIds: vi.fn(),
-  save: vi.fn(),
-});
-
-const createMatchHistoryStub = () => ({
-  listByMatchId: vi.fn(),
-  add: vi.fn(),
-});
-
-const createSessionParticipationStub = () => ({
-  listParticipations: vi.fn(),
-  listByUserId: vi.fn(),
-  addParticipation: vi.fn(),
-  updateParticipationRole: vi.fn(),
-  areUsersParticipating: vi.fn(),
-  removeParticipation: vi.fn(),
-});
-
-const createAuthzStub = () => ({
-  isRegisteredUser: vi.fn(),
-  findCircleMembership: vi.fn(),
-  findCircleSessionMembership: vi.fn(),
-});
-
-const createUserStub = () => ({
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  findByEmail: vi.fn(),
-  save: vi.fn(),
-  updateProfile: vi.fn(),
-  emailExists: vi.fn(),
-  findPasswordHashById: vi.fn(),
-  findPasswordChangedAt: vi.fn(),
-  updatePasswordHash: vi.fn(),
-});
+import {
+  createMockCircleRepository,
+  createMockCircleParticipationRepository,
+  createMockCircleSessionRepository,
+  createMockMatchRepository,
+  createMockMatchHistoryRepository,
+  createMockCircleSessionParticipationRepository,
+  createMockUserRepository,
+  createMockAuthzRepository,
+  createMockCircleInviteLinkRepository,
+} from "@/server/application/test-helpers/mock-repositories";
 
 const createSignupStub = () => ({
   emailExists: vi.fn(),
@@ -75,22 +20,18 @@ const createSignupStub = () => ({
 
 describe("Service container", () => {
   test("依存を注入してサービスを作成できる", async () => {
-    const circleRepository = createStub();
-    const circleParticipationRepository = createParticipationStub();
-    const circleSessionRepository = createSessionStub();
-    const matchRepository = createMatchStub();
-    const matchHistoryRepository = createMatchHistoryStub();
+    const circleRepository = createMockCircleRepository();
+    const circleParticipationRepository =
+      createMockCircleParticipationRepository();
+    const circleSessionRepository = createMockCircleSessionRepository();
+    const matchRepository = createMockMatchRepository();
+    const matchHistoryRepository = createMockMatchHistoryRepository();
     const circleSessionParticipationRepository =
-      createSessionParticipationStub();
-    const userRepository = createUserStub();
-    const authzRepository = createAuthzStub();
+      createMockCircleSessionParticipationRepository();
+    const userRepository = createMockUserRepository();
+    const authzRepository = createMockAuthzRepository();
     const signupRepository = createSignupStub();
-
-    const circleInviteLinkRepository = {
-      findByToken: vi.fn(),
-      findActiveByCircleId: vi.fn(),
-      save: vi.fn(),
-    } satisfies CircleInviteLinkRepository;
+    const circleInviteLinkRepository = createMockCircleInviteLinkRepository();
 
     const container = createServiceContainer({
       circleRepository,

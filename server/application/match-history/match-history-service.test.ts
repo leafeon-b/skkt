@@ -1,33 +1,18 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createMatchHistoryService } from "@/server/application/match-history/match-history-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import type { MatchHistoryRepository } from "@/server/domain/models/match-history/match-history-repository";
-import type { MatchRepository } from "@/server/domain/models/match/match-repository";
-import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
+import {
+  createMockMatchHistoryRepository,
+  createMockMatchRepository,
+  createMockCircleSessionRepository,
+} from "@/server/application/test-helpers/mock-repositories";
 import { circleId, circleSessionId, matchId } from "@/server/domain/common/ids";
 
-const matchHistoryRepository = {
-  listByMatchId: vi.fn(),
-  add: vi.fn(),
-} satisfies MatchHistoryRepository;
+const matchHistoryRepository = createMockMatchHistoryRepository();
 
-const matchRepository = {
-  findById: vi.fn(),
-  listByCircleSessionId: vi.fn(),
-  listByPlayerId: vi.fn(),
-  listByBothPlayerIds: vi.fn(),
-  listByPlayerIdWithCircle: vi.fn(),
-  listDistinctOpponentIds: vi.fn(),
-  save: vi.fn(),
-} satisfies MatchRepository;
+const matchRepository = createMockMatchRepository();
 
-const circleSessionRepository = {
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  listByCircleId: vi.fn(),
-  save: vi.fn(),
-  delete: vi.fn(),
-} satisfies CircleSessionRepository;
+const circleSessionRepository = createMockCircleSessionRepository();
 
 const accessService = createAccessServiceStub();
 

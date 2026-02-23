@@ -1,35 +1,20 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleSessionParticipationService } from "@/server/application/circle-session/circle-session-participation-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
-import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
-import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
+import {
+  createMockCircleSessionParticipationRepository,
+  createMockCircleSessionRepository,
+  createMockCircleRepository,
+} from "@/server/application/test-helpers/mock-repositories";
 import { ConflictError } from "@/server/domain/common/errors";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 
-const circleSessionParticipationRepository = {
-  listParticipations: vi.fn(),
-  listByUserId: vi.fn(),
-  addParticipation: vi.fn(),
-  updateParticipationRole: vi.fn(),
-  areUsersParticipating: vi.fn(),
-  removeParticipation: vi.fn(),
-} satisfies CircleSessionParticipationRepository;
+const circleSessionParticipationRepository =
+  createMockCircleSessionParticipationRepository();
 
-const circleSessionRepository = {
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  listByCircleId: vi.fn(),
-  save: vi.fn(),
-  delete: vi.fn(),
-} satisfies CircleSessionRepository;
+const circleSessionRepository = createMockCircleSessionRepository();
 
-const circleRepository = {
-  findById: vi.fn(),
-  findByIds: vi.fn(),
-  save: vi.fn(),
-  delete: vi.fn(),
-} satisfies CircleRepository;
+const circleRepository = createMockCircleRepository();
 
 const accessService = createAccessServiceStub();
 
@@ -495,9 +480,7 @@ describe("CircleSession 参加関係サービス", () => {
         circleSessionParticipationRepository.listByUserId,
       ).mockResolvedValueOnce([]);
 
-      const result = await service.countPastSessionsByUserId(
-        userId("user-1"),
-      );
+      const result = await service.countPastSessionsByUserId(userId("user-1"));
 
       expect(result).toBe(0);
       expect(circleSessionRepository.findByIds).not.toHaveBeenCalled();
@@ -531,9 +514,7 @@ describe("CircleSession 参加関係サービス", () => {
         },
       ]);
 
-      const result = await service.countPastSessionsByUserId(
-        userId("user-1"),
-      );
+      const result = await service.countPastSessionsByUserId(userId("user-1"));
 
       expect(result).toBe(2);
     });
@@ -566,9 +547,7 @@ describe("CircleSession 参加関係サービス", () => {
         },
       ]);
 
-      const result = await service.countPastSessionsByUserId(
-        userId("user-1"),
-      );
+      const result = await service.countPastSessionsByUserId(userId("user-1"));
 
       expect(result).toBe(0);
     });
@@ -611,9 +590,7 @@ describe("CircleSession 参加関係サービス", () => {
         },
       ]);
 
-      const result = await service.countPastSessionsByUserId(
-        userId("user-1"),
-      );
+      const result = await service.countPastSessionsByUserId(userId("user-1"));
 
       expect(result).toBe(2);
     });
@@ -636,9 +613,7 @@ describe("CircleSession 参加関係サービス", () => {
         },
       ]);
 
-      const result = await service.countPastSessionsByUserId(
-        userId("user-1"),
-      );
+      const result = await service.countPastSessionsByUserId(userId("user-1"));
 
       expect(result).toBe(1);
     });

@@ -82,8 +82,8 @@ describe("getInviteLinkPageData", () => {
     mockGetInfo.mockRejectedValueOnce(unexpected);
     mockActorId.mockReturnValueOnce(null);
 
-    await expect(
-      getInviteLinkPageData(VALID_TOKEN_UUID),
-    ).rejects.toThrow(unexpected);
+    await expect(getInviteLinkPageData(VALID_TOKEN_UUID)).rejects.toThrow(
+      unexpected,
+    );
   });
 });
