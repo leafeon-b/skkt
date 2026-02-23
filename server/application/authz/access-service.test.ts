@@ -1,5 +1,8 @@
 import { createAccessService } from "@/server/application/authz/access-service";
-import { createMockAuthzRepository } from "@/server/application/test-helpers/mock-repositories";
+import {
+  createMockAuthzRepository,
+  createMockUserRepository,
+} from "@/server/application/test-helpers/mock-repositories";
 import type {
   CircleMembership,
   CircleSessionMembership,
@@ -15,6 +18,11 @@ import type {
   CircleSessionRole,
 } from "@/server/domain/services/authz/roles";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { userId as userIdBrand } from "@/server/domain/common/ids";
+import {
+  createUser,
+  ProfileVisibility,
+} from "@/server/domain/models/user/user";
 
 const userId = "user-1";
 const targetUserId = "user-2";
@@ -22,8 +30,12 @@ const circleId = "circle-1";
 const circleSessionId = "circle-session-1";
 
 const repository = createMockAuthzRepository();
+const userRepository = createMockUserRepository();
 
-const access = createAccessService(repository);
+const access = createAccessService({
+  authzRepository: repository,
+  userRepository,
+});
 
 const mockedIsRegisteredUser = vi.mocked(repository.isRegisteredUser);
 const mockedFindCircleMembership = vi.mocked(repository.findCircleMembership);
@@ -540,6 +552,50 @@ describe("認可ポリシー", () => {
         await expect(
           access.canViewMatchHistory(userId, circleId, circleSessionId),
         ).resolves.toBe(item.expected);
+      });
+    });
+  });
+
+  describe("プロフィール公開設定", () => {
+    describe("canViewUserProfile（プロフィール統計閲覧）", () => {
+      const actorId = userIdBrand("user-1");
+      const targetId = userIdBrand("user-2");
+
+      test("自分自身のプロフィールは常に閲覧可能", async () => {
+        await expect(access.canViewUserProfile(actorId, actorId)).resolves.toBe(
+          true,
+        );
+      });
+
+      test("他者のPUBLICプロフィールは閲覧可能", async () => {
+        userRepository.findById.mockResolvedValue(
+          createUser({
+            id: targetId,
+            profileVisibility: ProfileVisibility.PUBLIC,
+          }),
+        );
+        await expect(
+          access.canViewUserProfile(actorId, targetId),
+        ).resolves.toBe(true);
+      });
+
+      test("他者のPRIVATEプロフィールは閲覧不可", async () => {
+        userRepository.findById.mockResolvedValue(
+          createUser({
+            id: targetId,
+            profileVisibility: ProfileVisibility.PRIVATE,
+          }),
+        );
+        await expect(
+          access.canViewUserProfile(actorId, targetId),
+        ).resolves.toBe(false);
+      });
+
+      test("対象ユーザーが存在しない場合は閲覧不可", async () => {
+        userRepository.findById.mockResolvedValue(null);
+        await expect(
+          access.canViewUserProfile(actorId, targetId),
+        ).resolves.toBe(false);
       });
     });
   });

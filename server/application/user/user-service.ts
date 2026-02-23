@@ -1,4 +1,4 @@
-import type { User } from "@/server/domain/models/user/user";
+import type { User, ProfileVisibility } from "@/server/domain/models/user/user";
 import type { UserId } from "@/server/domain/common/ids";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
@@ -100,5 +100,16 @@ export const createUserService = (deps: UserServiceDeps) => ({
     deps.changePasswordRateLimiter.reset(actorId);
     const newHash = deps.passwordUtils.hash(newPassword);
     await deps.userRepository.updatePasswordHash(actorId, newHash);
+  },
+
+  async updateProfileVisibility(
+    actorId: UserId,
+    visibility: ProfileVisibility,
+  ): Promise<void> {
+    const user = await deps.userRepository.findById(actorId);
+    if (!user) {
+      throw new ForbiddenError();
+    }
+    await deps.userRepository.updateProfileVisibility(actorId, visibility);
   },
 });

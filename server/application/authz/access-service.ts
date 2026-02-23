@@ -1,4 +1,7 @@
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
+import type { UserRepository } from "@/server/domain/models/user/user-repository";
+import { ProfileVisibility } from "@/server/domain/models/user/user";
+import type { UserId } from "@/server/domain/common/ids";
 import {
   isCircleMember,
   isCircleSessionMember,
@@ -14,7 +17,13 @@ const { CircleOwner, CircleManager, CircleMember } = CircleRole;
 const { CircleSessionOwner, CircleSessionManager, CircleSessionMember } =
   CircleSessionRole;
 
-export function createAccessService(repository: AuthzRepository) {
+export type AccessServiceDeps = {
+  authzRepository: AuthzRepository;
+  userRepository: UserRepository;
+};
+
+export function createAccessService(deps: AccessServiceDeps) {
+  const repository = deps.authzRepository;
   const findCircleMembership = (userId: string, circleId: string) =>
     repository.findCircleMembership(userId, circleId);
 
@@ -319,6 +328,20 @@ export function createAccessService(repository: AuthzRepository) {
         isCircleMember(circleMembership) ||
         isCircleSessionMember(sessionMembership)
       );
+    },
+
+    async canViewUserProfile(
+      actorId: UserId,
+      targetUserId: UserId,
+    ): Promise<boolean> {
+      if (actorId === targetUserId) {
+        return true;
+      }
+      const targetUser = await deps.userRepository.findById(targetUserId);
+      if (!targetUser) {
+        return false;
+      }
+      return targetUser.profileVisibility === ProfileVisibility.PUBLIC;
     },
   };
 }
