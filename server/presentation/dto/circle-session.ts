@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CIRCLE_SESSION_TITLE_MAX_LENGTH } from "@/server/domain/models/circle-session/circle-session";
 import {
   circleIdSchema,
   circleSessionIdSchema,
@@ -39,7 +40,7 @@ export const circleSessionCreateInputSchema = z.object({
   title: z
     .string()
     .transform(trimWithFullwidth)
-    .pipe(z.string().min(1).max(100)),
+    .pipe(z.string().min(1).max(CIRCLE_SESSION_TITLE_MAX_LENGTH)),
   startsAt: dateInputSchema,
   endsAt: dateInputSchema,
   location: z.string().nullable().optional(),
@@ -56,7 +57,7 @@ export const circleSessionUpdateInputSchema = z
     title: z
       .string()
       .transform(trimWithFullwidth)
-      .pipe(z.string().min(1).max(100))
+      .pipe(z.string().min(1).max(CIRCLE_SESSION_TITLE_MAX_LENGTH))
       .optional(),
     startsAt: dateInputSchema.optional(),
     endsAt: dateInputSchema.optional(),

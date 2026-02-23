@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc/client";
+import { CIRCLE_NAME_MAX_LENGTH } from "@/server/domain/models/circle/circle";
 import { CirclePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
@@ -88,7 +89,7 @@ export function CircleCreateDialog() {
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="研究会名"
-            maxLength={50}
+            maxLength={CIRCLE_NAME_MAX_LENGTH}
             aria-required="true"
             className="mt-2 bg-white"
           />
