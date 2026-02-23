@@ -1,5 +1,8 @@
 import type { CircleId } from "@/server/domain/common/ids";
-import { assertNonEmpty } from "@/server/domain/common/validation";
+import {
+  assertMaxLength,
+  assertNonEmpty,
+} from "@/server/domain/common/validation";
 
 export type Circle = {
   id: CircleId;
@@ -15,11 +18,19 @@ export type CircleCreateParams = {
 
 export const createCircle = (params: CircleCreateParams): Circle => ({
   id: params.id,
-  name: assertNonEmpty(params.name, "Circle name"),
+  name: assertMaxLength(
+    assertNonEmpty(params.name, "Circle name"),
+    50,
+    "Circle name",
+  ),
   createdAt: params.createdAt ?? new Date(),
 });
 
 export const renameCircle = (circle: Circle, name: string): Circle => ({
   ...circle,
-  name: assertNonEmpty(name, "Circle name"),
+  name: assertMaxLength(
+    assertNonEmpty(name, "Circle name"),
+    50,
+    "Circle name",
+  ),
 });

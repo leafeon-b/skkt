@@ -28,4 +28,25 @@ describe("Circle ドメイン", () => {
     const circle = createCircle({ id: circleId("circle-1"), name: "Home" });
     expect(() => renameCircle(circle, "  ")).toThrow("Circle name is required");
   });
+
+  test("createCircle は50文字ちょうどの名前を受け入れる", () => {
+    const name = "あ".repeat(50);
+    const circle = createCircle({ id: circleId("circle-1"), name });
+    expect(circle.name).toBe(name);
+  });
+
+  test("createCircle は51文字以上の名前を拒否する", () => {
+    const name = "あ".repeat(51);
+    expect(() => createCircle({ id: circleId("circle-1"), name })).toThrow(
+      "Circle name must be at most 50 characters",
+    );
+  });
+
+  test("renameCircle は51文字以上の名前を拒否する", () => {
+    const circle = createCircle({ id: circleId("circle-1"), name: "Home" });
+    const name = "あ".repeat(51);
+    expect(() => renameCircle(circle, name)).toThrow(
+      "Circle name must be at most 50 characters",
+    );
+  });
 });

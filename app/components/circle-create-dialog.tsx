@@ -88,6 +88,7 @@ export function CircleCreateDialog() {
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="研究会名"
+            maxLength={50}
             aria-required="true"
             className="mt-2 bg-white"
           />
