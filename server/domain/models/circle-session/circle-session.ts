@@ -7,6 +7,7 @@ import {
 } from "@/server/domain/common/validation";
 
 export const CIRCLE_SESSION_TITLE_MAX_LENGTH = 100;
+export const CIRCLE_SESSION_NOTE_MAX_LENGTH = 500;
 
 export type CircleSession = {
   id: CircleSessionId;
@@ -49,7 +50,11 @@ export const createCircleSession = (
     startsAt,
     endsAt,
     location: params.location ?? null,
-    note: params.note?.trim() ?? "",
+    note: assertMaxLength(
+      params.note?.trim() ?? "",
+      CIRCLE_SESSION_NOTE_MAX_LENGTH,
+      "CircleSession note",
+    ),
     createdAt: params.createdAt ?? new Date(),
   };
 };

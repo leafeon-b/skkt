@@ -8,7 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc/client";
 import { trimWithFullwidth } from "@/lib/string";
-import { CIRCLE_SESSION_TITLE_MAX_LENGTH } from "@/server/domain/models/circle-session/circle-session";
+import {
+  CIRCLE_SESSION_NOTE_MAX_LENGTH,
+  CIRCLE_SESSION_TITLE_MAX_LENGTH,
+} from "@/server/domain/models/circle-session/circle-session";
 import { useRouter } from "next/navigation";
 
 type CircleSessionCreateFormProps = {
@@ -202,6 +205,7 @@ export function CircleSessionCreateForm({
             id="note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
+            maxLength={CIRCLE_SESSION_NOTE_MAX_LENGTH}
             rows={3}
             className="bg-white"
           />
