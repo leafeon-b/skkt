@@ -7,7 +7,11 @@ import {
   createMockCircleSessionParticipationRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
-import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
+import {
+  CIRCLE_SESSION_NOTE_MAX_LENGTH,
+  CIRCLE_SESSION_TITLE_MAX_LENGTH,
+  createCircleSession,
+} from "@/server/domain/models/circle-session/circle-session";
 import { createCircle } from "@/server/domain/models/circle/circle";
 import { CircleSessionRole } from "@/server/domain/services/authz/roles";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -146,6 +150,42 @@ describe("CircleSession サービス", () => {
 
     expect(circleSessionRepository.save).toHaveBeenCalledWith(updated);
     expect(updated.startsAt.toISOString()).toBe("2024-02-01T00:00:00.000Z");
+  });
+
+  test("updateCircleSessionDetails はタイトルが最大文字数超過時にエラー", async () => {
+    const existing = createCircleSession({
+      ...baseSessionParams,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+    });
+    vi.mocked(circleSessionRepository.findById).mockResolvedValue(existing);
+
+    await expect(
+      service.updateCircleSessionDetails("user-1", existing.id, {
+        title: "a".repeat(CIRCLE_SESSION_TITLE_MAX_LENGTH + 1),
+      }),
+    ).rejects.toThrow(
+      `CircleSession title must be at most ${CIRCLE_SESSION_TITLE_MAX_LENGTH} characters`,
+    );
+
+    expect(circleSessionRepository.save).not.toHaveBeenCalled();
+  });
+
+  test("updateCircleSessionDetails はノートが最大文字数超過時にエラー", async () => {
+    const existing = createCircleSession({
+      ...baseSessionParams,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+    });
+    vi.mocked(circleSessionRepository.findById).mockResolvedValue(existing);
+
+    await expect(
+      service.updateCircleSessionDetails("user-1", existing.id, {
+        note: "a".repeat(CIRCLE_SESSION_NOTE_MAX_LENGTH + 1),
+      }),
+    ).rejects.toThrow(
+      `CircleSession note must be at most ${CIRCLE_SESSION_NOTE_MAX_LENGTH} characters`,
+    );
+
+    expect(circleSessionRepository.save).not.toHaveBeenCalled();
   });
 
   test("updateCircleSessionDetails はタイトル・場所・メモを更新する", async () => {

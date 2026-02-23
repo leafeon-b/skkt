@@ -2,8 +2,11 @@ import { describe, expect, test } from "vitest";
 import { circleId, circleSessionId } from "@/server/domain/common/ids";
 import {
   CIRCLE_SESSION_NOTE_MAX_LENGTH,
+  CIRCLE_SESSION_TITLE_MAX_LENGTH,
   createCircleSession,
+  renameCircleSession,
   rescheduleCircleSession,
+  updateCircleSessionNote,
 } from "@/server/domain/models/circle-session/circle-session";
 
 describe("CircleSession ドメイン", () => {
@@ -147,5 +150,98 @@ describe("CircleSession ドメイン", () => {
     });
 
     expect(session.note).toBe("");
+  });
+
+  describe("renameCircleSession", () => {
+    const base = createCircleSession({
+      id: circleSessionId("session-1"),
+      circleId: circleId("circle-1"),
+      title: "旧タイトル",
+      startsAt: new Date("2024-01-01T10:00:00Z"),
+      endsAt: new Date("2024-01-01T12:00:00Z"),
+    });
+
+    test("タイトルを更新できる", () => {
+      const renamed = renameCircleSession(base, "新タイトル");
+      expect(renamed.title).toBe("新タイトル");
+    });
+
+    test("前後の空白をトリムする", () => {
+      const renamed = renameCircleSession(base, "  新タイトル  ");
+      expect(renamed.title).toBe("新タイトル");
+    });
+
+    test("空文字を拒否する", () => {
+      expect(() => renameCircleSession(base, "")).toThrow(
+        "CircleSession title is required",
+      );
+    });
+
+    test("空白のみを拒否する", () => {
+      expect(() => renameCircleSession(base, "   ")).toThrow(
+        "CircleSession title is required",
+      );
+    });
+
+    test("最大文字数超過を拒否する", () => {
+      expect(() =>
+        renameCircleSession(base, "a".repeat(CIRCLE_SESSION_TITLE_MAX_LENGTH + 1)),
+      ).toThrow(
+        `CircleSession title must be at most ${CIRCLE_SESSION_TITLE_MAX_LENGTH} characters`,
+      );
+    });
+
+    test("最大文字数ちょうどなら許可する", () => {
+      const renamed = renameCircleSession(
+        base,
+        "a".repeat(CIRCLE_SESSION_TITLE_MAX_LENGTH),
+      );
+      expect(renamed.title.length).toBe(CIRCLE_SESSION_TITLE_MAX_LENGTH);
+    });
+  });
+
+  describe("updateCircleSessionNote", () => {
+    const base = createCircleSession({
+      id: circleSessionId("session-1"),
+      circleId: circleId("circle-1"),
+      title: "研究会",
+      startsAt: new Date("2024-01-01T10:00:00Z"),
+      endsAt: new Date("2024-01-01T12:00:00Z"),
+      note: "旧メモ",
+    });
+
+    test("ノートを更新できる", () => {
+      const updated = updateCircleSessionNote(base, "新メモ");
+      expect(updated.note).toBe("新メモ");
+    });
+
+    test("前後の空白をトリムする", () => {
+      const updated = updateCircleSessionNote(base, "  新メモ  ");
+      expect(updated.note).toBe("新メモ");
+    });
+
+    test("空文字を許可する", () => {
+      const updated = updateCircleSessionNote(base, "");
+      expect(updated.note).toBe("");
+    });
+
+    test("最大文字数超過を拒否する", () => {
+      expect(() =>
+        updateCircleSessionNote(
+          base,
+          "a".repeat(CIRCLE_SESSION_NOTE_MAX_LENGTH + 1),
+        ),
+      ).toThrow(
+        `CircleSession note must be at most ${CIRCLE_SESSION_NOTE_MAX_LENGTH} characters`,
+      );
+    });
+
+    test("最大文字数ちょうどなら許可する", () => {
+      const updated = updateCircleSessionNote(
+        base,
+        "a".repeat(CIRCLE_SESSION_NOTE_MAX_LENGTH),
+      );
+      expect(updated.note.length).toBe(CIRCLE_SESSION_NOTE_MAX_LENGTH);
+    });
   });
 });

@@ -59,6 +59,30 @@ export const createCircleSession = (
   };
 };
 
+export const renameCircleSession = (
+  session: CircleSession,
+  title: string,
+): CircleSession => ({
+  ...session,
+  title: assertMaxLength(
+    assertNonEmpty(title, "CircleSession title"),
+    CIRCLE_SESSION_TITLE_MAX_LENGTH,
+    "CircleSession title",
+  ),
+});
+
+export const updateCircleSessionNote = (
+  session: CircleSession,
+  note: string,
+): CircleSession => ({
+  ...session,
+  note: assertMaxLength(
+    note.trim(),
+    CIRCLE_SESSION_NOTE_MAX_LENGTH,
+    "CircleSession note",
+  ),
+});
+
 export const rescheduleCircleSession = (
   session: CircleSession,
   startsAt: Date,
