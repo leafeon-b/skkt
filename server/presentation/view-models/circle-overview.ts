@@ -28,4 +28,5 @@ export type CircleOverviewViewModel = {
   sessions: CircleOverviewSession[];
   members: CircleOverviewMember[];
   holidayDates: string[];
+  canDeleteCircle: boolean;
 };

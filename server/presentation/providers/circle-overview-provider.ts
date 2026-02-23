@@ -56,12 +56,18 @@ export async function getCircleOverviewViewModel(
     throw new NotFoundError("Circle");
   }
 
-  const users = await caller.users.list({
-    userIds: participations.map((p) => p.userId),
-  });
+  const viewerId = ctx.actorId ?? null;
+
+  const [users, canDeleteCircle] = await Promise.all([
+    caller.users.list({
+      userIds: participations.map((p) => p.userId),
+    }),
+    viewerId
+      ? ctx.accessService.canDeleteCircle(viewerId, circleId)
+      : Promise.resolve(false),
+  ]);
   const userNameById = new Map(users.map((user) => [user.id, user.name]));
 
-  const viewerId = ctx.actorId ?? null;
   const viewerRole = getViewerRole(participations, viewerId);
 
   const allSessions = sessions
@@ -98,6 +104,7 @@ export async function getCircleOverviewViewModel(
       role: roleKeyByDto[participation.role] ?? "member",
     })),
     holidayDates: ctx.holidayProvider.getHolidayDateStringsForRange(),
+    canDeleteCircle,
   };
 
   return overview;
