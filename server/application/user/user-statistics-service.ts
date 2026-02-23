@@ -1,13 +1,20 @@
 import type { CircleId, UserId } from "@/server/domain/common/ids";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
+import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import { classifyOutcomeForUser } from "@/server/domain/models/match/match";
 import type {
   CircleMatchStatistics,
   UserMatchStatistics,
 } from "@/server/domain/models/match/match-statistics";
 
+export type OpponentInfo = {
+  userId: UserId;
+  name: string;
+};
+
 type UserStatisticsServiceDeps = {
   matchRepository: MatchRepository;
+  userRepository: UserRepository;
 };
 
 export const createUserStatisticsService = (
@@ -58,5 +65,48 @@ export const createUserStatisticsService = (
       .sort((a, b) => a.circleName.localeCompare(b.circleName, "ja"));
 
     return { total, byCircle };
+  },
+
+  async getOpponents(targetUserId: UserId): Promise<OpponentInfo[]> {
+    const matches =
+      await deps.matchRepository.listByPlayerId(targetUserId);
+
+    const opponentIds = new Set<UserId>();
+    for (const match of matches) {
+      const opponentId =
+        match.player1Id === targetUserId ? match.player2Id : match.player1Id;
+      opponentIds.add(opponentId);
+    }
+
+    if (opponentIds.size === 0) return [];
+
+    const users = await deps.userRepository.findByIds([...opponentIds]);
+    return users
+      .map((u) => ({ userId: u.id, name: u.name ?? "名前未設定" }))
+      .sort((a, b) => a.name.localeCompare(b.name, "ja"));
+  },
+
+  async getOpponentRecord(
+    targetUserId: UserId,
+    opponentId: UserId,
+  ): Promise<UserMatchStatistics> {
+    const matches = await deps.matchRepository.listByBothPlayerIds(
+      targetUserId,
+      opponentId,
+    );
+
+    const stats: UserMatchStatistics = { wins: 0, losses: 0, draws: 0 };
+
+    for (const match of matches) {
+      const isPlayer1 = match.player1Id === targetUserId;
+      const classified = classifyOutcomeForUser(match.outcome, isPlayer1);
+      if (classified === null) continue;
+
+      if (classified === "win") stats.wins++;
+      else if (classified === "loss") stats.losses++;
+      else stats.draws++;
+    }
+
+    return stats;
   },
 });

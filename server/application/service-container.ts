@@ -134,6 +134,7 @@ export const createServiceContainer = (
     }),
     userStatisticsService: createUserStatisticsService({
       matchRepository: deps.matchRepository,
+      userRepository: deps.userRepository,
     }),
     holidayProvider: deps.holidayProvider,
   };

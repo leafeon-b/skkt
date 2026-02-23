@@ -1,5 +1,6 @@
 import type { UserProfileViewModel } from "@/server/presentation/view-models/user-profile";
 import Image from "next/image";
+import { OpponentRecordSearch } from "@/app/(authenticated)/users/components/opponent-record-search";
 
 type UserProfileViewProps = {
   profile: UserProfileViewModel;
@@ -96,6 +97,13 @@ export function UserProfileView({ profile }: UserProfileViewProps) {
             </div>
           </div>
         )}
+      </section>
+
+      <section className="rounded-2xl border border-border/60 bg-white/90 p-8 shadow-sm">
+        <h2 className="mb-4 text-lg font-bold text-(--brand-ink)">
+          対戦相手別成績
+        </h2>
+        <OpponentRecordSearch userId={profile.userId} />
       </section>
     </div>
   );
