@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc/client";
 import { trimWithFullwidth } from "@/lib/string";
+import { CIRCLE_SESSION_TITLE_MAX_LENGTH } from "@/server/domain/models/circle-session/circle-session";
 import { useRouter } from "next/navigation";
 
 type CircleSessionCreateFormProps = {
@@ -126,6 +127,7 @@ export function CircleSessionCreateForm({
               setTitleError("");
             }}
             placeholder="第1回 定例研究会"
+            maxLength={CIRCLE_SESSION_TITLE_MAX_LENGTH}
             aria-required="true"
             aria-invalid={titleError ? "true" : undefined}
             aria-describedby={titleError ? "title-error" : undefined}
