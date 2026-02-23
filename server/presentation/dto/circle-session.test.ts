@@ -88,6 +88,24 @@ describe("circleSessionCreateInputSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  test("noteが500文字ちょうどは成功する", () => {
+    const result = circleSessionCreateInputSchema.safeParse({
+      ...validBase,
+      title: "例会",
+      note: "あ".repeat(500),
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("noteが501文字以上はバリデーションエラーになる", () => {
+    const result = circleSessionCreateInputSchema.safeParse({
+      ...validBase,
+      title: "例会",
+      note: "あ".repeat(501),
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("circleSessionUpdateInputSchema", () => {
@@ -174,6 +192,22 @@ describe("circleSessionUpdateInputSchema", () => {
     const result = circleSessionUpdateInputSchema.safeParse({
       ...updateBase,
       title: "あ".repeat(101),
+    });
+    expect(result.success).toBe(false);
+  });
+
+  test("noteが500文字ちょうどは成功する", () => {
+    const result = circleSessionUpdateInputSchema.safeParse({
+      ...updateBase,
+      note: "あ".repeat(500),
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("noteが501文字以上はバリデーションエラーになる", () => {
+    const result = circleSessionUpdateInputSchema.safeParse({
+      ...updateBase,
+      note: "あ".repeat(501),
     });
     expect(result.success).toBe(false);
   });
