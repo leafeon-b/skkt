@@ -35,23 +35,6 @@ import {
   type RowOutcome,
 } from "./match-utils";
 
-type RoleAction = {
-  label: string;
-  variant?:
-    | "default"
-    | "outline"
-    | "ghost"
-    | "secondary"
-    | "destructive"
-    | "link";
-  className?: string;
-};
-
-type RoleConfig = {
-  label: string;
-  actions: RoleAction[];
-};
-
 export type CircleSessionDetailViewProps = {
   detail: CircleSessionDetailViewModel;
 };
@@ -66,37 +49,6 @@ const roleClasses: Record<CircleSessionRoleKey, string> = {
   owner: "bg-(--brand-gold)/25 text-(--brand-ink)",
   manager: "bg-(--brand-sky)/25 text-(--brand-ink)",
   member: "bg-(--brand-moss)/20 text-(--brand-ink)",
-};
-
-const ownerManagerBase: { actions: RoleAction[] } = {
-  actions: [
-    {
-      label: "参加者を管理",
-      className: "bg-(--brand-moss) text-white hover:bg-(--brand-moss)/90",
-    },
-  ],
-};
-
-const roleConfigs: Record<CircleSessionRoleKey, RoleConfig> = {
-  owner: {
-    label: "オーナー",
-    ...ownerManagerBase,
-  },
-  manager: {
-    label: "マネージャー",
-    ...ownerManagerBase,
-  },
-  member: {
-    label: "メンバー",
-    actions: [
-      {
-        label: "参加者一覧",
-        variant: "outline",
-        className:
-          "border-(--brand-moss)/30 bg-white/70 text-(--brand-ink) hover:bg-white",
-      },
-    ],
-  },
 };
 
 export function CircleSessionDetailView({
@@ -176,13 +128,10 @@ export function CircleSessionDetailView({
     },
   });
 
-  const roleConfig = detail.viewerRole ? roleConfigs[detail.viewerRole] : null;
-  const actions = roleConfig?.actions ?? ownerManagerBase.actions;
   const roleBadgeClassName = detail.viewerRole
     ? (roleClasses[detail.viewerRole] ??
       "bg-(--brand-ink)/10 text-(--brand-ink)")
     : "bg-(--brand-ink)/10 text-(--brand-ink)";
-  const isSingleAction = actions.length === 1;
   const showMemoEdit =
     detail.viewerRole === "owner" || detail.viewerRole === "manager";
   const memoText = detail.memoText?.trim() ? detail.memoText : "未設定";
@@ -452,22 +401,11 @@ export function CircleSessionDetailView({
             </div>
           </div>
           <div className="flex w-full flex-col gap-4 sm:w-auto sm:min-w-60 sm:max-w-[320px]">
-            <div
-              className={`flex gap-3 ${isSingleAction ? "flex-col" : "flex-wrap"}`}
-            >
-              {actions.map((action) => (
-                <Button
-                  key={action.label}
-                  variant={action.variant}
-                  className={`${action.className ?? ""} ${isSingleAction ? "w-full" : ""}`.trim()}
-                >
-                  {action.label}
-                </Button>
-              ))}
+            <div className="flex flex-col gap-3">
               {canDuplicate ? (
                 <Button
                   variant="outline"
-                  className={`border-(--brand-ink)/20 bg-white/80 text-(--brand-ink) hover:bg-white ${isSingleAction ? "w-full" : ""}`.trim()}
+                  className="w-full border-(--brand-ink)/20 bg-white/80 text-(--brand-ink) hover:bg-white"
                   onClick={handleDuplicate}
                 >
                   <Copy className="size-4" aria-hidden="true" />
@@ -484,7 +422,7 @@ export function CircleSessionDetailView({
                 >
                   <Button
                     variant="destructive"
-                    className={isSingleAction ? "w-full" : ""}
+                    className="w-full"
                     onClick={() => setShowDeleteSessionDialog(true)}
                   >
                     <Trash2 className="size-4" aria-hidden="true" />

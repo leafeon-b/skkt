@@ -1,6 +1,5 @@
 import { CircleOverviewCalendar } from "@/app/(authenticated)/circles/components/circle-overview-calendar";
 import { CircleWithdrawButton } from "@/app/(authenticated)/circles/components/circle-withdraw-button";
-import { Button } from "@/components/ui/button";
 import type {
   CircleOverviewMember,
   CircleOverviewViewModel,
@@ -148,22 +147,14 @@ export function CircleOverviewView({
               <p className="text-sm font-semibold text-(--brand-ink)">
                 参加メンバー
               </p>
-              <div className="flex items-center gap-2">
-                {getInviteLinkHref?.() ? (
-                  <Link
-                    href={getInviteLinkHref()!}
-                    className="rounded-md px-2 py-1 text-xs font-semibold text-(--brand-moss) hover:bg-(--brand-moss)/10"
-                  >
-                    招待リンク
-                  </Link>
-                ) : null}
-                <Button
-                  variant="ghost"
-                  className="text-xs text-(--brand-ink-muted) hover:text-(--brand-ink)"
+              {getInviteLinkHref?.() ? (
+                <Link
+                  href={getInviteLinkHref()!}
+                  className="rounded-md px-2 py-1 text-xs font-semibold text-(--brand-moss) hover:bg-(--brand-moss)/10"
                 >
-                  すべて見る
-                </Button>
-              </div>
+                  招待リンク
+                </Link>
+              ) : null}
             </div>
             <div className="mt-4 space-y-3">
               {overview.members.length === 0 ? (
