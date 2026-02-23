@@ -70,7 +70,7 @@ model User {
 
 model Circle {
   id        String   @id @default(cuid())
-  name      String
+  name      String   @db.VarChar(50)
   createdAt DateTime @default(now())
 
   circleSessions    CircleSession[]
@@ -97,13 +97,13 @@ model CircleSession {
   circleId  String
   createdAt DateTime @default(now())
 
-  title String
+  title String @db.VarChar(100)
 
   /// 複数日開催も許容
   startsAt DateTime
   endsAt   DateTime
   location String?
-  note     String   @default("")
+  note     String   @default("") @db.VarChar(500)
 
   circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
