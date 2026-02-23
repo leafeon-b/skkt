@@ -17,6 +17,7 @@ const matchRepository = {
   listByPlayerId: vi.fn(),
   listByBothPlayerIds: vi.fn(),
   listByPlayerIdWithCircle: vi.fn(),
+  listDistinctOpponentIds: vi.fn(),
   save: vi.fn(),
 } satisfies MatchRepository;
 
@@ -380,7 +381,7 @@ describe("UserStatisticsService", () => {
 
   describe("getOpponents", () => {
     test("対局なしの場合、空配列を返す", async () => {
-      matchRepository.listByPlayerId.mockResolvedValue([]);
+      matchRepository.listDistinctOpponentIds.mockResolvedValue([]);
 
       const result = await service.getOpponents(TARGET_USER);
 
@@ -388,12 +389,8 @@ describe("UserStatisticsService", () => {
       expect(userRepository.findByIds).not.toHaveBeenCalled();
     });
 
-    test("対戦相手を重複排除して名前付きで返す", async () => {
-      matchRepository.listByPlayerId.mockResolvedValue([
-        createTestMatch({ player1Id: TARGET_USER, player2Id: OPPONENT }),
-        createTestMatch({ player1Id: OPPONENT, player2Id: TARGET_USER }),
-        createTestMatch({ player1Id: TARGET_USER, player2Id: OPPONENT_B }),
-      ]);
+    test("対戦相手を名前付きで返す", async () => {
+      matchRepository.listDistinctOpponentIds.mockResolvedValue([OPPONENT, OPPONENT_B]);
       userRepository.findByIds.mockResolvedValue([
         { id: OPPONENT, name: "対戦相手A", email: null, image: null, createdAt: new Date() },
         { id: OPPONENT_B, name: "対戦相手B", email: null, image: null, createdAt: new Date() },
@@ -408,9 +405,7 @@ describe("UserStatisticsService", () => {
     });
 
     test("名前がnullのユーザーは「名前未設定」として返す", async () => {
-      matchRepository.listByPlayerId.mockResolvedValue([
-        createTestMatch({ player1Id: TARGET_USER, player2Id: OPPONENT }),
-      ]);
+      matchRepository.listDistinctOpponentIds.mockResolvedValue([OPPONENT]);
       userRepository.findByIds.mockResolvedValue([
         { id: OPPONENT, name: null, email: null, image: null, createdAt: new Date() },
       ]);

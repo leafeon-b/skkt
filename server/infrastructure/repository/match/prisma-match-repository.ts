@@ -11,7 +11,7 @@ import type {
   MatchId,
   UserId,
 } from "@/server/domain/common/ids";
-import { circleId } from "@/server/domain/common/ids";
+import { circleId, userId } from "@/server/domain/common/ids";
 import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 
 export const createPrismaMatchRepository = (
@@ -101,6 +101,29 @@ export const createPrismaMatchRepository = (
       circleId: circleId(m.session.circleId),
       circleName: m.session.circle.name,
     }));
+  },
+
+  async listDistinctOpponentIds(playerId: UserId): Promise<UserId[]> {
+    const pid = toPersistenceId(playerId);
+
+    const [asPlayer1, asPlayer2] = await Promise.all([
+      client.match.findMany({
+        where: { player1Id: pid, deletedAt: null },
+        select: { player2Id: true },
+        distinct: ["player2Id"],
+      }),
+      client.match.findMany({
+        where: { player2Id: pid, deletedAt: null },
+        select: { player1Id: true },
+        distinct: ["player1Id"],
+      }),
+    ]);
+
+    const ids = new Set<string>();
+    for (const m of asPlayer1) ids.add(m.player2Id);
+    for (const m of asPlayer2) ids.add(m.player1Id);
+
+    return [...ids].map(userId);
   },
 
   async save(match: Match): Promise<void> {
