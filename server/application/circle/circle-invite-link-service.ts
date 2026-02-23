@@ -92,7 +92,9 @@ export const createCircleInviteLinkService = (
     return link;
   },
 
-  async getInviteLinkInfo(params: { token: InviteLinkToken }): Promise<InviteLinkInfo> {
+  async getInviteLinkInfo(params: {
+    token: InviteLinkToken;
+  }): Promise<InviteLinkInfo> {
     const link = await deps.circleInviteLinkRepository.findByToken(
       params.token,
     );

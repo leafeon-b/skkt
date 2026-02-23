@@ -20,9 +20,7 @@ type UserStatisticsServiceDeps = {
 export const createUserStatisticsService = (
   deps: UserStatisticsServiceDeps,
 ) => ({
-  async getMatchStatisticsAll(
-    targetUserId: UserId,
-  ): Promise<{
+  async getMatchStatisticsAll(targetUserId: UserId): Promise<{
     total: UserMatchStatistics;
     byCircle: CircleMatchStatistics[];
   }> {

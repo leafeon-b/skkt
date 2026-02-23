@@ -108,8 +108,8 @@ describe("inviteLinkToken", () => {
   });
 
   it("should throw BadRequestError for UUID-like string with wrong length", () => {
-    expect(() => inviteLinkToken("550e8400-e29b-41d4-a716-44665544000")).toThrow(
-      BadRequestError,
-    );
+    expect(() =>
+      inviteLinkToken("550e8400-e29b-41d4-a716-44665544000"),
+    ).toThrow(BadRequestError);
   });
 });

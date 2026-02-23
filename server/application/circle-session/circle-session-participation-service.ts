@@ -56,8 +56,7 @@ export const createCircleSessionParticipationService = (
     }
 
     const sessionIds = participations.map((p) => p.circleSessionId);
-    const sessions =
-      await deps.circleSessionRepository.findByIds(sessionIds);
+    const sessions = await deps.circleSessionRepository.findByIds(sessionIds);
 
     const now = new Date();
     return sessions.filter((s) => s.endsAt <= now).length;
