@@ -68,19 +68,12 @@ export const createUserStatisticsService = (
   },
 
   async getOpponents(targetUserId: UserId): Promise<OpponentInfo[]> {
-    const matches =
-      await deps.matchRepository.listByPlayerId(targetUserId);
+    const opponentIds =
+      await deps.matchRepository.listDistinctOpponentIds(targetUserId);
 
-    const opponentIds = new Set<UserId>();
-    for (const match of matches) {
-      const opponentId =
-        match.player1Id === targetUserId ? match.player2Id : match.player1Id;
-      opponentIds.add(opponentId);
-    }
+    if (opponentIds.length === 0) return [];
 
-    if (opponentIds.size === 0) return [];
-
-    const users = await deps.userRepository.findByIds([...opponentIds]);
+    const users = await deps.userRepository.findByIds(opponentIds);
     return users
       .map((u) => ({ userId: u.id, name: u.name ?? "名前未設定" }))
       .sort((a, b) => a.name.localeCompare(b.name, "ja"));

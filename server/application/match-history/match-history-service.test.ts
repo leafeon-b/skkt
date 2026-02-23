@@ -17,6 +17,7 @@ const matchRepository = {
   listByPlayerId: vi.fn(),
   listByBothPlayerIds: vi.fn(),
   listByPlayerIdWithCircle: vi.fn(),
+  listDistinctOpponentIds: vi.fn(),
   save: vi.fn(),
 } satisfies MatchRepository;
 
