@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { userIdSchema } from "@/server/presentation/dto/ids";
+import {
+  USER_EMAIL_MAX_LENGTH,
+  USER_NAME_MAX_LENGTH,
+} from "@/server/domain/models/user/user";
 
 const optionalTextSchema = z.string().trim().min(1).nullable();
 
@@ -37,8 +41,8 @@ export const meDtoSchema = userDtoSchema.extend({
 export type MeDto = z.infer<typeof meDtoSchema>;
 
 export const updateProfileInputSchema = z.object({
-  name: z.string().trim().min(1).max(50).nullable(),
-  email: z.string().trim().min(1).max(254).nullable(),
+  name: z.string().trim().min(1).max(USER_NAME_MAX_LENGTH).nullable(),
+  email: z.string().trim().min(1).max(USER_EMAIL_MAX_LENGTH).nullable(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
