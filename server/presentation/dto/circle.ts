@@ -16,14 +16,14 @@ export const circleGetInputSchema = z.object({
 export type CircleGetInput = z.infer<typeof circleGetInputSchema>;
 
 export const circleCreateInputSchema = z.object({
-  name: z.string().trim().min(1),
+  name: z.string().trim().min(1).max(50),
 });
 
 export type CircleCreateInput = z.infer<typeof circleCreateInputSchema>;
 
 export const circleRenameInputSchema = z.object({
   circleId: circleIdSchema,
-  name: z.string().trim().min(1),
+  name: z.string().trim().min(1).max(50),
 });
 
 export type CircleRenameInput = z.infer<typeof circleRenameInputSchema>;
