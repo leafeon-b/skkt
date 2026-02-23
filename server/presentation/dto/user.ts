@@ -44,3 +44,23 @@ export const changePasswordInputSchema = z.object({
 });
 
 export type ChangePasswordInput = z.infer<typeof changePasswordInputSchema>;
+
+export const opponentsInputSchema = z.object({
+  targetUserId: userIdSchema,
+});
+
+export const opponentDtoSchema = z.object({
+  userId: z.string(),
+  name: z.string(),
+});
+
+export const opponentRecordInputSchema = z.object({
+  targetUserId: userIdSchema,
+  opponentId: userIdSchema,
+});
+
+export const opponentRecordDtoSchema = z.object({
+  wins: z.number(),
+  losses: z.number(),
+  draws: z.number(),
+});

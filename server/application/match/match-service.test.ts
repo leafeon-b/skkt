@@ -19,6 +19,7 @@ const matchRepository = {
   findById: vi.fn(),
   listByCircleSessionId: vi.fn(),
   listByPlayerId: vi.fn(),
+  listByBothPlayerIds: vi.fn(),
   listByPlayerIdWithCircle: vi.fn(),
   save: vi.fn(),
 } satisfies MatchRepository;
@@ -313,6 +314,7 @@ describe("UnitOfWork 経路", () => {
     findById: vi.fn(),
     listByCircleSessionId: vi.fn(),
     listByPlayerId: vi.fn(),
+    listByBothPlayerIds: vi.fn(),
     listByPlayerIdWithCircle: vi.fn(),
     save: vi.fn(),
   } satisfies MatchRepository;
@@ -344,6 +346,7 @@ describe("UnitOfWork 経路", () => {
     findById: vi.fn(),
     listByCircleSessionId: vi.fn(),
     listByPlayerId: vi.fn(),
+    listByBothPlayerIds: vi.fn(),
     listByPlayerIdWithCircle: vi.fn(),
     save: vi.fn(),
   } satisfies MatchRepository;

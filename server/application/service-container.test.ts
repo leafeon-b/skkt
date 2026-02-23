@@ -30,6 +30,7 @@ const createMatchStub = () => ({
   findById: vi.fn(),
   listByCircleSessionId: vi.fn(),
   listByPlayerId: vi.fn(),
+  listByBothPlayerIds: vi.fn(),
   listByPlayerIdWithCircle: vi.fn(),
   save: vi.fn(),
 });
