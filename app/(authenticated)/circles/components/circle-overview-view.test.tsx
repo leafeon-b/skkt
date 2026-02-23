@@ -31,6 +31,15 @@ vi.mock(
   }),
 );
 
+vi.mock(
+  "@/app/(authenticated)/circles/components/circle-delete-button",
+  () => ({
+    CircleDeleteButton: () => (
+      <button data-testid="circle-delete-button">削除</button>
+    ),
+  }),
+);
+
 afterEach(() => {
   cleanup();
 });
@@ -48,6 +57,7 @@ function buildOverview(
     sessions: [],
     members: [],
     holidayDates: [],
+    canDeleteCircle: false,
     ...overrides,
   };
 }
@@ -115,5 +125,27 @@ describe("CircleOverviewView ロールベース表示制御", () => {
     const calendar = screen.getByTestId("calendar");
     expect(calendar.dataset.createHref).toBe("");
     expect(screen.queryByTestId("create-link")).not.toBeInTheDocument();
+  });
+
+  it("canDeleteCircle が true の場合、削除ボタンが表示される", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({ canDeleteCircle: true })}
+      />,
+    );
+
+    expect(screen.getByTestId("circle-delete-button")).toBeInTheDocument();
+  });
+
+  it("canDeleteCircle が false の場合、削除ボタンが表示されない", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({ canDeleteCircle: false })}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId("circle-delete-button"),
+    ).not.toBeInTheDocument();
   });
 });
