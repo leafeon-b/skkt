@@ -1,11 +1,12 @@
 import type { CircleSession } from "@/server/domain/models/circle-session/circle-session";
 import {
   createCircleSession,
+  renameCircleSession,
   rescheduleCircleSession,
+  updateCircleSessionNote,
 } from "@/server/domain/models/circle-session/circle-session";
 import type { CircleId, CircleSessionId } from "@/server/domain/common/ids";
 import { userId } from "@/server/domain/common/ids";
-import { assertNonEmpty } from "@/server/domain/common/validation";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
@@ -142,10 +143,7 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => {
       }
 
       if (params.title !== undefined) {
-        updated = {
-          ...updated,
-          title: assertNonEmpty(params.title, "CircleSession title"),
-        };
+        updated = renameCircleSession(updated, params.title);
       }
 
       if (params.location !== undefined) {
@@ -156,10 +154,7 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => {
       }
 
       if (params.note !== undefined) {
-        updated = {
-          ...updated,
-          note: params.note.trim(),
-        };
+        updated = updateCircleSessionNote(updated, params.note);
       }
 
       await deps.circleSessionRepository.save(updated);
