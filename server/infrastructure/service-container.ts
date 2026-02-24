@@ -10,7 +10,7 @@ import { createCircleInviteLinkService } from "@/server/application/circle/circl
 import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
 import type { RateLimiter } from "@/server/application/common/rate-limiter";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
+import type { CircleMembershipRepository } from "@/server/domain/models/circle-membership/circle-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";

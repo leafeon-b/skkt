@@ -4,7 +4,7 @@ import type { ServiceContainer } from "@/server/infrastructure/service-container
 import { userId } from "@/server/domain/common/ids";
 import { nextAuthSessionService } from "@/server/infrastructure/auth/nextauth-session-service";
 import { prismaAuthzRepository } from "@/server/infrastructure/repository/authz/prisma-authz-repository";
-import { prismaCircleMembershipRepository } from "@/server/infrastructure/repository/circle/prisma-circle-membership-repository";
+import { prismaCircleMembershipRepository } from "@/server/infrastructure/repository/circle-membership/prisma-circle-membership-repository";
 import { prismaCircleRepository } from "@/server/infrastructure/repository/circle/prisma-circle-repository";
 import { prismaCircleSessionMembershipRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-membership-repository";
 import { prismaCircleSessionRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-repository";

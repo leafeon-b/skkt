@@ -115,6 +115,9 @@
   - `server/domain/models/circle/*`
   - `server/application/circle/*`
   - `server/infrastructure/repository/circle/*`
+  - CircleMembership は専用ディレクトリに配置:
+    - `server/domain/models/circle-membership/*`
+    - `server/infrastructure/repository/circle-membership/*`
   - 独立 Aggregate Root の CircleInviteLink は専用ディレクトリに配置:
     - `server/domain/models/circle-invite-link/*`
     - `server/infrastructure/repository/circle-invite-link/*`

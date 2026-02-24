@@ -81,7 +81,7 @@ Circle（研究会）
 | Entity           | ID 型               | 定義ファイル                                       |
 | ---------------- | -------------------- | -------------------------------------------------- |
 | Circle           | CircleId             | `server/domain/models/circle/circle.ts`            |
-| CircleMembership | CircleMembershipId   | `server/domain/models/circle/circle-membership.ts` |
+| CircleMembership | CircleMembershipId   | `server/domain/models/circle-membership/circle-membership.ts` |
 | CircleInviteLink | CircleInviteLinkId   | `server/domain/models/circle/circle-invite-link.ts` |
 | CircleSession    | CircleSessionId      | `server/domain/models/circle-session/circle-session.ts` |
 | CircleSessionMembership | CircleSessionMembershipId | `server/domain/models/circle-session/circle-session-membership.ts` |
