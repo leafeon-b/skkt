@@ -5,7 +5,6 @@ import {
   type UserId,
 } from "@/server/domain/common/ids";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
-import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import {
   assertCanAddParticipantWithRole,
@@ -29,7 +28,6 @@ type AccessService = ReturnType<typeof createAccessService>;
 export type CircleSessionMembershipServiceDeps = {
   circleRepository: CircleRepository;
   circleSessionRepository: CircleSessionRepository;
-  circleSessionMembershipRepository: CircleSessionMembershipRepository;
   accessService: AccessService;
 };
 
@@ -48,7 +46,7 @@ export const createCircleSessionMembershipService = (
 ) => ({
   async countPastSessionsByUserId(targetUserId: UserId): Promise<number> {
     const memberships =
-      await deps.circleSessionMembershipRepository.listByUserId(
+      await deps.circleSessionRepository.listMembershipsByUserId(
         targetUserId,
       );
     if (memberships.length === 0) {
@@ -80,7 +78,7 @@ export const createCircleSessionMembershipService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    return deps.circleSessionMembershipRepository.listMemberships(
+    return deps.circleSessionRepository.listMemberships(
       params.circleSessionId,
     );
   },
@@ -99,7 +97,7 @@ export const createCircleSessionMembershipService = (
     }
 
     const memberships =
-      await deps.circleSessionMembershipRepository.listByUserId(
+      await deps.circleSessionRepository.listMembershipsByUserId(
         params.userId,
       );
     if (memberships.length === 0) {
@@ -173,7 +171,7 @@ export const createCircleSessionMembershipService = (
       throw new ForbiddenError();
     }
     const memberships =
-      await deps.circleSessionMembershipRepository.listMemberships(
+      await deps.circleSessionRepository.listMemberships(
         params.circleSessionId,
       );
 
@@ -183,7 +181,7 @@ export const createCircleSessionMembershipService = (
 
     assertCanAddParticipantWithRole(memberships, params.role);
 
-    await deps.circleSessionMembershipRepository.addMembership(
+    await deps.circleSessionRepository.addMembership(
       params.circleSessionId,
       params.userId,
       params.role,
@@ -211,7 +209,7 @@ export const createCircleSessionMembershipService = (
       throw new ForbiddenError();
     }
     const memberships =
-      await deps.circleSessionMembershipRepository.listMemberships(
+      await deps.circleSessionRepository.listMemberships(
         params.circleSessionId,
       );
     const target = memberships.find(
@@ -224,7 +222,7 @@ export const createCircleSessionMembershipService = (
 
     assertCanChangeCircleSessionMemberRole(target.role, params.role);
 
-    await deps.circleSessionMembershipRepository.updateMembershipRole(
+    await deps.circleSessionRepository.updateMembershipRole(
       params.circleSessionId,
       params.userId,
       params.role,
@@ -251,7 +249,7 @@ export const createCircleSessionMembershipService = (
       throw new ForbiddenError();
     }
     const memberships =
-      await deps.circleSessionMembershipRepository.listMemberships(
+      await deps.circleSessionRepository.listMemberships(
         params.circleSessionId,
       );
 
@@ -268,7 +266,7 @@ export const createCircleSessionMembershipService = (
 
     for (const member of updated) {
       if (before.get(member.userId) !== member.role) {
-        await deps.circleSessionMembershipRepository.updateMembershipRole(
+        await deps.circleSessionRepository.updateMembershipRole(
           params.circleSessionId,
           member.userId,
           member.role,
@@ -296,7 +294,7 @@ export const createCircleSessionMembershipService = (
       throw new ForbiddenError();
     }
     const memberships =
-      await deps.circleSessionMembershipRepository.listMemberships(
+      await deps.circleSessionRepository.listMemberships(
         params.circleSessionId,
       );
     const target = memberships.find(
@@ -309,7 +307,7 @@ export const createCircleSessionMembershipService = (
 
     assertCanRemoveCircleSessionMember(target.role);
 
-    await deps.circleSessionMembershipRepository.removeMembership(
+    await deps.circleSessionRepository.removeMembership(
       params.circleSessionId,
       params.userId,
     );
@@ -335,7 +333,7 @@ export const createCircleSessionMembershipService = (
     }
 
     const memberships =
-      await deps.circleSessionMembershipRepository.listMemberships(
+      await deps.circleSessionRepository.listMemberships(
         params.circleSessionId,
       );
     const actor = memberships.find(
@@ -348,7 +346,7 @@ export const createCircleSessionMembershipService = (
 
     assertCanWithdrawFromSession(actor.role);
 
-    await deps.circleSessionMembershipRepository.removeMembership(
+    await deps.circleSessionRepository.removeMembership(
       params.circleSessionId,
       userId(params.actorId),
     );
