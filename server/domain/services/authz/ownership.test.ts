@@ -15,10 +15,8 @@ import {
 } from "@/server/domain/services/authz/ownership";
 import { ForbiddenError } from "@/server/domain/common/errors";
 import { userId } from "@/server/domain/common/ids";
-import {
-  CircleRole,
-  CircleSessionRole,
-} from "@/server/domain/services/authz/roles";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
 describe("Owner の不変条件", () => {
   test("assertSingleCircleOwner は Owner がいない場合に失敗する", () => {

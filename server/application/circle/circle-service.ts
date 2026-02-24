@@ -11,7 +11,7 @@ import type {
   Repositories,
   UnitOfWork,
 } from "@/server/application/common/unit-of-work";
-import { CircleRole } from "@/server/domain/services/authz/roles";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { ForbiddenError, NotFoundError } from "@/server/domain/common/errors";
 
 type AccessService = ReturnType<typeof createAccessService>;

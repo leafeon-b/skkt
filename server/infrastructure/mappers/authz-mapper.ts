@@ -10,10 +10,8 @@ import {
   circleMembershipStatusFromRole,
   circleSessionMembershipStatusFromRole,
 } from "@/server/domain/services/authz/memberships";
-import type {
-  CircleRole,
-  CircleSessionRole,
-} from "@/server/domain/services/authz/roles";
+import type { CircleRole } from "@/server/domain/models/circle/circle-role";
+import type { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
 export const mapCircleRoleToDomain = (role: PrismaCircleRole): CircleRole =>
   role;

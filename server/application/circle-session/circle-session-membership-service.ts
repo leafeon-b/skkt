@@ -14,7 +14,7 @@ import {
   assertSingleCircleSessionOwner,
   transferCircleSessionOwnership,
 } from "@/server/domain/services/authz/ownership";
-import { CircleSessionRole } from "@/server/domain/services/authz/roles";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import type { CircleSessionMembership } from "@/server/domain/models/circle-session/circle-session-membership";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import {

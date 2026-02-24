@@ -1,8 +1,6 @@
 import { z } from "zod";
-import {
-  CircleRole,
-  CircleSessionRole,
-} from "@/server/domain/services/authz/roles";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
 const circleRoleValues = [
   CircleRole.CircleOwner,

@@ -7,10 +7,8 @@ import {
   matchId,
   userId,
 } from "@/server/domain/common/ids";
-import {
-  CircleRole,
-  CircleSessionRole,
-} from "@/server/domain/services/authz/roles";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { ForbiddenError } from "@/server/domain/common/errors";
 
 const createContext = () => {

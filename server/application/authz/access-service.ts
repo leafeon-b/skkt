@@ -8,10 +8,12 @@ import {
 } from "@/server/domain/services/authz/memberships";
 import {
   CircleRole,
-  CircleSessionRole,
   isSameOrHigherCircleRole,
+} from "@/server/domain/models/circle/circle-role";
+import {
+  CircleSessionRole,
   isSameOrHigherCircleSessionRole,
-} from "@/server/domain/services/authz/roles";
+} from "@/server/domain/models/circle-session/circle-session-role";
 
 const { CircleOwner, CircleManager, CircleMember } = CircleRole;
 const { CircleSessionOwner, CircleSessionManager, CircleSessionMember } =

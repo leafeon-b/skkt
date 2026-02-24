@@ -3,7 +3,7 @@ import {
   formatDateTimeForInput,
   formatDateTimeRange,
 } from "@/lib/date-utils";
-import { CircleSessionRole } from "@/server/domain/services/authz/roles";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
 import type {

@@ -9,10 +9,8 @@ import {
   noCircleMembershipStatus,
   noCircleSessionMembershipStatus,
 } from "@/server/domain/services/authz/memberships";
-import {
-  CircleRole,
-  CircleSessionRole,
-} from "@/server/domain/services/authz/roles";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
 describe("メンバーシップステータス", () => {
   test("circleMembershipStatus は member を返す", () => {

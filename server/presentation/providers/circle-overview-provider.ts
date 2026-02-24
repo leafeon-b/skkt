@@ -1,5 +1,5 @@
 import { formatDateTimeRange } from "@/lib/date-utils";
-import { CircleRole } from "@/server/domain/services/authz/roles";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { NotFoundError } from "@/server/domain/common/errors";
 import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
