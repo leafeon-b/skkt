@@ -1,7 +1,7 @@
 import type { CircleSessionId, UserId } from "@/server/domain/common/ids";
 import type { CircleSessionRole } from "@/server/domain/services/authz/roles";
 
-export type CircleSessionParticipation = {
+export type CircleSessionMembership = {
   circleSessionId: CircleSessionId;
   userId: UserId;
   role: CircleSessionRole;

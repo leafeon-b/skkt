@@ -28,13 +28,13 @@ const createTestContext = (
       renameCircle: vi.fn(),
       deleteCircle: vi.fn(),
     },
-    circleParticipationService: {
+    circleMembershipService: {
       listByCircleId: vi.fn(),
       listByUserId: vi.fn(),
-      addParticipation: vi.fn(),
-      changeParticipationRole: vi.fn(),
-      withdrawParticipation: vi.fn(),
-      removeParticipation: vi.fn(),
+      addMembership: vi.fn(),
+      changeMembershipRole: vi.fn(),
+      withdrawMembership: vi.fn(),
+      removeMembership: vi.fn(),
       transferOwnership: vi.fn(),
     },
     circleSessionService: {
@@ -45,15 +45,15 @@ const createTestContext = (
       updateCircleSessionDetails: vi.fn(),
       deleteCircleSession: vi.fn(),
     },
-    circleSessionParticipationService: {
+    circleSessionMembershipService: {
       countPastSessionsByUserId: vi.fn(),
-      listParticipations: vi.fn(),
+      listMemberships: vi.fn(),
       listByUserId: vi.fn(),
-      addParticipation: vi.fn(),
-      changeParticipationRole: vi.fn(),
-      removeParticipation: vi.fn(),
+      addMembership: vi.fn(),
+      changeMembershipRole: vi.fn(),
+      removeMembership: vi.fn(),
       transferOwnership: vi.fn(),
-      withdrawParticipation: vi.fn(),
+      withdrawMembership: vi.fn(),
     },
     matchService: {
       listByCircleSessionId: vi.fn(),

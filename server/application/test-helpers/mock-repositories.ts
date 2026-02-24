@@ -1,9 +1,9 @@
 import { vi } from "vitest";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { MatchHistoryRepository } from "@/server/domain/models/match-history/match-history-repository";
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
+import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
-import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
+import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
@@ -26,15 +26,15 @@ export const createMockMatchHistoryRepository = () =>
     add: vi.fn(),
   }) satisfies MatchHistoryRepository;
 
-export const createMockCircleSessionParticipationRepository = () =>
+export const createMockCircleSessionMembershipRepository = () =>
   ({
-    listParticipations: vi.fn(),
+    listMemberships: vi.fn(),
     listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    updateParticipationRole: vi.fn(),
+    addMembership: vi.fn(),
+    updateMembershipRole: vi.fn(),
     areUsersParticipating: vi.fn(),
-    removeParticipation: vi.fn(),
-  }) satisfies CircleSessionParticipationRepository;
+    removeMembership: vi.fn(),
+  }) satisfies CircleSessionMembershipRepository;
 
 export const createMockCircleSessionRepository = () =>
   ({
@@ -45,14 +45,14 @@ export const createMockCircleSessionRepository = () =>
     delete: vi.fn(),
   }) satisfies CircleSessionRepository;
 
-export const createMockCircleParticipationRepository = () =>
+export const createMockCircleMembershipRepository = () =>
   ({
     listByCircleId: vi.fn(),
     listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    updateParticipationRole: vi.fn(),
-    removeParticipation: vi.fn(),
-  }) satisfies CircleParticipationRepository;
+    addMembership: vi.fn(),
+    updateMembershipRole: vi.fn(),
+    removeMembership: vi.fn(),
+  }) satisfies CircleMembershipRepository;
 
 export const createMockCircleRepository = () =>
   ({

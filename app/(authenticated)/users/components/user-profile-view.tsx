@@ -40,7 +40,7 @@ export function UserProfileView({ profile }: UserProfileViewProps) {
             </h2>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold text-(--brand-moss)">
-                {profile.sessionParticipationCount}
+                {profile.sessionMembershipCount}
               </span>
               <span className="text-sm text-muted-foreground">回参加</span>
             </div>

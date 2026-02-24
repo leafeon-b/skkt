@@ -21,13 +21,13 @@ const createContext = () => {
     renameCircle: vi.fn(),
     deleteCircle: vi.fn(),
   };
-  const circleParticipationService = {
+  const circleMembershipService = {
     listByCircleId: vi.fn(),
     listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    changeParticipationRole: vi.fn(),
-    withdrawParticipation: vi.fn(),
-    removeParticipation: vi.fn(),
+    addMembership: vi.fn(),
+    changeMembershipRole: vi.fn(),
+    withdrawMembership: vi.fn(),
+    removeMembership: vi.fn(),
     transferOwnership: vi.fn(),
   };
   const circleSessionService = {
@@ -38,15 +38,15 @@ const createContext = () => {
     updateCircleSessionDetails: vi.fn(),
     deleteCircleSession: vi.fn(),
   };
-  const circleSessionParticipationService = {
+  const circleSessionMembershipService = {
     countPastSessionsByUserId: vi.fn(),
-    listParticipations: vi.fn(),
+    listMemberships: vi.fn(),
     listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    changeParticipationRole: vi.fn(),
-    removeParticipation: vi.fn(),
+    addMembership: vi.fn(),
+    changeMembershipRole: vi.fn(),
+    removeMembership: vi.fn(),
     transferOwnership: vi.fn(),
-    withdrawParticipation: vi.fn(),
+    withdrawMembership: vi.fn(),
   };
   const matchService = {
     listByCircleSessionId: vi.fn(),
@@ -78,9 +78,9 @@ const createContext = () => {
   const context: Context = {
     actorId: userId("user-1"),
     circleService,
-    circleParticipationService,
+    circleMembershipService,
     circleSessionService,
-    circleSessionParticipationService,
+    circleSessionMembershipService,
     matchService,
     matchHistoryService,
     userService,
@@ -95,9 +95,9 @@ const createContext = () => {
     context,
     mocks: {
       circleService,
-      circleParticipationService,
+      circleMembershipService,
       circleSessionService,
-      circleSessionParticipationService,
+      circleSessionMembershipService,
       matchService,
       matchHistoryService,
       userService,
@@ -135,14 +135,14 @@ describe("tRPC router", () => {
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
-  test("circles.participations.add は void を返す", async () => {
+  test("circles.memberships.add は void を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleParticipationService.addParticipation.mockResolvedValueOnce(
+    mocks.circleMembershipService.addMembership.mockResolvedValueOnce(
       undefined,
     );
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circles.participations.add({
+    const result = await caller.circles.memberships.add({
       circleId: "circle-1",
       userId: "user-2",
       role: CircleRole.CircleMember,
@@ -150,7 +150,7 @@ describe("tRPC router", () => {
 
     expect(result).toBeUndefined();
     expect(
-      mocks.circleParticipationService.addParticipation,
+      mocks.circleMembershipService.addMembership,
     ).toHaveBeenCalledWith({
       actorId: userId("user-1"),
       circleId: circleId("circle-1"),
@@ -159,9 +159,9 @@ describe("tRPC router", () => {
     });
   });
 
-  test("users.circles.participations.list は所属研究会一覧を返す", async () => {
+  test("users.circles.memberships.list は所属研究会一覧を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleParticipationService.listByUserId.mockResolvedValueOnce([
+    mocks.circleMembershipService.listByUserId.mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
         circleName: "Test Circle",
@@ -170,7 +170,7 @@ describe("tRPC router", () => {
     ]);
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.users.circles.participations.list({});
+    const result = await caller.users.circles.memberships.list({});
 
     expect(result).toEqual([
       {
@@ -179,15 +179,15 @@ describe("tRPC router", () => {
         role: CircleRole.CircleOwner,
       },
     ]);
-    expect(mocks.circleParticipationService.listByUserId).toHaveBeenCalledWith({
+    expect(mocks.circleMembershipService.listByUserId).toHaveBeenCalledWith({
       actorId: userId("user-1"),
       userId: userId("user-1"),
     });
   });
 
-  test("users.circleSessions.participations.list は参加回一覧を返す", async () => {
+  test("users.circleSessions.memberships.list は参加回一覧を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleSessionParticipationService.listByUserId.mockResolvedValueOnce([
+    mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce([
       {
         circleSessionId: circleSessionId("session-1"),
         circleId: circleId("circle-1"),
@@ -200,7 +200,7 @@ describe("tRPC router", () => {
     ]);
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.users.circleSessions.participations.list({
+    const result = await caller.users.circleSessions.memberships.list({
       limit: 3,
     });
 
@@ -216,7 +216,7 @@ describe("tRPC router", () => {
       },
     ]);
     expect(
-      mocks.circleSessionParticipationService.listByUserId,
+      mocks.circleSessionMembershipService.listByUserId,
     ).toHaveBeenCalledWith({
       actorId: userId("user-1"),
       userId: userId("user-1"),
@@ -504,14 +504,14 @@ describe("tRPC router", () => {
     expect(result[0].action).toBe("CREATE");
   });
 
-  test("circleSessions.participations.updateRole は void を返す", async () => {
+  test("circleSessions.memberships.updateRole は void を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleSessionParticipationService.changeParticipationRole.mockResolvedValueOnce(
+    mocks.circleSessionMembershipService.changeMembershipRole.mockResolvedValueOnce(
       undefined,
     );
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circleSessions.participations.updateRole({
+    const result = await caller.circleSessions.memberships.updateRole({
       circleSessionId: "session-1",
       userId: "user-2",
       role: CircleSessionRole.CircleSessionManager,
@@ -520,14 +520,14 @@ describe("tRPC router", () => {
     expect(result).toBeUndefined();
   });
 
-  test("circleSessions.participations.transferOwnership は void を返す", async () => {
+  test("circleSessions.memberships.transferOwnership は void を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleSessionParticipationService.transferOwnership.mockResolvedValueOnce(
+    mocks.circleSessionMembershipService.transferOwnership.mockResolvedValueOnce(
       undefined,
     );
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circleSessions.participations.transferOwnership(
+    const result = await caller.circleSessions.memberships.transferOwnership(
       {
         circleSessionId: "session-1",
         fromUserId: "user-1",
@@ -563,12 +563,12 @@ describe("tRPC router", () => {
   });
 
   // ========================================
-  // Step 2: circles.participations 系テスト
+  // Step 2: circles.memberships 系テスト
   // ========================================
 
-  test("circles.participations.list は参加者一覧を返す", async () => {
+  test("circles.memberships.list は参加者一覧を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleParticipationService.listByCircleId.mockResolvedValueOnce([
+    mocks.circleMembershipService.listByCircleId.mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
@@ -584,7 +584,7 @@ describe("tRPC router", () => {
     ]);
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circles.participations.list({
+    const result = await caller.circles.memberships.list({
       circleId: "circle-1",
     });
 
@@ -592,21 +592,21 @@ describe("tRPC router", () => {
     expect(result[0].userId).toBe("user-1");
     expect(result[0].role).toBe(CircleRole.CircleOwner);
     expect(
-      mocks.circleParticipationService.listByCircleId,
+      mocks.circleMembershipService.listByCircleId,
     ).toHaveBeenCalledWith({
       actorId: userId("user-1"),
       circleId: circleId("circle-1"),
     });
   });
 
-  test("circles.participations.updateRole は void を返す", async () => {
+  test("circles.memberships.updateRole は void を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleParticipationService.changeParticipationRole.mockResolvedValueOnce(
+    mocks.circleMembershipService.changeMembershipRole.mockResolvedValueOnce(
       undefined,
     );
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circles.participations.updateRole({
+    const result = await caller.circles.memberships.updateRole({
       circleId: "circle-1",
       userId: "user-2",
       role: CircleRole.CircleManager,
@@ -614,7 +614,7 @@ describe("tRPC router", () => {
 
     expect(result).toBeUndefined();
     expect(
-      mocks.circleParticipationService.changeParticipationRole,
+      mocks.circleMembershipService.changeMembershipRole,
     ).toHaveBeenCalledWith({
       actorId: userId("user-1"),
       circleId: circleId("circle-1"),
@@ -623,21 +623,21 @@ describe("tRPC router", () => {
     });
   });
 
-  test("circles.participations.remove は void を返す", async () => {
+  test("circles.memberships.remove は void を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleParticipationService.removeParticipation.mockResolvedValueOnce(
+    mocks.circleMembershipService.removeMembership.mockResolvedValueOnce(
       undefined,
     );
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circles.participations.remove({
+    const result = await caller.circles.memberships.remove({
       circleId: "circle-1",
       userId: "user-2",
     });
 
     expect(result).toBeUndefined();
     expect(
-      mocks.circleParticipationService.removeParticipation,
+      mocks.circleMembershipService.removeMembership,
     ).toHaveBeenCalledWith({
       actorId: userId("user-1"),
       circleId: circleId("circle-1"),
@@ -645,14 +645,14 @@ describe("tRPC router", () => {
     });
   });
 
-  test("circles.participations.transferOwnership は void を返す", async () => {
+  test("circles.memberships.transferOwnership は void を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleParticipationService.transferOwnership.mockResolvedValueOnce(
+    mocks.circleMembershipService.transferOwnership.mockResolvedValueOnce(
       undefined,
     );
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circles.participations.transferOwnership({
+    const result = await caller.circles.memberships.transferOwnership({
       circleId: "circle-1",
       fromUserId: "user-1",
       toUserId: "user-2",
@@ -660,7 +660,7 @@ describe("tRPC router", () => {
 
     expect(result).toBeUndefined();
     expect(
-      mocks.circleParticipationService.transferOwnership,
+      mocks.circleMembershipService.transferOwnership,
     ).toHaveBeenCalledWith({
       actorId: userId("user-1"),
       circleId: circleId("circle-1"),
@@ -749,12 +749,12 @@ describe("tRPC router", () => {
   });
 
   // ========================================
-  // Step 4: circleSessions.participations 系テスト
+  // Step 4: circleSessions.memberships 系テスト
   // ========================================
 
-  test("circleSessions.participations.list は参加者一覧を返す", async () => {
+  test("circleSessions.memberships.list は参加者一覧を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleSessionParticipationService.listParticipations.mockResolvedValueOnce(
+    mocks.circleSessionMembershipService.listMemberships.mockResolvedValueOnce(
       [
         {
           circleSessionId: circleSessionId("session-1"),
@@ -772,7 +772,7 @@ describe("tRPC router", () => {
     );
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circleSessions.participations.list({
+    const result = await caller.circleSessions.memberships.list({
       circleSessionId: "session-1",
     });
 
@@ -780,21 +780,21 @@ describe("tRPC router", () => {
     expect(result[0].userId).toBe("user-1");
     expect(result[0].role).toBe(CircleSessionRole.CircleSessionOwner);
     expect(
-      mocks.circleSessionParticipationService.listParticipations,
+      mocks.circleSessionMembershipService.listMemberships,
     ).toHaveBeenCalledWith({
       actorId: userId("user-1"),
       circleSessionId: circleSessionId("session-1"),
     });
   });
 
-  test("circleSessions.participations.add は void を返す", async () => {
+  test("circleSessions.memberships.add は void を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleSessionParticipationService.addParticipation.mockResolvedValueOnce(
+    mocks.circleSessionMembershipService.addMembership.mockResolvedValueOnce(
       undefined,
     );
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circleSessions.participations.add({
+    const result = await caller.circleSessions.memberships.add({
       circleSessionId: "session-1",
       userId: "user-3",
       role: CircleSessionRole.CircleSessionMember,
@@ -802,7 +802,7 @@ describe("tRPC router", () => {
 
     expect(result).toBeUndefined();
     expect(
-      mocks.circleSessionParticipationService.addParticipation,
+      mocks.circleSessionMembershipService.addMembership,
     ).toHaveBeenCalledWith({
       actorId: userId("user-1"),
       circleSessionId: circleSessionId("session-1"),
@@ -811,21 +811,21 @@ describe("tRPC router", () => {
     });
   });
 
-  test("circleSessions.participations.remove は void を返す", async () => {
+  test("circleSessions.memberships.remove は void を返す", async () => {
     const { context, mocks } = createContext();
-    mocks.circleSessionParticipationService.removeParticipation.mockResolvedValueOnce(
+    mocks.circleSessionMembershipService.removeMembership.mockResolvedValueOnce(
       undefined,
     );
 
     const caller = appRouter.createCaller(context);
-    const result = await caller.circleSessions.participations.remove({
+    const result = await caller.circleSessions.memberships.remove({
       circleSessionId: "session-1",
       userId: "user-3",
     });
 
     expect(result).toBeUndefined();
     expect(
-      mocks.circleSessionParticipationService.removeParticipation,
+      mocks.circleSessionMembershipService.removeMembership,
     ).toHaveBeenCalledWith({
       actorId: userId("user-1"),
       circleSessionId: circleSessionId("session-1"),

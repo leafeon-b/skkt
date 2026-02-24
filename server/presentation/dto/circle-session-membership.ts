@@ -5,50 +5,50 @@ import {
 } from "@/server/presentation/dto/ids";
 import { circleSessionRoleSchema } from "@/server/presentation/dto/roles";
 
-export const circleSessionParticipationDtoSchema = z.object({
+export const circleSessionMembershipDtoSchema = z.object({
   userId: userIdSchema,
   role: circleSessionRoleSchema,
 });
 
-export type CircleSessionParticipationDto = z.infer<
-  typeof circleSessionParticipationDtoSchema
+export type CircleSessionMembershipDto = z.infer<
+  typeof circleSessionMembershipDtoSchema
 >;
 
-export const circleSessionParticipationListInputSchema = z.object({
+export const circleSessionMembershipListInputSchema = z.object({
   circleSessionId: circleSessionIdSchema,
 });
 
-export type CircleSessionParticipationListInput = z.infer<
-  typeof circleSessionParticipationListInputSchema
+export type CircleSessionMembershipListInput = z.infer<
+  typeof circleSessionMembershipListInputSchema
 >;
 
-export const circleSessionParticipationCreateInputSchema = z.object({
-  circleSessionId: circleSessionIdSchema,
-  userId: userIdSchema,
-  role: circleSessionRoleSchema,
-});
-
-export type CircleSessionParticipationCreateInput = z.infer<
-  typeof circleSessionParticipationCreateInputSchema
->;
-
-export const circleSessionParticipationRoleUpdateInputSchema = z.object({
+export const circleSessionMembershipCreateInputSchema = z.object({
   circleSessionId: circleSessionIdSchema,
   userId: userIdSchema,
   role: circleSessionRoleSchema,
 });
 
-export type CircleSessionParticipationRoleUpdateInput = z.infer<
-  typeof circleSessionParticipationRoleUpdateInputSchema
+export type CircleSessionMembershipCreateInput = z.infer<
+  typeof circleSessionMembershipCreateInputSchema
 >;
 
-export const circleSessionParticipationRemoveInputSchema = z.object({
+export const circleSessionMembershipRoleUpdateInputSchema = z.object({
+  circleSessionId: circleSessionIdSchema,
+  userId: userIdSchema,
+  role: circleSessionRoleSchema,
+});
+
+export type CircleSessionMembershipRoleUpdateInput = z.infer<
+  typeof circleSessionMembershipRoleUpdateInputSchema
+>;
+
+export const circleSessionMembershipRemoveInputSchema = z.object({
   circleSessionId: circleSessionIdSchema,
   userId: userIdSchema,
 });
 
-export type CircleSessionParticipationRemoveInput = z.infer<
-  typeof circleSessionParticipationRemoveInputSchema
+export type CircleSessionMembershipRemoveInput = z.infer<
+  typeof circleSessionMembershipRemoveInputSchema
 >;
 
 export const circleSessionWithdrawInputSchema = z.object({

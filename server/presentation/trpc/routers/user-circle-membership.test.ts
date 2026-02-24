@@ -7,13 +7,13 @@ import { ForbiddenError } from "@/server/domain/common/errors";
 const createTestContext = (
   actorIdValue: ReturnType<typeof userId> | null = userId("user-1"),
 ) => {
-  const circleParticipationService = {
+  const circleMembershipService = {
     listByCircleId: vi.fn(),
     listByUserId: vi.fn(),
-    addParticipation: vi.fn(),
-    changeParticipationRole: vi.fn(),
-    withdrawParticipation: vi.fn(),
-    removeParticipation: vi.fn(),
+    addMembership: vi.fn(),
+    changeMembershipRole: vi.fn(),
+    withdrawMembership: vi.fn(),
+    removeMembership: vi.fn(),
     transferOwnership: vi.fn(),
   };
 
@@ -25,7 +25,7 @@ const createTestContext = (
       renameCircle: vi.fn(),
       deleteCircle: vi.fn(),
     },
-    circleParticipationService,
+    circleMembershipService,
     circleSessionService: {
       listByCircleId: vi.fn(),
       getCircleSession: vi.fn(),
@@ -34,15 +34,15 @@ const createTestContext = (
       updateCircleSessionDetails: vi.fn(),
       deleteCircleSession: vi.fn(),
     },
-    circleSessionParticipationService: {
+    circleSessionMembershipService: {
       countPastSessionsByUserId: vi.fn(),
-      listParticipations: vi.fn(),
+      listMemberships: vi.fn(),
       listByUserId: vi.fn(),
-      addParticipation: vi.fn(),
-      changeParticipationRole: vi.fn(),
-      removeParticipation: vi.fn(),
+      addMembership: vi.fn(),
+      changeMembershipRole: vi.fn(),
+      removeMembership: vi.fn(),
       transferOwnership: vi.fn(),
-      withdrawParticipation: vi.fn(),
+      withdrawMembership: vi.fn(),
     },
     matchService: {
       listByCircleSessionId: vi.fn(),
@@ -75,10 +75,10 @@ const createTestContext = (
     holidayProvider: {} as Context["holidayProvider"],
   };
 
-  return { context, mocks: { circleParticipationService } };
+  return { context, mocks: { circleMembershipService } };
 };
 
-describe("userCircleParticipation tRPC ルーター", () => {
+describe("userCircleMembership tRPC ルーター", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -86,7 +86,7 @@ describe("userCircleParticipation tRPC ルーター", () => {
   describe("list", () => {
     test("ユーザーの研究会参加一覧を取得できる", async () => {
       const { context, mocks } = createTestContext();
-      mocks.circleParticipationService.listByUserId.mockResolvedValueOnce([
+      mocks.circleMembershipService.listByUserId.mockResolvedValueOnce([
         {
           circleId: circleId("circle-1"),
           circleName: "京大将棋研究会",
@@ -100,7 +100,7 @@ describe("userCircleParticipation tRPC ルーター", () => {
       ]);
 
       const caller = appRouter.createCaller(context);
-      const result = await caller.users.circles.participations.list({});
+      const result = await caller.users.circles.memberships.list({});
 
       expect(result).toHaveLength(2);
       expect(result[0].circleId).toBe("circle-1");
@@ -109,7 +109,7 @@ describe("userCircleParticipation tRPC ルーター", () => {
       expect(result[1].circleId).toBe("circle-2");
       expect(result[1].role).toBe("CircleOwner");
       expect(
-        mocks.circleParticipationService.listByUserId,
+        mocks.circleMembershipService.listByUserId,
       ).toHaveBeenCalledWith({
         actorId: userId("user-1"),
         userId: userId("user-1"),
@@ -118,24 +118,24 @@ describe("userCircleParticipation tRPC ルーター", () => {
 
     test("空配列を返す（参加なし）", async () => {
       const { context, mocks } = createTestContext();
-      mocks.circleParticipationService.listByUserId.mockResolvedValueOnce([]);
+      mocks.circleMembershipService.listByUserId.mockResolvedValueOnce([]);
 
       const caller = appRouter.createCaller(context);
-      const result = await caller.users.circles.participations.list({});
+      const result = await caller.users.circles.memberships.list({});
 
       expect(result).toEqual([]);
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
       const { context, mocks } = createTestContext();
-      mocks.circleParticipationService.listByUserId.mockRejectedValueOnce(
+      mocks.circleMembershipService.listByUserId.mockRejectedValueOnce(
         new ForbiddenError(),
       );
 
       const caller = appRouter.createCaller(context);
 
       await expect(
-        caller.users.circles.participations.list({}),
+        caller.users.circles.memberships.list({}),
       ).rejects.toMatchObject({ code: "FORBIDDEN" });
     });
 
@@ -144,7 +144,7 @@ describe("userCircleParticipation tRPC ルーター", () => {
       const caller = appRouter.createCaller(context);
 
       await expect(
-        caller.users.circles.participations.list({}),
+        caller.users.circles.memberships.list({}),
       ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     });
   });

@@ -1,7 +1,7 @@
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
+import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
+import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { MatchHistoryRepository } from "@/server/domain/models/match-history/match-history-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
@@ -10,9 +10,9 @@ import type { AuthzRepository } from "@/server/domain/services/authz/authz-repos
 
 export type Repositories = {
   circleRepository: CircleRepository;
-  circleParticipationRepository: CircleParticipationRepository;
+  circleMembershipRepository: CircleMembershipRepository;
   circleSessionRepository: CircleSessionRepository;
-  circleSessionParticipationRepository: CircleSessionParticipationRepository;
+  circleSessionMembershipRepository: CircleSessionMembershipRepository;
   matchRepository: MatchRepository;
   matchHistoryRepository: MatchHistoryRepository;
   userRepository: UserRepository;

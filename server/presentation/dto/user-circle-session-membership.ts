@@ -6,15 +6,15 @@ import {
 
 const textSchema = z.string().trim().min(1);
 
-export const userCircleSessionParticipationListInputSchema = z.object({
+export const userCircleSessionMembershipListInputSchema = z.object({
   limit: z.number().int().positive().max(50).optional(),
 });
 
-export type UserCircleSessionParticipationListInput = z.infer<
-  typeof userCircleSessionParticipationListInputSchema
+export type UserCircleSessionMembershipListInput = z.infer<
+  typeof userCircleSessionMembershipListInputSchema
 >;
 
-export const userCircleSessionParticipationSummaryDtoSchema = z.object({
+export const userCircleSessionMembershipSummaryDtoSchema = z.object({
   circleSessionId: circleSessionIdSchema,
   circleId: circleIdSchema,
   circleName: textSchema,
@@ -24,6 +24,6 @@ export const userCircleSessionParticipationSummaryDtoSchema = z.object({
   location: z.string().nullable(),
 });
 
-export type UserCircleSessionParticipationSummaryDto = z.infer<
-  typeof userCircleSessionParticipationSummaryDtoSchema
+export type UserCircleSessionMembershipSummaryDto = z.infer<
+  typeof userCircleSessionMembershipSummaryDtoSchema
 >;

@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { createCircleService } from "@/server/application/circle/circle-service";
-import { createCircleParticipationService } from "@/server/application/circle/circle-participation-service";
+import { createCircleMembershipService } from "@/server/application/circle/circle-membership-service";
 import { createCircleSessionService } from "@/server/application/circle-session/circle-session-service";
-import { createCircleSessionParticipationService } from "@/server/application/circle-session/circle-session-participation-service";
+import { createCircleSessionMembershipService } from "@/server/application/circle-session/circle-session-membership-service";
 import { createMatchService } from "@/server/application/match/match-service";
 import { createMatchHistoryService } from "@/server/application/match-history/match-history-service";
 import { createAccessService } from "@/server/application/authz/access-service";
@@ -12,11 +12,11 @@ import { createCircleInviteLinkService } from "@/server/application/circle/circl
 import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
 import { createInMemoryRateLimiter } from "@/server/infrastructure/rate-limit/in-memory-rate-limiter";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
+import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { MatchHistoryRepository } from "@/server/domain/models/match-history/match-history-repository";
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
+import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { matchHistoryId } from "@/server/domain/common/ids";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
@@ -28,12 +28,12 @@ import type { HolidayProvider } from "@/server/application/common/holiday-provid
 
 export type ServiceContainer = {
   circleService: ReturnType<typeof createCircleService>;
-  circleParticipationService: ReturnType<
-    typeof createCircleParticipationService
+  circleMembershipService: ReturnType<
+    typeof createCircleMembershipService
   >;
   circleSessionService: ReturnType<typeof createCircleSessionService>;
-  circleSessionParticipationService: ReturnType<
-    typeof createCircleSessionParticipationService
+  circleSessionMembershipService: ReturnType<
+    typeof createCircleSessionMembershipService
   >;
   accessService: ReturnType<typeof createAccessService>;
   userService: ReturnType<typeof createUserService>;
@@ -47,11 +47,11 @@ export type ServiceContainer = {
 
 export type ServiceContainerDeps = {
   circleRepository: CircleRepository;
-  circleParticipationRepository: CircleParticipationRepository;
+  circleMembershipRepository: CircleMembershipRepository;
   circleSessionRepository: CircleSessionRepository;
   matchRepository: MatchRepository;
   matchHistoryRepository: MatchHistoryRepository;
-  circleSessionParticipationRepository: CircleSessionParticipationRepository;
+  circleSessionMembershipRepository: CircleSessionMembershipRepository;
   userRepository: UserRepository;
   authzRepository: AuthzRepository;
   signupRepository: SignupRepository;
@@ -75,12 +75,12 @@ export const createServiceContainer = (
   return {
     circleService: createCircleService({
       circleRepository: deps.circleRepository,
-      circleParticipationRepository: deps.circleParticipationRepository,
+      circleMembershipRepository: deps.circleMembershipRepository,
       accessService,
       unitOfWork: deps.unitOfWork,
     }),
-    circleParticipationService: createCircleParticipationService({
-      circleParticipationRepository: deps.circleParticipationRepository,
+    circleMembershipService: createCircleMembershipService({
+      circleMembershipRepository: deps.circleMembershipRepository,
       circleRepository: deps.circleRepository,
       accessService,
       unitOfWork: deps.unitOfWork,
@@ -88,23 +88,23 @@ export const createServiceContainer = (
     circleSessionService: createCircleSessionService({
       circleRepository: deps.circleRepository,
       circleSessionRepository: deps.circleSessionRepository,
-      circleSessionParticipationRepository:
-        deps.circleSessionParticipationRepository,
+      circleSessionMembershipRepository:
+        deps.circleSessionMembershipRepository,
       accessService,
       unitOfWork: deps.unitOfWork,
     }),
-    circleSessionParticipationService: createCircleSessionParticipationService({
+    circleSessionMembershipService: createCircleSessionMembershipService({
       circleRepository: deps.circleRepository,
       circleSessionRepository: deps.circleSessionRepository,
-      circleSessionParticipationRepository:
-        deps.circleSessionParticipationRepository,
+      circleSessionMembershipRepository:
+        deps.circleSessionMembershipRepository,
       accessService,
     }),
     matchService: createMatchService({
       matchRepository: deps.matchRepository,
       matchHistoryRepository: deps.matchHistoryRepository,
-      circleSessionParticipationRepository:
-        deps.circleSessionParticipationRepository,
+      circleSessionMembershipRepository:
+        deps.circleSessionMembershipRepository,
       circleSessionRepository: deps.circleSessionRepository,
       accessService,
       generateMatchHistoryId,
@@ -132,7 +132,7 @@ export const createServiceContainer = (
     circleInviteLinkService: createCircleInviteLinkService({
       circleInviteLinkRepository: deps.circleInviteLinkRepository,
       circleRepository: deps.circleRepository,
-      circleParticipationRepository: deps.circleParticipationRepository,
+      circleMembershipRepository: deps.circleMembershipRepository,
       accessService,
     }),
     userStatisticsService: createUserStatisticsService({

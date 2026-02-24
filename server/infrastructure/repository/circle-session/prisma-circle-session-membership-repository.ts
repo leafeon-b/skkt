@@ -1,12 +1,12 @@
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
+import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { CircleSessionId, UserId } from "@/server/domain/common/ids";
 import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
 import {
-  mapCircleSessionParticipationFromPersistence,
+  mapCircleSessionMembershipFromPersistence,
   mapCircleSessionRoleToPersistence,
-} from "@/server/infrastructure/mappers/circle-session-participation-mapper";
+} from "@/server/infrastructure/mappers/circle-session-membership-mapper";
 import type { CircleSessionRole } from "@/server/domain/services/authz/roles";
-import type { CircleSessionParticipation } from "@/server/domain/models/circle-session/circle-session-participation";
+import type { CircleSessionMembership } from "@/server/domain/models/circle-session/circle-session-membership";
 import { ConflictError, NotFoundError } from "@/server/domain/common/errors";
 import { Prisma } from "@/generated/prisma/client";
 import {
@@ -14,15 +14,15 @@ import {
   toPersistenceIds,
 } from "@/server/infrastructure/common/id-utils";
 
-export const createPrismaCircleSessionParticipationRepository = (
+export const createPrismaCircleSessionMembershipRepository = (
   client: PrismaClientLike,
-): CircleSessionParticipationRepository => ({
-  async listParticipations(
+): CircleSessionMembershipRepository => ({
+  async listMemberships(
     circleSessionId: CircleSessionId,
-  ): Promise<CircleSessionParticipation[]> {
+  ): Promise<CircleSessionMembership[]> {
     const persistedCircleSessionId = toPersistenceId(circleSessionId);
 
-    const participations = await client.circleSessionMembership.findMany({
+    const memberships = await client.circleSessionMembership.findMany({
       where: { circleSessionId: persistedCircleSessionId, deletedAt: null },
       select: {
         circleSessionId: true,
@@ -33,13 +33,13 @@ export const createPrismaCircleSessionParticipationRepository = (
       },
     });
 
-    return participations.map(mapCircleSessionParticipationFromPersistence);
+    return memberships.map(mapCircleSessionMembershipFromPersistence);
   },
 
-  async listByUserId(userId: UserId): Promise<CircleSessionParticipation[]> {
+  async listByUserId(userId: UserId): Promise<CircleSessionMembership[]> {
     const persistedUserId = toPersistenceId(userId);
 
-    const participations = await client.circleSessionMembership.findMany({
+    const memberships = await client.circleSessionMembership.findMany({
       where: { userId: persistedUserId, deletedAt: null },
       select: {
         circleSessionId: true,
@@ -50,10 +50,10 @@ export const createPrismaCircleSessionParticipationRepository = (
       },
     });
 
-    return participations.map(mapCircleSessionParticipationFromPersistence);
+    return memberships.map(mapCircleSessionMembershipFromPersistence);
   },
 
-  async addParticipation(
+  async addMembership(
     circleSessionId: CircleSessionId,
     userId: UserId,
     role: CircleSessionRole,
@@ -75,13 +75,13 @@ export const createPrismaCircleSessionParticipationRepository = (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        throw new ConflictError("Participation already exists");
+        throw new ConflictError("Membership already exists");
       }
       throw error;
     }
   },
 
-  async updateParticipationRole(
+  async updateMembershipRole(
     circleSessionId: CircleSessionId,
     userId: UserId,
     role: CircleSessionRole,
@@ -124,7 +124,7 @@ export const createPrismaCircleSessionParticipationRepository = (
     return count === uniqueIds.length;
   },
 
-  async removeParticipation(
+  async removeMembership(
     circleSessionId: CircleSessionId,
     userId: UserId,
   ): Promise<void> {
@@ -145,5 +145,5 @@ export const createPrismaCircleSessionParticipationRepository = (
   },
 });
 
-export const prismaCircleSessionParticipationRepository =
-  createPrismaCircleSessionParticipationRepository(prisma);
+export const prismaCircleSessionMembershipRepository =
+  createPrismaCircleSessionMembershipRepository(prisma);

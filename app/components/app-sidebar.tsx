@@ -21,10 +21,10 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const participationsQuery = trpc.users.circles.participations.list.useQuery(
+  const membershipsQuery = trpc.users.circles.memberships.list.useQuery(
     {},
   );
-  const circleItems = participationsQuery.data ?? [];
+  const circleItems = membershipsQuery.data ?? [];
 
   return (
     <Sidebar collapsible="icon">
@@ -50,13 +50,13 @@ export function AppSidebar() {
           <SidebarGroupLabel>参加中の研究会</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {participationsQuery.isLoading ? (
+              {membershipsQuery.isLoading ? (
                 <SidebarMenuItem>
                   <SidebarMenuButton disabled>
                     <span className="truncate">読み込み中...</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ) : participationsQuery.isError ? (
+              ) : membershipsQuery.isError ? (
                 <SidebarMenuItem>
                   <SidebarMenuButton disabled>
                     <span className="truncate">取得に失敗しました</span>

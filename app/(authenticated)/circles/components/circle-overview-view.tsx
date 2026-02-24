@@ -65,8 +65,8 @@ export function CircleOverviewView({
     ? roleClasses[overview.viewerRole]
     : "bg-(--brand-ink)/10 text-(--brand-ink)";
   const scheduleText = overview.scheduleNote
-    ? `参加者 ${overview.participationCount}名 / ${overview.scheduleNote}`
-    : `参加者 ${overview.participationCount}名`;
+    ? `参加者 ${overview.membershipCount}名 / ${overview.scheduleNote}`
+    : `参加者 ${overview.membershipCount}名`;
 
   const defaultHero = (
     <>

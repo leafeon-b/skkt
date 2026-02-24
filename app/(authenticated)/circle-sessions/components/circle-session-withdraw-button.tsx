@@ -32,7 +32,7 @@ export function CircleSessionWithdrawButton({
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
-  const withdraw = trpc.circleSessions.participations.withdraw.useMutation({
+  const withdraw = trpc.circleSessions.memberships.withdraw.useMutation({
     onSuccess: () => {
       router.push(`/circles/${encodeURIComponent(circleId)}`);
     },

@@ -3,11 +3,11 @@ import { createServiceContainer } from "@/server/application/service-container";
 import { matchHistoryId } from "@/server/domain/common/ids";
 import {
   createMockCircleRepository,
-  createMockCircleParticipationRepository,
+  createMockCircleMembershipRepository,
   createMockCircleSessionRepository,
   createMockMatchRepository,
   createMockMatchHistoryRepository,
-  createMockCircleSessionParticipationRepository,
+  createMockCircleSessionMembershipRepository,
   createMockUserRepository,
   createMockAuthzRepository,
   createMockCircleInviteLinkRepository,
@@ -21,13 +21,13 @@ const createSignupStub = () => ({
 describe("Service container", () => {
   test("依存を注入してサービスを作成できる", async () => {
     const circleRepository = createMockCircleRepository();
-    const circleParticipationRepository =
-      createMockCircleParticipationRepository();
+    const circleMembershipRepository =
+      createMockCircleMembershipRepository();
     const circleSessionRepository = createMockCircleSessionRepository();
     const matchRepository = createMockMatchRepository();
     const matchHistoryRepository = createMockMatchHistoryRepository();
-    const circleSessionParticipationRepository =
-      createMockCircleSessionParticipationRepository();
+    const circleSessionMembershipRepository =
+      createMockCircleSessionMembershipRepository();
     const userRepository = createMockUserRepository();
     const authzRepository = createMockAuthzRepository();
     const signupRepository = createSignupStub();
@@ -35,11 +35,11 @@ describe("Service container", () => {
 
     const container = createServiceContainer({
       circleRepository,
-      circleParticipationRepository,
+      circleMembershipRepository,
       circleSessionRepository,
       matchRepository,
       matchHistoryRepository,
-      circleSessionParticipationRepository,
+      circleSessionMembershipRepository,
       userRepository,
       authzRepository,
       signupRepository,
@@ -53,9 +53,9 @@ describe("Service container", () => {
     });
 
     expect(container.circleService).toBeDefined();
-    expect(container.circleParticipationService).toBeDefined();
+    expect(container.circleMembershipService).toBeDefined();
     expect(container.circleSessionService).toBeDefined();
-    expect(container.circleSessionParticipationService).toBeDefined();
+    expect(container.circleSessionMembershipService).toBeDefined();
     expect(container.accessService).toBeDefined();
     expect(container.userService).toBeDefined();
     expect(container.matchService).toBeDefined();

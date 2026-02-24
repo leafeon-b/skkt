@@ -6,7 +6,7 @@ export async function getHomeViewModel(): Promise<HomeViewModel> {
   const ctx = await createContext();
   const caller = appRouter.createCaller(ctx);
 
-  const sessions = await caller.users.circleSessions.participations.list({});
+  const sessions = await caller.users.circleSessions.memberships.list({});
 
   const now = new Date();
   const upcoming = sessions

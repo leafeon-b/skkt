@@ -5,7 +5,7 @@ import {
   type UserId,
 } from "@/server/domain/common/ids";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
+import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import {
   assertCanAddParticipantWithRole,
@@ -16,7 +16,7 @@ import {
   transferCircleSessionOwnership,
 } from "@/server/domain/services/authz/ownership";
 import { CircleSessionRole } from "@/server/domain/services/authz/roles";
-import type { CircleSessionParticipation } from "@/server/domain/models/circle-session/circle-session-participation";
+import type { CircleSessionMembership } from "@/server/domain/models/circle-session/circle-session-membership";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import {
   ConflictError,
@@ -26,14 +26,14 @@ import {
 
 type AccessService = ReturnType<typeof createAccessService>;
 
-export type CircleSessionParticipationServiceDeps = {
+export type CircleSessionMembershipServiceDeps = {
   circleRepository: CircleRepository;
   circleSessionRepository: CircleSessionRepository;
-  circleSessionParticipationRepository: CircleSessionParticipationRepository;
+  circleSessionMembershipRepository: CircleSessionMembershipRepository;
   accessService: AccessService;
 };
 
-export type UserCircleSessionParticipationSummary = {
+export type UserCircleSessionMembershipSummary = {
   circleSessionId: CircleSessionId;
   circleId: CircleId;
   circleName: string;
@@ -43,29 +43,29 @@ export type UserCircleSessionParticipationSummary = {
   location: string | null;
 };
 
-export const createCircleSessionParticipationService = (
-  deps: CircleSessionParticipationServiceDeps,
+export const createCircleSessionMembershipService = (
+  deps: CircleSessionMembershipServiceDeps,
 ) => ({
   async countPastSessionsByUserId(targetUserId: UserId): Promise<number> {
-    const participations =
-      await deps.circleSessionParticipationRepository.listByUserId(
+    const memberships =
+      await deps.circleSessionMembershipRepository.listByUserId(
         targetUserId,
       );
-    if (participations.length === 0) {
+    if (memberships.length === 0) {
       return 0;
     }
 
-    const sessionIds = participations.map((p) => p.circleSessionId);
+    const sessionIds = memberships.map((p) => p.circleSessionId);
     const sessions = await deps.circleSessionRepository.findByIds(sessionIds);
 
     const now = new Date();
     return sessions.filter((s) => s.endsAt <= now).length;
   },
 
-  async listParticipations(params: {
+  async listMemberships(params: {
     actorId: string;
     circleSessionId: CircleSessionId;
-  }): Promise<CircleSessionParticipation[]> {
+  }): Promise<CircleSessionMembership[]> {
     const session = await deps.circleSessionRepository.findById(
       params.circleSessionId,
     );
@@ -80,7 +80,7 @@ export const createCircleSessionParticipationService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    return deps.circleSessionParticipationRepository.listParticipations(
+    return deps.circleSessionMembershipRepository.listMemberships(
       params.circleSessionId,
     );
   },
@@ -89,7 +89,7 @@ export const createCircleSessionParticipationService = (
     actorId: string;
     userId: UserId;
     limit?: number;
-  }): Promise<UserCircleSessionParticipationSummary[]> {
+  }): Promise<UserCircleSessionMembershipSummary[]> {
     if (params.userId !== userId(params.actorId)) {
       throw new ForbiddenError();
     }
@@ -98,17 +98,17 @@ export const createCircleSessionParticipationService = (
       throw new ForbiddenError();
     }
 
-    const participations =
-      await deps.circleSessionParticipationRepository.listByUserId(
+    const memberships =
+      await deps.circleSessionMembershipRepository.listByUserId(
         params.userId,
       );
-    if (participations.length === 0) {
+    if (memberships.length === 0) {
       return [];
     }
 
     const uniqueSessionIds = Array.from(
       new Set(
-        participations.map((participation) => participation.circleSessionId),
+        memberships.map((membership) => membership.circleSessionId),
       ),
     );
     const sessions =
@@ -153,7 +153,7 @@ export const createCircleSessionParticipationService = (
     return summaries;
   },
 
-  async addParticipation(params: {
+  async addMembership(params: {
     actorId: string;
     circleSessionId: CircleSessionId;
     userId: UserId;
@@ -172,25 +172,25 @@ export const createCircleSessionParticipationService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    const participations =
-      await deps.circleSessionParticipationRepository.listParticipations(
+    const memberships =
+      await deps.circleSessionMembershipRepository.listMemberships(
         params.circleSessionId,
       );
 
-    if (participations.some((member) => member.userId === params.userId)) {
-      throw new ConflictError("Participation already exists");
+    if (memberships.some((member) => member.userId === params.userId)) {
+      throw new ConflictError("Membership already exists");
     }
 
-    assertCanAddParticipantWithRole(participations, params.role);
+    assertCanAddParticipantWithRole(memberships, params.role);
 
-    await deps.circleSessionParticipationRepository.addParticipation(
+    await deps.circleSessionMembershipRepository.addMembership(
       params.circleSessionId,
       params.userId,
       params.role,
     );
   },
 
-  async changeParticipationRole(params: {
+  async changeMembershipRole(params: {
     actorId: string;
     circleSessionId: CircleSessionId;
     userId: UserId;
@@ -210,21 +210,21 @@ export const createCircleSessionParticipationService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    const participations =
-      await deps.circleSessionParticipationRepository.listParticipations(
+    const memberships =
+      await deps.circleSessionMembershipRepository.listMemberships(
         params.circleSessionId,
       );
-    const target = participations.find(
+    const target = memberships.find(
       (member) => member.userId === params.userId,
     );
 
     if (!target) {
-      throw new NotFoundError("Participation");
+      throw new NotFoundError("Membership");
     }
 
     assertCanChangeCircleSessionMemberRole(target.role, params.role);
 
-    await deps.circleSessionParticipationRepository.updateParticipationRole(
+    await deps.circleSessionMembershipRepository.updateMembershipRole(
       params.circleSessionId,
       params.userId,
       params.role,
@@ -250,25 +250,25 @@ export const createCircleSessionParticipationService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    const participations =
-      await deps.circleSessionParticipationRepository.listParticipations(
+    const memberships =
+      await deps.circleSessionMembershipRepository.listMemberships(
         params.circleSessionId,
       );
 
     const updated = transferCircleSessionOwnership(
-      participations,
+      memberships,
       params.fromUserId,
       params.toUserId,
     );
     assertSingleCircleSessionOwner(updated);
 
     const before = new Map(
-      participations.map((member) => [member.userId, member.role]),
+      memberships.map((member) => [member.userId, member.role]),
     );
 
     for (const member of updated) {
       if (before.get(member.userId) !== member.role) {
-        await deps.circleSessionParticipationRepository.updateParticipationRole(
+        await deps.circleSessionMembershipRepository.updateMembershipRole(
           params.circleSessionId,
           member.userId,
           member.role,
@@ -277,7 +277,7 @@ export const createCircleSessionParticipationService = (
     }
   },
 
-  async removeParticipation(params: {
+  async removeMembership(params: {
     actorId: string;
     circleSessionId: CircleSessionId;
     userId: UserId;
@@ -295,27 +295,27 @@ export const createCircleSessionParticipationService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    const participations =
-      await deps.circleSessionParticipationRepository.listParticipations(
+    const memberships =
+      await deps.circleSessionMembershipRepository.listMemberships(
         params.circleSessionId,
       );
-    const target = participations.find(
+    const target = memberships.find(
       (member) => member.userId === params.userId,
     );
 
     if (!target) {
-      throw new NotFoundError("Participation");
+      throw new NotFoundError("Membership");
     }
 
     assertCanRemoveCircleSessionMember(target.role);
 
-    await deps.circleSessionParticipationRepository.removeParticipation(
+    await deps.circleSessionMembershipRepository.removeMembership(
       params.circleSessionId,
       params.userId,
     );
   },
 
-  async withdrawParticipation(params: {
+  async withdrawMembership(params: {
     actorId: string;
     circleSessionId: CircleSessionId;
   }): Promise<void> {
@@ -334,21 +334,21 @@ export const createCircleSessionParticipationService = (
       throw new ForbiddenError();
     }
 
-    const participations =
-      await deps.circleSessionParticipationRepository.listParticipations(
+    const memberships =
+      await deps.circleSessionMembershipRepository.listMemberships(
         params.circleSessionId,
       );
-    const actor = participations.find(
+    const actor = memberships.find(
       (member) => member.userId === userId(params.actorId),
     );
 
     if (!actor) {
-      throw new NotFoundError("Participation");
+      throw new NotFoundError("Membership");
     }
 
     assertCanWithdrawFromSession(actor.role);
 
-    await deps.circleSessionParticipationRepository.removeParticipation(
+    await deps.circleSessionMembershipRepository.removeMembership(
       params.circleSessionId,
       userId(params.actorId),
     );

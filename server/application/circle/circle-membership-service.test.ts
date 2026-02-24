@@ -1,22 +1,22 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { createCircleParticipationService } from "@/server/application/circle/circle-participation-service";
+import { createCircleMembershipService } from "@/server/application/circle/circle-membership-service";
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
-  createMockCircleParticipationRepository,
+  createMockCircleMembershipRepository,
   createMockCircleRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 import { ConflictError, ForbiddenError } from "@/server/domain/common/errors";
 import { circleId, userId } from "@/server/domain/common/ids";
 
-const circleParticipationRepository = createMockCircleParticipationRepository();
+const circleMembershipRepository = createMockCircleMembershipRepository();
 
 const circleRepository = createMockCircleRepository();
 
 const accessService = createAccessServiceStub();
 
-const service = createCircleParticipationService({
-  circleParticipationRepository,
+const service = createCircleMembershipService({
+  circleMembershipRepository,
   circleRepository,
   accessService,
 });
@@ -39,7 +39,7 @@ beforeEach(() => {
   vi.mocked(accessService.canRemoveCircleMember).mockResolvedValue(true);
 });
 
-describe("Circle 参加関係サービス", () => {
+describe("Circle メンバーシップサービス", () => {
   describe("認可拒否時のエラー", () => {
     test("listByCircleId は認可拒否時に Forbidden エラー", async () => {
       vi.mocked(accessService.canViewCircle).mockResolvedValue(false);
@@ -52,15 +52,15 @@ describe("Circle 参加関係サービス", () => {
       ).rejects.toThrow("Forbidden");
 
       expect(
-        circleParticipationRepository.listByCircleId,
+        circleMembershipRepository.listByCircleId,
       ).not.toHaveBeenCalled();
     });
 
-    test("addParticipation は認可拒否時に Forbidden エラー", async () => {
+    test("addMembership は認可拒否時に Forbidden エラー", async () => {
       vi.mocked(accessService.canAddCircleMember).mockResolvedValue(false);
 
       await expect(
-        service.addParticipation({
+        service.addMembership({
           actorId: "user-actor",
           circleId: circleId("circle-1"),
           userId: userId("user-1"),
@@ -69,7 +69,7 @@ describe("Circle 参加関係サービス", () => {
       ).rejects.toThrow("Forbidden");
 
       expect(
-        circleParticipationRepository.addParticipation,
+        circleMembershipRepository.addMembership,
       ).not.toHaveBeenCalled();
     });
   });
@@ -77,7 +77,7 @@ describe("Circle 参加関係サービス", () => {
   test("listByCircleId は一覧を返す", async () => {
     const createdAt = new Date("2025-01-01T00:00:00Z");
     vi.mocked(
-      circleParticipationRepository.listByCircleId,
+      circleMembershipRepository.listByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -92,7 +92,7 @@ describe("Circle 参加関係サービス", () => {
       circleId: circleId("circle-1"),
     });
 
-    expect(circleParticipationRepository.listByCircleId).toHaveBeenCalledWith(
+    expect(circleMembershipRepository.listByCircleId).toHaveBeenCalledWith(
       circleId("circle-1"),
     );
     expect(result).toEqual([
@@ -106,7 +106,7 @@ describe("Circle 参加関係サービス", () => {
   });
 
   test("listByUserId は所属研究会の概要を返す", async () => {
-    vi.mocked(circleParticipationRepository.listByUserId).mockResolvedValueOnce(
+    vi.mocked(circleMembershipRepository.listByUserId).mockResolvedValueOnce(
       [
         {
           circleId: circleId("circle-1"),
@@ -140,7 +140,7 @@ describe("Circle 参加関係サービス", () => {
       userId: userId("user-1"),
     });
 
-    expect(circleParticipationRepository.listByUserId).toHaveBeenCalledWith(
+    expect(circleMembershipRepository.listByUserId).toHaveBeenCalledWith(
       userId("user-1"),
     );
     expect(circleRepository.findByIds).toHaveBeenCalledWith([
@@ -162,7 +162,7 @@ describe("Circle 参加関係サービス", () => {
   });
 
   test("listByUserId は研究会が欠けているとエラー", async () => {
-    vi.mocked(circleParticipationRepository.listByUserId).mockResolvedValueOnce(
+    vi.mocked(circleMembershipRepository.listByUserId).mockResolvedValueOnce(
       [
         {
           circleId: circleId("circle-1"),
@@ -182,10 +182,10 @@ describe("Circle 参加関係サービス", () => {
     ).rejects.toThrow("Circle not found");
   });
 
-  test("addParticipation は論理削除済みユーザーを再加入できる", async () => {
+  test("addMembership は論理削除済みユーザーを再加入できる", async () => {
     // listByCircleId はアクティブメンバーのみ返す（論理削除済みユーザーは含まれない）
     vi.mocked(
-      circleParticipationRepository.listByCircleId,
+      circleMembershipRepository.listByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -195,7 +195,7 @@ describe("Circle 参加関係サービス", () => {
       },
     ]);
 
-    const result = await service.addParticipation({
+    const result = await service.addMembership({
       actorId: "user-actor",
       circleId: circleId("circle-1"),
       userId: userId("user-rejoining"),
@@ -203,16 +203,16 @@ describe("Circle 参加関係サービス", () => {
     });
 
     expect(result).toBeUndefined();
-    expect(circleParticipationRepository.addParticipation).toHaveBeenCalledWith(
+    expect(circleMembershipRepository.addMembership).toHaveBeenCalledWith(
       circleId("circle-1"),
       userId("user-rejoining"),
       "CircleMember",
     );
   });
 
-  test("addParticipation は既存メンバーの重複追加で ConflictError", async () => {
+  test("addMembership は既存メンバーの重複追加で ConflictError", async () => {
     vi.mocked(
-      circleParticipationRepository.listByCircleId,
+      circleMembershipRepository.listByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -223,7 +223,7 @@ describe("Circle 参加関係サービス", () => {
     ]);
 
     await expect(
-      service.addParticipation({
+      service.addMembership({
         actorId: "user-actor",
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
@@ -232,17 +232,17 @@ describe("Circle 参加関係サービス", () => {
     ).rejects.toThrow(ConflictError);
 
     expect(
-      circleParticipationRepository.addParticipation,
+      circleMembershipRepository.addMembership,
     ).not.toHaveBeenCalled();
   });
 
-  test("addParticipation は Owner がいない状態で Member を拒否する", async () => {
+  test("addMembership は Owner がいない状態で Member を拒否する", async () => {
     vi.mocked(
-      circleParticipationRepository.listByCircleId,
+      circleMembershipRepository.listByCircleId,
     ).mockResolvedValueOnce([]);
 
     await expect(
-      service.addParticipation({
+      service.addMembership({
         actorId: "user-actor",
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
@@ -251,13 +251,13 @@ describe("Circle 参加関係サービス", () => {
     ).rejects.toThrow("Circle must have exactly one owner");
 
     expect(
-      circleParticipationRepository.addParticipation,
+      circleMembershipRepository.addMembership,
     ).not.toHaveBeenCalled();
   });
 
-  test("changeParticipationRole は Owner への変更を拒否する", async () => {
+  test("changeMembershipRole は Owner への変更を拒否する", async () => {
     vi.mocked(
-      circleParticipationRepository.listByCircleId,
+      circleMembershipRepository.listByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -268,7 +268,7 @@ describe("Circle 参加関係サービス", () => {
     ]);
 
     await expect(
-      service.changeParticipationRole({
+      service.changeMembershipRole({
         actorId: "user-actor",
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
@@ -279,7 +279,7 @@ describe("Circle 参加関係サービス", () => {
 
   test("transferOwnership は Owner を移譲する", async () => {
     vi.mocked(
-      circleParticipationRepository.listByCircleId,
+      circleMembershipRepository.listByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -303,14 +303,14 @@ describe("Circle 参加関係サービス", () => {
     });
 
     expect(
-      circleParticipationRepository.updateParticipationRole,
+      circleMembershipRepository.updateMembershipRole,
     ).toHaveBeenCalledWith(
       circleId("circle-1"),
       userId("user-1"),
       "CircleManager",
     );
     expect(
-      circleParticipationRepository.updateParticipationRole,
+      circleMembershipRepository.updateMembershipRole,
     ).toHaveBeenCalledWith(
       circleId("circle-1"),
       userId("user-2"),
@@ -318,10 +318,10 @@ describe("Circle 参加関係サービス", () => {
     );
   });
 
-  describe("withdrawParticipation（自己退会）", () => {
+  describe("withdrawMembership（自己退会）", () => {
     test("Manager は退会できる", async () => {
       vi.mocked(
-        circleParticipationRepository.listByCircleId,
+        circleMembershipRepository.listByCircleId,
       ).mockResolvedValueOnce([
         {
           circleId: circleId("circle-1"),
@@ -337,19 +337,19 @@ describe("Circle 参加関係サービス", () => {
         },
       ]);
 
-      await service.withdrawParticipation({
+      await service.withdrawMembership({
         actorId: "user-manager",
         circleId: circleId("circle-1"),
       });
 
       expect(
-        circleParticipationRepository.removeParticipation,
+        circleMembershipRepository.removeMembership,
       ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-manager"));
     });
 
     test("Member は退会できる", async () => {
       vi.mocked(
-        circleParticipationRepository.listByCircleId,
+        circleMembershipRepository.listByCircleId,
       ).mockResolvedValueOnce([
         {
           circleId: circleId("circle-1"),
@@ -365,19 +365,19 @@ describe("Circle 参加関係サービス", () => {
         },
       ]);
 
-      await service.withdrawParticipation({
+      await service.withdrawMembership({
         actorId: "user-member",
         circleId: circleId("circle-1"),
       });
 
       expect(
-        circleParticipationRepository.removeParticipation,
+        circleMembershipRepository.removeMembership,
       ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
     });
 
     test("Owner は退会を拒否される", async () => {
       vi.mocked(
-        circleParticipationRepository.listByCircleId,
+        circleMembershipRepository.listByCircleId,
       ).mockResolvedValueOnce([
         {
           circleId: circleId("circle-1"),
@@ -388,7 +388,7 @@ describe("Circle 参加関係サービス", () => {
       ]);
 
       await expect(
-        service.withdrawParticipation({
+        service.withdrawMembership({
           actorId: "user-owner",
           circleId: circleId("circle-1"),
         }),
@@ -397,7 +397,7 @@ describe("Circle 参加関係サービス", () => {
       );
 
       expect(
-        circleParticipationRepository.removeParticipation,
+        circleMembershipRepository.removeMembership,
       ).not.toHaveBeenCalled();
     });
 
@@ -405,14 +405,14 @@ describe("Circle 参加関係サービス", () => {
       vi.mocked(accessService.canWithdrawFromCircle).mockResolvedValue(false);
 
       await expect(
-        service.withdrawParticipation({
+        service.withdrawMembership({
           actorId: "user-stranger",
           circleId: circleId("circle-1"),
         }),
       ).rejects.toThrow("Forbidden");
 
       expect(
-        circleParticipationRepository.removeParticipation,
+        circleMembershipRepository.removeMembership,
       ).not.toHaveBeenCalled();
     });
 
@@ -420,20 +420,20 @@ describe("Circle 参加関係サービス", () => {
       vi.mocked(circleRepository.findById).mockResolvedValueOnce(null);
 
       await expect(
-        service.withdrawParticipation({
+        service.withdrawMembership({
           actorId: "user-actor",
           circleId: circleId("circle-999"),
         }),
       ).rejects.toThrow("Circle not found");
 
       expect(
-        circleParticipationRepository.removeParticipation,
+        circleMembershipRepository.removeMembership,
       ).not.toHaveBeenCalled();
     });
   });
 
-  test("removeParticipation は Owner の削除を拒否する", async () => {
-    vi.mocked(circleParticipationRepository.listByCircleId).mockResolvedValue([
+  test("removeMembership は Owner の削除を拒否する", async () => {
+    vi.mocked(circleMembershipRepository.listByCircleId).mockResolvedValue([
       {
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
@@ -443,14 +443,14 @@ describe("Circle 参加関係サービス", () => {
     ]);
 
     await expect(
-      service.removeParticipation({
+      service.removeMembership({
         actorId: "user-actor",
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
       }),
     ).rejects.toThrow(ForbiddenError);
     await expect(
-      service.removeParticipation({
+      service.removeMembership({
         actorId: "user-actor",
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
@@ -458,13 +458,13 @@ describe("Circle 参加関係サービス", () => {
     ).rejects.toThrow("Use transferOwnership to remove owner");
 
     expect(
-      circleParticipationRepository.removeParticipation,
+      circleMembershipRepository.removeMembership,
     ).not.toHaveBeenCalled();
   });
 
-  test("removeParticipation は Owner 以外を削除できる", async () => {
+  test("removeMembership は Owner 以外を削除できる", async () => {
     vi.mocked(
-      circleParticipationRepository.listByCircleId,
+      circleMembershipRepository.listByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -480,14 +480,14 @@ describe("Circle 参加関係サービス", () => {
       },
     ]);
 
-    await service.removeParticipation({
+    await service.removeMembership({
       actorId: "user-actor",
       circleId: circleId("circle-1"),
       userId: userId("user-2"),
     });
 
     expect(
-      circleParticipationRepository.removeParticipation,
+      circleMembershipRepository.removeMembership,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-2"));
   });
 });
@@ -497,23 +497,23 @@ describe("UnitOfWork 経路", () => {
   const depsCircleRepository = createMockCircleRepository();
 
   // deps用（UoW内で使われるべきメソッドには mockResolvedValue を設定しない）
-  const depsCircleParticipationRepository =
-    createMockCircleParticipationRepository();
+  const depsCircleMembershipRepository =
+    createMockCircleMembershipRepository();
 
   // UoWコールバック用リポジトリ（UoW内専用）
-  const uowCircleParticipationRepository =
-    createMockCircleParticipationRepository();
+  const uowCircleMembershipRepository =
+    createMockCircleMembershipRepository();
 
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({
-      circleParticipationRepository: uowCircleParticipationRepository,
+      circleMembershipRepository: uowCircleMembershipRepository,
     } as never),
   );
 
   const uowAccessService = createAccessServiceStub();
 
-  const uowService = createCircleParticipationService({
-    circleParticipationRepository: depsCircleParticipationRepository,
+  const uowService = createCircleMembershipService({
+    circleMembershipRepository: depsCircleMembershipRepository,
     circleRepository: depsCircleRepository,
     accessService: uowAccessService,
     unitOfWork,
@@ -530,7 +530,7 @@ describe("UnitOfWork 経路", () => {
     vi.mocked(uowAccessService.canRemoveCircleMember).mockResolvedValue(true);
     // listByCircleId はUoW外で呼ばれるためdeps側に設定
     vi.mocked(
-      depsCircleParticipationRepository.listByCircleId,
+      depsCircleMembershipRepository.listByCircleId,
     ).mockResolvedValue([
       {
         circleId: circleId("circle-1"),
@@ -547,24 +547,24 @@ describe("UnitOfWork 経路", () => {
     ]);
   });
 
-  test("withdrawParticipation は unitOfWork を呼び出す", async () => {
-    await uowService.withdrawParticipation({
+  test("withdrawMembership は unitOfWork を呼び出す", async () => {
+    await uowService.withdrawMembership({
       actorId: "user-member",
       circleId: circleId("circle-1"),
     });
 
     expect(unitOfWork).toHaveBeenCalledOnce();
     expect(
-      uowCircleParticipationRepository.removeParticipation,
+      uowCircleMembershipRepository.removeMembership,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
     // deps側のリポジトリは呼ばれない
     expect(
-      depsCircleParticipationRepository.removeParticipation,
+      depsCircleMembershipRepository.removeMembership,
     ).not.toHaveBeenCalled();
   });
 
-  test("removeParticipation は unitOfWork を呼び出す", async () => {
-    await uowService.removeParticipation({
+  test("removeMembership は unitOfWork を呼び出す", async () => {
+    await uowService.removeMembership({
       actorId: "user-actor",
       circleId: circleId("circle-1"),
       userId: userId("user-member"),
@@ -572,20 +572,20 @@ describe("UnitOfWork 経路", () => {
 
     expect(unitOfWork).toHaveBeenCalledOnce();
     expect(
-      uowCircleParticipationRepository.removeParticipation,
+      uowCircleMembershipRepository.removeMembership,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
     expect(
-      depsCircleParticipationRepository.removeParticipation,
+      depsCircleMembershipRepository.removeMembership,
     ).not.toHaveBeenCalled();
   });
 
   test("UoW 内でエラーが発生した場合に伝播する", async () => {
-    uowCircleParticipationRepository.removeParticipation.mockRejectedValue(
+    uowCircleMembershipRepository.removeMembership.mockRejectedValue(
       new Error("DB error"),
     );
 
     await expect(
-      uowService.withdrawParticipation({
+      uowService.withdrawMembership({
         actorId: "user-member",
         circleId: circleId("circle-1"),
       }),
