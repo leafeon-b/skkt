@@ -165,6 +165,6 @@ Circle（研究会）
 
 ### 既知の用語不整合
 
-#### authz 型の名前衝突
+#### ~~authz 型の名前衝突~~（解消済み）
 
-`server/domain/services/authz/memberships.ts` では認可状態を表す判別共用体型として `CircleMembership` / `CircleSessionMembership` を定義している。これはドメインエンティティ（`server/domain/models/circle/circle-membership.ts` の `CircleMembership`）とも Prisma モデル（`CircleMembership` / `CircleSessionMembership`）とも異なる別の型であるが、同名のため混同に注意が必要。
+`server/domain/services/authz/memberships.ts` の認可状態を表す判別共用体型を `CircleMembershipStatus` / `CircleSessionMembershipStatus` にリネームし、ドメインエンティティ（`CircleMembership`）・Prisma モデル（`CircleMembership` / `CircleSessionMembership`）との名前衝突を解消した。

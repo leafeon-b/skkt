@@ -1,6 +1,6 @@
 import type {
-  CircleMembership,
-  CircleSessionMembership,
+  CircleMembershipStatus,
+  CircleSessionMembershipStatus,
 } from "@/server/domain/services/authz/memberships";
 
 export type AuthzRepository = {
@@ -8,9 +8,9 @@ export type AuthzRepository = {
   findCircleMembership(
     userId: string,
     circleId: string,
-  ): Promise<CircleMembership>;
+  ): Promise<CircleMembershipStatus>;
   findCircleSessionMembership(
     userId: string,
     circleSessionId: string,
-  ): Promise<CircleSessionMembership>;
+  ): Promise<CircleSessionMembershipStatus>;
 };

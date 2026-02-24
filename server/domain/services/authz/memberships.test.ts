@@ -1,87 +1,93 @@
 import { describe, expect, test } from "vitest";
 import {
-  circleMembership,
-  circleMembershipFromRole,
-  circleSessionMembership,
-  circleSessionMembershipFromRole,
-  isCircleMember,
-  isCircleSessionMember,
-  noCircleMembership,
-  noCircleSessionMembership,
+  circleMembershipStatus,
+  circleMembershipStatusFromRole,
+  circleSessionMembershipStatus,
+  circleSessionMembershipStatusFromRole,
+  isCircleMemberStatus,
+  isCircleSessionMemberStatus,
+  noCircleMembershipStatus,
+  noCircleSessionMembershipStatus,
 } from "@/server/domain/services/authz/memberships";
 import {
   CircleRole,
   CircleSessionRole,
 } from "@/server/domain/services/authz/roles";
 
-describe("メンバーシップ", () => {
-  test("circleMembership は member を返す", () => {
-    expect(circleMembership(CircleRole.CircleOwner)).toEqual({
+describe("メンバーシップステータス", () => {
+  test("circleMembershipStatus は member を返す", () => {
+    expect(circleMembershipStatus(CircleRole.CircleOwner)).toEqual({
       kind: "member",
       role: CircleRole.CircleOwner,
     });
   });
 
-  test("noCircleMembership は none を返す", () => {
-    expect(noCircleMembership()).toEqual({ kind: "none" });
+  test("noCircleMembershipStatus は none を返す", () => {
+    expect(noCircleMembershipStatus()).toEqual({ kind: "none" });
   });
 
-  test("circleMembershipFromRole は null で none を返す", () => {
-    expect(circleMembershipFromRole(null)).toEqual({ kind: "none" });
+  test("circleMembershipStatusFromRole は null で none を返す", () => {
+    expect(circleMembershipStatusFromRole(null)).toEqual({ kind: "none" });
   });
 
-  test("circleMembershipFromRole は role で member を返す", () => {
-    expect(circleMembershipFromRole(CircleRole.CircleMember)).toEqual({
+  test("circleMembershipStatusFromRole は role で member を返す", () => {
+    expect(circleMembershipStatusFromRole(CircleRole.CircleMember)).toEqual({
       kind: "member",
       role: CircleRole.CircleMember,
     });
   });
 
-  test("isCircleMember は member で true", () => {
-    expect(isCircleMember(circleMembership(CircleRole.CircleManager))).toBe(
-      true,
-    );
-  });
-
-  test("isCircleMember は none で false", () => {
-    expect(isCircleMember(noCircleMembership())).toBe(false);
-  });
-
-  test("circleSessionMembership は member を返す", () => {
+  test("isCircleMemberStatus は member で true", () => {
     expect(
-      circleSessionMembership(CircleSessionRole.CircleSessionOwner),
+      isCircleMemberStatus(circleMembershipStatus(CircleRole.CircleManager)),
+    ).toBe(true);
+  });
+
+  test("isCircleMemberStatus は none で false", () => {
+    expect(isCircleMemberStatus(noCircleMembershipStatus())).toBe(false);
+  });
+
+  test("circleSessionMembershipStatus は member を返す", () => {
+    expect(
+      circleSessionMembershipStatus(CircleSessionRole.CircleSessionOwner),
     ).toEqual({
       kind: "member",
       role: CircleSessionRole.CircleSessionOwner,
     });
   });
 
-  test("noCircleSessionMembership は none を返す", () => {
-    expect(noCircleSessionMembership()).toEqual({ kind: "none" });
+  test("noCircleSessionMembershipStatus は none を返す", () => {
+    expect(noCircleSessionMembershipStatus()).toEqual({ kind: "none" });
   });
 
-  test("circleSessionMembershipFromRole は null で none を返す", () => {
-    expect(circleSessionMembershipFromRole(null)).toEqual({ kind: "none" });
+  test("circleSessionMembershipStatusFromRole は null で none を返す", () => {
+    expect(circleSessionMembershipStatusFromRole(null)).toEqual({
+      kind: "none",
+    });
   });
 
-  test("circleSessionMembershipFromRole は role で member を返す", () => {
+  test("circleSessionMembershipStatusFromRole は role で member を返す", () => {
     expect(
-      circleSessionMembershipFromRole(CircleSessionRole.CircleSessionMember),
+      circleSessionMembershipStatusFromRole(
+        CircleSessionRole.CircleSessionMember,
+      ),
     ).toEqual({
       kind: "member",
       role: CircleSessionRole.CircleSessionMember,
     });
   });
 
-  test("isCircleSessionMember は member で true", () => {
+  test("isCircleSessionMemberStatus は member で true", () => {
     expect(
-      isCircleSessionMember(
-        circleSessionMembership(CircleSessionRole.CircleSessionManager),
+      isCircleSessionMemberStatus(
+        circleSessionMembershipStatus(CircleSessionRole.CircleSessionManager),
       ),
     ).toBe(true);
   });
 
-  test("isCircleSessionMember は none で false", () => {
-    expect(isCircleSessionMember(noCircleSessionMembership())).toBe(false);
+  test("isCircleSessionMemberStatus は none で false", () => {
+    expect(
+      isCircleSessionMemberStatus(noCircleSessionMembershipStatus()),
+    ).toBe(false);
   });
 });
