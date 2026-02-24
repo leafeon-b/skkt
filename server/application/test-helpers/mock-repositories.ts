@@ -1,8 +1,6 @@
 import { vi } from "vitest";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
-import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
-import type { CircleMembershipRepository } from "@/server/domain/models/circle-membership/circle-membership-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
@@ -19,16 +17,6 @@ export const createMockMatchRepository = () =>
     save: vi.fn(),
   }) satisfies MatchRepository;
 
-export const createMockCircleSessionMembershipRepository = () =>
-  ({
-    listMemberships: vi.fn(),
-    listByUserId: vi.fn(),
-    addMembership: vi.fn(),
-    updateMembershipRole: vi.fn(),
-    areUsersParticipating: vi.fn(),
-    removeMembership: vi.fn(),
-  }) satisfies CircleSessionMembershipRepository;
-
 export const createMockCircleSessionRepository = () =>
   ({
     findById: vi.fn(),
@@ -36,16 +24,13 @@ export const createMockCircleSessionRepository = () =>
     listByCircleId: vi.fn(),
     save: vi.fn(),
     delete: vi.fn(),
-  }) satisfies CircleSessionRepository;
-
-export const createMockCircleMembershipRepository = () =>
-  ({
-    listByCircleId: vi.fn(),
-    listByUserId: vi.fn(),
+    listMemberships: vi.fn(),
+    listMembershipsByUserId: vi.fn(),
     addMembership: vi.fn(),
     updateMembershipRole: vi.fn(),
+    areUsersParticipating: vi.fn(),
     removeMembership: vi.fn(),
-  }) satisfies CircleMembershipRepository;
+  }) satisfies CircleSessionRepository;
 
 export const createMockCircleRepository = () =>
   ({
@@ -53,6 +38,11 @@ export const createMockCircleRepository = () =>
     findByIds: vi.fn(),
     save: vi.fn(),
     delete: vi.fn(),
+    listMembershipsByCircleId: vi.fn(),
+    listMembershipsByUserId: vi.fn(),
+    addMembership: vi.fn(),
+    updateMembershipRole: vi.fn(),
+    removeMembership: vi.fn(),
   }) satisfies CircleRepository;
 
 export const createMockUserRepository = () =>

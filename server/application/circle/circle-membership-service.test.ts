@@ -2,21 +2,15 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleMembershipService } from "@/server/application/circle/circle-membership-service";
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import {
-  createMockCircleMembershipRepository,
-  createMockCircleRepository,
-} from "@/server/application/test-helpers/mock-repositories";
+import { createMockCircleRepository } from "@/server/application/test-helpers/mock-repositories";
 import { ConflictError, ForbiddenError } from "@/server/domain/common/errors";
 import { circleId, userId } from "@/server/domain/common/ids";
-
-const circleMembershipRepository = createMockCircleMembershipRepository();
 
 const circleRepository = createMockCircleRepository();
 
 const accessService = createAccessServiceStub();
 
 const service = createCircleMembershipService({
-  circleMembershipRepository,
   circleRepository,
   accessService,
 });
@@ -52,7 +46,7 @@ describe("Circle メンバーシップサービス", () => {
       ).rejects.toThrow("Forbidden");
 
       expect(
-        circleMembershipRepository.listByCircleId,
+        circleRepository.listMembershipsByCircleId,
       ).not.toHaveBeenCalled();
     });
 
@@ -69,7 +63,7 @@ describe("Circle メンバーシップサービス", () => {
       ).rejects.toThrow("Forbidden");
 
       expect(
-        circleMembershipRepository.addMembership,
+        circleRepository.addMembership,
       ).not.toHaveBeenCalled();
     });
   });
@@ -77,7 +71,7 @@ describe("Circle メンバーシップサービス", () => {
   test("listByCircleId は一覧を返す", async () => {
     const createdAt = new Date("2025-01-01T00:00:00Z");
     vi.mocked(
-      circleMembershipRepository.listByCircleId,
+      circleRepository.listMembershipsByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -92,7 +86,7 @@ describe("Circle メンバーシップサービス", () => {
       circleId: circleId("circle-1"),
     });
 
-    expect(circleMembershipRepository.listByCircleId).toHaveBeenCalledWith(
+    expect(circleRepository.listMembershipsByCircleId).toHaveBeenCalledWith(
       circleId("circle-1"),
     );
     expect(result).toEqual([
@@ -106,7 +100,7 @@ describe("Circle メンバーシップサービス", () => {
   });
 
   test("listByUserId は所属研究会の概要を返す", async () => {
-    vi.mocked(circleMembershipRepository.listByUserId).mockResolvedValueOnce(
+    vi.mocked(circleRepository.listMembershipsByUserId).mockResolvedValueOnce(
       [
         {
           circleId: circleId("circle-1"),
@@ -140,7 +134,7 @@ describe("Circle メンバーシップサービス", () => {
       userId: userId("user-1"),
     });
 
-    expect(circleMembershipRepository.listByUserId).toHaveBeenCalledWith(
+    expect(circleRepository.listMembershipsByUserId).toHaveBeenCalledWith(
       userId("user-1"),
     );
     expect(circleRepository.findByIds).toHaveBeenCalledWith([
@@ -162,7 +156,7 @@ describe("Circle メンバーシップサービス", () => {
   });
 
   test("listByUserId は研究会が欠けているとエラー", async () => {
-    vi.mocked(circleMembershipRepository.listByUserId).mockResolvedValueOnce(
+    vi.mocked(circleRepository.listMembershipsByUserId).mockResolvedValueOnce(
       [
         {
           circleId: circleId("circle-1"),
@@ -185,7 +179,7 @@ describe("Circle メンバーシップサービス", () => {
   test("addMembership は論理削除済みユーザーを再加入できる", async () => {
     // listByCircleId はアクティブメンバーのみ返す（論理削除済みユーザーは含まれない）
     vi.mocked(
-      circleMembershipRepository.listByCircleId,
+      circleRepository.listMembershipsByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -203,7 +197,7 @@ describe("Circle メンバーシップサービス", () => {
     });
 
     expect(result).toBeUndefined();
-    expect(circleMembershipRepository.addMembership).toHaveBeenCalledWith(
+    expect(circleRepository.addMembership).toHaveBeenCalledWith(
       circleId("circle-1"),
       userId("user-rejoining"),
       "CircleMember",
@@ -212,7 +206,7 @@ describe("Circle メンバーシップサービス", () => {
 
   test("addMembership は既存メンバーの重複追加で ConflictError", async () => {
     vi.mocked(
-      circleMembershipRepository.listByCircleId,
+      circleRepository.listMembershipsByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -232,13 +226,13 @@ describe("Circle メンバーシップサービス", () => {
     ).rejects.toThrow(ConflictError);
 
     expect(
-      circleMembershipRepository.addMembership,
+      circleRepository.addMembership,
     ).not.toHaveBeenCalled();
   });
 
   test("addMembership は Owner がいない状態で Member を拒否する", async () => {
     vi.mocked(
-      circleMembershipRepository.listByCircleId,
+      circleRepository.listMembershipsByCircleId,
     ).mockResolvedValueOnce([]);
 
     await expect(
@@ -251,13 +245,13 @@ describe("Circle メンバーシップサービス", () => {
     ).rejects.toThrow("Circle must have exactly one owner");
 
     expect(
-      circleMembershipRepository.addMembership,
+      circleRepository.addMembership,
     ).not.toHaveBeenCalled();
   });
 
   test("changeMembershipRole は Owner への変更を拒否する", async () => {
     vi.mocked(
-      circleMembershipRepository.listByCircleId,
+      circleRepository.listMembershipsByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -279,7 +273,7 @@ describe("Circle メンバーシップサービス", () => {
 
   test("transferOwnership は Owner を移譲する", async () => {
     vi.mocked(
-      circleMembershipRepository.listByCircleId,
+      circleRepository.listMembershipsByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -303,14 +297,14 @@ describe("Circle メンバーシップサービス", () => {
     });
 
     expect(
-      circleMembershipRepository.updateMembershipRole,
+      circleRepository.updateMembershipRole,
     ).toHaveBeenCalledWith(
       circleId("circle-1"),
       userId("user-1"),
       "CircleManager",
     );
     expect(
-      circleMembershipRepository.updateMembershipRole,
+      circleRepository.updateMembershipRole,
     ).toHaveBeenCalledWith(
       circleId("circle-1"),
       userId("user-2"),
@@ -321,7 +315,7 @@ describe("Circle メンバーシップサービス", () => {
   describe("withdrawMembership（自己退会）", () => {
     test("Manager は退会できる", async () => {
       vi.mocked(
-        circleMembershipRepository.listByCircleId,
+        circleRepository.listMembershipsByCircleId,
       ).mockResolvedValueOnce([
         {
           circleId: circleId("circle-1"),
@@ -343,13 +337,13 @@ describe("Circle メンバーシップサービス", () => {
       });
 
       expect(
-        circleMembershipRepository.removeMembership,
+        circleRepository.removeMembership,
       ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-manager"));
     });
 
     test("Member は退会できる", async () => {
       vi.mocked(
-        circleMembershipRepository.listByCircleId,
+        circleRepository.listMembershipsByCircleId,
       ).mockResolvedValueOnce([
         {
           circleId: circleId("circle-1"),
@@ -371,13 +365,13 @@ describe("Circle メンバーシップサービス", () => {
       });
 
       expect(
-        circleMembershipRepository.removeMembership,
+        circleRepository.removeMembership,
       ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
     });
 
     test("Owner は退会を拒否される", async () => {
       vi.mocked(
-        circleMembershipRepository.listByCircleId,
+        circleRepository.listMembershipsByCircleId,
       ).mockResolvedValueOnce([
         {
           circleId: circleId("circle-1"),
@@ -397,7 +391,7 @@ describe("Circle メンバーシップサービス", () => {
       );
 
       expect(
-        circleMembershipRepository.removeMembership,
+        circleRepository.removeMembership,
       ).not.toHaveBeenCalled();
     });
 
@@ -412,7 +406,7 @@ describe("Circle メンバーシップサービス", () => {
       ).rejects.toThrow("Forbidden");
 
       expect(
-        circleMembershipRepository.removeMembership,
+        circleRepository.removeMembership,
       ).not.toHaveBeenCalled();
     });
 
@@ -427,13 +421,13 @@ describe("Circle メンバーシップサービス", () => {
       ).rejects.toThrow("Circle not found");
 
       expect(
-        circleMembershipRepository.removeMembership,
+        circleRepository.removeMembership,
       ).not.toHaveBeenCalled();
     });
   });
 
   test("removeMembership は Owner の削除を拒否する", async () => {
-    vi.mocked(circleMembershipRepository.listByCircleId).mockResolvedValue([
+    vi.mocked(circleRepository.listMembershipsByCircleId).mockResolvedValue([
       {
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
@@ -458,13 +452,13 @@ describe("Circle メンバーシップサービス", () => {
     ).rejects.toThrow("Use transferOwnership to remove owner");
 
     expect(
-      circleMembershipRepository.removeMembership,
+      circleRepository.removeMembership,
     ).not.toHaveBeenCalled();
   });
 
   test("removeMembership は Owner 以外を削除できる", async () => {
     vi.mocked(
-      circleMembershipRepository.listByCircleId,
+      circleRepository.listMembershipsByCircleId,
     ).mockResolvedValueOnce([
       {
         circleId: circleId("circle-1"),
@@ -487,7 +481,7 @@ describe("Circle メンバーシップサービス", () => {
     });
 
     expect(
-      circleMembershipRepository.removeMembership,
+      circleRepository.removeMembership,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-2"));
   });
 });
@@ -496,24 +490,18 @@ describe("UnitOfWork 経路", () => {
   // deps用リポジトリ（UoW外）— circleRepository はUoW外で使われるため通常設定
   const depsCircleRepository = createMockCircleRepository();
 
-  // deps用（UoW内で使われるべきメソッドには mockResolvedValue を設定しない）
-  const depsCircleMembershipRepository =
-    createMockCircleMembershipRepository();
-
   // UoWコールバック用リポジトリ（UoW内専用）
-  const uowCircleMembershipRepository =
-    createMockCircleMembershipRepository();
+  const uowCircleRepository = createMockCircleRepository();
 
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({
-      circleMembershipRepository: uowCircleMembershipRepository,
+      circleRepository: uowCircleRepository,
     } as never),
   );
 
   const uowAccessService = createAccessServiceStub();
 
   const uowService = createCircleMembershipService({
-    circleMembershipRepository: depsCircleMembershipRepository,
     circleRepository: depsCircleRepository,
     accessService: uowAccessService,
     unitOfWork,
@@ -528,9 +516,9 @@ describe("UnitOfWork 経路", () => {
     });
     vi.mocked(uowAccessService.canWithdrawFromCircle).mockResolvedValue(true);
     vi.mocked(uowAccessService.canRemoveCircleMember).mockResolvedValue(true);
-    // listByCircleId はUoW外で呼ばれるためdeps側に設定
+    // listMembershipsByCircleId はUoW外で呼ばれるためdeps側に設定
     vi.mocked(
-      depsCircleMembershipRepository.listByCircleId,
+      depsCircleRepository.listMembershipsByCircleId,
     ).mockResolvedValue([
       {
         circleId: circleId("circle-1"),
@@ -555,11 +543,11 @@ describe("UnitOfWork 経路", () => {
 
     expect(unitOfWork).toHaveBeenCalledOnce();
     expect(
-      uowCircleMembershipRepository.removeMembership,
+      uowCircleRepository.removeMembership,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
     // deps側のリポジトリは呼ばれない
     expect(
-      depsCircleMembershipRepository.removeMembership,
+      depsCircleRepository.removeMembership,
     ).not.toHaveBeenCalled();
   });
 
@@ -572,15 +560,15 @@ describe("UnitOfWork 経路", () => {
 
     expect(unitOfWork).toHaveBeenCalledOnce();
     expect(
-      uowCircleMembershipRepository.removeMembership,
+      uowCircleRepository.removeMembership,
     ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
     expect(
-      depsCircleMembershipRepository.removeMembership,
+      depsCircleRepository.removeMembership,
     ).not.toHaveBeenCalled();
   });
 
   test("UoW 内でエラーが発生した場合に伝播する", async () => {
-    uowCircleMembershipRepository.removeMembership.mockRejectedValue(
+    uowCircleRepository.removeMembership.mockRejectedValue(
       new Error("DB error"),
     );
 
