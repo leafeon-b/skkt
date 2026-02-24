@@ -13,7 +13,7 @@ let mutateSpy: ReturnType<typeof vi.fn>;
 function makeMutationMock(getBehavior: () => MutationBehavior) {
   return (options?: { onSuccess?: () => void; onError?: () => void }) => {
     const behavior = getBehavior();
-    mutateSpy = vi.fn((_data: unknown) => {
+    mutateSpy = vi.fn(() => {
       if (behavior === "success") {
         options?.onSuccess?.();
       } else if (behavior === "error") {
