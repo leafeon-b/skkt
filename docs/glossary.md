@@ -92,8 +92,8 @@ Circle（研究会）
 
 | ValueObject          | 型の種類         | 定義ファイル                                        |
 | -------------------- | ---------------- | --------------------------------------------------- |
-| CircleRole           | リテラル共用体   | `server/domain/services/authz/roles.ts`             |
-| CircleSessionRole    | リテラル共用体   | `server/domain/services/authz/roles.ts`             |
+| CircleRole           | リテラル共用体   | `server/domain/models/circle/circle-role.ts`                |
+| CircleSessionRole    | リテラル共用体   | `server/domain/models/circle-session/circle-session-role.ts` |
 | MatchOutcome         | リテラル共用体   | `server/domain/models/match/match.ts`               |
 | ProfileVisibility    | リテラル共用体   | `server/domain/models/user/user.ts`                 |
 | DomainErrorCode      | リテラル共用体   | `server/domain/common/errors.ts`                    |
@@ -135,7 +135,6 @@ Circle（研究会）
 
 | ファイル         | 責務                                             |
 | ---------------- | ------------------------------------------------ |
-| `roles.ts`       | ロール定義と比較（`isSameOrHigherCircleRole` 等） |
 | `memberships.ts` | メンバーシップ状態の判別共用体型とファクトリ関数  |
 | `ownership.ts`   | 所有権の不変条件（単一オーナー制約、移譲ロジック） |
 | `authz-repository.ts` | 認可クエリ用リポジトリインターフェース       |

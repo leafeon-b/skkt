@@ -23,6 +23,7 @@
 - **Circle**（Aggregate Root）
 - CircleMembership（研究会参加）
 - **CircleInviteLink**（独立した Aggregate Root）
+- CircleRole（Value Object）
 - CircleId / CircleInviteLinkId / InviteLinkToken（Value Object — Branded Type）
 
 ### 代表的な不変条件
@@ -47,6 +48,7 @@
 
 - **CircleSession**（Aggregate Root）
 - CircleSessionMembership（セッション参加）
+- CircleSessionRole（Value Object）
 - CircleSessionId（Value Object — Branded Type）
 
 ### 代表的な不変条件
@@ -92,7 +94,6 @@
 
 - **User**（Aggregate Root）
 - UserId（Value Object — Branded Type）
-- CircleRole / CircleSessionRole
 
 ### 代表的な不変条件
 
