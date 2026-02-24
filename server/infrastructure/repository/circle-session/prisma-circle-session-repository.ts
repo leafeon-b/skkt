@@ -15,7 +15,7 @@ import type {
   CircleSessionId,
   UserId,
 } from "@/server/domain/common/ids";
-import type { CircleSessionRole } from "@/server/domain/services/authz/roles";
+import type { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { ConflictError, NotFoundError } from "@/server/domain/common/errors";
 import { Prisma } from "@/generated/prisma/client";
 import {

@@ -6,7 +6,7 @@ import {
   mapCircleRoleToPersistence,
 } from "@/server/infrastructure/mappers/circle-membership-mapper";
 import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
-import { CircleRole } from "@/server/domain/services/authz/roles";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
 
 describe("Circle メンバーシップマッパー", () => {
   test("CircleId を永続化向けに変換できる", () => {

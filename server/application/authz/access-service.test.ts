@@ -13,10 +13,8 @@ import {
   noCircleMembershipStatus,
   noCircleSessionMembershipStatus,
 } from "@/server/domain/services/authz/memberships";
-import type {
-  CircleRole,
-  CircleSessionRole,
-} from "@/server/domain/services/authz/roles";
+import type { CircleRole } from "@/server/domain/models/circle/circle-role";
+import type { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { userId as userIdBrand } from "@/server/domain/common/ids";
 import {

@@ -3,7 +3,7 @@ import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
 import type { Circle } from "@/server/domain/models/circle/circle";
 import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
 import type { CircleId, UserId } from "@/server/domain/common/ids";
-import type { CircleRole } from "@/server/domain/services/authz/roles";
+import type { CircleRole } from "@/server/domain/models/circle/circle-role";
 import {
   mapCircleToDomain,
   mapCircleToPersistence,

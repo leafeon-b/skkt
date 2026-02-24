@@ -1,10 +1,8 @@
 import { ForbiddenError, NotFoundError } from "@/server/domain/common/errors";
 import type { UserId } from "@/server/domain/common/ids";
 import { assertDifferentIds } from "@/server/domain/common/validation";
-import {
-  CircleRole,
-  CircleSessionRole,
-} from "@/server/domain/services/authz/roles";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
 export type CircleMember = {
   userId: UserId;

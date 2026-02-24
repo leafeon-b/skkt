@@ -5,7 +5,7 @@ import type {
   CircleSessionId,
   UserId,
 } from "@/server/domain/common/ids";
-import type { CircleSessionRole } from "@/server/domain/services/authz/roles";
+import type { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
 export type CircleSessionRepository = {
   findById(id: CircleSessionId): Promise<CircleSession | null>;

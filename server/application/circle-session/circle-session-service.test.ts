@@ -12,7 +12,7 @@ import {
   createCircleSession,
 } from "@/server/domain/models/circle-session/circle-session";
 import { createCircle } from "@/server/domain/models/circle/circle";
-import { CircleSessionRole } from "@/server/domain/services/authz/roles";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 const circleRepository = createMockCircleRepository();

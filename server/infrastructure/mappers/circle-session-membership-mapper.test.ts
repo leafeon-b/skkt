@@ -9,7 +9,7 @@ import {
   toPersistenceId,
   toPersistenceIds,
 } from "@/server/infrastructure/common/id-utils";
-import { CircleSessionRole } from "@/server/domain/services/authz/roles";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
 describe("CircleSession メンバーシップマッパー", () => {
   test("CircleSessionId を永続化向けに変換できる", () => {

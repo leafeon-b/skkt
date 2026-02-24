@@ -19,7 +19,7 @@ import {
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
-import { CircleRole } from "@/server/domain/services/authz/roles";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
 
 type AccessService = ReturnType<typeof createAccessService>;
 

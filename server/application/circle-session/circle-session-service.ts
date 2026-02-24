@@ -19,7 +19,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@/server/domain/common/errors";
-import { CircleSessionRole } from "@/server/domain/services/authz/roles";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
 type AccessService = ReturnType<typeof createAccessService>;
 

@@ -61,7 +61,8 @@ graph TD
   - `server/presentation/trpc/*`
   - `app/api/trpc/[trpc]/route.ts`
 - Domain
-  - `server/domain/services/authz/roles.ts`
+  - `server/domain/models/circle/circle-role.ts`
+  - `server/domain/models/circle-session/circle-session-role.ts`
   - `server/domain/services/authz/policies.ts`
   - `server/domain/services/authz/memberships.ts`
   - `server/domain/models/*/*-repository.ts`

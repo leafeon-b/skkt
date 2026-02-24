@@ -14,7 +14,7 @@ import {
   assertSingleCircleOwner,
   transferCircleOwnership,
 } from "@/server/domain/services/authz/ownership";
-import { CircleRole } from "@/server/domain/services/authz/roles";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import {
   ConflictError,
   ForbiddenError,
