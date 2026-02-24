@@ -11,6 +11,7 @@
 - CircleSession Context（セッション）
 - Match Context（対局結果）
 - Auth Context（認証/認可）
+- Identity Context（ユーザー）
 
 ## Circle Context（研究会）
 
@@ -90,11 +91,6 @@
 
 ログイン状態の判定と権限判定を扱う。
 
-### 主要エンティティ/値
-
-- **User**（Aggregate Root）
-- UserId（Value Object — Branded Type）
-
 ### 代表的な不変条件
 
 - 上位ロールのユーザーは下位ロールによって変更されない
@@ -108,14 +104,38 @@
 
 Auth Context は認可判定のために以下の型を参照する:
 
+- Identity Context: UserRepository（認証時のユーザー解決）
 - Circle Context: CircleRole, CircleMembershipRepository
 - CircleSession Context: CircleSessionRole, CircleSessionMembershipRepository
+
+## Identity Context（ユーザー）
+
+### 目的
+
+ユーザーの登録・プロフィール管理を扱う。
+
+### 主要エンティティ/値
+
+- **User**（Aggregate Root）
+- ProfileVisibility（Value Object）
+- UserId（Value Object — Branded Type）
+
+### 代表的な不変条件
+
+- メールアドレスはユーザー間で一意
+
+### 所管するユースケース例
+
+- ユーザー登録（サインアップ）
+- プロフィールの取得/編集
+- プロフィール公開設定の変更
 
 ## Context 間の関係
 
 - CircleSession は Circle に従属する
 - Match は CircleSession に従属する
 - Auth は各 Context の操作権限を判定する横断的な Context
+- Auth は Identity Context の UserRepository を参照する（認証時のユーザー解決）
 
 ## 実装上の配置（目安）
 
@@ -141,6 +161,10 @@ Auth Context は認可判定のために以下の型を参照する:
   - `server/domain/services/authz/*`
   - `server/application/authz/*`
   - `server/infrastructure/repository/authz/*`
+- Identity Context
+  - `server/domain/models/user/*`
+  - `server/application/user/*`
+  - `server/infrastructure/repository/user/*`
 
 ## レイヤーごとのディレクトリ方針
 
