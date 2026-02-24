@@ -3,8 +3,13 @@ import type { MatchRepository } from "@/server/domain/models/match/match-reposit
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
+import type { SignupRepository } from "@/server/domain/models/user/signup-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
+import type {
+  Repositories,
+  UnitOfWork,
+} from "@/server/application/common/unit-of-work";
 
 export const createMockMatchRepository = () =>
   ({
@@ -66,9 +71,33 @@ export const createMockCircleInviteLinkRepository = () =>
     save: vi.fn(),
   }) satisfies CircleInviteLinkRepository;
 
+export const createMockSignupRepository = () =>
+  ({
+    emailExists: vi.fn(),
+    createUser: vi.fn(),
+  }) satisfies SignupRepository;
+
 export const createMockAuthzRepository = () =>
   ({
     isRegisteredUser: vi.fn(),
     findCircleMembership: vi.fn(),
     findCircleSessionMembership: vi.fn(),
   }) satisfies AuthzRepository;
+
+export const createMockUnitOfWork = (
+  overrides?: Partial<Repositories>,
+): { unitOfWork: UnitOfWork; repos: Repositories } => {
+  const repos: Repositories = {
+    circleRepository: createMockCircleRepository(),
+    circleSessionRepository: createMockCircleSessionRepository(),
+    matchRepository: createMockMatchRepository(),
+    userRepository: createMockUserRepository(),
+    signupRepository: createMockSignupRepository(),
+    authzRepository: createMockAuthzRepository(),
+    ...overrides,
+  };
+
+  const unitOfWork: UnitOfWork = vi.fn(async (op) => op(repos));
+
+  return { unitOfWork, repos };
+};

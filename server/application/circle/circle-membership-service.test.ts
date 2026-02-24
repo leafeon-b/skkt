@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleMembershipService } from "@/server/application/circle/circle-membership-service";
-import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import { createMockCircleRepository } from "@/server/application/test-helpers/mock-repositories";
+import {
+  createMockCircleRepository,
+  createMockUnitOfWork,
+} from "@/server/application/test-helpers/mock-repositories";
 import { ConflictError, ForbiddenError } from "@/server/domain/common/errors";
 import { circleId, userId } from "@/server/domain/common/ids";
 
@@ -487,17 +489,8 @@ describe("Circle メンバーシップサービス", () => {
 });
 
 describe("UnitOfWork 経路", () => {
-  // deps用リポジトリ（UoW外）— circleRepository はUoW外で使われるため通常設定
   const depsCircleRepository = createMockCircleRepository();
-
-  // UoWコールバック用リポジトリ（UoW内専用）
-  const uowCircleRepository = createMockCircleRepository();
-
-  const unitOfWork: UnitOfWork = vi.fn(async (op) =>
-    op({
-      circleRepository: uowCircleRepository,
-    } as never),
-  );
+  const { unitOfWork, repos } = createMockUnitOfWork();
 
   const uowAccessService = createAccessServiceStub();
 
@@ -542,13 +535,12 @@ describe("UnitOfWork 経路", () => {
     });
 
     expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(
-      uowCircleRepository.removeMembership,
-    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
+    expect(repos.circleRepository.removeMembership).toHaveBeenCalledWith(
+      circleId("circle-1"),
+      userId("user-member"),
+    );
     // deps側のリポジトリは呼ばれない
-    expect(
-      depsCircleRepository.removeMembership,
-    ).not.toHaveBeenCalled();
+    expect(depsCircleRepository.removeMembership).not.toHaveBeenCalled();
   });
 
   test("removeMembership は unitOfWork を呼び出す", async () => {
@@ -559,16 +551,15 @@ describe("UnitOfWork 経路", () => {
     });
 
     expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(
-      uowCircleRepository.removeMembership,
-    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
-    expect(
-      depsCircleRepository.removeMembership,
-    ).not.toHaveBeenCalled();
+    expect(repos.circleRepository.removeMembership).toHaveBeenCalledWith(
+      circleId("circle-1"),
+      userId("user-member"),
+    );
+    expect(depsCircleRepository.removeMembership).not.toHaveBeenCalled();
   });
 
   test("UoW 内でエラーが発生した場合に伝播する", async () => {
-    uowCircleRepository.removeMembership.mockRejectedValue(
+    vi.mocked(repos.circleRepository.removeMembership).mockRejectedValue(
       new Error("DB error"),
     );
 
