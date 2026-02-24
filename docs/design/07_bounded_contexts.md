@@ -104,6 +104,13 @@
 - 認証状態の確認
 - 認可ポリシーの判定
 
+### コンテキスト間の依存
+
+Auth Context は認可判定のために以下の型を参照する:
+
+- Circle Context: CircleRole, CircleMembershipRepository
+- CircleSession Context: CircleSessionRole, CircleSessionMembershipRepository
+
 ## Context 間の関係
 
 - CircleSession は Circle に従属する
