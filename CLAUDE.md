@@ -56,7 +56,7 @@ server/
 
 - **tRPC 11**: `/api/trpc/[trpc]` で型安全なAPI。ルーターは `server/presentation/trpc/routers/` に配置
 - **リポジトリパターン**: インターフェースは `domain/models/*/`、実装は `infrastructure/repository/*/`
-- **サービスコンテナ**: DIコンテナは `server/application/service-container.ts`
+- **サービスコンテナ**: DIコンテナは `server/infrastructure/service-container.ts`
 - **Branded Types**: 型安全なIDを `server/domain/common/ids.ts` で定義（例: `CircleId`, `UserId`）
 - **論理削除**: Match, CircleMembership, CircleSessionMembership は `deletedAt` で論理削除
 
