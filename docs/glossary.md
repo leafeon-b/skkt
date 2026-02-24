@@ -7,7 +7,6 @@
 | 研究会             | Circle               | ある程度決まったメンバーで継続的に開催される将棋の集まり |
 | セッション         | CircleSession        | 研究会に属する 1 回分の開催                              |
 | 対局結果           | Match                | 1 局 = 1 件の対局結果                                    |
-| 対局結果の編集履歴 | MatchHistory         | 対局結果の作成・修正・削除の履歴（スナップショット保持） |
 
 ## 権限・ロール
 
@@ -39,7 +38,7 @@
 | Circle            | CircleMembership                | CircleRepository                   | Circle         |
 | CircleInviteLink  | -                               | CircleInviteLinkRepository         | Circle         |
 | CircleSession     | CircleSessionMembership         | CircleSessionRepository            | CircleSession  |
-| Match             | MatchHistory                    | MatchRepository                    | Match          |
+| Match             | -                               | MatchRepository                    | Match          |
 | User              | -                               | UserRepository                     | Auth           |
 
 ※ 本プロジェクトでは Aggregate Root を「主要エンティティであり、他の集約からは ID でのみ参照される境界」として使用している。厳密な DDD の整合性境界（不変条件の強制、Root 経由の排他的アクセス）は現時点では実装していない。ドメインエンティティはプレーンな TypeScript 型（Anemic Domain Model）であり、関連エンティティごとに独立した Repository を持つ構造になっている。
@@ -54,7 +53,6 @@ Circle（研究会）
 │   ├── CircleSessionMembership（セッション参加）
 │   │   └── CircleSessionRole（CircleSessionOwner / CircleSessionManager / CircleSessionMember）
 │   └── Match（対局結果）
-│       └── MatchHistory（対局結果の編集履歴）
 └── CircleInviteLink（招待リンク）
 ```
 
@@ -72,7 +70,6 @@ Circle（研究会）
 | CircleSession           | CircleSession              | CircleSession           | CircleSessionDto              | CircleSessionService               | 統一済み     |
 | CircleSessionMembership | CircleSessionMembership    | CircleSessionMembership | CircleSessionMembershipDto    | CircleSessionMembershipService     | 統一済み     |
 | Match                   | Match                      | Match                   | MatchDto                      | MatchService                       | 統一済み     |
-| MatchHistory            | MatchHistory               | MatchHistory            | MatchHistoryDto               | MatchHistoryService                | 統一済み     |
 | User                    | User                       | User                    | UserDto                       | UserService                        | 統一済み     |
 
 ### Entity / ValueObject 分類
@@ -89,7 +86,6 @@ Circle（研究会）
 | CircleSession    | CircleSessionId      | `server/domain/models/circle-session/circle-session.ts` |
 | CircleSessionMembership | CircleSessionMembershipId | `server/domain/models/circle-session/circle-session-membership.ts` |
 | Match            | MatchId              | `server/domain/models/match/match.ts`              |
-| MatchHistory     | MatchHistoryId       | `server/domain/models/match-history/match-history.ts` |
 | User             | UserId               | `server/domain/models/user/user.ts`                |
 
 #### ValueObject（識別子を持たず、値で等価判定する）
@@ -99,7 +95,6 @@ Circle（研究会）
 | CircleRole           | リテラル共用体   | `server/domain/services/authz/roles.ts`             |
 | CircleSessionRole    | リテラル共用体   | `server/domain/services/authz/roles.ts`             |
 | MatchOutcome         | リテラル共用体   | `server/domain/models/match/match.ts`               |
-| MatchHistoryAction   | リテラル共用体   | `server/domain/models/match-history/match-history.ts` |
 | ProfileVisibility    | リテラル共用体   | `server/domain/models/user/user.ts`                 |
 | DomainErrorCode      | リテラル共用体   | `server/domain/common/errors.ts`                    |
 
@@ -127,7 +122,6 @@ Circle（研究会）
 | CircleSessionRepository                 | CircleSession  | CircleSession            |
 | CircleSessionMembershipRepository       | CircleSession  | CircleSessionMembership  |
 | MatchRepository                         | Match          | Match                    |
-| MatchHistoryRepository                  | Match          | MatchHistory             |
 | UserRepository                          | Auth           | User                     |
 | SignupRepository                        | Auth           | User（登録専用）         |
 | AuthzRepository                         | Auth           | -（認可クエリ専用）      |

@@ -64,23 +64,20 @@
 
 ### 目的
 
-対局結果の作成・編集・削除と履歴を扱う。
+対局結果の作成・編集・削除を扱う。
 
 ### 主要エンティティ/値
 
 - **Match**（Aggregate Root）
-- MatchHistory
 
 ### 代表的な不変条件
 
 - 対局者はセッション参加者である
 - player1 != player2
-- 対局結果の作成/更新/削除時に履歴を自動記録
 
 ### 所管するユースケース例
 
 - 対局結果の記録/修正/削除
-- 対局結果の履歴閲覧
 
 ## Auth Context（認証/認可）
 
@@ -120,10 +117,8 @@
   - `server/infrastructure/repository/circle-session/*`
 - Match Context
   - `server/domain/models/match/*`
-  - `server/domain/models/match-history/*`
   - `server/application/match/*`
   - `server/infrastructure/repository/match/*`
-  - `server/infrastructure/repository/match-history/*`
 - Auth Context
   - `server/domain/services/authz/*`
   - `server/application/authz/*`
