@@ -4,7 +4,6 @@ import type { Context } from "@/server/presentation/trpc/context";
 import {
   circleId,
   circleSessionId,
-  matchHistoryId,
   matchId,
   userId,
 } from "@/server/domain/common/ids";
@@ -55,9 +54,6 @@ const createContext = () => {
     updateMatch: vi.fn(),
     deleteMatch: vi.fn(),
   };
-  const matchHistoryService = {
-    listByMatchId: vi.fn(),
-  };
   const userService = {
     getUser: vi.fn(),
     listUsers: vi.fn(),
@@ -82,7 +78,6 @@ const createContext = () => {
     circleSessionService,
     circleSessionMembershipService,
     matchService,
-    matchHistoryService,
     userService,
     signupService,
     circleInviteLinkService,
@@ -99,7 +94,6 @@ const createContext = () => {
       circleSessionService,
       circleSessionMembershipService,
       matchService,
-      matchHistoryService,
       userService,
     },
   };
@@ -480,28 +474,6 @@ describe("tRPC router", () => {
       actorId: userId("user-1"),
       id: matchId("match-1"),
     });
-  });
-
-  test("matches.history.list は履歴を返す", async () => {
-    const { context, mocks } = createContext();
-    mocks.matchHistoryService.listByMatchId.mockResolvedValueOnce([
-      {
-        id: matchHistoryId("history-1"),
-        matchId: matchId("match-1"),
-        editorId: userId("user-1"),
-        action: "CREATE",
-        createdAt: new Date("2025-02-02T00:00:00Z"),
-        player1Id: userId("user-1"),
-        player2Id: userId("user-2"),
-        outcome: "P1_WIN",
-      },
-    ]);
-
-    const caller = appRouter.createCaller(context);
-    const result = await caller.matches.history.list({ matchId: "match-1" });
-
-    expect(result).toHaveLength(1);
-    expect(result[0].action).toBe("CREATE");
   });
 
   test("circleSessions.memberships.updateRole は void を返す", async () => {

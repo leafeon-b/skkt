@@ -4,7 +4,6 @@ import type {
   CircleInviteLinkId,
   CircleSessionId,
   InviteLinkToken,
-  MatchHistoryId,
   MatchId,
   UserId,
 } from "@/server/domain/common/ids";
@@ -13,7 +12,6 @@ import {
   circleInviteLinkId,
   circleSessionId,
   inviteLinkToken,
-  matchHistoryId,
   matchId,
   userId,
 } from "@/server/domain/common/ids";
@@ -29,8 +27,6 @@ export const circleIdSchema = makeIdSchema<CircleId>(circleId);
 export const circleSessionIdSchema =
   makeIdSchema<CircleSessionId>(circleSessionId);
 export const matchIdSchema = makeIdSchema<MatchId>(matchId);
-export const matchHistoryIdSchema =
-  makeIdSchema<MatchHistoryId>(matchHistoryId);
 export const circleInviteLinkIdSchema =
   makeIdSchema<CircleInviteLinkId>(circleInviteLinkId);
 

@@ -1,12 +1,10 @@
 import { describe, expect, test, vi } from "vitest";
 import { createServiceContainer } from "@/server/application/service-container";
-import { matchHistoryId } from "@/server/domain/common/ids";
 import {
   createMockCircleRepository,
   createMockCircleMembershipRepository,
   createMockCircleSessionRepository,
   createMockMatchRepository,
-  createMockMatchHistoryRepository,
   createMockCircleSessionMembershipRepository,
   createMockUserRepository,
   createMockAuthzRepository,
@@ -25,7 +23,6 @@ describe("Service container", () => {
       createMockCircleMembershipRepository();
     const circleSessionRepository = createMockCircleSessionRepository();
     const matchRepository = createMockMatchRepository();
-    const matchHistoryRepository = createMockMatchHistoryRepository();
     const circleSessionMembershipRepository =
       createMockCircleSessionMembershipRepository();
     const userRepository = createMockUserRepository();
@@ -38,7 +35,6 @@ describe("Service container", () => {
       circleMembershipRepository,
       circleSessionRepository,
       matchRepository,
-      matchHistoryRepository,
       circleSessionMembershipRepository,
       userRepository,
       authzRepository,
@@ -49,7 +45,6 @@ describe("Service container", () => {
         getHolidayDateStrings: vi.fn(),
         getHolidayDateStringsForRange: vi.fn(),
       },
-      generateMatchHistoryId: () => matchHistoryId("history-1"),
     });
 
     expect(container.circleService).toBeDefined();
@@ -59,7 +54,6 @@ describe("Service container", () => {
     expect(container.accessService).toBeDefined();
     expect(container.userService).toBeDefined();
     expect(container.matchService).toBeDefined();
-    expect(container.matchHistoryService).toBeDefined();
     expect(container.signupService).toBeDefined();
     expect(container.circleInviteLinkService).toBeDefined();
     expect(container.holidayProvider).toBeDefined();

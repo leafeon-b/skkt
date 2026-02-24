@@ -14,7 +14,6 @@ import {
   toMatchDtos,
 } from "@/server/presentation/mappers/match-mapper";
 import { handleTrpcError } from "@/server/presentation/trpc/errors";
-import { matchHistoryRouter } from "@/server/presentation/trpc/routers/match-history";
 import { protectedProcedure, router } from "@/server/presentation/trpc/trpc";
 
 export const matchRouter = router({
@@ -92,6 +91,4 @@ export const matchRouter = router({
         return toMatchDto(match);
       }),
     ),
-
-  history: matchHistoryRouter,
 });

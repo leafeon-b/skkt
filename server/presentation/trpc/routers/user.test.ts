@@ -62,9 +62,6 @@ const createTestContext = (
       updateMatch: vi.fn(),
       deleteMatch: vi.fn(),
     },
-    matchHistoryService: {
-      listByMatchId: vi.fn(),
-    },
     userService,
     signupService: {
       signup: vi.fn(),

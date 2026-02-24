@@ -4,7 +4,6 @@ import {
   circleId,
   circleSessionId,
   matchId,
-  matchHistoryId,
   circleInviteLinkId,
   inviteLinkToken,
 } from "./ids";
@@ -55,18 +54,6 @@ describe("matchId", () => {
   it("should throw BadRequestError for empty string", () => {
     expect(() => matchId("")).toThrow(BadRequestError);
     expect(() => matchId("")).toThrow("Invalid match ID");
-  });
-});
-
-describe("matchHistoryId", () => {
-  it("should return branded MatchHistoryId for valid string", () => {
-    const id = matchHistoryId("history-123");
-    expect(id).toBe("history-123");
-  });
-
-  it("should throw BadRequestError for empty string", () => {
-    expect(() => matchHistoryId("")).toThrow(BadRequestError);
-    expect(() => matchHistoryId("")).toThrow("Invalid match history ID");
   });
 });
 
