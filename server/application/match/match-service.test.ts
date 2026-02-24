@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createMatchService } from "@/server/application/match/match-service";
-import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
   createMockMatchRepository,
   createMockCircleSessionRepository,
+  createMockUnitOfWork,
 } from "@/server/application/test-helpers/mock-repositories";
 import {
   circleId,
@@ -240,22 +240,9 @@ describe("Match サービス", () => {
 });
 
 describe("UnitOfWork 経路", () => {
-  // deps用リポジトリ（UoW外）— UoW内で使われるべきメソッドには mockResolvedValue を設定しない
   const depsMatchRepository = createMockMatchRepository();
-
   const depsCircleSessionRepository = createMockCircleSessionRepository();
-
-  // UoWコールバック用リポジトリ（UoW内専用）
-  const uowMatchRepository = createMockMatchRepository();
-
-  const uowCircleSessionRepository = createMockCircleSessionRepository();
-
-  const unitOfWork: UnitOfWork = vi.fn(async (op) =>
-    op({
-      matchRepository: uowMatchRepository,
-      circleSessionRepository: uowCircleSessionRepository,
-    } as never),
-  );
+  const { unitOfWork, repos } = createMockUnitOfWork();
 
   const uowAccessService = createAccessServiceStub();
 
@@ -271,11 +258,11 @@ describe("UnitOfWork 経路", () => {
     vi.mocked(uowAccessService.canRecordMatch).mockResolvedValue(true);
     vi.mocked(uowAccessService.canEditMatch).mockResolvedValue(true);
     vi.mocked(uowAccessService.canDeleteMatch).mockResolvedValue(true);
-    vi.mocked(uowCircleSessionRepository.findById).mockResolvedValue(
+    vi.mocked(repos.circleSessionRepository.findById).mockResolvedValue(
       baseSession(),
     );
     vi.mocked(
-      uowCircleSessionRepository.areUsersParticipating,
+      repos.circleSessionRepository.areUsersParticipating,
     ).mockResolvedValue(true);
   });
 
@@ -286,7 +273,7 @@ describe("UnitOfWork 経路", () => {
     });
 
     expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(uowMatchRepository.save).toHaveBeenCalledWith(
+    expect(repos.matchRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({ id: baseMatchParams.id }),
     );
     // deps側のリポジトリは呼ばれない
@@ -295,7 +282,7 @@ describe("UnitOfWork 経路", () => {
 
   test("updateMatch は unitOfWork を呼び出す", async () => {
     const existing = createMatch(baseMatchParams);
-    vi.mocked(uowMatchRepository.findById).mockResolvedValue(existing);
+    vi.mocked(repos.matchRepository.findById).mockResolvedValue(existing);
 
     await uowService.updateMatch({
       actorId: userId("user-3"),
@@ -304,7 +291,7 @@ describe("UnitOfWork 経路", () => {
     });
 
     expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(uowMatchRepository.save).toHaveBeenCalledWith(
+    expect(repos.matchRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({ outcome: "DRAW" }),
     );
     expect(depsMatchRepository.save).not.toHaveBeenCalled();
@@ -312,7 +299,7 @@ describe("UnitOfWork 経路", () => {
 
   test("deleteMatch は unitOfWork を呼び出す", async () => {
     const existing = createMatch(baseMatchParams);
-    vi.mocked(uowMatchRepository.findById).mockResolvedValue(existing);
+    vi.mocked(repos.matchRepository.findById).mockResolvedValue(existing);
 
     await uowService.deleteMatch({
       actorId: userId("user-3"),
@@ -320,14 +307,16 @@ describe("UnitOfWork 経路", () => {
     });
 
     expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(uowMatchRepository.save).toHaveBeenCalledWith(
+    expect(repos.matchRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({ deletedAt: expect.any(Date) }),
     );
     expect(depsMatchRepository.save).not.toHaveBeenCalled();
   });
 
   test("UoW 内でエラーが発生した場合に伝播する", async () => {
-    uowMatchRepository.save.mockRejectedValue(new Error("DB error"));
+    vi.mocked(repos.matchRepository.save).mockRejectedValue(
+      new Error("DB error"),
+    );
 
     await expect(
       uowService.recordMatch({

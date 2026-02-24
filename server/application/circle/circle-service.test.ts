@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleService } from "@/server/application/circle/circle-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import { createMockCircleRepository } from "@/server/application/test-helpers/mock-repositories";
-import type { UnitOfWork } from "@/server/application/common/unit-of-work";
+import {
+  createMockCircleRepository,
+  createMockUnitOfWork,
+} from "@/server/application/test-helpers/mock-repositories";
 import { circleId } from "@/server/domain/common/ids";
 import { createCircle } from "@/server/domain/models/circle/circle";
 
@@ -99,17 +101,8 @@ describe("Circle サービス", () => {
 });
 
 describe("UnitOfWork 経路", () => {
-  // deps用リポジトリ（UoW外）— UoW内で使われるべきメソッドには mockResolvedValue を設定しない
   const depsCircleRepository = createMockCircleRepository();
-
-  // UoWコールバック用リポジトリ（UoW内専用）
-  const uowCircleRepository = createMockCircleRepository();
-
-  const unitOfWork: UnitOfWork = vi.fn(async (op) =>
-    op({
-      circleRepository: uowCircleRepository,
-    } as never),
-  );
+  const { unitOfWork, repos } = createMockUnitOfWork();
 
   const uowAccessService = createAccessServiceStub();
 
@@ -133,19 +126,15 @@ describe("UnitOfWork 経路", () => {
     });
 
     expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(uowCircleRepository.save).toHaveBeenCalledWith(circle);
-    expect(
-      uowCircleRepository.addMembership,
-    ).toHaveBeenCalled();
+    expect(repos.circleRepository.save).toHaveBeenCalledWith(circle);
+    expect(repos.circleRepository.addMembership).toHaveBeenCalled();
     // deps側のリポジトリは呼ばれない
     expect(depsCircleRepository.save).not.toHaveBeenCalled();
-    expect(
-      depsCircleRepository.addMembership,
-    ).not.toHaveBeenCalled();
+    expect(depsCircleRepository.addMembership).not.toHaveBeenCalled();
   });
 
   test("addMembership 失敗時にエラーが伝播する", async () => {
-    uowCircleRepository.addMembership.mockRejectedValue(
+    vi.mocked(repos.circleRepository.addMembership).mockRejectedValue(
       new Error("DB error"),
     );
 

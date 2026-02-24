@@ -1,9 +1,9 @@
 import { createCircleSessionService } from "@/server/application/circle-session/circle-session-service";
-import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
   createMockCircleRepository,
   createMockCircleSessionRepository,
+  createMockUnitOfWork,
 } from "@/server/application/test-helpers/mock-repositories";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 import {
@@ -258,20 +258,9 @@ describe("CircleSession サービス", () => {
 });
 
 describe("UnitOfWork 経路", () => {
-  // deps用リポジトリ（UoW外）— circleRepository はUoW外で使われるため通常設定
   const depsCircleRepository = createMockCircleRepository();
-
-  // deps用（UoW内で使われるべきメソッドには mockResolvedValue を設定しない）
   const depsCircleSessionRepository = createMockCircleSessionRepository();
-
-  // UoWコールバック用リポジトリ（UoW内専用）
-  const uowCircleSessionRepository = createMockCircleSessionRepository();
-
-  const unitOfWork: UnitOfWork = vi.fn(async (op) =>
-    op({
-      circleSessionRepository: uowCircleSessionRepository,
-    } as never),
-  );
+  const { unitOfWork, repos } = createMockUnitOfWork();
 
   const uowAccessService = createAccessServiceStub();
 
@@ -301,19 +290,15 @@ describe("UnitOfWork 経路", () => {
     });
 
     expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(uowCircleSessionRepository.save).toHaveBeenCalledWith(session);
-    expect(
-      uowCircleSessionRepository.addMembership,
-    ).toHaveBeenCalled();
+    expect(repos.circleSessionRepository.save).toHaveBeenCalledWith(session);
+    expect(repos.circleSessionRepository.addMembership).toHaveBeenCalled();
     // deps側のリポジトリは呼ばれない
     expect(depsCircleSessionRepository.save).not.toHaveBeenCalled();
-    expect(
-      depsCircleSessionRepository.addMembership,
-    ).not.toHaveBeenCalled();
+    expect(depsCircleSessionRepository.addMembership).not.toHaveBeenCalled();
   });
 
   test("addMembership 失敗時にエラーが伝播する", async () => {
-    uowCircleSessionRepository.addMembership.mockRejectedValue(
+    vi.mocked(repos.circleSessionRepository.addMembership).mockRejectedValue(
       new Error("DB error"),
     );
 
