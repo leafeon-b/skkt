@@ -1,6 +1,6 @@
-import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
+import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { CircleId, InviteLinkToken } from "@/server/domain/common/ids";
-import type { CircleInviteLink } from "@/server/domain/models/circle/circle-invite-link";
+import type { CircleInviteLink } from "@/server/domain/models/circle-invite-link/circle-invite-link";
 import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
 import {
   mapCircleInviteLinkToDomain,

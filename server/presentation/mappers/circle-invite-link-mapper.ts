@@ -1,4 +1,4 @@
-import type { CircleInviteLink } from "@/server/domain/models/circle/circle-invite-link";
+import type { CircleInviteLink } from "@/server/domain/models/circle-invite-link/circle-invite-link";
 import type { InviteLinkInfo } from "@/server/application/circle/circle-invite-link-service";
 import {
   circleInviteLinkDtoSchema,
