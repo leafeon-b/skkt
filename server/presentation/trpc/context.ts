@@ -18,6 +18,7 @@ import {
   verifyPassword,
 } from "@/server/infrastructure/auth/password";
 import { createJapaneseHolidayProvider } from "@/server/infrastructure/holiday/japanese-holiday-provider";
+import { createInMemoryRateLimiter } from "@/server/infrastructure/rate-limit/in-memory-rate-limiter";
 
 const getSession = createGetSession(nextAuthSessionService);
 const japaneseHolidayProvider = createJapaneseHolidayProvider();
@@ -35,6 +36,10 @@ const buildServiceContainer = (): ServiceContainer =>
     signupRepository: prismaSignupRepository,
     circleInviteLinkRepository: prismaCircleInviteLinkRepository,
     passwordUtils: { hash: hashPassword, verify: verifyPassword },
+    changePasswordRateLimiter: createInMemoryRateLimiter({
+      maxAttempts: 5,
+      windowMs: 60_000,
+    }),
     holidayProvider: japaneseHolidayProvider,
     unitOfWork: prismaUnitOfWork,
   });

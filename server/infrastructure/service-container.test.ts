@@ -41,6 +41,11 @@ describe("Service container", () => {
       signupRepository,
       circleInviteLinkRepository,
       passwordUtils: { hash: vi.fn(), verify: vi.fn() },
+      changePasswordRateLimiter: {
+        check: vi.fn(),
+        recordFailure: vi.fn(),
+        reset: vi.fn(),
+      },
       holidayProvider: {
         getHolidayDateStrings: vi.fn(),
         getHolidayDateStringsForRange: vi.fn(),

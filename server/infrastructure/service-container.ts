@@ -8,7 +8,7 @@ import { createUserService } from "@/server/application/user/user-service";
 import { createSignupService } from "@/server/application/auth/signup-service";
 import { createCircleInviteLinkService } from "@/server/application/circle/circle-invite-link-service";
 import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
-import { createInMemoryRateLimiter } from "@/server/infrastructure/rate-limit/in-memory-rate-limiter";
+import type { RateLimiter } from "@/server/application/common/rate-limiter";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
@@ -51,6 +51,7 @@ export type ServiceContainerDeps = {
   signupRepository: SignupRepository;
   circleInviteLinkRepository: CircleInviteLinkRepository;
   passwordUtils: PasswordUtils;
+  changePasswordRateLimiter: RateLimiter;
   holidayProvider: HolidayProvider;
   unitOfWork?: UnitOfWork;
 };
@@ -103,10 +104,7 @@ export const createServiceContainer = (
       userRepository: deps.userRepository,
       accessService,
       passwordUtils: deps.passwordUtils,
-      changePasswordRateLimiter: createInMemoryRateLimiter({
-        maxAttempts: 5,
-        windowMs: 60_000,
-      }),
+      changePasswordRateLimiter: deps.changePasswordRateLimiter,
     }),
     signupService: createSignupService({
       signupRepository: deps.signupRepository,
