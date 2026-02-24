@@ -2,50 +2,50 @@ import { z } from "zod";
 import { circleIdSchema, userIdSchema } from "@/server/presentation/dto/ids";
 import { circleRoleSchema } from "@/server/presentation/dto/roles";
 
-export const circleParticipationDtoSchema = z.object({
+export const circleMembershipDtoSchema = z.object({
   userId: userIdSchema,
   role: circleRoleSchema,
 });
 
-export type CircleParticipationDto = z.infer<
-  typeof circleParticipationDtoSchema
+export type CircleMembershipDto = z.infer<
+  typeof circleMembershipDtoSchema
 >;
 
-export const circleParticipationListInputSchema = z.object({
+export const circleMembershipListInputSchema = z.object({
   circleId: circleIdSchema,
 });
 
-export type CircleParticipationListInput = z.infer<
-  typeof circleParticipationListInputSchema
+export type CircleMembershipListInput = z.infer<
+  typeof circleMembershipListInputSchema
 >;
 
-export const circleParticipationCreateInputSchema = z.object({
-  circleId: circleIdSchema,
-  userId: userIdSchema,
-  role: circleRoleSchema,
-});
-
-export type CircleParticipationCreateInput = z.infer<
-  typeof circleParticipationCreateInputSchema
->;
-
-export const circleParticipationRoleUpdateInputSchema = z.object({
+export const circleMembershipCreateInputSchema = z.object({
   circleId: circleIdSchema,
   userId: userIdSchema,
   role: circleRoleSchema,
 });
 
-export type CircleParticipationRoleUpdateInput = z.infer<
-  typeof circleParticipationRoleUpdateInputSchema
+export type CircleMembershipCreateInput = z.infer<
+  typeof circleMembershipCreateInputSchema
 >;
 
-export const circleParticipationRemoveInputSchema = z.object({
+export const circleMembershipRoleUpdateInputSchema = z.object({
+  circleId: circleIdSchema,
+  userId: userIdSchema,
+  role: circleRoleSchema,
+});
+
+export type CircleMembershipRoleUpdateInput = z.infer<
+  typeof circleMembershipRoleUpdateInputSchema
+>;
+
+export const circleMembershipRemoveInputSchema = z.object({
   circleId: circleIdSchema,
   userId: userIdSchema,
 });
 
-export type CircleParticipationRemoveInput = z.infer<
-  typeof circleParticipationRemoveInputSchema
+export type CircleMembershipRemoveInput = z.infer<
+  typeof circleMembershipRemoveInputSchema
 >;
 
 export const circleWithdrawInputSchema = z.object({

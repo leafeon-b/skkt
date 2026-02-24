@@ -54,14 +54,14 @@ const roleClasses: Record<CircleSessionRoleKey, string> = {
 export function CircleSessionDetailView({
   detail,
 }: CircleSessionDetailViewProps) {
-  const participations = detail.participations;
+  const memberships = detail.memberships;
   const matches = detail.matches;
   const todayInputValue = getTodayInputValue();
-  const getParticipationName = (id: string) => {
-    const participationsById = Object.fromEntries(
-      participations.map((participation) => [participation.id, participation]),
-    ) as Record<string, (typeof participations)[number]>;
-    return participationsById[id]?.name ?? "不明";
+  const getMemberName = (id: string) => {
+    const membershipsById = Object.fromEntries(
+      memberships.map((membership) => [membership.id, membership]),
+    ) as Record<string, (typeof memberships)[number]>;
+    return membershipsById[id]?.name ?? "不明";
   };
 
   const router = useRouter();
@@ -235,8 +235,8 @@ export function CircleSessionDetailView({
         },
         {
           onSuccess: () => {
-            const rowName = getParticipationName(activeDialog.rowId);
-            const columnName = getParticipationName(activeDialog.columnId);
+            const rowName = getMemberName(activeDialog.rowId);
+            const columnName = getMemberName(activeDialog.columnId);
             const outcomeLabel = getOutcomeLabel(
               selectedOutcome,
               rowName,
@@ -269,8 +269,8 @@ export function CircleSessionDetailView({
         },
         {
           onSuccess: () => {
-            const rowName = getParticipationName(activeDialog.rowId);
-            const columnName = getParticipationName(activeDialog.columnId);
+            const rowName = getMemberName(activeDialog.rowId);
+            const columnName = getMemberName(activeDialog.columnId);
             const outcomeLabel = getOutcomeLabel(
               selectedOutcome,
               rowName,
@@ -306,8 +306,8 @@ export function CircleSessionDetailView({
       { matchId: selected.match.id },
       {
         onSuccess: () => {
-          const rowName = getParticipationName(activeDialog.rowId);
-          const columnName = getParticipationName(activeDialog.columnId);
+          const rowName = getMemberName(activeDialog.rowId);
+          const columnName = getMemberName(activeDialog.columnId);
           const outcomeLabel = getOutcomeLabel(
             getRowOutcomeValue(activeDialog.rowId, selected.match),
             rowName,
@@ -326,10 +326,10 @@ export function CircleSessionDetailView({
     ? getPairMatches(matches, activeDialog.rowId, activeDialog.columnId)
     : [];
   const dialogRowName = activeDialog
-    ? getParticipationName(activeDialog.rowId)
+    ? getMemberName(activeDialog.rowId)
     : "";
   const dialogColumnName = activeDialog
-    ? getParticipationName(activeDialog.columnId)
+    ? getMemberName(activeDialog.columnId)
     : "";
   const dialogTitle = activeDialog
     ? activeDialog.mode === "add"
@@ -474,7 +474,7 @@ export function CircleSessionDetailView({
       </section>
 
       <MatchMatrixTable
-        participations={participations}
+        memberships={memberships}
         matches={matches}
         openDialog={openDialog}
       />

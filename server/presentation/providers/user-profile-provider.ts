@@ -34,14 +34,14 @@ export async function getUserProfileViewModel(
       name: user.name ?? "名前未設定",
       image: user.image ?? null,
       isProfilePublic: false,
-      sessionParticipationCount: 0,
+      sessionMembershipCount: 0,
       matchStatistics: { wins: 0, losses: 0, draws: 0 },
       circleMatchStatistics: [],
     };
   }
 
-  const [sessionParticipationCount, { total, byCircle }] = await Promise.all([
-    ctx.circleSessionParticipationService.countPastSessionsByUserId(
+  const [sessionMembershipCount, { total, byCircle }] = await Promise.all([
+    ctx.circleSessionMembershipService.countPastSessionsByUserId(
       brandedUserId,
     ),
     ctx.userStatisticsService.getMatchStatisticsAll(brandedUserId),
@@ -52,7 +52,7 @@ export async function getUserProfileViewModel(
     name: user.name ?? "名前未設定",
     image: user.image ?? null,
     isProfilePublic: true,
-    sessionParticipationCount,
+    sessionMembershipCount,
     matchStatistics: total,
     circleMatchStatistics: byCircle.map((s) => ({
       circleId: s.circleId,

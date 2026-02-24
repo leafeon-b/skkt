@@ -1,17 +1,17 @@
 import { describe, expect, test } from "vitest";
 import { circleSessionId, userId } from "@/server/domain/common/ids";
 import {
-  mapCircleSessionParticipationFromPersistence,
+  mapCircleSessionMembershipFromPersistence,
   mapCircleSessionRoleFromPersistence,
   mapCircleSessionRoleToPersistence,
-} from "@/server/infrastructure/mappers/circle-session-participation-mapper";
+} from "@/server/infrastructure/mappers/circle-session-membership-mapper";
 import {
   toPersistenceId,
   toPersistenceIds,
 } from "@/server/infrastructure/common/id-utils";
 import { CircleSessionRole } from "@/server/domain/services/authz/roles";
 
-describe("CircleSession 参加者マッパー", () => {
+describe("CircleSession メンバーシップマッパー", () => {
   test("CircleSessionId を永続化向けに変換できる", () => {
     const mapped = toPersistenceId(circleSessionId("session-1"));
 
@@ -38,9 +38,9 @@ describe("CircleSession 参加者マッパー", () => {
     expect(mapped).toBe(CircleSessionRole.CircleSessionMember);
   });
 
-  test("永続化データを参加関係に変換できる", () => {
+  test("永続化データをメンバーシップに変換できる", () => {
     const createdAt = new Date("2025-01-01T00:00:00Z");
-    const mapped = mapCircleSessionParticipationFromPersistence({
+    const mapped = mapCircleSessionMembershipFromPersistence({
       circleSessionId: "session-1",
       userId: "user-1",
       role: "CircleSessionManager",

@@ -3,7 +3,7 @@ export type UserProfileViewModel = {
   name: string;
   image: string | null;
   isProfilePublic: boolean;
-  sessionParticipationCount: number;
+  sessionMembershipCount: number;
   matchStatistics: {
     wins: number;
     losses: number;

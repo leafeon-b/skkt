@@ -8,7 +8,7 @@ import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
 import type {
   CircleSessionMatch,
-  CircleSessionParticipation,
+  CircleSessionMembership,
   CircleSessionRoleKey,
   CircleSessionDetailViewModel,
 } from "@/server/presentation/view-models/circle-session-detail";
@@ -20,35 +20,35 @@ const roleKeyByDto: Record<CircleSessionRole, CircleSessionRoleKey> = {
 };
 
 const getViewerRole = (
-  participations: Array<{ userId: string; role: CircleSessionRole }>,
+  memberships: Array<{ userId: string; role: CircleSessionRole }>,
   viewerId: string | null,
 ): CircleSessionRoleKey | null => {
   if (!viewerId) {
     return null;
   }
-  const participation = participations.find((item) => item.userId === viewerId);
-  if (!participation) {
+  const membership = memberships.find((item) => item.userId === viewerId);
+  if (!membership) {
     return null;
   }
-  return roleKeyByDto[participation.role] ?? null;
+  return roleKeyByDto[membership.role] ?? null;
 };
 
-const mapParticipations = (
-  participations: Array<{ userId: string }>,
+const mapMemberships = (
+  memberships: Array<{ userId: string }>,
   nameById: Map<string, string | null>,
-): CircleSessionParticipation[] =>
-  participations.map((participation) => ({
-    id: participation.userId,
-    name: nameById.get(participation.userId) ?? participation.userId,
+): CircleSessionMembership[] =>
+  memberships.map((membership) => ({
+    id: membership.userId,
+    name: nameById.get(membership.userId) ?? membership.userId,
   }));
 
-const mergeParticipationIds = (
-  participations: CircleSessionParticipation[],
+const mergeMembershipIds = (
+  memberships: CircleSessionMembership[],
   matches: CircleSessionMatch[],
   nameById: Map<string, string | null>,
 ) => {
-  const ids = new Set(participations.map((participation) => participation.id));
-  const extras: CircleSessionParticipation[] = [];
+  const ids = new Set(memberships.map((membership) => membership.id));
+  const extras: CircleSessionMembership[] = [];
 
   for (const match of matches) {
     if (!ids.has(match.player1Id)) {
@@ -67,7 +67,7 @@ const mergeParticipationIds = (
     }
   }
 
-  return participations.concat(extras);
+  return memberships.concat(extras);
 };
 
 export async function getCircleSessionDetailViewModel(
@@ -78,17 +78,17 @@ export async function getCircleSessionDetailViewModel(
 
   const session = await caller.circleSessions.get({ circleSessionId });
 
-  const [circle, participations, matches] = await Promise.all([
+  const [circle, memberships, matches] = await Promise.all([
     caller.circles.get({ circleId: session.circleId }),
-    caller.circleSessions.participations.list({
+    caller.circleSessions.memberships.list({
       circleSessionId: session.id,
     }),
     caller.matches.list({ circleSessionId: session.id }),
   ]);
 
   const userIds = new Set<string>();
-  for (const participation of participations) {
-    userIds.add(participation.userId);
+  for (const membership of memberships) {
+    userIds.add(membership.userId);
   }
   for (const match of matches) {
     userIds.add(match.player1Id);
@@ -116,7 +116,7 @@ export async function getCircleSessionDetailViewModel(
   ]);
 
   const userNameById = new Map(users.map((user) => [user.id, user.name]));
-  const viewerRole = getViewerRole(participations, viewerId);
+  const viewerRole = getViewerRole(memberships, viewerId);
 
   const matchViewModels: CircleSessionMatch[] = matches
     .filter((match) => match.deletedAt == null)
@@ -128,8 +128,8 @@ export async function getCircleSessionDetailViewModel(
       createdAtInput: formatDateForInput(match.createdAt),
     }));
 
-  const participationViewModels = mergeParticipationIds(
-    mapParticipations(participations, userNameById),
+  const membershipViewModels = mergeMembershipIds(
+    mapMemberships(memberships, userNameById),
     matchViewModels,
     userNameById,
   );
@@ -149,7 +149,7 @@ export async function getCircleSessionDetailViewModel(
     canCreateCircleSession,
     canDeleteCircleSession,
     canWithdrawFromCircleSession,
-    participations: participationViewModels,
+    memberships: membershipViewModels,
     matches: matchViewModels,
   };
 

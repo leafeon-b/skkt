@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import type {
   CircleSessionMatch,
-  CircleSessionParticipation,
+  CircleSessionMembership,
 } from "@/server/presentation/view-models/circle-session-detail";
 import {
   getMatchOutcome,
@@ -24,7 +24,7 @@ import {
 } from "./match-utils";
 
 type MatchMatrixTableProps = {
-  participations: CircleSessionParticipation[];
+  memberships: CircleSessionMembership[];
   matches: CircleSessionMatch[];
   openDialog: (mode: DialogMode, rowId: string, columnId: string) => void;
 };
@@ -129,10 +129,10 @@ const getRowTotals = (matches: CircleSessionMatch[], rowId: string) => {
   let draws = 0;
 
   for (const match of matches) {
-    const isRowParticipation =
+    const isRowMember =
       match.player1Id === rowId || match.player2Id === rowId;
 
-    if (!isRowParticipation) {
+    if (!isRowMember) {
       continue;
     }
 
@@ -161,7 +161,7 @@ const getRowTotals = (matches: CircleSessionMatch[], rowId: string) => {
 };
 
 export function MatchMatrixTable({
-  participations,
+  memberships,
   matches,
   openDialog,
 }: MatchMatrixTableProps) {
@@ -176,7 +176,7 @@ export function MatchMatrixTable({
             </p>
           </div>
           <p className="text-xs text-(--brand-ink-muted)">
-            {participations.length}名参加
+            {memberships.length}名参加
           </p>
         </div>
         <div className="relative mt-4 rounded-2xl border border-border/60 bg-white/70">
@@ -188,18 +188,18 @@ export function MatchMatrixTable({
                 <TableHead className="bg-(--brand-ink)/5 px-3 py-3 text-left text-xs font-semibold text-(--brand-ink)">
                   自分＼相手
                 </TableHead>
-                {participations.map((participation) => (
+                {memberships.map((member) => (
                   <TableHead
-                    key={participation.id}
+                    key={member.id}
                     className="whitespace-nowrap bg-(--brand-ink)/5 px-3 py-3 text-center text-xs font-semibold text-(--brand-ink)"
                     scope="col"
-                    title={participation.name}
+                    title={member.name}
                   >
                     <span className="block sm:hidden">
-                      {getNameInitial(participation.name)}
+                      {getNameInitial(member.name)}
                     </span>
                     <span className="hidden sm:block">
-                      {participation.name}
+                      {member.name}
                     </span>
                   </TableHead>
                 ))}
@@ -209,33 +209,33 @@ export function MatchMatrixTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {participations.map((rowParticipation) => {
-                const totals = getRowTotals(matches, rowParticipation.id);
+              {memberships.map((rowMember) => {
+                const totals = getRowTotals(matches, rowMember.id);
                 return (
                   <TableRow
-                    key={rowParticipation.id}
+                    key={rowMember.id}
                     className="border-b border-border/60 last:border-b-0"
                   >
                     <TableHead
                       scope="row"
                       className="whitespace-nowrap bg-(--brand-ink)/5 px-3 py-3 text-left text-xs font-semibold text-(--brand-ink)"
                     >
-                      {rowParticipation.name}
+                      {rowMember.name}
                     </TableHead>
-                    {participations.map((columnParticipation) => {
-                      const cellKey = `${rowParticipation.id}-${columnParticipation.id}`;
+                    {memberships.map((columnMember) => {
+                      const cellKey = `${rowMember.id}-${columnMember.id}`;
                       const pairMatchEntries = getPairMatches(
                         matches,
-                        rowParticipation.id,
-                        columnParticipation.id,
+                        rowMember.id,
+                        columnMember.id,
                       );
                       const hasMatches = pairMatchEntries.length > 0;
                       const isSelf =
-                        rowParticipation.id === columnParticipation.id;
+                        rowMember.id === columnMember.id;
                       const cellDisplay = getCellDisplay(
                         matches,
-                        rowParticipation.id,
-                        columnParticipation.id,
+                        rowMember.id,
+                        columnMember.id,
                       );
 
                       const cellButtonClassName =
@@ -280,8 +280,8 @@ export function MatchMatrixTable({
                                   onClick={() =>
                                     openDialog(
                                       "add",
-                                      rowParticipation.id,
-                                      columnParticipation.id,
+                                      rowMember.id,
+                                      columnMember.id,
                                     )
                                   }
                                 >
@@ -291,8 +291,8 @@ export function MatchMatrixTable({
                                   onClick={() =>
                                     openDialog(
                                       "edit",
-                                      rowParticipation.id,
-                                      columnParticipation.id,
+                                      rowMember.id,
+                                      columnMember.id,
                                     )
                                   }
                                 >
@@ -302,8 +302,8 @@ export function MatchMatrixTable({
                                   onClick={() =>
                                     openDialog(
                                       "delete",
-                                      rowParticipation.id,
-                                      columnParticipation.id,
+                                      rowMember.id,
+                                      columnMember.id,
                                     )
                                   }
                                 >
@@ -320,8 +320,8 @@ export function MatchMatrixTable({
                               onClick={() =>
                                 openDialog(
                                   "add",
-                                  rowParticipation.id,
-                                  columnParticipation.id,
+                                  rowMember.id,
+                                  columnMember.id,
                                 )
                               }
                             >

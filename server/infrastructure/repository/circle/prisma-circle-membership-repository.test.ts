@@ -14,16 +14,16 @@ import { ConflictError } from "@/server/domain/common/errors";
 import { circleId, userId } from "@/server/domain/common/ids";
 import { prisma } from "@/server/infrastructure/db";
 import { Prisma } from "@/generated/prisma/client";
-import { prismaCircleParticipationRepository } from "@/server/infrastructure/repository/circle/prisma-circle-participation-repository";
+import { prismaCircleMembershipRepository } from "@/server/infrastructure/repository/circle/prisma-circle-membership-repository";
 
 const mockedPrisma = vi.mocked(prisma, { deep: true });
 
-describe("Prisma Circle 参加者リポジトリ", () => {
+describe("Prisma Circle メンバーシップリポジトリ", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  test("listByCircleId は参加者一覧を返す", async () => {
+  test("listByCircleId はメンバー一覧を返す", async () => {
     const createdAt = new Date("2025-01-01T00:00:00Z");
     mockedPrisma.circleMembership.findMany.mockResolvedValueOnce([
       {
@@ -44,7 +44,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
       },
     ]);
 
-    const result = await prismaCircleParticipationRepository.listByCircleId(
+    const result = await prismaCircleMembershipRepository.listByCircleId(
       circleId("circle-1"),
     );
 
@@ -76,7 +76,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     ]);
   });
 
-  test("listByUserId は参加関係を返す", async () => {
+  test("listByUserId はメンバーシップを返す", async () => {
     const createdAt = new Date("2025-02-01T00:00:00Z");
     mockedPrisma.circleMembership.findMany.mockResolvedValueOnce([
       {
@@ -97,7 +97,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
       },
     ]);
 
-    const result = await prismaCircleParticipationRepository.listByUserId(
+    const result = await prismaCircleMembershipRepository.listByUserId(
       userId("user-1"),
     );
 
@@ -130,8 +130,8 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     ]);
   });
 
-  test("addParticipation は参加者を追加する", async () => {
-    await prismaCircleParticipationRepository.addParticipation(
+  test("addMembership はメンバーを追加する", async () => {
+    await prismaCircleMembershipRepository.addMembership(
       circleId("circle-1"),
       userId("user-1"),
       "CircleManager",
@@ -146,7 +146,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     });
   });
 
-  test("addParticipation は P2002（一意制約違反）で ConflictError をスローする", async () => {
+  test("addMembership は P2002（一意制約違反）で ConflictError をスローする", async () => {
     mockedPrisma.circleMembership.create.mockRejectedValueOnce(
       new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
         code: "P2002",
@@ -155,7 +155,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     );
 
     await expect(
-      prismaCircleParticipationRepository.addParticipation(
+      prismaCircleMembershipRepository.addMembership(
         circleId("circle-1"),
         userId("user-1"),
         "CircleMember",
@@ -163,7 +163,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     ).rejects.toThrow(ConflictError);
   });
 
-  test("addParticipation は P2002 以外の Prisma エラーはそのまま伝播する", async () => {
+  test("addMembership は P2002 以外の Prisma エラーはそのまま伝播する", async () => {
     const otherError = new Prisma.PrismaClientKnownRequestError(
       "Foreign key constraint failed",
       { code: "P2003", clientVersion: "0.0.0" },
@@ -171,7 +171,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     mockedPrisma.circleMembership.create.mockRejectedValueOnce(otherError);
 
     await expect(
-      prismaCircleParticipationRepository.addParticipation(
+      prismaCircleMembershipRepository.addMembership(
         circleId("circle-1"),
         userId("user-1"),
         "CircleMember",
@@ -179,12 +179,12 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     ).rejects.toThrow(otherError);
   });
 
-  test("updateParticipationRole は参加者のロールを更新する", async () => {
+  test("updateMembershipRole はメンバーのロールを更新する", async () => {
     mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
       count: 1,
     });
 
-    await prismaCircleParticipationRepository.updateParticipationRole(
+    await prismaCircleMembershipRepository.updateMembershipRole(
       circleId("circle-1"),
       userId("user-1"),
       "CircleMember",
@@ -200,13 +200,13 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     });
   });
 
-  test("updateParticipationRole はレコードが見つからない場合エラーをスローする", async () => {
+  test("updateMembershipRole はレコードが見つからない場合エラーをスローする", async () => {
     mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
       count: 0,
     });
 
     await expect(
-      prismaCircleParticipationRepository.updateParticipationRole(
+      prismaCircleMembershipRepository.updateMembershipRole(
         circleId("circle-1"),
         userId("user-1"),
         "CircleMember",
@@ -215,11 +215,11 @@ describe("Prisma Circle 参加者リポジトリ", () => {
   });
 
   test("論理削除後の再参加で create が呼ばれる", async () => {
-    // 1. removeParticipation で論理削除
+    // 1. removeMembership で論理削除
     mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
       count: 1,
     });
-    await prismaCircleParticipationRepository.removeParticipation(
+    await prismaCircleMembershipRepository.removeMembership(
       circleId("circle-1"),
       userId("user-1"),
     );
@@ -233,8 +233,8 @@ describe("Prisma Circle 参加者リポジトリ", () => {
       data: { deletedAt: expect.any(Date) },
     });
 
-    // 2. addParticipation で再参加（新レコード作成）
-    await prismaCircleParticipationRepository.addParticipation(
+    // 2. addMembership で再参加（新レコード作成）
+    await prismaCircleMembershipRepository.addMembership(
       circleId("circle-1"),
       userId("user-1"),
       "CircleMember",
@@ -250,8 +250,6 @@ describe("Prisma Circle 参加者リポジトリ", () => {
   });
 
   test("再参加後に listByCircleId はアクティブなメンバーのみ返す", async () => {
-    // 論理削除済みレコードと新規アクティブレコードが共存する想定
-    // findMany は deletedAt: null でフィルタするため、アクティブのみ返る
     mockedPrisma.circleMembership.findMany.mockResolvedValueOnce([
       {
         id: "membership-3",
@@ -263,7 +261,7 @@ describe("Prisma Circle 参加者リポジトリ", () => {
       },
     ]);
 
-    const result = await prismaCircleParticipationRepository.listByCircleId(
+    const result = await prismaCircleMembershipRepository.listByCircleId(
       circleId("circle-1"),
     );
 
@@ -277,7 +275,6 @@ describe("Prisma Circle 参加者リポジトリ", () => {
         deletedAt: true,
       },
     });
-    // 論理削除済みの旧レコードは含まれず、再参加後のアクティブレコードのみ
     expect(result).toEqual([
       {
         circleId: circleId("circle-1"),
@@ -289,24 +286,24 @@ describe("Prisma Circle 参加者リポジトリ", () => {
     ]);
   });
 
-  test("removeParticipation はレコードが見つからない場合エラーをスローする", async () => {
+  test("removeMembership はレコードが見つからない場合エラーをスローする", async () => {
     mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
       count: 0,
     });
 
     await expect(
-      prismaCircleParticipationRepository.removeParticipation(
+      prismaCircleMembershipRepository.removeMembership(
         circleId("circle-1"),
         userId("user-1"),
       ),
     ).rejects.toThrow("CircleMembership not found");
   });
 
-  test("removeParticipation は研究会メンバーシップを論理削除する", async () => {
+  test("removeMembership は研究会メンバーシップを論理削除する", async () => {
     mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
       count: 1,
     });
-    await prismaCircleParticipationRepository.removeParticipation(
+    await prismaCircleMembershipRepository.removeMembership(
       circleId("circle-1"),
       userId("user-1"),
     );

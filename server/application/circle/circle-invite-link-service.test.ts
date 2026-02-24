@@ -4,7 +4,7 @@ import { createAccessServiceStub } from "@/server/application/test-helpers/acces
 import {
   createMockCircleInviteLinkRepository,
   createMockCircleRepository,
-  createMockCircleParticipationRepository,
+  createMockCircleMembershipRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 import {
   circleId,
@@ -17,7 +17,7 @@ const circleInviteLinkRepository = createMockCircleInviteLinkRepository();
 
 const circleRepository = createMockCircleRepository();
 
-const circleParticipationRepository = createMockCircleParticipationRepository();
+const circleMembershipRepository = createMockCircleMembershipRepository();
 
 const accessService = createAccessServiceStub();
 
@@ -27,7 +27,7 @@ const NONEXISTENT_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440099";
 const service = createCircleInviteLinkService({
   circleInviteLinkRepository,
   circleRepository,
-  circleParticipationRepository,
+  circleMembershipRepository,
   accessService,
   generateToken: () => TEST_TOKEN_UUID,
   generateId: () => "test-id",
@@ -187,7 +187,7 @@ describe("招待リンクサービス", () => {
       vi.mocked(circleInviteLinkRepository.findByToken).mockResolvedValue(
         baseLink(),
       );
-      vi.mocked(circleParticipationRepository.listByCircleId).mockResolvedValue(
+      vi.mocked(circleMembershipRepository.listByCircleId).mockResolvedValue(
         [],
       );
     });
@@ -201,7 +201,7 @@ describe("招待リンクサービス", () => {
       expect(result.circleId).toBe("circle-1");
       expect(result.alreadyMember).toBe(false);
       expect(
-        circleParticipationRepository.addParticipation,
+        circleMembershipRepository.addMembership,
       ).toHaveBeenCalledWith(
         circleId("circle-1"),
         userId("user-new"),
@@ -210,7 +210,7 @@ describe("招待リンクサービス", () => {
     });
 
     test("既存メンバーはalreadyMember=trueを返す", async () => {
-      vi.mocked(circleParticipationRepository.listByCircleId).mockResolvedValue(
+      vi.mocked(circleMembershipRepository.listByCircleId).mockResolvedValue(
         [
           {
             circleId: circleId("circle-1"),
@@ -228,7 +228,7 @@ describe("招待リンクサービス", () => {
 
       expect(result.alreadyMember).toBe(true);
       expect(
-        circleParticipationRepository.addParticipation,
+        circleMembershipRepository.addMembership,
       ).not.toHaveBeenCalled();
     });
 

@@ -1,38 +1,38 @@
 import { z } from "zod";
 import {
-  circleSessionParticipationCreateInputSchema,
-  circleSessionParticipationDtoSchema,
-  circleSessionParticipationListInputSchema,
-  circleSessionParticipationRemoveInputSchema,
-  circleSessionParticipationRoleUpdateInputSchema,
+  circleSessionMembershipCreateInputSchema,
+  circleSessionMembershipDtoSchema,
+  circleSessionMembershipListInputSchema,
+  circleSessionMembershipRemoveInputSchema,
+  circleSessionMembershipRoleUpdateInputSchema,
   circleSessionTransferOwnershipInputSchema,
   circleSessionWithdrawInputSchema,
-} from "@/server/presentation/dto/circle-session-participation";
-import { toCircleSessionParticipationDtos } from "@/server/presentation/mappers/circle-session-participation-mapper";
+} from "@/server/presentation/dto/circle-session-membership";
+import { toCircleSessionMembershipDtos } from "@/server/presentation/mappers/circle-session-membership-mapper";
 import { handleTrpcError } from "@/server/presentation/trpc/errors";
 import { protectedProcedure, router } from "@/server/presentation/trpc/trpc";
 
-export const circleSessionParticipationRouter = router({
+export const circleSessionMembershipRouter = router({
   list: protectedProcedure
-    .input(circleSessionParticipationListInputSchema)
-    .output(circleSessionParticipationDtoSchema.array())
+    .input(circleSessionMembershipListInputSchema)
+    .output(circleSessionMembershipDtoSchema.array())
     .query(({ ctx, input }) =>
       handleTrpcError(async () => {
-        const participations =
-          await ctx.circleSessionParticipationService.listParticipations({
+        const memberships =
+          await ctx.circleSessionMembershipService.listMemberships({
             actorId: ctx.actorId,
             circleSessionId: input.circleSessionId,
           });
-        return toCircleSessionParticipationDtos(participations);
+        return toCircleSessionMembershipDtos(memberships);
       }),
     ),
 
   add: protectedProcedure
-    .input(circleSessionParticipationCreateInputSchema)
+    .input(circleSessionMembershipCreateInputSchema)
     .output(z.void())
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
-        await ctx.circleSessionParticipationService.addParticipation({
+        await ctx.circleSessionMembershipService.addMembership({
           actorId: ctx.actorId,
           circleSessionId: input.circleSessionId,
           userId: input.userId,
@@ -43,11 +43,11 @@ export const circleSessionParticipationRouter = router({
     ),
 
   updateRole: protectedProcedure
-    .input(circleSessionParticipationRoleUpdateInputSchema)
+    .input(circleSessionMembershipRoleUpdateInputSchema)
     .output(z.void())
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
-        await ctx.circleSessionParticipationService.changeParticipationRole({
+        await ctx.circleSessionMembershipService.changeMembershipRole({
           actorId: ctx.actorId,
           circleSessionId: input.circleSessionId,
           userId: input.userId,
@@ -62,7 +62,7 @@ export const circleSessionParticipationRouter = router({
     .output(z.void())
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
-        await ctx.circleSessionParticipationService.withdrawParticipation({
+        await ctx.circleSessionMembershipService.withdrawMembership({
           actorId: ctx.actorId,
           circleSessionId: input.circleSessionId,
         });
@@ -71,11 +71,11 @@ export const circleSessionParticipationRouter = router({
     ),
 
   remove: protectedProcedure
-    .input(circleSessionParticipationRemoveInputSchema)
+    .input(circleSessionMembershipRemoveInputSchema)
     .output(z.void())
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
-        await ctx.circleSessionParticipationService.removeParticipation({
+        await ctx.circleSessionMembershipService.removeMembership({
           actorId: ctx.actorId,
           circleSessionId: input.circleSessionId,
           userId: input.userId,
@@ -89,7 +89,7 @@ export const circleSessionParticipationRouter = router({
     .output(z.void())
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
-        await ctx.circleSessionParticipationService.transferOwnership({
+        await ctx.circleSessionMembershipService.transferOwnership({
           actorId: ctx.actorId,
           circleSessionId: input.circleSessionId,
           fromUserId: input.fromUserId,

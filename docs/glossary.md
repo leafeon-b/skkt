@@ -65,10 +65,10 @@ Circle（研究会）
 | Docs名                  | Domain Model               | Prisma Schema           | Presentation DTO              | Application Service                | 備考         |
 | ----------------------- | -------------------------- | ----------------------- | ----------------------------- | ---------------------------------- | ------------ |
 | Circle                  | Circle                     | Circle                  | CircleDto                     | CircleService                      | 統一済み     |
-| CircleMembership        | CircleParticipation        | CircleMembership        | CircleParticipationDto        | CircleParticipationService         | Code側で不統一 |
+| CircleMembership        | CircleMembership           | CircleMembership        | CircleMembershipDto           | CircleMembershipService            | 統一済み     |
 | CircleInviteLink        | CircleInviteLink           | CircleInviteLink        | CircleInviteLinkDto           | CircleInviteLinkService            | 統一済み     |
 | CircleSession           | CircleSession              | CircleSession           | CircleSessionDto              | CircleSessionService               | 統一済み     |
-| CircleSessionMembership | CircleSessionParticipation | CircleSessionMembership | CircleSessionParticipationDto | CircleSessionParticipationService  | Code側で不統一 |
+| CircleSessionMembership | CircleSessionMembership    | CircleSessionMembership | CircleSessionMembershipDto    | CircleSessionMembershipService     | 統一済み     |
 | Match                   | Match                      | Match                   | MatchDto                      | MatchService                       | 統一済み     |
 | MatchHistory            | MatchHistory               | MatchHistory            | MatchHistoryDto               | MatchHistoryService                | 統一済み     |
 | User                    | User                       | User                    | UserDto                       | UserService                        | 統一済み     |
@@ -82,10 +82,10 @@ Circle（研究会）
 | Entity           | ID 型               | 定義ファイル                                       |
 | ---------------- | -------------------- | -------------------------------------------------- |
 | Circle           | CircleId             | `server/domain/models/circle/circle.ts`            |
-| CircleMembership | CircleMembershipId   | `server/domain/models/circle/circle-participation.ts` |
+| CircleMembership | CircleMembershipId   | `server/domain/models/circle/circle-membership.ts` |
 | CircleInviteLink | CircleInviteLinkId   | `server/domain/models/circle/circle-invite-link.ts` |
 | CircleSession    | CircleSessionId      | `server/domain/models/circle-session/circle-session.ts` |
-| CircleSessionMembership | CircleSessionMembershipId | `server/domain/models/circle-session/circle-session-participation.ts` |
+| CircleSessionMembership | CircleSessionMembershipId | `server/domain/models/circle-session/circle-session-membership.ts` |
 | Match            | MatchId              | `server/domain/models/match/match.ts`              |
 | MatchHistory     | MatchHistoryId       | `server/domain/models/match-history/match-history.ts` |
 | User             | UserId               | `server/domain/models/user/user.ts`                |
@@ -120,17 +120,16 @@ Circle（研究会）
 | Repository                              | 所属 Context   | 対象 Entity              |
 | --------------------------------------- | -------------- | ------------------------ |
 | CircleRepository                        | Circle         | Circle                   |
-| CircleParticipationRepository           | Circle         | CircleMembership         |
+| CircleMembershipRepository              | Circle         | CircleMembership         |
 | CircleInviteLinkRepository              | Circle         | CircleInviteLink         |
 | CircleSessionRepository                 | CircleSession  | CircleSession            |
-| CircleSessionParticipationRepository    | CircleSession  | CircleSessionMembership  |
+| CircleSessionMembershipRepository       | CircleSession  | CircleSessionMembership  |
 | MatchRepository                         | Match          | Match                    |
 | MatchHistoryRepository                  | Match          | MatchHistory             |
 | UserRepository                          | Auth           | User                     |
 | SignupRepository                        | Auth           | User（登録専用）         |
 | AuthzRepository                         | Auth           | -（認可クエリ専用）      |
 
-※ CircleParticipationRepository / CircleSessionParticipationRepository は Membership への統一リネーム時に改名予定。
 
 ### DomainService 責務整理
 
@@ -164,19 +163,6 @@ Circle（研究会）
 
 ### 既知の用語不整合
 
-#### Membership vs Participation
-
-ドキュメントと Prisma Schema では **Membership** を使用しているが、Domain Model・Application Service・Presentation DTO では **Participation** を使用している。
-
-| 対象                    | Docs / Prisma        | Domain 以降                |
-| ----------------------- | -------------------- | -------------------------- |
-| 研究会参加              | CircleMembership     | CircleParticipation        |
-| セッション参加          | CircleSessionMembership | CircleSessionParticipation |
-
-この不整合は歴史的経緯によるもので、現時点ではシステムの動作に影響はない。統一方針として **Membership に統一する** ことを決定済み。コード側のリネームは別 issue で実施する。
-
-なお、Branded Type ID（`CircleMembershipId`, `CircleSessionMembershipId`）はドメイン層でも Membership を使用しており、エンティティ名（Participation）との不一致がドメイン層内部にも存在する。
-
 #### authz 型の名前衝突
 
-`server/domain/services/authz/memberships.ts` では認可状態を表す判別共用体型として `CircleMembership` / `CircleSessionMembership` を定義している。これはドメインエンティティ（`CircleParticipation` / `CircleSessionParticipation`）とも Prisma モデル（`CircleMembership` / `CircleSessionMembership`）とも異なる別の型であるが、同名のため混同に注意が必要。
+`server/domain/services/authz/memberships.ts` では認可状態を表す判別共用体型として `CircleMembership` / `CircleSessionMembership` を定義している。これはドメインエンティティ（`server/domain/models/circle/circle-membership.ts` の `CircleMembership`）とも Prisma モデル（`CircleMembership` / `CircleSessionMembership`）とも異なる別の型であるが、同名のため混同に注意が必要。

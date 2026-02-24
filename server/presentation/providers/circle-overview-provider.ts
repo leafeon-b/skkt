@@ -27,17 +27,17 @@ const toSessionViewModel = (session: {
 });
 
 const getViewerRole = (
-  participations: Array<{ userId: string; role: CircleRole }>,
+  memberships: Array<{ userId: string; role: CircleRole }>,
   viewerId: string | null,
 ): CircleRoleKey | null => {
   if (!viewerId) {
     return null;
   }
-  const participation = participations.find((item) => item.userId === viewerId);
-  if (!participation) {
+  const membership = memberships.find((item) => item.userId === viewerId);
+  if (!membership) {
     return null;
   }
-  return roleKeyByDto[participation.role] ?? null;
+  return roleKeyByDto[membership.role] ?? null;
 };
 
 export async function getCircleOverviewViewModel(
@@ -46,9 +46,9 @@ export async function getCircleOverviewViewModel(
   const ctx = await createContext();
   const caller = appRouter.createCaller(ctx);
 
-  const [circle, participations, sessions] = await Promise.all([
+  const [circle, memberships, sessions] = await Promise.all([
     caller.circles.get({ circleId }),
-    caller.circles.participations.list({ circleId }),
+    caller.circles.memberships.list({ circleId }),
     caller.circleSessions.list({ circleId }),
   ]);
 
@@ -60,7 +60,7 @@ export async function getCircleOverviewViewModel(
 
   const [users, canDeleteCircle] = await Promise.all([
     caller.users.list({
-      userIds: participations.map((p) => p.userId),
+      userIds: memberships.map((m) => m.userId),
     }),
     viewerId
       ? ctx.accessService.canDeleteCircle(viewerId, circleId)
@@ -68,7 +68,7 @@ export async function getCircleOverviewViewModel(
   ]);
   const userNameById = new Map(users.map((user) => [user.id, user.name]));
 
-  const viewerRole = getViewerRole(participations, viewerId);
+  const viewerRole = getViewerRole(memberships, viewerId);
 
   const allSessions = sessions
     .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())
@@ -83,7 +83,7 @@ export async function getCircleOverviewViewModel(
   const overview: CircleOverviewViewModel = {
     circleId: circle.id,
     circleName: circle.name,
-    participationCount: participations.length,
+    membershipCount: memberships.length,
     scheduleNote: null,
     nextSession: nextSession
       ? {
@@ -98,10 +98,10 @@ export async function getCircleOverviewViewModel(
       : null,
     viewerRole,
     sessions: allSessions,
-    members: participations.map((participation) => ({
-      userId: participation.userId,
-      name: userNameById.get(participation.userId) ?? participation.userId,
-      role: roleKeyByDto[participation.role] ?? "member",
+    members: memberships.map((membership) => ({
+      userId: membership.userId,
+      name: userNameById.get(membership.userId) ?? membership.userId,
+      role: roleKeyByDto[membership.role] ?? "member",
     })),
     holidayDates: ctx.holidayProvider.getHolidayDateStringsForRange(),
     canDeleteCircle,

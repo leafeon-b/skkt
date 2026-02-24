@@ -18,7 +18,7 @@ import {
 } from "@/server/domain/models/circle/circle-invite-link";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import type { CircleParticipationRepository } from "@/server/domain/models/circle/circle-participation-repository";
+import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import { CircleRole } from "@/server/domain/services/authz/roles";
 
@@ -29,7 +29,7 @@ const DEFAULT_EXPIRY_DAYS = 7;
 export type CircleInviteLinkServiceDeps = {
   circleInviteLinkRepository: CircleInviteLinkRepository;
   circleRepository: CircleRepository;
-  circleParticipationRepository: CircleParticipationRepository;
+  circleMembershipRepository: CircleMembershipRepository;
   accessService: AccessService;
   generateToken?: () => string;
   generateId?: () => string;
@@ -135,9 +135,9 @@ export const createCircleInviteLinkService = (
       throw new NotFoundError("Circle");
     }
 
-    const participations =
-      await deps.circleParticipationRepository.listByCircleId(link.circleId);
-    const alreadyMember = participations.some(
+    const memberships =
+      await deps.circleMembershipRepository.listByCircleId(link.circleId);
+    const alreadyMember = memberships.some(
       (p) => p.userId === userId(params.actorId),
     );
 
@@ -145,7 +145,7 @@ export const createCircleInviteLinkService = (
       return { circleId: link.circleId, alreadyMember: true };
     }
 
-    await deps.circleParticipationRepository.addParticipation(
+    await deps.circleMembershipRepository.addMembership(
       link.circleId,
       userId(params.actorId),
       CircleRole.CircleMember,

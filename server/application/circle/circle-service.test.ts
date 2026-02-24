@@ -3,7 +3,7 @@ import { createCircleService } from "@/server/application/circle/circle-service"
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
   createMockCircleRepository,
-  createMockCircleParticipationRepository,
+  createMockCircleMembershipRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { circleId } from "@/server/domain/common/ids";
@@ -11,13 +11,13 @@ import { createCircle } from "@/server/domain/models/circle/circle";
 
 const circleRepository = createMockCircleRepository();
 
-const circleParticipationRepository = createMockCircleParticipationRepository();
+const circleMembershipRepository = createMockCircleMembershipRepository();
 
 const accessService = createAccessServiceStub();
 
 const service = createCircleService({
   circleRepository,
-  circleParticipationRepository,
+  circleMembershipRepository,
   accessService,
 });
 
@@ -74,7 +74,7 @@ describe("Circle サービス", () => {
     });
 
     expect(circleRepository.save).toHaveBeenCalledWith(circle);
-    expect(circleParticipationRepository.addParticipation).toHaveBeenCalled();
+    expect(circleMembershipRepository.addMembership).toHaveBeenCalled();
     expect(circle.name).toBe("Home");
     expect(circle.createdAt.toISOString()).toBe("2024-01-01T00:00:00.000Z");
   });
@@ -108,19 +108,19 @@ describe("UnitOfWork 経路", () => {
   // deps用リポジトリ（UoW外）— UoW内で使われるべきメソッドには mockResolvedValue を設定しない
   const depsCircleRepository = createMockCircleRepository();
 
-  const depsCircleParticipationRepository =
-    createMockCircleParticipationRepository();
+  const depsCircleMembershipRepository =
+    createMockCircleMembershipRepository();
 
   // UoWコールバック用リポジトリ（UoW内専用）
   const uowCircleRepository = createMockCircleRepository();
 
-  const uowCircleParticipationRepository =
-    createMockCircleParticipationRepository();
+  const uowCircleMembershipRepository =
+    createMockCircleMembershipRepository();
 
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({
       circleRepository: uowCircleRepository,
-      circleParticipationRepository: uowCircleParticipationRepository,
+      circleMembershipRepository: uowCircleMembershipRepository,
     } as never),
   );
 
@@ -128,7 +128,7 @@ describe("UnitOfWork 経路", () => {
 
   const uowService = createCircleService({
     circleRepository: depsCircleRepository,
-    circleParticipationRepository: depsCircleParticipationRepository,
+    circleMembershipRepository: depsCircleMembershipRepository,
     accessService: uowAccessService,
     unitOfWork,
   });
@@ -149,17 +149,17 @@ describe("UnitOfWork 経路", () => {
     expect(unitOfWork).toHaveBeenCalledOnce();
     expect(uowCircleRepository.save).toHaveBeenCalledWith(circle);
     expect(
-      uowCircleParticipationRepository.addParticipation,
+      uowCircleMembershipRepository.addMembership,
     ).toHaveBeenCalled();
     // deps側のリポジトリは呼ばれない
     expect(depsCircleRepository.save).not.toHaveBeenCalled();
     expect(
-      depsCircleParticipationRepository.addParticipation,
+      depsCircleMembershipRepository.addMembership,
     ).not.toHaveBeenCalled();
   });
 
-  test("addParticipation 失敗時にエラーが伝播する", async () => {
-    uowCircleParticipationRepository.addParticipation.mockRejectedValue(
+  test("addMembership 失敗時にエラーが伝播する", async () => {
+    uowCircleMembershipRepository.addMembership.mockRejectedValue(
       new Error("DB error"),
     );
 

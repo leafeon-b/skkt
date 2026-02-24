@@ -1,6 +1,6 @@
-import { userCircleParticipationRouter } from "@/server/presentation/trpc/routers/user-circle-participation";
+import { userCircleMembershipRouter } from "@/server/presentation/trpc/routers/user-circle-membership";
 import { router } from "@/server/presentation/trpc/trpc";
 
 export const userCircleRouter = router({
-  participations: userCircleParticipationRouter,
+  memberships: userCircleMembershipRouter,
 });

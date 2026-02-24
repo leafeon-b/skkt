@@ -104,7 +104,7 @@ function buildDetail(
     canCreateCircleSession: false,
     canDeleteCircleSession: false,
     canWithdrawFromCircleSession: false,
-    participations: [],
+    memberships: [],
     matches: [],
     ...overrides,
   };
@@ -231,7 +231,7 @@ describe("CircleSessionDetailView 複製ボタン", () => {
   });
 });
 
-const twoParticipations = [
+const twoMemberships = [
   { id: "p1", name: "藤井太郎" },
   { id: "p2", name: "羽生次郎" },
 ];
@@ -251,7 +251,7 @@ async function openAddDialogForEmptyCell() {
   render(
     <CircleSessionDetailView
       detail={buildDetail({
-        participations: twoParticipations,
+        memberships: twoMemberships,
         matches: [],
       })}
     />,
@@ -267,7 +267,7 @@ async function openEditDialogViaDropdown() {
   render(
     <CircleSessionDetailView
       detail={buildDetail({
-        participations: twoParticipations,
+        memberships: twoMemberships,
         matches: oneMatch,
       })}
     />,
@@ -285,7 +285,7 @@ async function openDeleteDialogViaDropdown() {
   render(
     <CircleSessionDetailView
       detail={buildDetail({
-        participations: twoParticipations,
+        memberships: twoMemberships,
         matches: oneMatch,
       })}
     />,

@@ -17,7 +17,7 @@ import type {
 } from "@/server/domain/common/ids";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { MatchHistoryRepository } from "@/server/domain/models/match-history/match-history-repository";
-import type { CircleSessionParticipationRepository } from "@/server/domain/models/circle-session/circle-session-participation-repository";
+import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import type {
@@ -35,7 +35,7 @@ type AccessService = ReturnType<typeof createAccessService>;
 export type MatchServiceDeps = {
   matchRepository: MatchRepository;
   matchHistoryRepository: MatchHistoryRepository;
-  circleSessionParticipationRepository: CircleSessionParticipationRepository;
+  circleSessionMembershipRepository: CircleSessionMembershipRepository;
   circleSessionRepository: CircleSessionRepository;
   accessService: AccessService;
   generateMatchHistoryId: () => MatchHistoryId;
@@ -47,12 +47,12 @@ export const createMatchService = (deps: MatchServiceDeps) => {
     deps.unitOfWork ?? (async (op) => op(deps as unknown as Repositories));
 
   const ensurePlayersParticipating = async (
-    circleSessionParticipationRepository: CircleSessionParticipationRepository,
+    circleSessionMembershipRepository: CircleSessionMembershipRepository,
     circleSessionId: CircleSessionId,
     player1Id: UserId,
     player2Id: UserId,
   ) => {
-    const ok = await circleSessionParticipationRepository.areUsersParticipating(
+    const ok = await circleSessionMembershipRepository.areUsersParticipating(
       circleSessionId,
       [player1Id, player2Id],
     );
@@ -104,7 +104,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
           throw new ForbiddenError();
         }
         await ensurePlayersParticipating(
-          repos.circleSessionParticipationRepository,
+          repos.circleSessionMembershipRepository,
           params.circleSessionId,
           params.player1Id,
           params.player2Id,
@@ -167,7 +167,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
             );
           }
           await ensurePlayersParticipating(
-            repos.circleSessionParticipationRepository,
+            repos.circleSessionMembershipRepository,
             match.circleSessionId,
             params.player1Id,
             params.player2Id,

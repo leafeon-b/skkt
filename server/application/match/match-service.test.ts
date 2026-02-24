@@ -5,7 +5,7 @@ import { createAccessServiceStub } from "@/server/application/test-helpers/acces
 import {
   createMockMatchRepository,
   createMockMatchHistoryRepository,
-  createMockCircleSessionParticipationRepository,
+  createMockCircleSessionMembershipRepository,
   createMockCircleSessionRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 import {
@@ -21,8 +21,8 @@ const matchRepository = createMockMatchRepository();
 
 const matchHistoryRepository = createMockMatchHistoryRepository();
 
-const circleSessionParticipationRepository =
-  createMockCircleSessionParticipationRepository();
+const circleSessionMembershipRepository =
+  createMockCircleSessionMembershipRepository();
 
 const circleSessionRepository = createMockCircleSessionRepository();
 
@@ -31,7 +31,7 @@ const accessService = createAccessServiceStub();
 const service = createMatchService({
   matchRepository,
   matchHistoryRepository,
-  circleSessionParticipationRepository,
+  circleSessionMembershipRepository,
   circleSessionRepository,
   accessService,
   generateMatchHistoryId: () => matchHistoryId("history-1"),
@@ -101,7 +101,7 @@ describe("Match サービス", () => {
 
   test("recordMatch は参加者でない場合にエラー", async () => {
     vi.mocked(
-      circleSessionParticipationRepository.areUsersParticipating,
+      circleSessionMembershipRepository.areUsersParticipating,
     ).mockResolvedValue(false);
 
     await expect(
@@ -117,7 +117,7 @@ describe("Match サービス", () => {
 
   test("recordMatch は対局を保存し履歴を追加する", async () => {
     vi.mocked(
-      circleSessionParticipationRepository.areUsersParticipating,
+      circleSessionMembershipRepository.areUsersParticipating,
     ).mockResolvedValue(true);
 
     const result = await service.recordMatch({
@@ -165,7 +165,7 @@ describe("Match サービス", () => {
     const existing = createMatch(baseMatchParams);
     vi.mocked(matchRepository.findById).mockResolvedValue(existing);
     vi.mocked(
-      circleSessionParticipationRepository.areUsersParticipating,
+      circleSessionMembershipRepository.areUsersParticipating,
     ).mockResolvedValue(false);
 
     await expect(
@@ -252,7 +252,7 @@ describe("Match サービス", () => {
     const existing = createMatch(baseMatchParams);
     vi.mocked(matchRepository.findById).mockResolvedValue(existing);
     vi.mocked(
-      circleSessionParticipationRepository.areUsersParticipating,
+      circleSessionMembershipRepository.areUsersParticipating,
     ).mockResolvedValue(true);
 
     const updated = await service.updateMatch({
@@ -263,7 +263,7 @@ describe("Match サービス", () => {
     });
 
     expect(
-      circleSessionParticipationRepository.areUsersParticipating,
+      circleSessionMembershipRepository.areUsersParticipating,
     ).toHaveBeenCalledWith(baseMatchParams.circleSessionId, [
       userId("user-4"),
       userId("user-5"),
@@ -294,8 +294,8 @@ describe("UnitOfWork 経路", () => {
 
   const depsMatchHistoryRepository = createMockMatchHistoryRepository();
 
-  const depsCircleSessionParticipationRepository =
-    createMockCircleSessionParticipationRepository();
+  const depsCircleSessionMembershipRepository =
+    createMockCircleSessionMembershipRepository();
 
   const depsCircleSessionRepository = createMockCircleSessionRepository();
 
@@ -304,8 +304,8 @@ describe("UnitOfWork 経路", () => {
 
   const uowMatchHistoryRepository = createMockMatchHistoryRepository();
 
-  const uowCircleSessionParticipationRepository =
-    createMockCircleSessionParticipationRepository();
+  const uowCircleSessionMembershipRepository =
+    createMockCircleSessionMembershipRepository();
 
   const uowCircleSessionRepository = createMockCircleSessionRepository();
 
@@ -313,8 +313,8 @@ describe("UnitOfWork 経路", () => {
     op({
       matchRepository: uowMatchRepository,
       matchHistoryRepository: uowMatchHistoryRepository,
-      circleSessionParticipationRepository:
-        uowCircleSessionParticipationRepository,
+      circleSessionMembershipRepository:
+        uowCircleSessionMembershipRepository,
       circleSessionRepository: uowCircleSessionRepository,
     } as never),
   );
@@ -324,8 +324,8 @@ describe("UnitOfWork 経路", () => {
   const uowService = createMatchService({
     matchRepository: depsMatchRepository,
     matchHistoryRepository: depsMatchHistoryRepository,
-    circleSessionParticipationRepository:
-      depsCircleSessionParticipationRepository,
+    circleSessionMembershipRepository:
+      depsCircleSessionMembershipRepository,
     circleSessionRepository: depsCircleSessionRepository,
     accessService: uowAccessService,
     generateMatchHistoryId: () => matchHistoryId("history-1"),
@@ -341,7 +341,7 @@ describe("UnitOfWork 経路", () => {
       baseSession(),
     );
     vi.mocked(
-      uowCircleSessionParticipationRepository.areUsersParticipating,
+      uowCircleSessionMembershipRepository.areUsersParticipating,
     ).mockResolvedValue(true);
   });
 

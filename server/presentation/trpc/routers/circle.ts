@@ -8,7 +8,7 @@ import {
   circleGetInputSchema,
   circleRenameInputSchema,
 } from "@/server/presentation/dto/circle";
-import { circleParticipationRouter } from "@/server/presentation/trpc/routers/circle-participation";
+import { circleMembershipRouter } from "@/server/presentation/trpc/routers/circle-membership";
 import { circleInviteLinkRouter } from "@/server/presentation/trpc/routers/circle-invite-link";
 import { toCircleDto } from "@/server/presentation/mappers/circle-mapper";
 import { NotFoundError } from "@/server/domain/common/errors";
@@ -70,6 +70,6 @@ export const circleRouter = router({
       }),
     ),
 
-  participations: circleParticipationRouter,
+  memberships: circleMembershipRouter,
   inviteLinks: circleInviteLinkRouter,
 });

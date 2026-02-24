@@ -50,7 +50,7 @@ function buildOverview(
   return {
     circleId: "circle-1",
     circleName: "テスト研究会",
-    participationCount: 5,
+    membershipCount: 5,
     scheduleNote: null,
     nextSession: null,
     viewerRole: null,
