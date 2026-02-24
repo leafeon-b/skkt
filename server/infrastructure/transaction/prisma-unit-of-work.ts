@@ -5,7 +5,6 @@ import { createPrismaCircleMembershipRepository } from "@/server/infrastructure/
 import { createPrismaCircleSessionRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-repository";
 import { createPrismaCircleSessionMembershipRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-membership-repository";
 import { createPrismaMatchRepository } from "@/server/infrastructure/repository/match/prisma-match-repository";
-import { createPrismaMatchHistoryRepository } from "@/server/infrastructure/repository/match-history/prisma-match-history-repository";
 import { createPrismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
 import { createPrismaSignupRepository } from "@/server/infrastructure/repository/user/prisma-signup-repository";
 import { createPrismaAuthzRepository } from "@/server/infrastructure/repository/authz/prisma-authz-repository";
@@ -20,7 +19,6 @@ export const prismaUnitOfWork: UnitOfWork = (operation) =>
       circleSessionMembershipRepository:
         createPrismaCircleSessionMembershipRepository(tx),
       matchRepository: createPrismaMatchRepository(tx),
-      matchHistoryRepository: createPrismaMatchHistoryRepository(tx),
       userRepository: createPrismaUserRepository(tx),
       signupRepository: createPrismaSignupRepository(tx),
       authzRepository: createPrismaAuthzRepository(tx),

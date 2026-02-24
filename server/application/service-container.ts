@@ -1,10 +1,8 @@
-import { randomUUID } from "crypto";
 import { createCircleService } from "@/server/application/circle/circle-service";
 import { createCircleMembershipService } from "@/server/application/circle/circle-membership-service";
 import { createCircleSessionService } from "@/server/application/circle-session/circle-session-service";
 import { createCircleSessionMembershipService } from "@/server/application/circle-session/circle-session-membership-service";
 import { createMatchService } from "@/server/application/match/match-service";
-import { createMatchHistoryService } from "@/server/application/match-history/match-history-service";
 import { createAccessService } from "@/server/application/authz/access-service";
 import { createUserService } from "@/server/application/user/user-service";
 import { createSignupService } from "@/server/application/auth/signup-service";
@@ -15,10 +13,8 @@ import type { CircleRepository } from "@/server/domain/models/circle/circle-repo
 import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
-import type { MatchHistoryRepository } from "@/server/domain/models/match-history/match-history-repository";
 import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
-import { matchHistoryId } from "@/server/domain/common/ids";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { SignupRepository } from "@/server/domain/models/user/signup-repository";
@@ -38,7 +34,6 @@ export type ServiceContainer = {
   accessService: ReturnType<typeof createAccessService>;
   userService: ReturnType<typeof createUserService>;
   matchService: ReturnType<typeof createMatchService>;
-  matchHistoryService: ReturnType<typeof createMatchHistoryService>;
   signupService: ReturnType<typeof createSignupService>;
   circleInviteLinkService: ReturnType<typeof createCircleInviteLinkService>;
   userStatisticsService: ReturnType<typeof createUserStatisticsService>;
@@ -50,7 +45,6 @@ export type ServiceContainerDeps = {
   circleMembershipRepository: CircleMembershipRepository;
   circleSessionRepository: CircleSessionRepository;
   matchRepository: MatchRepository;
-  matchHistoryRepository: MatchHistoryRepository;
   circleSessionMembershipRepository: CircleSessionMembershipRepository;
   userRepository: UserRepository;
   authzRepository: AuthzRepository;
@@ -58,7 +52,6 @@ export type ServiceContainerDeps = {
   circleInviteLinkRepository: CircleInviteLinkRepository;
   passwordUtils: PasswordUtils;
   holidayProvider: HolidayProvider;
-  generateMatchHistoryId?: () => ReturnType<typeof matchHistoryId>;
   unitOfWork?: UnitOfWork;
 };
 
@@ -69,9 +62,6 @@ export const createServiceContainer = (
     authzRepository: deps.authzRepository,
     userRepository: deps.userRepository,
   });
-  const generateMatchHistoryId =
-    deps.generateMatchHistoryId ?? (() => matchHistoryId(randomUUID()));
-
   return {
     circleService: createCircleService({
       circleRepository: deps.circleRepository,
@@ -102,12 +92,10 @@ export const createServiceContainer = (
     }),
     matchService: createMatchService({
       matchRepository: deps.matchRepository,
-      matchHistoryRepository: deps.matchHistoryRepository,
       circleSessionMembershipRepository:
         deps.circleSessionMembershipRepository,
       circleSessionRepository: deps.circleSessionRepository,
       accessService,
-      generateMatchHistoryId,
       unitOfWork: deps.unitOfWork,
     }),
     accessService,
@@ -119,12 +107,6 @@ export const createServiceContainer = (
         maxAttempts: 5,
         windowMs: 60_000,
       }),
-    }),
-    matchHistoryService: createMatchHistoryService({
-      matchHistoryRepository: deps.matchHistoryRepository,
-      matchRepository: deps.matchRepository,
-      circleSessionRepository: deps.circleSessionRepository,
-      accessService,
     }),
     signupService: createSignupService({
       signupRepository: deps.signupRepository,

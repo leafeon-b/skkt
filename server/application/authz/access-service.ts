@@ -315,21 +315,6 @@ export function createAccessService(deps: AccessServiceDeps) {
       );
     },
 
-    async canViewMatchHistory(
-      userId: string,
-      circleId: string,
-      circleSessionId: string,
-    ): Promise<boolean> {
-      const [circleMembership, sessionMembership] = await Promise.all([
-        findCircleMembership(userId, circleId),
-        findCircleSessionMembership(userId, circleSessionId),
-      ]);
-      return (
-        isCircleMemberStatus(circleMembership) ||
-        isCircleSessionMemberStatus(sessionMembership)
-      );
-    },
-
     async canViewUserProfile(
       actorId: UserId,
       targetUserId: UserId,

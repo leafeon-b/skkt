@@ -549,15 +549,6 @@ describe("認可ポリシー", () => {
       });
     });
 
-    describe("canViewMatchHistory（対局結果編集履歴閲覧）", () => {
-      test.each(membershipCases)("研究会メンバー=$expected", async (item) => {
-        setCircleMembership(item.circleMembership);
-        setCircleSessionMembership(item.sessionMembership);
-        await expect(
-          access.canViewMatchHistory(userId, circleId, circleSessionId),
-        ).resolves.toBe(item.expected);
-      });
-    });
   });
 
   describe("プロフィール公開設定", () => {

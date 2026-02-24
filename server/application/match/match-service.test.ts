@@ -4,22 +4,18 @@ import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
   createMockMatchRepository,
-  createMockMatchHistoryRepository,
   createMockCircleSessionMembershipRepository,
   createMockCircleSessionRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 import {
   circleId,
   circleSessionId,
-  matchHistoryId,
   matchId,
   userId,
 } from "@/server/domain/common/ids";
 import { createMatch } from "@/server/domain/models/match/match";
 
 const matchRepository = createMockMatchRepository();
-
-const matchHistoryRepository = createMockMatchHistoryRepository();
 
 const circleSessionMembershipRepository =
   createMockCircleSessionMembershipRepository();
@@ -30,11 +26,9 @@ const accessService = createAccessServiceStub();
 
 const service = createMatchService({
   matchRepository,
-  matchHistoryRepository,
   circleSessionMembershipRepository,
   circleSessionRepository,
   accessService,
-  generateMatchHistoryId: () => matchHistoryId("history-1"),
 });
 
 const baseMatchParams = {
@@ -78,7 +72,6 @@ describe("Match サービス", () => {
       ).rejects.toThrow("Forbidden");
 
       expect(matchRepository.save).not.toHaveBeenCalled();
-      expect(matchHistoryRepository.add).not.toHaveBeenCalled();
     });
 
     test("updateMatch は認可拒否時に Forbidden エラー", async () => {
@@ -95,7 +88,6 @@ describe("Match サービス", () => {
       ).rejects.toThrow("Forbidden");
 
       expect(matchRepository.save).not.toHaveBeenCalled();
-      expect(matchHistoryRepository.add).not.toHaveBeenCalled();
     });
   });
 
@@ -112,10 +104,9 @@ describe("Match サービス", () => {
     ).rejects.toThrow("Players must belong to the circle session");
 
     expect(matchRepository.save).not.toHaveBeenCalled();
-    expect(matchHistoryRepository.add).not.toHaveBeenCalled();
   });
 
-  test("recordMatch は対局を保存し履歴を追加する", async () => {
+  test("recordMatch は対局を保存する", async () => {
     vi.mocked(
       circleSessionMembershipRepository.areUsersParticipating,
     ).mockResolvedValue(true);
@@ -131,14 +122,6 @@ describe("Match サービス", () => {
         circleSessionId: baseMatchParams.circleSessionId,
         player1Id: baseMatchParams.player1Id,
         player2Id: baseMatchParams.player2Id,
-        outcome: "P1_WIN",
-      }),
-    );
-    expect(matchHistoryRepository.add).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: "CREATE",
-        matchId: baseMatchParams.id,
-        editorId: userId("user-3"),
         outcome: "P1_WIN",
       }),
     );
@@ -158,7 +141,6 @@ describe("Match サービス", () => {
     ).rejects.toThrow("player1Id and player2Id must both be provided");
 
     expect(matchRepository.save).not.toHaveBeenCalled();
-    expect(matchHistoryRepository.add).not.toHaveBeenCalled();
   });
 
   test("updateMatch は参加者でない場合にエラー", async () => {
@@ -178,10 +160,9 @@ describe("Match サービス", () => {
     ).rejects.toThrow("Players must belong to the circle session");
 
     expect(matchRepository.save).not.toHaveBeenCalled();
-    expect(matchHistoryRepository.add).not.toHaveBeenCalled();
   });
 
-  test("updateMatch は結果を更新して履歴を追加する", async () => {
+  test("updateMatch は結果を更新する", async () => {
     const existing = createMatch(baseMatchParams);
     vi.mocked(matchRepository.findById).mockResolvedValue(existing);
 
@@ -193,14 +174,6 @@ describe("Match サービス", () => {
 
     expect(matchRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({ outcome: "DRAW" }),
-    );
-    expect(matchHistoryRepository.add).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: "UPDATE",
-        matchId: baseMatchParams.id,
-        editorId: userId("user-3"),
-        outcome: "DRAW",
-      }),
     );
     expect(updated.outcome).toBe("DRAW");
   });
@@ -220,10 +193,9 @@ describe("Match サービス", () => {
     ).rejects.toThrow("Match is deleted");
 
     expect(matchRepository.save).not.toHaveBeenCalled();
-    expect(matchHistoryRepository.add).not.toHaveBeenCalled();
   });
 
-  test("deleteMatch は対局を論理削除し履歴を追加する", async () => {
+  test("deleteMatch は対局を論理削除する", async () => {
     const existing = createMatch(baseMatchParams);
     vi.mocked(matchRepository.findById).mockResolvedValue(existing);
 
@@ -238,17 +210,10 @@ describe("Match サービス", () => {
         deletedAt: expect.any(Date),
       }),
     );
-    expect(matchHistoryRepository.add).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: "DELETE",
-        matchId: baseMatchParams.id,
-        editorId: userId("user-3"),
-      }),
-    );
     expect(deleted.deletedAt).not.toBeNull();
   });
 
-  test("updateMatch はプレイヤーを変更して履歴を追加する", async () => {
+  test("updateMatch はプレイヤーを変更する", async () => {
     const existing = createMatch(baseMatchParams);
     vi.mocked(matchRepository.findById).mockResolvedValue(existing);
     vi.mocked(
@@ -274,15 +239,6 @@ describe("Match サービス", () => {
         player2Id: userId("user-5"),
       }),
     );
-    expect(matchHistoryRepository.add).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: "UPDATE",
-        matchId: baseMatchParams.id,
-        editorId: userId("user-3"),
-        player1Id: userId("user-4"),
-        player2Id: userId("user-5"),
-      }),
-    );
     expect(updated.player1Id).toBe(userId("user-4"));
     expect(updated.player2Id).toBe(userId("user-5"));
   });
@@ -292,8 +248,6 @@ describe("UnitOfWork 経路", () => {
   // deps用リポジトリ（UoW外）— UoW内で使われるべきメソッドには mockResolvedValue を設定しない
   const depsMatchRepository = createMockMatchRepository();
 
-  const depsMatchHistoryRepository = createMockMatchHistoryRepository();
-
   const depsCircleSessionMembershipRepository =
     createMockCircleSessionMembershipRepository();
 
@@ -301,8 +255,6 @@ describe("UnitOfWork 経路", () => {
 
   // UoWコールバック用リポジトリ（UoW内専用）
   const uowMatchRepository = createMockMatchRepository();
-
-  const uowMatchHistoryRepository = createMockMatchHistoryRepository();
 
   const uowCircleSessionMembershipRepository =
     createMockCircleSessionMembershipRepository();
@@ -312,7 +264,6 @@ describe("UnitOfWork 経路", () => {
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({
       matchRepository: uowMatchRepository,
-      matchHistoryRepository: uowMatchHistoryRepository,
       circleSessionMembershipRepository:
         uowCircleSessionMembershipRepository,
       circleSessionRepository: uowCircleSessionRepository,
@@ -323,12 +274,10 @@ describe("UnitOfWork 経路", () => {
 
   const uowService = createMatchService({
     matchRepository: depsMatchRepository,
-    matchHistoryRepository: depsMatchHistoryRepository,
     circleSessionMembershipRepository:
       depsCircleSessionMembershipRepository,
     circleSessionRepository: depsCircleSessionRepository,
     accessService: uowAccessService,
-    generateMatchHistoryId: () => matchHistoryId("history-1"),
     unitOfWork,
   });
 
@@ -355,12 +304,8 @@ describe("UnitOfWork 経路", () => {
     expect(uowMatchRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({ id: baseMatchParams.id }),
     );
-    expect(uowMatchHistoryRepository.add).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "CREATE" }),
-    );
     // deps側のリポジトリは呼ばれない
     expect(depsMatchRepository.save).not.toHaveBeenCalled();
-    expect(depsMatchHistoryRepository.add).not.toHaveBeenCalled();
   });
 
   test("updateMatch は unitOfWork を呼び出す", async () => {
@@ -377,11 +322,7 @@ describe("UnitOfWork 経路", () => {
     expect(uowMatchRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({ outcome: "DRAW" }),
     );
-    expect(uowMatchHistoryRepository.add).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "UPDATE" }),
-    );
     expect(depsMatchRepository.save).not.toHaveBeenCalled();
-    expect(depsMatchHistoryRepository.add).not.toHaveBeenCalled();
   });
 
   test("deleteMatch は unitOfWork を呼び出す", async () => {
@@ -397,11 +338,7 @@ describe("UnitOfWork 経路", () => {
     expect(uowMatchRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({ deletedAt: expect.any(Date) }),
     );
-    expect(uowMatchHistoryRepository.add).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "DELETE" }),
-    );
     expect(depsMatchRepository.save).not.toHaveBeenCalled();
-    expect(depsMatchHistoryRepository.add).not.toHaveBeenCalled();
   });
 
   test("UoW 内でエラーが発生した場合に伝播する", async () => {

@@ -5,18 +5,12 @@ import {
   updateMatchOutcome,
   updateMatchPlayers,
 } from "@/server/domain/models/match/match";
-import {
-  createMatchHistory,
-  type MatchHistoryAction,
-} from "@/server/domain/models/match-history/match-history";
 import type {
   CircleSessionId,
-  MatchHistoryId,
   MatchId,
   UserId,
 } from "@/server/domain/common/ids";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
-import type { MatchHistoryRepository } from "@/server/domain/models/match-history/match-history-repository";
 import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
@@ -34,11 +28,9 @@ type AccessService = ReturnType<typeof createAccessService>;
 
 export type MatchServiceDeps = {
   matchRepository: MatchRepository;
-  matchHistoryRepository: MatchHistoryRepository;
   circleSessionMembershipRepository: CircleSessionMembershipRepository;
   circleSessionRepository: CircleSessionRepository;
   accessService: AccessService;
-  generateMatchHistoryId: () => MatchHistoryId;
   unitOfWork?: UnitOfWork;
 };
 
@@ -60,24 +52,6 @@ export const createMatchService = (deps: MatchServiceDeps) => {
       throw new BadRequestError("Players must belong to the circle session");
     }
   };
-
-  const recordHistory = (
-    matchHistoryRepository: MatchHistoryRepository,
-    action: MatchHistoryAction,
-    match: Match,
-    editorId: UserId,
-  ) =>
-    matchHistoryRepository.add(
-      createMatchHistory({
-        id: deps.generateMatchHistoryId(),
-        matchId: match.id,
-        editorId,
-        action,
-        player1Id: match.player1Id,
-        player2Id: match.player2Id,
-        outcome: match.outcome,
-      }),
-    );
 
   return {
     async recordMatch(params: {
@@ -118,12 +92,6 @@ export const createMatchService = (deps: MatchServiceDeps) => {
           outcome: params.outcome,
         });
         await repos.matchRepository.save(match);
-        await recordHistory(
-          repos.matchHistoryRepository,
-          "CREATE",
-          match,
-          params.actorId,
-        );
         return match;
       });
     },
@@ -184,12 +152,6 @@ export const createMatchService = (deps: MatchServiceDeps) => {
         }
 
         await repos.matchRepository.save(updated);
-        await recordHistory(
-          repos.matchHistoryRepository,
-          "UPDATE",
-          updated,
-          params.actorId,
-        );
         return updated;
       });
     },
@@ -223,12 +185,6 @@ export const createMatchService = (deps: MatchServiceDeps) => {
 
         const deleted = deleteMatch(match);
         await repos.matchRepository.save(deleted);
-        await recordHistory(
-          repos.matchHistoryRepository,
-          "DELETE",
-          deleted,
-          params.actorId,
-        );
         return deleted;
       });
     },

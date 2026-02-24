@@ -1,6 +1,5 @@
 import { vi } from "vitest";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
-import type { MatchHistoryRepository } from "@/server/domain/models/match-history/match-history-repository";
 import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
@@ -19,12 +18,6 @@ export const createMockMatchRepository = () =>
     listDistinctOpponentIds: vi.fn(),
     save: vi.fn(),
   }) satisfies MatchRepository;
-
-export const createMockMatchHistoryRepository = () =>
-  ({
-    listByMatchId: vi.fn(),
-    add: vi.fn(),
-  }) satisfies MatchHistoryRepository;
 
 export const createMockCircleSessionMembershipRepository = () =>
   ({

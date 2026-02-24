@@ -51,9 +51,6 @@ const createTestContext = (
       withdrawMembership: vi.fn(),
     },
     matchService,
-    matchHistoryService: {
-      listByMatchId: vi.fn(),
-    },
     userService: {
       getUser: vi.fn(),
       listUsers: vi.fn(),
