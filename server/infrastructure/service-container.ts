@@ -10,10 +10,8 @@ import { createCircleInviteLinkService } from "@/server/application/circle/circl
 import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
 import type { RateLimiter } from "@/server/application/common/rate-limiter";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import type { CircleMembershipRepository } from "@/server/domain/models/circle-membership/circle-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
-import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
@@ -42,10 +40,8 @@ export type ServiceContainer = {
 
 export type ServiceContainerDeps = {
   circleRepository: CircleRepository;
-  circleMembershipRepository: CircleMembershipRepository;
   circleSessionRepository: CircleSessionRepository;
   matchRepository: MatchRepository;
-  circleSessionMembershipRepository: CircleSessionMembershipRepository;
   userRepository: UserRepository;
   authzRepository: AuthzRepository;
   signupRepository: SignupRepository;
@@ -66,12 +62,10 @@ export const createServiceContainer = (
   return {
     circleService: createCircleService({
       circleRepository: deps.circleRepository,
-      circleMembershipRepository: deps.circleMembershipRepository,
       accessService,
       unitOfWork: deps.unitOfWork,
     }),
     circleMembershipService: createCircleMembershipService({
-      circleMembershipRepository: deps.circleMembershipRepository,
       circleRepository: deps.circleRepository,
       accessService,
       unitOfWork: deps.unitOfWork,
@@ -79,22 +73,16 @@ export const createServiceContainer = (
     circleSessionService: createCircleSessionService({
       circleRepository: deps.circleRepository,
       circleSessionRepository: deps.circleSessionRepository,
-      circleSessionMembershipRepository:
-        deps.circleSessionMembershipRepository,
       accessService,
       unitOfWork: deps.unitOfWork,
     }),
     circleSessionMembershipService: createCircleSessionMembershipService({
       circleRepository: deps.circleRepository,
       circleSessionRepository: deps.circleSessionRepository,
-      circleSessionMembershipRepository:
-        deps.circleSessionMembershipRepository,
       accessService,
     }),
     matchService: createMatchService({
       matchRepository: deps.matchRepository,
-      circleSessionMembershipRepository:
-        deps.circleSessionMembershipRepository,
       circleSessionRepository: deps.circleSessionRepository,
       accessService,
       unitOfWork: deps.unitOfWork,
@@ -112,7 +100,6 @@ export const createServiceContainer = (
     circleInviteLinkService: createCircleInviteLinkService({
       circleInviteLinkRepository: deps.circleInviteLinkRepository,
       circleRepository: deps.circleRepository,
-      circleMembershipRepository: deps.circleMembershipRepository,
       accessService,
     }),
     userStatisticsService: createUserStatisticsService({

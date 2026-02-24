@@ -1,9 +1,7 @@
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { prisma } from "@/server/infrastructure/db";
 import { createPrismaCircleRepository } from "@/server/infrastructure/repository/circle/prisma-circle-repository";
-import { createPrismaCircleMembershipRepository } from "@/server/infrastructure/repository/circle-membership/prisma-circle-membership-repository";
 import { createPrismaCircleSessionRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-repository";
-import { createPrismaCircleSessionMembershipRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-membership-repository";
 import { createPrismaMatchRepository } from "@/server/infrastructure/repository/match/prisma-match-repository";
 import { createPrismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
 import { createPrismaSignupRepository } from "@/server/infrastructure/repository/user/prisma-signup-repository";
@@ -13,11 +11,7 @@ export const prismaUnitOfWork: UnitOfWork = (operation) =>
   prisma.$transaction(async (tx) =>
     operation({
       circleRepository: createPrismaCircleRepository(tx),
-      circleMembershipRepository:
-        createPrismaCircleMembershipRepository(tx),
       circleSessionRepository: createPrismaCircleSessionRepository(tx),
-      circleSessionMembershipRepository:
-        createPrismaCircleSessionMembershipRepository(tx),
       matchRepository: createPrismaMatchRepository(tx),
       userRepository: createPrismaUserRepository(tx),
       signupRepository: createPrismaSignupRepository(tx),
