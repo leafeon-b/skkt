@@ -3,47 +3,55 @@ import type {
   CircleSessionRole,
 } from "@/server/domain/services/authz/roles";
 
-export type CircleMembership =
+export type CircleMembershipStatus =
   | { kind: "none" }
   | { kind: "member"; role: CircleRole };
 
-export type CircleSessionMembership =
+export type CircleSessionMembershipStatus =
   | { kind: "none" }
   | { kind: "member"; role: CircleSessionRole };
 
-export const circleMembership = (role: CircleRole): CircleMembership => ({
+export const circleMembershipStatus = (
+  role: CircleRole,
+): CircleMembershipStatus => ({
   kind: "member",
   role,
 });
 
-export const noCircleMembership = (): CircleMembership => ({ kind: "none" });
-
-export const circleMembershipFromRole = (
-  role: CircleRole | null,
-): CircleMembership => (role ? circleMembership(role) : noCircleMembership());
-
-export const isCircleMember = (
-  membership: CircleMembership,
-): membership is { kind: "member"; role: CircleRole } =>
-  membership.kind === "member";
-
-export const circleSessionMembership = (
-  role: CircleSessionRole,
-): CircleSessionMembership => ({
-  kind: "member",
-  role,
-});
-
-export const noCircleSessionMembership = (): CircleSessionMembership => ({
+export const noCircleMembershipStatus = (): CircleMembershipStatus => ({
   kind: "none",
 });
 
-export const circleSessionMembershipFromRole = (
-  role: CircleSessionRole | null,
-): CircleSessionMembership =>
-  role ? circleSessionMembership(role) : noCircleSessionMembership();
+export const circleMembershipStatusFromRole = (
+  role: CircleRole | null,
+): CircleMembershipStatus =>
+  role ? circleMembershipStatus(role) : noCircleMembershipStatus();
 
-export const isCircleSessionMember = (
-  membership: CircleSessionMembership,
+export const isCircleMemberStatus = (
+  membership: CircleMembershipStatus,
+): membership is { kind: "member"; role: CircleRole } =>
+  membership.kind === "member";
+
+export const circleSessionMembershipStatus = (
+  role: CircleSessionRole,
+): CircleSessionMembershipStatus => ({
+  kind: "member",
+  role,
+});
+
+export const noCircleSessionMembershipStatus =
+  (): CircleSessionMembershipStatus => ({
+    kind: "none",
+  });
+
+export const circleSessionMembershipStatusFromRole = (
+  role: CircleSessionRole | null,
+): CircleSessionMembershipStatus =>
+  role
+    ? circleSessionMembershipStatus(role)
+    : noCircleSessionMembershipStatus();
+
+export const isCircleSessionMemberStatus = (
+  membership: CircleSessionMembershipStatus,
 ): membership is { kind: "member"; role: CircleSessionRole } =>
   membership.kind === "member";

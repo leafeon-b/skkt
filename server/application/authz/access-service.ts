@@ -3,8 +3,8 @@ import type { UserRepository } from "@/server/domain/models/user/user-repository
 import { ProfileVisibility } from "@/server/domain/models/user/user";
 import type { UserId } from "@/server/domain/common/ids";
 import {
-  isCircleMember,
-  isCircleSessionMember,
+  isCircleMemberStatus,
+  isCircleSessionMemberStatus,
 } from "@/server/domain/services/authz/memberships";
 import {
   CircleRole,
@@ -50,7 +50,7 @@ export function createAccessService(deps: AccessServiceDeps) {
 
     async canViewCircle(userId: string, circleId: string): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return isCircleMember(membership);
+      return isCircleMemberStatus(membership);
     },
 
     async canWithdrawFromCircle(
@@ -58,20 +58,20 @@ export function createAccessService(deps: AccessServiceDeps) {
       circleId: string,
     ): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return isCircleMember(membership);
+      return isCircleMemberStatus(membership);
     },
 
     async canEditCircle(userId: string, circleId: string): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
       return (
-        isCircleMember(membership) &&
+        isCircleMemberStatus(membership) &&
         (membership.role === CircleOwner || membership.role === CircleManager)
       );
     },
 
     async canDeleteCircle(userId: string, circleId: string): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return isCircleMember(membership) && membership.role === CircleOwner;
+      return isCircleMemberStatus(membership) && membership.role === CircleOwner;
     },
 
     async canAddCircleMember(
@@ -79,7 +79,7 @@ export function createAccessService(deps: AccessServiceDeps) {
       circleId: string,
     ): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return isCircleMember(membership);
+      return isCircleMemberStatus(membership);
     },
 
     async canRemoveCircleMember(
@@ -88,7 +88,7 @@ export function createAccessService(deps: AccessServiceDeps) {
     ): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
       return (
-        isCircleMember(membership) &&
+        isCircleMemberStatus(membership) &&
         (membership.role === CircleOwner || membership.role === CircleManager)
       );
     },
@@ -103,8 +103,8 @@ export function createAccessService(deps: AccessServiceDeps) {
         findCircleMembership(targetId, circleId),
       ]);
       if (
-        !isCircleMember(actorMembership) ||
-        !isCircleMember(targetMembership)
+        !isCircleMemberStatus(actorMembership) ||
+        !isCircleMemberStatus(targetMembership)
       ) {
         return false;
       }
@@ -122,7 +122,7 @@ export function createAccessService(deps: AccessServiceDeps) {
       circleId: string,
     ): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return isCircleMember(membership) && membership.role === CircleOwner;
+      return isCircleMemberStatus(membership) && membership.role === CircleOwner;
     },
 
     async canCreateCircleSession(
@@ -131,7 +131,7 @@ export function createAccessService(deps: AccessServiceDeps) {
     ): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
       return (
-        isCircleMember(membership) &&
+        isCircleMemberStatus(membership) &&
         (membership.role === CircleOwner || membership.role === CircleManager)
       );
     },
@@ -146,8 +146,8 @@ export function createAccessService(deps: AccessServiceDeps) {
         findCircleSessionMembership(userId, circleSessionId),
       ]);
       return (
-        isCircleMember(circleMembership) ||
-        isCircleSessionMember(sessionMembership)
+        isCircleMemberStatus(circleMembership) ||
+        isCircleSessionMemberStatus(sessionMembership)
       );
     },
 
@@ -159,7 +159,7 @@ export function createAccessService(deps: AccessServiceDeps) {
         userId,
         circleSessionId,
       );
-      return isCircleSessionMember(membership);
+      return isCircleSessionMemberStatus(membership);
     },
 
     async canEditCircleSession(
@@ -171,7 +171,7 @@ export function createAccessService(deps: AccessServiceDeps) {
         circleSessionId,
       );
       return (
-        isCircleSessionMember(membership) &&
+        isCircleSessionMemberStatus(membership) &&
         (membership.role === CircleSessionOwner ||
           membership.role === CircleSessionManager)
       );
@@ -186,7 +186,7 @@ export function createAccessService(deps: AccessServiceDeps) {
         circleSessionId,
       );
       return (
-        isCircleSessionMember(membership) &&
+        isCircleSessionMemberStatus(membership) &&
         membership.role === CircleSessionOwner
       );
     },
@@ -199,7 +199,7 @@ export function createAccessService(deps: AccessServiceDeps) {
         userId,
         circleSessionId,
       );
-      return isCircleSessionMember(membership);
+      return isCircleSessionMemberStatus(membership);
     },
 
     async canRemoveCircleSessionMember(
@@ -211,7 +211,7 @@ export function createAccessService(deps: AccessServiceDeps) {
         circleSessionId,
       );
       return (
-        isCircleSessionMember(membership) &&
+        isCircleSessionMemberStatus(membership) &&
         (membership.role === CircleSessionOwner ||
           membership.role === CircleSessionManager)
       );
@@ -227,8 +227,8 @@ export function createAccessService(deps: AccessServiceDeps) {
         findCircleSessionMembership(targetId, circleSessionId),
       ]);
       if (
-        !isCircleSessionMember(actorMembership) ||
-        !isCircleSessionMember(targetMembership)
+        !isCircleSessionMemberStatus(actorMembership) ||
+        !isCircleSessionMemberStatus(targetMembership)
       ) {
         return false;
       }
@@ -250,7 +250,7 @@ export function createAccessService(deps: AccessServiceDeps) {
         circleSessionId,
       );
       return (
-        isCircleSessionMember(membership) &&
+        isCircleSessionMemberStatus(membership) &&
         membership.role === CircleSessionOwner
       );
     },
@@ -265,8 +265,8 @@ export function createAccessService(deps: AccessServiceDeps) {
         findCircleSessionMembership(userId, circleSessionId),
       ]);
       return (
-        isCircleMember(circleMembership) ||
-        isCircleSessionMember(sessionMembership)
+        isCircleMemberStatus(circleMembership) ||
+        isCircleSessionMemberStatus(sessionMembership)
       );
     },
 
@@ -280,8 +280,8 @@ export function createAccessService(deps: AccessServiceDeps) {
         findCircleSessionMembership(userId, circleSessionId),
       ]);
       return (
-        isCircleMember(circleMembership) ||
-        isCircleSessionMember(sessionMembership)
+        isCircleMemberStatus(circleMembership) ||
+        isCircleSessionMemberStatus(sessionMembership)
       );
     },
 
@@ -295,8 +295,8 @@ export function createAccessService(deps: AccessServiceDeps) {
         findCircleSessionMembership(userId, circleSessionId),
       ]);
       return (
-        isCircleMember(circleMembership) ||
-        isCircleSessionMember(sessionMembership)
+        isCircleMemberStatus(circleMembership) ||
+        isCircleSessionMemberStatus(sessionMembership)
       );
     },
 
@@ -310,8 +310,8 @@ export function createAccessService(deps: AccessServiceDeps) {
         findCircleSessionMembership(userId, circleSessionId),
       ]);
       return (
-        isCircleMember(circleMembership) ||
-        isCircleSessionMember(sessionMembership)
+        isCircleMemberStatus(circleMembership) ||
+        isCircleSessionMemberStatus(sessionMembership)
       );
     },
 
@@ -325,8 +325,8 @@ export function createAccessService(deps: AccessServiceDeps) {
         findCircleSessionMembership(userId, circleSessionId),
       ]);
       return (
-        isCircleMember(circleMembership) ||
-        isCircleSessionMember(sessionMembership)
+        isCircleMemberStatus(circleMembership) ||
+        isCircleSessionMemberStatus(sessionMembership)
       );
     },
 

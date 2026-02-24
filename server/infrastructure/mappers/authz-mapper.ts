@@ -3,12 +3,12 @@ import type {
   CircleSessionRole as PrismaCircleSessionRole,
 } from "@/generated/prisma/enums";
 import type {
-  CircleMembership,
-  CircleSessionMembership,
+  CircleMembershipStatus,
+  CircleSessionMembershipStatus,
 } from "@/server/domain/services/authz/memberships";
 import {
-  circleMembershipFromRole,
-  circleSessionMembershipFromRole,
+  circleMembershipStatusFromRole,
+  circleSessionMembershipStatusFromRole,
 } from "@/server/domain/services/authz/memberships";
 import type {
   CircleRole,
@@ -24,12 +24,12 @@ export const mapCircleSessionRoleToDomain = (
 
 export const mapCircleMembershipFromPersistence = (
   role: PrismaCircleRole | null,
-): CircleMembership =>
-  circleMembershipFromRole(role ? mapCircleRoleToDomain(role) : null);
+): CircleMembershipStatus =>
+  circleMembershipStatusFromRole(role ? mapCircleRoleToDomain(role) : null);
 
 export const mapCircleSessionMembershipFromPersistence = (
   role: PrismaCircleSessionRole | null,
-): CircleSessionMembership =>
-  circleSessionMembershipFromRole(
+): CircleSessionMembershipStatus =>
+  circleSessionMembershipStatusFromRole(
     role ? mapCircleSessionRoleToDomain(role) : null,
   );

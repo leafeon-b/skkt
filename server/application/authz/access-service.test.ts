@@ -4,14 +4,14 @@ import {
   createMockUserRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 import type {
-  CircleMembership,
-  CircleSessionMembership,
+  CircleMembershipStatus,
+  CircleSessionMembershipStatus,
 } from "@/server/domain/services/authz/memberships";
 import {
-  circleMembership,
-  circleSessionMembership,
-  noCircleMembership,
-  noCircleSessionMembership,
+  circleMembershipStatus,
+  circleSessionMembershipStatus,
+  noCircleMembershipStatus,
+  noCircleSessionMembershipStatus,
 } from "@/server/domain/services/authz/memberships";
 import type {
   CircleRole,
@@ -43,20 +43,22 @@ const mockedFindCircleSessionMembership = vi.mocked(
   repository.findCircleSessionMembership,
 );
 
-const member = (role: CircleRole): CircleMembership => circleMembership(role);
-const noMember = (): CircleMembership => noCircleMembership();
-const sessionMember = (role: CircleSessionRole): CircleSessionMembership =>
-  circleSessionMembership(role);
-const noSessionMember = (): CircleSessionMembership =>
-  noCircleSessionMembership();
+const member = (role: CircleRole): CircleMembershipStatus =>
+  circleMembershipStatus(role);
+const noMember = (): CircleMembershipStatus => noCircleMembershipStatus();
+const sessionMember = (
+  role: CircleSessionRole,
+): CircleSessionMembershipStatus => circleSessionMembershipStatus(role);
+const noSessionMember = (): CircleSessionMembershipStatus =>
+  noCircleSessionMembershipStatus();
 
-const setCircleMembership = (membership: CircleMembership) => {
+const setCircleMembership = (membership: CircleMembershipStatus) => {
   mockedFindCircleMembership.mockResolvedValue(membership);
 };
 
 const setCircleMemberships = (
-  actorMembership: CircleMembership,
-  targetMembership: CircleMembership,
+  actorMembership: CircleMembershipStatus,
+  targetMembership: CircleMembershipStatus,
 ) => {
   mockedFindCircleMembership.mockImplementation(
     async (requestedUserId: string) =>
@@ -64,13 +66,15 @@ const setCircleMemberships = (
   );
 };
 
-const setCircleSessionMembership = (membership: CircleSessionMembership) => {
+const setCircleSessionMembership = (
+  membership: CircleSessionMembershipStatus,
+) => {
   mockedFindCircleSessionMembership.mockResolvedValue(membership);
 };
 
 const setCircleSessionMemberships = (
-  actorMembership: CircleSessionMembership,
-  targetMembership: CircleSessionMembership,
+  actorMembership: CircleSessionMembershipStatus,
+  targetMembership: CircleSessionMembershipStatus,
 ) => {
   mockedFindCircleSessionMembership.mockImplementation(
     async (requestedUserId: string) =>
@@ -81,9 +85,9 @@ const setCircleSessionMemberships = (
 beforeEach(() => {
   vi.clearAllMocks();
   mockedIsRegisteredUser.mockResolvedValue(false);
-  mockedFindCircleMembership.mockResolvedValue(noCircleMembership());
+  mockedFindCircleMembership.mockResolvedValue(noCircleMembershipStatus());
   mockedFindCircleSessionMembership.mockResolvedValue(
-    noCircleSessionMembership(),
+    noCircleSessionMembershipStatus(),
   );
 });
 
@@ -163,7 +167,7 @@ describe("認可ポリシー", () => {
 
     describe("canEditCircle（研究会編集）", () => {
       const cases: Array<{
-        membership: CircleMembership;
+        membership: CircleMembershipStatus;
         expected: boolean;
       }> = [
         { membership: member("CircleOwner"), expected: true },
@@ -182,7 +186,7 @@ describe("認可ポリシー", () => {
 
     describe("canDeleteCircle（研究会削除）", () => {
       const cases: Array<{
-        membership: CircleMembership;
+        membership: CircleMembershipStatus;
         expected: boolean;
       }> = [
         { membership: member("CircleOwner"), expected: true },
@@ -200,7 +204,7 @@ describe("認可ポリシー", () => {
 
     describe("canRemoveCircleMember（研究会参加者削除）", () => {
       const cases: Array<{
-        membership: CircleMembership;
+        membership: CircleMembershipStatus;
         expected: boolean;
       }> = [
         { membership: member("CircleOwner"), expected: true },
@@ -219,7 +223,7 @@ describe("認可ポリシー", () => {
 
     describe("canTransferCircleOwnership（研究会オーナー移譲）", () => {
       const cases: Array<{
-        membership: CircleMembership;
+        membership: CircleMembershipStatus;
         expected: boolean;
       }> = [
         { membership: member("CircleOwner"), expected: true },
@@ -281,7 +285,7 @@ describe("認可ポリシー", () => {
   describe("セッション", () => {
     describe("canCreateCircleSession（セッション作成）", () => {
       const cases: Array<{
-        membership: CircleMembership;
+        membership: CircleMembershipStatus;
         expected: boolean;
       }> = [
         { membership: member("CircleOwner"), expected: true },
@@ -300,8 +304,8 @@ describe("認可ポリシー", () => {
 
     describe("canViewCircleSession（セッション閲覧）", () => {
       const cases: Array<{
-        circleMembership: CircleMembership;
-        sessionMembership: CircleSessionMembership;
+        circleMembership: CircleMembershipStatus;
+        sessionMembership: CircleSessionMembershipStatus;
         expected: boolean;
       }> = [
         {
@@ -356,7 +360,7 @@ describe("認可ポリシー", () => {
 
     describe("canEditCircleSession（セッション編集）", () => {
       const cases: Array<{
-        membership: CircleSessionMembership;
+        membership: CircleSessionMembershipStatus;
         expected: boolean;
       }> = [
         { membership: sessionMember("CircleSessionOwner"), expected: true },
@@ -375,7 +379,7 @@ describe("認可ポリシー", () => {
 
     describe("canDeleteCircleSession（セッション削除）", () => {
       const cases: Array<{
-        membership: CircleSessionMembership;
+        membership: CircleSessionMembershipStatus;
         expected: boolean;
       }> = [
         { membership: sessionMember("CircleSessionOwner"), expected: true },
@@ -393,7 +397,7 @@ describe("認可ポリシー", () => {
 
     describe("canRemoveCircleSessionMember（セッション参加取消）", () => {
       const cases: Array<{
-        membership: CircleSessionMembership;
+        membership: CircleSessionMembershipStatus;
         expected: boolean;
       }> = [
         { membership: sessionMember("CircleSessionOwner"), expected: true },
@@ -412,7 +416,7 @@ describe("認可ポリシー", () => {
 
     describe("canTransferCircleSessionOwnership（セッションオーナー移譲）", () => {
       const cases: Array<{
-        membership: CircleSessionMembership;
+        membership: CircleSessionMembershipStatus;
         expected: boolean;
       }> = [
         { membership: sessionMember("CircleSessionOwner"), expected: true },
@@ -484,8 +488,8 @@ describe("認可ポリシー", () => {
 
   describe("対局結果", () => {
     const membershipCases: Array<{
-      circleMembership: CircleMembership;
-      sessionMembership: CircleSessionMembership;
+      circleMembership: CircleMembershipStatus;
+      sessionMembership: CircleSessionMembershipStatus;
       expected: boolean;
     }> = [
       {
