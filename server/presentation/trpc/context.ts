@@ -4,9 +4,7 @@ import type { ServiceContainer } from "@/server/infrastructure/service-container
 import { userId } from "@/server/domain/common/ids";
 import { nextAuthSessionService } from "@/server/infrastructure/auth/nextauth-session-service";
 import { prismaAuthzRepository } from "@/server/infrastructure/repository/authz/prisma-authz-repository";
-import { prismaCircleMembershipRepository } from "@/server/infrastructure/repository/circle-membership/prisma-circle-membership-repository";
 import { prismaCircleRepository } from "@/server/infrastructure/repository/circle/prisma-circle-repository";
-import { prismaCircleSessionMembershipRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-membership-repository";
 import { prismaCircleSessionRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-repository";
 import { prismaMatchRepository } from "@/server/infrastructure/repository/match/prisma-match-repository";
 import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
@@ -26,11 +24,8 @@ const japaneseHolidayProvider = createJapaneseHolidayProvider();
 const buildServiceContainer = (): ServiceContainer =>
   createServiceContainer({
     circleRepository: prismaCircleRepository,
-    circleMembershipRepository: prismaCircleMembershipRepository,
     circleSessionRepository: prismaCircleSessionRepository,
     matchRepository: prismaMatchRepository,
-    circleSessionMembershipRepository:
-      prismaCircleSessionMembershipRepository,
     userRepository: prismaUserRepository,
     authzRepository: prismaAuthzRepository,
     signupRepository: prismaSignupRepository,

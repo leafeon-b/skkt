@@ -4,7 +4,6 @@ import { createAccessServiceStub } from "@/server/application/test-helpers/acces
 import {
   createMockCircleRepository,
   createMockCircleSessionRepository,
-  createMockCircleSessionMembershipRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 import {
@@ -20,15 +19,11 @@ const circleRepository = createMockCircleRepository();
 
 const circleSessionRepository = createMockCircleSessionRepository();
 
-const circleSessionMembershipRepository =
-  createMockCircleSessionMembershipRepository();
-
 const accessService = createAccessServiceStub();
 
 const service = createCircleSessionService({
   circleRepository,
   circleSessionRepository,
-  circleSessionMembershipRepository,
   accessService,
 });
 
@@ -221,7 +216,7 @@ describe("CircleSession サービス", () => {
       });
 
       expect(
-        circleSessionMembershipRepository.addMembership,
+        circleSessionRepository.addMembership,
       ).toHaveBeenCalledWith(
         baseSessionParams.id,
         userId("user-1"),
@@ -241,7 +236,7 @@ describe("CircleSession サービス", () => {
       ).rejects.toThrow("Forbidden");
 
       expect(
-        circleSessionMembershipRepository.addMembership,
+        circleSessionRepository.addMembership,
       ).not.toHaveBeenCalled();
     });
 
@@ -256,7 +251,7 @@ describe("CircleSession サービス", () => {
       ).rejects.toThrow("Circle not found");
 
       expect(
-        circleSessionMembershipRepository.addMembership,
+        circleSessionRepository.addMembership,
       ).not.toHaveBeenCalled();
     });
   });
@@ -269,20 +264,12 @@ describe("UnitOfWork 経路", () => {
   // deps用（UoW内で使われるべきメソッドには mockResolvedValue を設定しない）
   const depsCircleSessionRepository = createMockCircleSessionRepository();
 
-  const depsCircleSessionMembershipRepository =
-    createMockCircleSessionMembershipRepository();
-
   // UoWコールバック用リポジトリ（UoW内専用）
   const uowCircleSessionRepository = createMockCircleSessionRepository();
-
-  const uowCircleSessionMembershipRepository =
-    createMockCircleSessionMembershipRepository();
 
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({
       circleSessionRepository: uowCircleSessionRepository,
-      circleSessionMembershipRepository:
-        uowCircleSessionMembershipRepository,
     } as never),
   );
 
@@ -291,8 +278,6 @@ describe("UnitOfWork 経路", () => {
   const uowService = createCircleSessionService({
     circleRepository: depsCircleRepository,
     circleSessionRepository: depsCircleSessionRepository,
-    circleSessionMembershipRepository:
-      depsCircleSessionMembershipRepository,
     accessService: uowAccessService,
     unitOfWork,
   });
@@ -318,17 +303,17 @@ describe("UnitOfWork 経路", () => {
     expect(unitOfWork).toHaveBeenCalledOnce();
     expect(uowCircleSessionRepository.save).toHaveBeenCalledWith(session);
     expect(
-      uowCircleSessionMembershipRepository.addMembership,
+      uowCircleSessionRepository.addMembership,
     ).toHaveBeenCalled();
     // deps側のリポジトリは呼ばれない
     expect(depsCircleSessionRepository.save).not.toHaveBeenCalled();
     expect(
-      depsCircleSessionMembershipRepository.addMembership,
+      depsCircleSessionRepository.addMembership,
     ).not.toHaveBeenCalled();
   });
 
   test("addMembership 失敗時にエラーが伝播する", async () => {
-    uowCircleSessionMembershipRepository.addMembership.mockRejectedValue(
+    uowCircleSessionRepository.addMembership.mockRejectedValue(
       new Error("DB error"),
     );
 

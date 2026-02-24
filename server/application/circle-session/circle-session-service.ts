@@ -9,7 +9,6 @@ import type { CircleId, CircleSessionId } from "@/server/domain/common/ids";
 import { userId } from "@/server/domain/common/ids";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
-import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import type {
   Repositories,
@@ -27,7 +26,6 @@ type AccessService = ReturnType<typeof createAccessService>;
 export type CircleSessionServiceDeps = {
   circleRepository: CircleRepository;
   circleSessionRepository: CircleSessionRepository;
-  circleSessionMembershipRepository: CircleSessionMembershipRepository;
   accessService: AccessService;
   unitOfWork?: UnitOfWork;
 };
@@ -72,7 +70,7 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => {
       });
       await uow(async (repos) => {
         await repos.circleSessionRepository.save(session);
-        await repos.circleSessionMembershipRepository.addMembership(
+        await repos.circleSessionRepository.addMembership(
           session.id,
           userId(params.actorId),
           CircleSessionRole.CircleSessionOwner,

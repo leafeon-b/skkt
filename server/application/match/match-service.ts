@@ -11,7 +11,6 @@ import type {
   UserId,
 } from "@/server/domain/common/ids";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
-import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import type {
@@ -28,7 +27,6 @@ type AccessService = ReturnType<typeof createAccessService>;
 
 export type MatchServiceDeps = {
   matchRepository: MatchRepository;
-  circleSessionMembershipRepository: CircleSessionMembershipRepository;
   circleSessionRepository: CircleSessionRepository;
   accessService: AccessService;
   unitOfWork?: UnitOfWork;
@@ -39,12 +37,12 @@ export const createMatchService = (deps: MatchServiceDeps) => {
     deps.unitOfWork ?? (async (op) => op(deps as unknown as Repositories));
 
   const ensurePlayersParticipating = async (
-    circleSessionMembershipRepository: CircleSessionMembershipRepository,
+    circleSessionRepository: CircleSessionRepository,
     circleSessionId: CircleSessionId,
     player1Id: UserId,
     player2Id: UserId,
   ) => {
-    const ok = await circleSessionMembershipRepository.areUsersParticipating(
+    const ok = await circleSessionRepository.areUsersParticipating(
       circleSessionId,
       [player1Id, player2Id],
     );
@@ -78,7 +76,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
           throw new ForbiddenError();
         }
         await ensurePlayersParticipating(
-          repos.circleSessionMembershipRepository,
+          repos.circleSessionRepository,
           params.circleSessionId,
           params.player1Id,
           params.player2Id,
@@ -135,7 +133,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
             );
           }
           await ensurePlayersParticipating(
-            repos.circleSessionMembershipRepository,
+            repos.circleSessionRepository,
             match.circleSessionId,
             params.player1Id,
             params.player2Id,

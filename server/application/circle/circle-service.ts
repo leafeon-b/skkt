@@ -6,7 +6,6 @@ import {
 import { userId } from "@/server/domain/common/ids";
 import type { CircleId } from "@/server/domain/common/ids";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import type { CircleMembershipRepository } from "@/server/domain/models/circle-membership/circle-membership-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import type {
   Repositories,
@@ -19,7 +18,6 @@ type AccessService = ReturnType<typeof createAccessService>;
 
 export type CircleServiceDeps = {
   circleRepository: CircleRepository;
-  circleMembershipRepository: CircleMembershipRepository;
   accessService: AccessService;
   unitOfWork?: UnitOfWork;
 };
@@ -46,7 +44,7 @@ export const createCircleService = (deps: CircleServiceDeps) => {
       });
       await uow(async (repos) => {
         await repos.circleRepository.save(circle);
-        await repos.circleMembershipRepository.addMembership(
+        await repos.circleRepository.addMembership(
           circle.id,
           userId(params.actorId),
           CircleRole.CircleOwner,

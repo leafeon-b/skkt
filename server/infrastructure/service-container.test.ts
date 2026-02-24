@@ -2,10 +2,8 @@ import { describe, expect, test, vi } from "vitest";
 import { createServiceContainer } from "@/server/infrastructure/service-container";
 import {
   createMockCircleRepository,
-  createMockCircleMembershipRepository,
   createMockCircleSessionRepository,
   createMockMatchRepository,
-  createMockCircleSessionMembershipRepository,
   createMockUserRepository,
   createMockAuthzRepository,
   createMockCircleInviteLinkRepository,
@@ -19,12 +17,8 @@ const createSignupStub = () => ({
 describe("Service container", () => {
   test("依存を注入してサービスを作成できる", async () => {
     const circleRepository = createMockCircleRepository();
-    const circleMembershipRepository =
-      createMockCircleMembershipRepository();
     const circleSessionRepository = createMockCircleSessionRepository();
     const matchRepository = createMockMatchRepository();
-    const circleSessionMembershipRepository =
-      createMockCircleSessionMembershipRepository();
     const userRepository = createMockUserRepository();
     const authzRepository = createMockAuthzRepository();
     const signupRepository = createSignupStub();
@@ -32,10 +26,8 @@ describe("Service container", () => {
 
     const container = createServiceContainer({
       circleRepository,
-      circleMembershipRepository,
       circleSessionRepository,
       matchRepository,
-      circleSessionMembershipRepository,
       userRepository,
       authzRepository,
       signupRepository,

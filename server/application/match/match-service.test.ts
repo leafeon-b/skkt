@@ -4,7 +4,6 @@ import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
   createMockMatchRepository,
-  createMockCircleSessionMembershipRepository,
   createMockCircleSessionRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 import {
@@ -17,16 +16,12 @@ import { createMatch } from "@/server/domain/models/match/match";
 
 const matchRepository = createMockMatchRepository();
 
-const circleSessionMembershipRepository =
-  createMockCircleSessionMembershipRepository();
-
 const circleSessionRepository = createMockCircleSessionRepository();
 
 const accessService = createAccessServiceStub();
 
 const service = createMatchService({
   matchRepository,
-  circleSessionMembershipRepository,
   circleSessionRepository,
   accessService,
 });
@@ -93,7 +88,7 @@ describe("Match サービス", () => {
 
   test("recordMatch は参加者でない場合にエラー", async () => {
     vi.mocked(
-      circleSessionMembershipRepository.areUsersParticipating,
+      circleSessionRepository.areUsersParticipating,
     ).mockResolvedValue(false);
 
     await expect(
@@ -108,7 +103,7 @@ describe("Match サービス", () => {
 
   test("recordMatch は対局を保存する", async () => {
     vi.mocked(
-      circleSessionMembershipRepository.areUsersParticipating,
+      circleSessionRepository.areUsersParticipating,
     ).mockResolvedValue(true);
 
     const result = await service.recordMatch({
@@ -147,7 +142,7 @@ describe("Match サービス", () => {
     const existing = createMatch(baseMatchParams);
     vi.mocked(matchRepository.findById).mockResolvedValue(existing);
     vi.mocked(
-      circleSessionMembershipRepository.areUsersParticipating,
+      circleSessionRepository.areUsersParticipating,
     ).mockResolvedValue(false);
 
     await expect(
@@ -217,7 +212,7 @@ describe("Match サービス", () => {
     const existing = createMatch(baseMatchParams);
     vi.mocked(matchRepository.findById).mockResolvedValue(existing);
     vi.mocked(
-      circleSessionMembershipRepository.areUsersParticipating,
+      circleSessionRepository.areUsersParticipating,
     ).mockResolvedValue(true);
 
     const updated = await service.updateMatch({
@@ -228,7 +223,7 @@ describe("Match サービス", () => {
     });
 
     expect(
-      circleSessionMembershipRepository.areUsersParticipating,
+      circleSessionRepository.areUsersParticipating,
     ).toHaveBeenCalledWith(baseMatchParams.circleSessionId, [
       userId("user-4"),
       userId("user-5"),
@@ -248,24 +243,16 @@ describe("UnitOfWork 経路", () => {
   // deps用リポジトリ（UoW外）— UoW内で使われるべきメソッドには mockResolvedValue を設定しない
   const depsMatchRepository = createMockMatchRepository();
 
-  const depsCircleSessionMembershipRepository =
-    createMockCircleSessionMembershipRepository();
-
   const depsCircleSessionRepository = createMockCircleSessionRepository();
 
   // UoWコールバック用リポジトリ（UoW内専用）
   const uowMatchRepository = createMockMatchRepository();
-
-  const uowCircleSessionMembershipRepository =
-    createMockCircleSessionMembershipRepository();
 
   const uowCircleSessionRepository = createMockCircleSessionRepository();
 
   const unitOfWork: UnitOfWork = vi.fn(async (op) =>
     op({
       matchRepository: uowMatchRepository,
-      circleSessionMembershipRepository:
-        uowCircleSessionMembershipRepository,
       circleSessionRepository: uowCircleSessionRepository,
     } as never),
   );
@@ -274,8 +261,6 @@ describe("UnitOfWork 経路", () => {
 
   const uowService = createMatchService({
     matchRepository: depsMatchRepository,
-    circleSessionMembershipRepository:
-      depsCircleSessionMembershipRepository,
     circleSessionRepository: depsCircleSessionRepository,
     accessService: uowAccessService,
     unitOfWork,
@@ -290,7 +275,7 @@ describe("UnitOfWork 経路", () => {
       baseSession(),
     );
     vi.mocked(
-      uowCircleSessionMembershipRepository.areUsersParticipating,
+      uowCircleSessionRepository.areUsersParticipating,
     ).mockResolvedValue(true);
   });
 

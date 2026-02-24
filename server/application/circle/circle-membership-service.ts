@@ -1,6 +1,5 @@
 import { userId, type CircleId, type UserId } from "@/server/domain/common/ids";
-import type { CircleMembershipRepository } from "@/server/domain/models/circle-membership/circle-membership-repository";
-import type { CircleMembership } from "@/server/domain/models/circle-membership/circle-membership";
+import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import type {
@@ -25,7 +24,6 @@ import {
 type AccessService = ReturnType<typeof createAccessService>;
 
 export type CircleMembershipServiceDeps = {
-  circleMembershipRepository: CircleMembershipRepository;
   circleRepository: CircleRepository;
   accessService: AccessService;
   unitOfWork?: UnitOfWork;
@@ -61,7 +59,7 @@ export const createCircleMembershipService = (
         throw new ForbiddenError();
       }
 
-      return deps.circleMembershipRepository.listByCircleId(params.circleId);
+      return deps.circleRepository.listMembershipsByCircleId(params.circleId);
     },
 
     async listByUserId(params: {
@@ -79,7 +77,7 @@ export const createCircleMembershipService = (
       }
 
       const memberships =
-        await deps.circleMembershipRepository.listByUserId(params.userId);
+        await deps.circleRepository.listMembershipsByUserId(params.userId);
       const uniqueCircleIds = Array.from(
         new Set(memberships.map((membership) => membership.circleId)),
       );
@@ -122,7 +120,7 @@ export const createCircleMembershipService = (
       }
 
       const memberships =
-        await deps.circleMembershipRepository.listByCircleId(
+        await deps.circleRepository.listMembershipsByCircleId(
           params.circleId,
         );
 
@@ -132,7 +130,7 @@ export const createCircleMembershipService = (
 
       assertCanAddCircleMemberWithRole(memberships, params.role);
 
-      await deps.circleMembershipRepository.addMembership(
+      await deps.circleRepository.addMembership(
         params.circleId,
         params.userId,
         params.role,
@@ -160,7 +158,7 @@ export const createCircleMembershipService = (
       }
 
       const memberships =
-        await deps.circleMembershipRepository.listByCircleId(
+        await deps.circleRepository.listMembershipsByCircleId(
           params.circleId,
         );
       const target = memberships.find(
@@ -173,7 +171,7 @@ export const createCircleMembershipService = (
 
       assertCanChangeCircleMemberRole(target.role, params.role);
 
-      await deps.circleMembershipRepository.updateMembershipRole(
+      await deps.circleRepository.updateMembershipRole(
         params.circleId,
         params.userId,
         params.role,
@@ -200,7 +198,7 @@ export const createCircleMembershipService = (
       }
 
       const memberships =
-        await deps.circleMembershipRepository.listByCircleId(
+        await deps.circleRepository.listMembershipsByCircleId(
           params.circleId,
         );
 
@@ -217,7 +215,7 @@ export const createCircleMembershipService = (
 
       for (const member of updated) {
         if (before.get(member.userId) !== member.role) {
-          await deps.circleMembershipRepository.updateMembershipRole(
+          await deps.circleRepository.updateMembershipRole(
             params.circleId,
             member.userId,
             member.role,
@@ -244,7 +242,7 @@ export const createCircleMembershipService = (
       }
 
       const memberships =
-        await deps.circleMembershipRepository.listByCircleId(
+        await deps.circleRepository.listMembershipsByCircleId(
           params.circleId,
         );
       const actor = memberships.find(
@@ -258,7 +256,7 @@ export const createCircleMembershipService = (
       assertCanWithdraw(actor.role);
 
       await uow(async (repos) => {
-        await repos.circleMembershipRepository.removeMembership(
+        await repos.circleRepository.removeMembership(
           params.circleId,
           actor.userId,
         );
@@ -284,7 +282,7 @@ export const createCircleMembershipService = (
       }
 
       const memberships =
-        await deps.circleMembershipRepository.listByCircleId(
+        await deps.circleRepository.listMembershipsByCircleId(
           params.circleId,
         );
       const target = memberships.find(
@@ -298,7 +296,7 @@ export const createCircleMembershipService = (
       assertCanRemoveCircleMember(target.role);
 
       await uow(async (repos) => {
-        await repos.circleMembershipRepository.removeMembership(
+        await repos.circleRepository.removeMembership(
           params.circleId,
           params.userId,
         );
