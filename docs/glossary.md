@@ -42,6 +42,8 @@
 | Match             | MatchHistory                    | MatchRepository                    | Match          |
 | User              | -                               | UserRepository                     | Auth           |
 
+※ 本プロジェクトでは Aggregate Root を「主要エンティティであり、他の集約からは ID でのみ参照される境界」として使用している。厳密な DDD の整合性境界（不変条件の強制、Root 経由の排他的アクセス）は現時点では実装していない。ドメインエンティティはプレーンな TypeScript 型（Anemic Domain Model）であり、関連エンティティごとに独立した Repository を持つ構造になっている。
+
 ### 用語階層構造
 
 ```
