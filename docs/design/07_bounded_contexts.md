@@ -115,6 +115,9 @@
   - `server/domain/models/circle/*`
   - `server/application/circle/*`
   - `server/infrastructure/repository/circle/*`
+  - 独立 Aggregate Root の CircleInviteLink は専用ディレクトリに配置:
+    - `server/domain/models/circle-invite-link/*`
+    - `server/infrastructure/repository/circle-invite-link/*`
 - CircleSession Context
   - `server/domain/models/circle-session/*`
   - `server/application/circle-session/*`

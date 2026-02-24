@@ -15,8 +15,8 @@ import {
   createCircleInviteLink,
   isExpired,
   type CircleInviteLink,
-} from "@/server/domain/models/circle/circle-invite-link";
-import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
+} from "@/server/domain/models/circle-invite-link/circle-invite-link";
+import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";

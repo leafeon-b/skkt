@@ -5,8 +5,8 @@ import {
   inviteLinkToken,
   userId,
 } from "@/server/domain/common/ids";
-import { createCircleInviteLink } from "@/server/domain/models/circle/circle-invite-link";
-import type { CircleInviteLink } from "@/server/domain/models/circle/circle-invite-link";
+import { createCircleInviteLink } from "@/server/domain/models/circle-invite-link/circle-invite-link";
+import type { CircleInviteLink } from "@/server/domain/models/circle-invite-link/circle-invite-link";
 import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 
 export const mapCircleInviteLinkToDomain = (

@@ -5,7 +5,7 @@ import type { CircleSessionRepository } from "@/server/domain/models/circle-sess
 import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
-import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
+import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 
 export const createMockMatchRepository = () =>

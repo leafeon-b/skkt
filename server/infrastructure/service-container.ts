@@ -18,7 +18,7 @@ import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { SignupRepository } from "@/server/domain/models/user/signup-repository";
-import type { CircleInviteLinkRepository } from "@/server/domain/models/circle/circle-invite-link-repository";
+import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { PasswordUtils } from "@/server/application/user/user-service";
 import type { HolidayProvider } from "@/server/application/common/holiday-provider";
 
