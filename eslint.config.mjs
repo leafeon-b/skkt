@@ -59,15 +59,9 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  // application exceptions: service-container (DI composition root), test files
+  // application exceptions: test files
   {
     files: ["server/application/**/*.test.{ts,tsx}"],
-    rules: {
-      "no-restricted-imports": "off",
-    },
-  },
-  {
-    files: ["server/application/service-container.ts"],
     rules: {
       "no-restricted-imports": "off",
     },
@@ -115,6 +109,16 @@ const eslintConfig = defineConfig([
           patterns: ["@/server/presentation/**", "@/server/application/**"],
         },
       ],
+    },
+  },
+  // infrastructure exception: service-container (DI composition root) — 全レイヤの具象実装を参照する
+  {
+    files: [
+      "server/infrastructure/service-container.ts",
+      "server/infrastructure/service-container.test.ts",
+    ],
+    rules: {
+      "no-restricted-imports": "off",
     },
   },
   // infrastructure exception: application/common（port 定義 — RateLimiter, UnitOfWork, HolidayProvider）の import を許可

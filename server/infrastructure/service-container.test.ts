@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { createServiceContainer } from "@/server/application/service-container";
+import { createServiceContainer } from "@/server/infrastructure/service-container";
 import {
   createMockCircleRepository,
   createMockCircleMembershipRepository,

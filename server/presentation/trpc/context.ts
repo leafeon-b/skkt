@@ -1,6 +1,6 @@
 import { createGetSession } from "@/server/application/auth/session";
-import { createServiceContainer } from "@/server/application/service-container";
-import type { ServiceContainer } from "@/server/application/service-container";
+import { createServiceContainer } from "@/server/infrastructure/service-container";
+import type { ServiceContainer } from "@/server/infrastructure/service-container";
 import { userId } from "@/server/domain/common/ids";
 import { nextAuthSessionService } from "@/server/infrastructure/auth/nextauth-session-service";
 import { prismaAuthzRepository } from "@/server/infrastructure/repository/authz/prisma-authz-repository";
