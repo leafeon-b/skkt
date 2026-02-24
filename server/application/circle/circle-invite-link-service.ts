@@ -18,7 +18,7 @@ import {
 } from "@/server/domain/models/circle-invite-link/circle-invite-link";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
-import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
+import type { CircleMembershipRepository } from "@/server/domain/models/circle-membership/circle-membership-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import { CircleRole } from "@/server/domain/services/authz/roles";
 

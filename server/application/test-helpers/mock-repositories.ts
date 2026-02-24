@@ -2,7 +2,7 @@ import { vi } from "vitest";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { CircleSessionMembershipRepository } from "@/server/domain/models/circle-session/circle-session-membership-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
-import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
+import type { CircleMembershipRepository } from "@/server/domain/models/circle-membership/circle-membership-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";

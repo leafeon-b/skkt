@@ -1,7 +1,7 @@
-import type { CircleMembershipRepository } from "@/server/domain/models/circle/circle-membership-repository";
+import type { CircleMembershipRepository } from "@/server/domain/models/circle-membership/circle-membership-repository";
 import type { CircleId, UserId } from "@/server/domain/common/ids";
 import type { CircleRole } from "@/server/domain/services/authz/roles";
-import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
+import type { CircleMembership } from "@/server/domain/models/circle-membership/circle-membership";
 import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
 import {
   mapCircleMembershipFromPersistence,

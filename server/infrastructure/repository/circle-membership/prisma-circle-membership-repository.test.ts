@@ -14,7 +14,7 @@ import { ConflictError } from "@/server/domain/common/errors";
 import { circleId, userId } from "@/server/domain/common/ids";
 import { prisma } from "@/server/infrastructure/db";
 import { Prisma } from "@/generated/prisma/client";
-import { prismaCircleMembershipRepository } from "@/server/infrastructure/repository/circle/prisma-circle-membership-repository";
+import { prismaCircleMembershipRepository } from "@/server/infrastructure/repository/circle-membership/prisma-circle-membership-repository";
 
 const mockedPrisma = vi.mocked(prisma, { deep: true });
 

@@ -1,4 +1,4 @@
-import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
+import type { CircleMembership } from "@/server/domain/models/circle-membership/circle-membership";
 import {
   circleMembershipDtoSchema,
   type CircleMembershipDto,
