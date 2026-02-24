@@ -23,6 +23,7 @@
 - **Circle**（Aggregate Root）
 - CircleMembership（研究会参加）
 - **CircleInviteLink**（独立した Aggregate Root）
+- CircleId / CircleInviteLinkId / InviteLinkToken（Value Object — Branded Type）
 
 ### 代表的な不変条件
 
@@ -46,6 +47,7 @@
 
 - **CircleSession**（Aggregate Root）
 - CircleSessionMembership（セッション参加）
+- CircleSessionId（Value Object — Branded Type）
 
 ### 代表的な不変条件
 
@@ -69,6 +71,7 @@
 ### 主要エンティティ/値
 
 - **Match**（Aggregate Root）
+- MatchId（Value Object — Branded Type）
 
 ### 代表的な不変条件
 
@@ -88,6 +91,7 @@
 ### 主要エンティティ/値
 
 - **User**（Aggregate Root）
+- UserId（Value Object — Branded Type）
 - CircleRole / CircleSessionRole
 
 ### 代表的な不変条件
