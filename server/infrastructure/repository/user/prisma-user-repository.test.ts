@@ -109,11 +109,12 @@ describe("Prisma User リポジトリ", () => {
     });
   });
 
-  test("createUser は P2002（一意制約違反）で ConflictError をスローする", async () => {
+  test("createUser は P2002（email 一意制約違反）で ConflictError をスローする", async () => {
     mockedPrisma.user.create.mockRejectedValueOnce(
       new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
         code: "P2002",
         clientVersion: "0.0.0",
+        meta: { target: ["email"] },
       }),
     );
 
@@ -124,6 +125,26 @@ describe("Prisma User リポジトリ", () => {
         name: "Test",
       }),
     ).rejects.toThrow(ConflictError);
+  });
+
+  test("createUser は P2002 で target が期待と異なる場合そのまま再スローする", async () => {
+    const error = new Prisma.PrismaClientKnownRequestError(
+      "Unique constraint failed",
+      {
+        code: "P2002",
+        clientVersion: "0.0.0",
+        meta: { target: ["other_field"] },
+      },
+    );
+    mockedPrisma.user.create.mockRejectedValueOnce(error);
+
+    await expect(
+      prismaUserRepository.createUser({
+        email: "test@example.com",
+        passwordHash: "hashed",
+        name: "Test",
+      }),
+    ).rejects.toThrow(error);
   });
 
   test("createUser は P2002 以外の Prisma エラーはそのまま伝播する", async () => {

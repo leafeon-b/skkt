@@ -142,7 +142,15 @@ export const createPrismaCircleSessionRepository = (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        throw new ConflictError("Membership already exists");
+        const target = error.meta?.target;
+        if (
+          Array.isArray(target) &&
+          target.includes("userId") &&
+          target.includes("circleSessionId")
+        ) {
+          throw new ConflictError("Membership already exists");
+        }
+        throw error;
       }
       throw error;
     }
