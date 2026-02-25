@@ -104,10 +104,14 @@ export const createPrismaUserRepository = (
     return found?.passwordChangedAt ?? null;
   },
 
-  async updatePasswordHash(id: UserId, passwordHash: string): Promise<void> {
+  async updatePasswordHash(
+    id: UserId,
+    passwordHash: string,
+    passwordChangedAt: Date,
+  ): Promise<void> {
     await client.user.update({
       where: { id: toPersistenceId(id) },
-      data: { passwordHash, passwordChangedAt: new Date() },
+      data: { passwordHash, passwordChangedAt },
     });
   },
 

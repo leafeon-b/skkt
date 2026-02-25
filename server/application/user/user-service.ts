@@ -99,7 +99,12 @@ export const createUserService = (deps: UserServiceDeps) => ({
 
     deps.changePasswordRateLimiter.reset(actorId);
     const newHash = deps.passwordUtils.hash(newPassword);
-    await deps.userRepository.updatePasswordHash(actorId, newHash);
+    const passwordChangedAt = new Date();
+    await deps.userRepository.updatePasswordHash(
+      actorId,
+      newHash,
+      passwordChangedAt,
+    );
   },
 
   async updateProfileVisibility(

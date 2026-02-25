@@ -167,6 +167,7 @@ describe("changePassword", () => {
     expect(userRepository.updatePasswordHash).toHaveBeenCalledWith(
       actorId,
       "hashed:newpass12",
+      expect.any(Date),
     );
   });
 

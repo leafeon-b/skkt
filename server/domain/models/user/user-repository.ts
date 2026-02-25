@@ -20,7 +20,11 @@ export type UserRepository = {
   emailExists(email: string, excludeUserId?: UserId): Promise<boolean>;
   findPasswordHashById(id: UserId): Promise<string | null>;
   findPasswordChangedAt(id: UserId): Promise<Date | null>;
-  updatePasswordHash(id: UserId, passwordHash: string): Promise<void>;
+  updatePasswordHash(
+    id: UserId,
+    passwordHash: string,
+    passwordChangedAt: Date,
+  ): Promise<void>;
   updateProfileVisibility(
     id: UserId,
     visibility: ProfileVisibility,
