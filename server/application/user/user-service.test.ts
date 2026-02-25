@@ -203,7 +203,7 @@ describe("changePassword", () => {
 
   test("レート制限超過時に TooManyRequestsError", async () => {
     vi.mocked(changePasswordRateLimiter.check).mockImplementationOnce(() => {
-      throw new TooManyRequestsError();
+      throw new TooManyRequestsError(50_000);
     });
 
     await expect(

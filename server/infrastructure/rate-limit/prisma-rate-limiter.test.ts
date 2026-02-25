@@ -9,6 +9,7 @@ vi.mock("@/server/infrastructure/db", () => ({
       count: vi.fn(),
       create: vi.fn(),
       deleteMany: vi.fn(),
+      findFirst: vi.fn(),
     },
   },
 }));
@@ -41,9 +42,35 @@ describe("PrismaRateLimiter", () => {
       count: 0,
     });
     mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(3);
+    mockedPrisma.rateLimitAttempt.findFirst.mockResolvedValueOnce({
+      attemptedAt: new Date(Date.now() - 10_000),
+    } as never);
 
     const limiter = createPrismaRateLimiter(config);
     await expect(limiter.check("key")).rejects.toThrow(TooManyRequestsError);
+  });
+
+  test("TooManyRequestsErrorにretryAfterMsが含まれる", async () => {
+    const now = Date.now();
+    const oldestAttemptedAt = new Date(now - 10_000); // 10秒前
+
+    mockedPrisma.rateLimitAttempt.deleteMany.mockResolvedValueOnce({
+      count: 0,
+    });
+    mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(3);
+    mockedPrisma.rateLimitAttempt.findFirst.mockResolvedValueOnce({
+      attemptedAt: oldestAttemptedAt,
+    } as never);
+
+    const limiter = createPrismaRateLimiter(config);
+    await expect(limiter.check("key")).rejects.toSatisfy(
+      (error: TooManyRequestsError) => {
+        // retryAfterMs ≈ oldestAttemptedAt + windowMs - now = 50_000
+        expect(error.retryAfterMs).toBeGreaterThan(0);
+        expect(error.retryAfterMs).toBeLessThanOrEqual(config.windowMs);
+        return true;
+      },
+    );
   });
 
   test("checkはトランザクション内で実行される", async () => {

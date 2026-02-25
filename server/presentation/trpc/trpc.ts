@@ -1,11 +1,26 @@
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
-import { UnauthorizedError } from "@/server/domain/common/errors";
+import {
+  UnauthorizedError,
+  TooManyRequestsError,
+} from "@/server/domain/common/errors";
 import { toTrpcError } from "@/server/presentation/trpc/errors";
 import type { Context } from "@/server/presentation/trpc/context";
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        retryAfterMs:
+          error.cause instanceof TooManyRequestsError
+            ? error.cause.retryAfterMs
+            : undefined,
+      },
+    };
+  },
 });
 
 export const router = t.router;

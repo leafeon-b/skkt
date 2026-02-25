@@ -50,6 +50,26 @@ describe("InMemoryRateLimiter", () => {
     await expect(limiter.check("key")).resolves.toBeUndefined();
   });
 
+  test("TooManyRequestsErrorにretryAfterMsが含まれる", async () => {
+    const limiter = createInMemoryRateLimiter(config);
+    await limiter.recordFailure("key");
+
+    vi.advanceTimersByTime(5_000); // 5秒経過
+    await limiter.recordFailure("key");
+    await limiter.recordFailure("key");
+
+    try {
+      await limiter.check("key");
+      expect.unreachable("should have thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(TooManyRequestsError);
+      const e = error as TooManyRequestsError;
+      // 最古の試行は55秒後に期限切れ → retryAfterMs ≈ 55_000
+      expect(e.retryAfterMs).toBeGreaterThan(0);
+      expect(e.retryAfterMs).toBeLessThanOrEqual(config.windowMs);
+    }
+  });
+
   test("キーごとに独立してカウントする", async () => {
     const limiter = createInMemoryRateLimiter(config);
     await limiter.recordFailure("key-a");
