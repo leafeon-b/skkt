@@ -15,13 +15,14 @@ import {
   verifyPassword,
 } from "@/server/infrastructure/auth/password";
 import { createJapaneseHolidayProvider } from "@/server/infrastructure/holiday/japanese-holiday-provider";
-import { createInMemoryRateLimiter } from "@/server/infrastructure/rate-limit/in-memory-rate-limiter";
+import { createPrismaRateLimiter } from "@/server/infrastructure/rate-limit/prisma-rate-limiter";
 
 const getSession = createGetSession(nextAuthSessionService);
 const japaneseHolidayProvider = createJapaneseHolidayProvider();
-const changePasswordRateLimiter = createInMemoryRateLimiter({
+const changePasswordRateLimiter = createPrismaRateLimiter({
   maxAttempts: 3,
   windowMs: 15 * 60 * 1000,
+  category: "changePassword",
 });
 
 const buildServiceContainer = (): ServiceContainer =>

@@ -13,55 +13,55 @@ afterEach(() => {
 describe("InMemoryRateLimiter", () => {
   const config = { maxAttempts: 3, windowMs: 60_000 };
 
-  test("制限内ならcheckはスローしない", () => {
+  test("制限内ならcheckはスローしない", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    limiter.recordFailure("key");
-    limiter.recordFailure("key");
-    expect(() => limiter.check("key")).not.toThrow();
+    await limiter.recordFailure("key");
+    await limiter.recordFailure("key");
+    await expect(limiter.check("key")).resolves.toBeUndefined();
   });
 
-  test("maxAttempts到達でTooManyRequestsErrorをスロー", () => {
+  test("maxAttempts到達でTooManyRequestsErrorをスロー", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    limiter.recordFailure("key");
-    limiter.recordFailure("key");
-    limiter.recordFailure("key");
-    expect(() => limiter.check("key")).toThrow(TooManyRequestsError);
+    await limiter.recordFailure("key");
+    await limiter.recordFailure("key");
+    await limiter.recordFailure("key");
+    await expect(limiter.check("key")).rejects.toThrow(TooManyRequestsError);
   });
 
-  test("ウィンドウ経過後にカウンターがリセットされる", () => {
+  test("ウィンドウ経過後にカウンターがリセットされる", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    limiter.recordFailure("key");
-    limiter.recordFailure("key");
-    limiter.recordFailure("key");
+    await limiter.recordFailure("key");
+    await limiter.recordFailure("key");
+    await limiter.recordFailure("key");
 
     vi.advanceTimersByTime(60_000);
 
-    expect(() => limiter.check("key")).not.toThrow();
+    await expect(limiter.check("key")).resolves.toBeUndefined();
   });
 
-  test("resetでカウンターがクリアされる", () => {
+  test("resetでカウンターがクリアされる", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    limiter.recordFailure("key");
-    limiter.recordFailure("key");
-    limiter.recordFailure("key");
+    await limiter.recordFailure("key");
+    await limiter.recordFailure("key");
+    await limiter.recordFailure("key");
 
-    limiter.reset("key");
+    await limiter.reset("key");
 
-    expect(() => limiter.check("key")).not.toThrow();
+    await expect(limiter.check("key")).resolves.toBeUndefined();
   });
 
-  test("キーごとに独立してカウントする", () => {
+  test("キーごとに独立してカウントする", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    limiter.recordFailure("key-a");
-    limiter.recordFailure("key-a");
-    limiter.recordFailure("key-a");
+    await limiter.recordFailure("key-a");
+    await limiter.recordFailure("key-a");
+    await limiter.recordFailure("key-a");
 
-    expect(() => limiter.check("key-a")).toThrow(TooManyRequestsError);
-    expect(() => limiter.check("key-b")).not.toThrow();
+    await expect(limiter.check("key-a")).rejects.toThrow(TooManyRequestsError);
+    await expect(limiter.check("key-b")).resolves.toBeUndefined();
   });
 
-  test("未記録のキーはcheckをパスする", () => {
+  test("未記録のキーはcheckをパスする", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    expect(() => limiter.check("unknown")).not.toThrow();
+    await expect(limiter.check("unknown")).resolves.toBeUndefined();
   });
 });

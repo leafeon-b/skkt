@@ -79,7 +79,7 @@ export const createUserService = (deps: UserServiceDeps) => ({
     currentPassword: string,
     newPassword: string,
   ): Promise<void> {
-    deps.changePasswordRateLimiter.check(actorId);
+    await deps.changePasswordRateLimiter.check(actorId);
 
     const passwordHash =
       await deps.userRepository.findPasswordHashById(actorId);
@@ -89,7 +89,7 @@ export const createUserService = (deps: UserServiceDeps) => ({
 
     const valid = deps.passwordUtils.verify(currentPassword, passwordHash);
     if (!valid) {
-      deps.changePasswordRateLimiter.recordFailure(actorId);
+      await deps.changePasswordRateLimiter.recordFailure(actorId);
       throw new BadRequestError("Current password is incorrect");
     }
 
@@ -97,7 +97,7 @@ export const createUserService = (deps: UserServiceDeps) => ({
       throw new BadRequestError("Password too short");
     }
 
-    deps.changePasswordRateLimiter.reset(actorId);
+    await deps.changePasswordRateLimiter.reset(actorId);
     const newHash = deps.passwordUtils.hash(newPassword);
     const passwordChangedAt = new Date();
     await deps.userRepository.updatePasswordHash(

@@ -170,6 +170,16 @@ model Match {
   @@index([player2Id])
 }
 
+model RateLimitAttempt {
+  id          String   @id @default(cuid())
+  key         String
+  category    String
+  attemptedAt DateTime @default(now())
+
+  @@index([key, category])
+  @@index([attemptedAt])
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String

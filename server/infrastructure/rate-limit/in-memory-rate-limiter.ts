@@ -24,7 +24,7 @@ export const createInMemoryRateLimiter = (
   };
 
   return {
-    check(key) {
+    async check(key) {
       const now = Date.now();
       const recent = prune(key, now);
       if (recent.length >= config.maxAttempts) {
@@ -32,14 +32,14 @@ export const createInMemoryRateLimiter = (
       }
     },
 
-    recordFailure(key) {
+    async recordFailure(key) {
       const now = Date.now();
       const recent = prune(key, now);
       recent.push(now);
       failures.set(key, recent);
     },
 
-    reset(key) {
+    async reset(key) {
       failures.delete(key);
     },
   };
