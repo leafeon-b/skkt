@@ -105,8 +105,8 @@
 Auth Context は認可判定のために以下の型を参照する:
 
 - Identity Context: UserRepository（認証時のユーザー解決）
-- Circle Context: CircleRole, CircleMembershipRepository
-- CircleSession Context: CircleSessionRole, CircleSessionMembershipRepository
+- Circle Context: CircleRole, CircleRepository（Membership の参照も CircleRepository 経由）
+- CircleSession Context: CircleSessionRole, CircleSessionRepository
 
 ## Identity Context（ユーザー）
 
@@ -140,12 +140,9 @@ Auth Context は認可判定のために以下の型を参照する:
 ## 実装上の配置（目安）
 
 - Circle Context
-  - `server/domain/models/circle/*`
+  - `server/domain/models/circle/*`（CircleMembership を含む）
   - `server/application/circle/*`
-  - `server/infrastructure/repository/circle/*`
-  - CircleMembership は専用ディレクトリに配置:
-    - `server/domain/models/circle-membership/*`
-    - `server/infrastructure/repository/circle-membership/*`
+  - `server/infrastructure/repository/circle/*`（CircleMembership の永続化を含む）
   - 独立 Aggregate Root の CircleInviteLink は専用ディレクトリに配置:
     - `server/domain/models/circle-invite-link/*`
     - `server/infrastructure/repository/circle-invite-link/*`
@@ -176,8 +173,7 @@ Domain 層（`server/domain/models/`）と Infrastructure リポジトリ層（`
 
 ```
 domain/models/
-├── circle/                  # Circle（Aggregate Root）
-├── circle-membership/       # CircleMembership
+├── circle/                  # Circle（Aggregate Root）+ CircleMembership
 ├── circle-invite-link/      # CircleInviteLink（独立 Aggregate Root）
 ├── circle-session/          # CircleSession（Aggregate Root）+ CircleSessionMembership
 ├── match/                   # Match（Aggregate Root）

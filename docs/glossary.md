@@ -81,8 +81,8 @@ Circle（研究会）
 | Entity           | ID 型               | 定義ファイル                                       |
 | ---------------- | -------------------- | -------------------------------------------------- |
 | Circle           | CircleId             | `server/domain/models/circle/circle.ts`            |
-| CircleMembership | CircleMembershipId   | `server/domain/models/circle-membership/circle-membership.ts` |
-| CircleInviteLink | CircleInviteLinkId   | `server/domain/models/circle/circle-invite-link.ts` |
+| CircleMembership | CircleMembershipId   | `server/domain/models/circle/circle-membership.ts` |
+| CircleInviteLink | CircleInviteLinkId   | `server/domain/models/circle-invite-link/circle-invite-link.ts` |
 | CircleSession    | CircleSessionId      | `server/domain/models/circle-session/circle-session.ts` |
 | CircleSessionMembership | CircleSessionMembershipId | `server/domain/models/circle-session/circle-session-membership.ts` |
 | Match            | MatchId              | `server/domain/models/match/match.ts`              |
@@ -117,10 +117,8 @@ Circle（研究会）
 | Repository                              | 所属 Context   | 対象 Entity              |
 | --------------------------------------- | -------------- | ------------------------ |
 | CircleRepository                        | Circle         | Circle                   |
-| CircleMembershipRepository              | Circle         | CircleMembership         |
 | CircleInviteLinkRepository              | Circle         | CircleInviteLink         |
 | CircleSessionRepository                 | CircleSession  | CircleSession            |
-| CircleSessionMembershipRepository       | CircleSession  | CircleSessionMembership  |
 | MatchRepository                         | Match          | Match                    |
 | UserRepository                          | Auth           | User                     |
 | SignupRepository                        | Auth           | User（登録専用）         |
