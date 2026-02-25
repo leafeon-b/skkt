@@ -75,6 +75,7 @@
 
 - **Match**（Aggregate Root）
 - MatchId（Value Object — Branded Type）
+- MatchWithCircle（Read Model）
 
 ### 代表的な不変条件
 
