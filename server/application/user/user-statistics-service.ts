@@ -1,7 +1,7 @@
 import type { CircleId, UserId } from "@/server/domain/common/ids";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
-import { classifyOutcomeForUser } from "@/server/domain/models/match/match";
+import { classifyOutcomeForUser } from "@/server/application/match/match-outcome";
 import type {
   CircleMatchStatistics,
   UserMatchStatistics,
