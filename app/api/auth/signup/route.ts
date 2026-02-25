@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { createSignupService } from "@/server/application/auth/signup-service";
 import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
+import {
+  hashPassword,
+  verifyPassword,
+} from "@/server/infrastructure/auth/password";
 
 const signupService = createSignupService({
   userRepository: prismaUserRepository,
+  passwordUtils: { hash: hashPassword, verify: verifyPassword },
 });
 
 type SignupPayload = {

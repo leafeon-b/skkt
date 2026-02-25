@@ -94,6 +94,7 @@ export const createServiceContainer = (
     }),
     signupService: createSignupService({
       userRepository: deps.userRepository,
+      passwordUtils: deps.passwordUtils,
     }),
     circleInviteLinkService: createCircleInviteLinkService({
       circleInviteLinkRepository: deps.circleInviteLinkRepository,
