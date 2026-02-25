@@ -194,7 +194,7 @@ describe("user tRPC ルーター", () => {
     test("TooManyRequestsError → TOO_MANY_REQUESTS", async () => {
       const { context, mocks } = createTestContext();
       mocks.userService.changePassword.mockRejectedValueOnce(
-        new TooManyRequestsError(),
+        new TooManyRequestsError(50_000),
       );
 
       const caller = appRouter.createCaller(context);

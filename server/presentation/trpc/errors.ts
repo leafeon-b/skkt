@@ -1,5 +1,8 @@
 import { TRPCError } from "@trpc/server";
-import { DomainError } from "@/server/domain/common/errors";
+import {
+  DomainError,
+  TooManyRequestsError,
+} from "@/server/domain/common/errors";
 
 export const toTrpcError = (error: unknown): TRPCError => {
   if (error instanceof TRPCError) {
@@ -17,7 +20,11 @@ export const toTrpcError = (error: unknown): TRPCError => {
   // Ensure all DomainError subclasses use static, client-safe messages only.
   // Do not include dynamic data (IDs, emails, SQL, etc.) in DomainError messages.
   if (error instanceof DomainError) {
-    return new TRPCError({ code: error.code, message: error.message });
+    return new TRPCError({
+      code: error.code,
+      message: error.message,
+      cause: error instanceof TooManyRequestsError ? error : undefined,
+    });
   }
 
   console.error("Unhandled error in tRPC handler:", error);
