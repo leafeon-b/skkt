@@ -57,6 +57,7 @@ export function PasswordForm() {
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
           required
+          maxLength={128}
           className="bg-white"
         />
       </div>
@@ -74,6 +75,7 @@ export function PasswordForm() {
           onChange={(e) => setNewPassword(e.target.value)}
           required
           minLength={8}
+          maxLength={128}
           className="bg-white"
         />
       </div>
@@ -91,6 +93,7 @@ export function PasswordForm() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
           minLength={8}
+          maxLength={128}
           className="bg-white"
         />
       </div>
