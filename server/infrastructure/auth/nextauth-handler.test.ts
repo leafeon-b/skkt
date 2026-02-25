@@ -274,7 +274,7 @@ describe("authorize コールバック（レート制限）", () => {
     const mockRepo = createMockUserRepository();
     const mockRateLimiter = createMockRateLimiter({
       check: vi.fn().mockImplementation(() => {
-        throw new TooManyRequestsError();
+        throw new TooManyRequestsError(50_000);
       }),
     });
     const authorize = extractAuthorize(mockRepo, mockRateLimiter);

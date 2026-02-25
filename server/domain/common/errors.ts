@@ -59,8 +59,11 @@ export class ConflictError extends DomainError {
 }
 
 export class TooManyRequestsError extends DomainError {
-  constructor(message = "Too many requests") {
+  public readonly retryAfterMs: number;
+
+  constructor(retryAfterMs: number, message = "Too many requests") {
     super(message, "TOO_MANY_REQUESTS");
     this.name = "TooManyRequestsError";
+    this.retryAfterMs = retryAfterMs;
   }
 }
