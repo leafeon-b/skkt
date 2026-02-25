@@ -3,7 +3,7 @@ import type { User, ProfileVisibility } from "@/server/domain/models/user/user";
 
 export type SignupData = {
   email: string;
-  password: string;
+  passwordHash: string;
   name: string | null;
 };
 

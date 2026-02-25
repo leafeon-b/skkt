@@ -14,7 +14,6 @@ import {
   toPersistenceId,
   toPersistenceIds,
 } from "@/server/infrastructure/common/id-utils";
-import { hashPassword } from "@/server/infrastructure/auth/password";
 
 export const createPrismaUserRepository = (
   client: PrismaClientLike,
@@ -126,12 +125,11 @@ export const createPrismaUserRepository = (
   },
 
   async createUser(data: SignupData): Promise<UserId> {
-    const passwordHash = hashPassword(data.password);
     const user = await client.user.create({
       data: {
         email: data.email,
         name: data.name,
-        passwordHash,
+        passwordHash: data.passwordHash,
       },
       select: { id: true },
     });
