@@ -19,6 +19,10 @@ import { createInMemoryRateLimiter } from "@/server/infrastructure/rate-limit/in
 
 const getSession = createGetSession(nextAuthSessionService);
 const japaneseHolidayProvider = createJapaneseHolidayProvider();
+const changePasswordRateLimiter = createInMemoryRateLimiter({
+  maxAttempts: 5,
+  windowMs: 60_000,
+});
 
 const buildServiceContainer = (): ServiceContainer =>
   createServiceContainer({
@@ -29,10 +33,7 @@ const buildServiceContainer = (): ServiceContainer =>
     authzRepository: prismaAuthzRepository,
     circleInviteLinkRepository: prismaCircleInviteLinkRepository,
     passwordUtils: { hash: hashPassword, verify: verifyPassword },
-    changePasswordRateLimiter: createInMemoryRateLimiter({
-      maxAttempts: 5,
-      windowMs: 60_000,
-    }),
+    changePasswordRateLimiter,
     holidayProvider: japaneseHolidayProvider,
     unitOfWork: prismaUnitOfWork,
   });
