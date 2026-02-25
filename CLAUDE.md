@@ -102,7 +102,7 @@ const canCreate = await ctx.accessService.canCreateCircleSession(
 - **研究会ロール**: CircleOwner > CircleManager > CircleMember
 - **セッションロール**: CircleSessionOwner > CircleSessionManager > CircleSessionMember
 
-ポリシーは `server/domain/services/authz/policies.ts` で定義、`AccessService` で適用。
+認可ルールは `server/domain/services/authz/ownership.ts`（オーナーシップルール）と `memberships.ts`（メンバーシップステータス）で定義、`AccessService` で適用。
 
 ### フロントエンド
 
