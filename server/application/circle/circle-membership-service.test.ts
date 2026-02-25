@@ -340,7 +340,7 @@ describe("Circle メンバーシップサービス", () => {
 
       expect(
         circleRepository.removeMembership,
-      ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-manager"));
+      ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-manager"), expect.any(Date));
     });
 
     test("Member は退会できる", async () => {
@@ -368,7 +368,7 @@ describe("Circle メンバーシップサービス", () => {
 
       expect(
         circleRepository.removeMembership,
-      ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"));
+      ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-member"), expect.any(Date));
     });
 
     test("Owner は退会を拒否される", async () => {
@@ -484,7 +484,7 @@ describe("Circle メンバーシップサービス", () => {
 
     expect(
       circleRepository.removeMembership,
-    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-2"));
+    ).toHaveBeenCalledWith(circleId("circle-1"), userId("user-2"), expect.any(Date));
   });
 });
 
@@ -538,6 +538,7 @@ describe("UnitOfWork 経路", () => {
     expect(repos.circleRepository.removeMembership).toHaveBeenCalledWith(
       circleId("circle-1"),
       userId("user-member"),
+      expect.any(Date),
     );
     // deps側のリポジトリは呼ばれない
     expect(depsCircleRepository.removeMembership).not.toHaveBeenCalled();
@@ -554,6 +555,7 @@ describe("UnitOfWork 経路", () => {
     expect(repos.circleRepository.removeMembership).toHaveBeenCalledWith(
       circleId("circle-1"),
       userId("user-member"),
+      expect.any(Date),
     );
     expect(depsCircleRepository.removeMembership).not.toHaveBeenCalled();
   });

@@ -255,10 +255,12 @@ export const createCircleMembershipService = (
 
       assertCanWithdraw(actor.role);
 
+      const deletedAt = new Date();
       await uow(async (repos) => {
         await repos.circleRepository.removeMembership(
           params.circleId,
           actor.userId,
+          deletedAt,
         );
       });
     },
@@ -295,10 +297,12 @@ export const createCircleMembershipService = (
 
       assertCanRemoveCircleMember(target.role);
 
+      const deletedAt = new Date();
       await uow(async (repos) => {
         await repos.circleRepository.removeMembership(
           params.circleId,
           params.userId,
+          deletedAt,
         );
       });
     },

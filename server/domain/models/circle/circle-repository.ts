@@ -20,5 +20,9 @@ export type CircleRepository = {
     userId: UserId,
     role: CircleRole,
   ): Promise<void>;
-  removeMembership(circleId: CircleId, userId: UserId): Promise<void>;
+  removeMembership(
+    circleId: CircleId,
+    userId: UserId,
+    deletedAt: Date,
+  ): Promise<void>;
 };

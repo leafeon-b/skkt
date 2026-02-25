@@ -307,9 +307,11 @@ export const createCircleSessionMembershipService = (
 
     assertCanRemoveCircleSessionMember(target.role);
 
+    const deletedAt = new Date();
     await deps.circleSessionRepository.removeMembership(
       params.circleSessionId,
       params.userId,
+      deletedAt,
     );
   },
 
@@ -346,9 +348,11 @@ export const createCircleSessionMembershipService = (
 
     assertCanWithdrawFromSession(actor.role);
 
+    const deletedAt = new Date();
     await deps.circleSessionRepository.removeMembership(
       params.circleSessionId,
       userId(params.actorId),
+      deletedAt,
     );
   },
 });
