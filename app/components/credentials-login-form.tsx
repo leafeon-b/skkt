@@ -36,7 +36,28 @@ export default function CredentialsLoginForm({
         callbackUrl: callbackUrl ?? "/home",
       });
       if (!result || result.error) {
-        setErrorMessage("メールアドレスまたはパスワードが正しくありません。");
+        try {
+          const rateLimitRes = await fetch("/api/auth/login-rate-limit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
+          const rateLimitData = (await rateLimitRes.json()) as {
+            retryAfterMs?: number;
+          };
+          if (rateLimitData.retryAfterMs) {
+            const minutes = Math.ceil(rateLimitData.retryAfterMs / 60_000);
+            setErrorMessage(
+              `リクエスト回数が上限に達しました。${minutes}分後に再試行してください`,
+            );
+            return;
+          }
+        } catch {
+          // ネットワークエラー等は無視してデフォルトメッセージにフォールバック
+        }
+        setErrorMessage(
+          "メールアドレスまたはパスワードが正しくありません。",
+        );
         return;
       }
       if (result.url) {
