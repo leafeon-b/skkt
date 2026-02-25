@@ -5,7 +5,7 @@ import { classifyOutcomeForUser } from "@/server/domain/models/match/match";
 import type {
   CircleMatchStatistics,
   UserMatchStatistics,
-} from "@/server/domain/models/match/match-statistics";
+} from "./match-statistics";
 
 export type OpponentInfo = {
   userId: UserId;
