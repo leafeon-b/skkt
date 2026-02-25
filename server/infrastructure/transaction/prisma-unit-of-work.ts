@@ -4,7 +4,6 @@ import { createPrismaCircleRepository } from "@/server/infrastructure/repository
 import { createPrismaCircleSessionRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-repository";
 import { createPrismaMatchRepository } from "@/server/infrastructure/repository/match/prisma-match-repository";
 import { createPrismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
-import { createPrismaSignupRepository } from "@/server/infrastructure/repository/user/prisma-signup-repository";
 import { createPrismaAuthzRepository } from "@/server/infrastructure/repository/authz/prisma-authz-repository";
 
 export const prismaUnitOfWork: UnitOfWork = (operation) =>
@@ -14,7 +13,6 @@ export const prismaUnitOfWork: UnitOfWork = (operation) =>
       circleSessionRepository: createPrismaCircleSessionRepository(tx),
       matchRepository: createPrismaMatchRepository(tx),
       userRepository: createPrismaUserRepository(tx),
-      signupRepository: createPrismaSignupRepository(tx),
       authzRepository: createPrismaAuthzRepository(tx),
     }),
   );

@@ -8,7 +8,6 @@ import { prismaCircleRepository } from "@/server/infrastructure/repository/circl
 import { prismaCircleSessionRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-repository";
 import { prismaMatchRepository } from "@/server/infrastructure/repository/match/prisma-match-repository";
 import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
-import { prismaSignupRepository } from "@/server/infrastructure/repository/user/prisma-signup-repository";
 import { prismaCircleInviteLinkRepository } from "@/server/infrastructure/repository/circle-invite-link/prisma-circle-invite-link-repository";
 import { prismaUnitOfWork } from "@/server/infrastructure/transaction/prisma-unit-of-work";
 import {
@@ -28,7 +27,6 @@ const buildServiceContainer = (): ServiceContainer =>
     matchRepository: prismaMatchRepository,
     userRepository: prismaUserRepository,
     authzRepository: prismaAuthzRepository,
-    signupRepository: prismaSignupRepository,
     circleInviteLinkRepository: prismaCircleInviteLinkRepository,
     passwordUtils: { hash: hashPassword, verify: verifyPassword },
     changePasswordRateLimiter: createInMemoryRateLimiter({

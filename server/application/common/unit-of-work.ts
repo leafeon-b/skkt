@@ -2,7 +2,6 @@ import type { CircleRepository } from "@/server/domain/models/circle/circle-repo
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
-import type { SignupRepository } from "@/server/domain/models/user/signup-repository";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 
 export type Repositories = {
@@ -10,7 +9,6 @@ export type Repositories = {
   circleSessionRepository: CircleSessionRepository;
   matchRepository: MatchRepository;
   userRepository: UserRepository;
-  signupRepository: SignupRepository;
   authzRepository: AuthzRepository;
 };
 

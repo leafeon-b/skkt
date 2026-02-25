@@ -9,11 +9,6 @@ import {
   createMockCircleInviteLinkRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 
-const createSignupStub = () => ({
-  emailExists: vi.fn(),
-  createUser: vi.fn(),
-});
-
 describe("Service container", () => {
   test("依存を注入してサービスを作成できる", async () => {
     const circleRepository = createMockCircleRepository();
@@ -21,7 +16,6 @@ describe("Service container", () => {
     const matchRepository = createMockMatchRepository();
     const userRepository = createMockUserRepository();
     const authzRepository = createMockAuthzRepository();
-    const signupRepository = createSignupStub();
     const circleInviteLinkRepository = createMockCircleInviteLinkRepository();
 
     const container = createServiceContainer({
@@ -30,7 +24,6 @@ describe("Service container", () => {
       matchRepository,
       userRepository,
       authzRepository,
-      signupRepository,
       circleInviteLinkRepository,
       passwordUtils: { hash: vi.fn(), verify: vi.fn() },
       changePasswordRateLimiter: {

@@ -1,10 +1,10 @@
 import type { UserId } from "@/server/domain/common/ids";
-import type { SignupRepository } from "@/server/domain/models/user/signup-repository";
+import type { UserRepository } from "@/server/domain/models/user/user-repository";
 
 const MIN_PASSWORD_LENGTH = 8;
 
 export type SignupServiceDeps = {
-  signupRepository: SignupRepository;
+  userRepository: UserRepository;
 };
 
 export type SignupInput = {
@@ -34,12 +34,12 @@ export const createSignupService = (deps: SignupServiceDeps) => ({
       return { success: false, error: "password_too_short" };
     }
 
-    const exists = await deps.signupRepository.emailExists(email);
+    const exists = await deps.userRepository.emailExists(email);
     if (exists) {
       return { success: false, error: "email_exists" };
     }
 
-    const userId = await deps.signupRepository.createUser({
+    const userId = await deps.userRepository.createUser({
       email,
       password,
       name,

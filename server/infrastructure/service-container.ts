@@ -15,7 +15,6 @@ import type { MatchRepository } from "@/server/domain/models/match/match-reposit
 import type { UnitOfWork } from "@/server/application/common/unit-of-work";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
-import type { SignupRepository } from "@/server/domain/models/user/signup-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { PasswordUtils } from "@/server/application/user/user-service";
 import type { HolidayProvider } from "@/server/application/common/holiday-provider";
@@ -44,7 +43,6 @@ export type ServiceContainerDeps = {
   matchRepository: MatchRepository;
   userRepository: UserRepository;
   authzRepository: AuthzRepository;
-  signupRepository: SignupRepository;
   circleInviteLinkRepository: CircleInviteLinkRepository;
   passwordUtils: PasswordUtils;
   changePasswordRateLimiter: RateLimiter;
@@ -95,7 +93,7 @@ export const createServiceContainer = (
       changePasswordRateLimiter: deps.changePasswordRateLimiter,
     }),
     signupService: createSignupService({
-      signupRepository: deps.signupRepository,
+      userRepository: deps.userRepository,
     }),
     circleInviteLinkService: createCircleInviteLinkService({
       circleInviteLinkRepository: deps.circleInviteLinkRepository,

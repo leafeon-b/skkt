@@ -47,6 +47,7 @@ const createMockUserRepository = (
   findPasswordHashById: vi.fn(),
   findPasswordChangedAt: vi.fn(),
   updatePasswordHash: vi.fn(),
+  createUser: vi.fn(),
   ...overrides,
 });
 
