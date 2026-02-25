@@ -20,8 +20,8 @@ import { createInMemoryRateLimiter } from "@/server/infrastructure/rate-limit/in
 const getSession = createGetSession(nextAuthSessionService);
 const japaneseHolidayProvider = createJapaneseHolidayProvider();
 const changePasswordRateLimiter = createInMemoryRateLimiter({
-  maxAttempts: 5,
-  windowMs: 60_000,
+  maxAttempts: 3,
+  windowMs: 15 * 60 * 1000,
 });
 
 const buildServiceContainer = (): ServiceContainer =>
