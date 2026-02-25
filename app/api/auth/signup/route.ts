@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { createSignupService } from "@/server/application/auth/signup-service";
-import { prismaSignupRepository } from "@/server/infrastructure/repository/user/prisma-signup-repository";
+import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
 
 const signupService = createSignupService({
-  signupRepository: prismaSignupRepository,
+  userRepository: prismaUserRepository,
 });
 
 type SignupPayload = {

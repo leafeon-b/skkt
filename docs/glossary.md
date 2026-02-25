@@ -121,7 +121,6 @@ Circle（研究会）
 | CircleSessionRepository                 | CircleSession  | CircleSession            |
 | MatchRepository                         | Match          | Match                    |
 | UserRepository                          | Auth           | User                     |
-| SignupRepository                        | Auth           | User（登録専用）         |
 | AuthzRepository                         | Auth           | -（認可クエリ専用）      |
 
 

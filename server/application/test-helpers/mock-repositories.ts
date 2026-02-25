@@ -3,7 +3,6 @@ import type { MatchRepository } from "@/server/domain/models/match/match-reposit
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
-import type { SignupRepository } from "@/server/domain/models/user/signup-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type {
@@ -62,6 +61,7 @@ export const createMockUserRepository = () =>
     findPasswordChangedAt: vi.fn(),
     updatePasswordHash: vi.fn(),
     updateProfileVisibility: vi.fn(),
+    createUser: vi.fn(),
   }) satisfies UserRepository;
 
 export const createMockCircleInviteLinkRepository = () =>
@@ -70,12 +70,6 @@ export const createMockCircleInviteLinkRepository = () =>
     findActiveByCircleId: vi.fn(),
     save: vi.fn(),
   }) satisfies CircleInviteLinkRepository;
-
-export const createMockSignupRepository = () =>
-  ({
-    emailExists: vi.fn(),
-    createUser: vi.fn(),
-  }) satisfies SignupRepository;
 
 export const createMockAuthzRepository = () =>
   ({
@@ -92,7 +86,6 @@ export const createMockUnitOfWork = (
     circleSessionRepository: createMockCircleSessionRepository(),
     matchRepository: createMockMatchRepository(),
     userRepository: createMockUserRepository(),
-    signupRepository: createMockSignupRepository(),
     authzRepository: createMockAuthzRepository(),
     ...overrides,
   };

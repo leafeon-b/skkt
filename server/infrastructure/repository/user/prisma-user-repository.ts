@@ -1,6 +1,10 @@
-import type { UserRepository } from "@/server/domain/models/user/user-repository";
+import type {
+  UserRepository,
+  SignupData,
+} from "@/server/domain/models/user/user-repository";
 import type { User, ProfileVisibility } from "@/server/domain/models/user/user";
 import type { UserId } from "@/server/domain/common/ids";
+import { userId } from "@/server/domain/common/ids";
 import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
 import {
   mapUserToDomain,
@@ -10,6 +14,7 @@ import {
   toPersistenceId,
   toPersistenceIds,
 } from "@/server/infrastructure/common/id-utils";
+import { hashPassword } from "@/server/infrastructure/auth/password";
 
 export const createPrismaUserRepository = (
   client: PrismaClientLike,
@@ -70,11 +75,13 @@ export const createPrismaUserRepository = (
     });
   },
 
-  async emailExists(email: string, excludeUserId: UserId): Promise<boolean> {
+  async emailExists(email: string, excludeUserId?: UserId): Promise<boolean> {
     const found = await client.user.findFirst({
       where: {
         email,
-        id: { not: toPersistenceId(excludeUserId) },
+        ...(excludeUserId != null && {
+          id: { not: toPersistenceId(excludeUserId) },
+        }),
       },
       select: { id: true },
     });
@@ -112,6 +119,19 @@ export const createPrismaUserRepository = (
       where: { id: toPersistenceId(id) },
       data: { profileVisibility: visibility },
     });
+  },
+
+  async createUser(data: SignupData): Promise<UserId> {
+    const passwordHash = hashPassword(data.password);
+    const user = await client.user.create({
+      data: {
+        email: data.email,
+        name: data.name,
+        passwordHash,
+      },
+      select: { id: true },
+    });
+    return userId(user.id);
   },
 });
 
