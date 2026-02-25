@@ -142,7 +142,11 @@ export const createPrismaUserRepository = (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        throw new ConflictError("User already exists");
+        const target = error.meta?.target;
+        if (Array.isArray(target) && target.includes("email")) {
+          throw new ConflictError("User already exists");
+        }
+        throw error;
       }
       throw error;
     }

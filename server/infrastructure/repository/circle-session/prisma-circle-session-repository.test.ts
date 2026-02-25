@@ -414,11 +414,12 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
     });
   });
 
-  test("addMembership は P2002（一意制約違反）で ConflictError をスローする", async () => {
+  test("addMembership は P2002（userId+circleSessionId 一意制約違反）で ConflictError をスローする", async () => {
     mockedPrisma.circleSessionMembership.create.mockRejectedValueOnce(
       new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
         code: "P2002",
         clientVersion: "0.0.0",
+        meta: { target: ["userId", "circleSessionId"] },
       }),
     );
 
@@ -429,6 +430,26 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
         "CircleSessionMember",
       ),
     ).rejects.toThrow(ConflictError);
+  });
+
+  test("addMembership は P2002 で target が期待と異なる場合そのまま再スローする", async () => {
+    const error = new Prisma.PrismaClientKnownRequestError(
+      "Unique constraint failed",
+      {
+        code: "P2002",
+        clientVersion: "0.0.0",
+        meta: { target: ["other_field"] },
+      },
+    );
+    mockedPrisma.circleSessionMembership.create.mockRejectedValueOnce(error);
+
+    await expect(
+      prismaCircleSessionRepository.addMembership(
+        circleSessionId("session-1"),
+        userId("user-1"),
+        "CircleSessionMember",
+      ),
+    ).rejects.toThrow(error);
   });
 
   test("addMembership は P2002 以外の Prisma エラーはそのまま伝播する", async () => {
