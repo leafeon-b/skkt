@@ -28,6 +28,10 @@ export function PasswordForm() {
         toast.error(`リクエスト回数が上限に達しました。${minutes}分後に再試行してください`);
         return;
       }
+      if (error.data?.isValidationError) {
+        toast.error("パスワードの変更に失敗しました。入力内容を確認してください。");
+        return;
+      }
       toast.error(error.message);
     },
   });

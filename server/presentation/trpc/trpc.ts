@@ -1,5 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
+import { ZodError } from "zod";
 import {
   UnauthorizedError,
   TooManyRequestsError,
@@ -10,10 +11,13 @@ import type { Context } from "@/server/presentation/trpc/context";
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
+    const isValidationError = error.cause instanceof ZodError;
     return {
       ...shape,
+      message: isValidationError ? "Validation failed" : shape.message,
       data: {
         ...shape.data,
+        isValidationError: isValidationError || undefined,
         retryAfterMs:
           error.cause instanceof TooManyRequestsError
             ? error.cause.retryAfterMs
