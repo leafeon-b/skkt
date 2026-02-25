@@ -6,13 +6,15 @@ vi.mock("@/server/infrastructure/db", () => ({
       findUnique: vi.fn(),
       findMany: vi.fn(),
       upsert: vi.fn(),
+      create: vi.fn(),
     },
   },
 }));
 
-import type { User as PrismaUser } from "@/generated/prisma/client";
+import { type User as PrismaUser, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/server/infrastructure/db";
 import { userId } from "@/server/domain/common/ids";
+import { ConflictError } from "@/server/domain/common/errors";
 import { createUser } from "@/server/domain/models/user/user";
 import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
 import { mapUserToPersistence } from "@/server/infrastructure/mappers/user-mapper";
@@ -105,5 +107,38 @@ describe("Prisma User リポジトリ", () => {
       },
       create: data,
     });
+  });
+
+  test("createUser は P2002（一意制約違反）で ConflictError をスローする", async () => {
+    mockedPrisma.user.create.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+        code: "P2002",
+        clientVersion: "0.0.0",
+      }),
+    );
+
+    await expect(
+      prismaUserRepository.createUser({
+        email: "test@example.com",
+        passwordHash: "hashed",
+        name: "Test",
+      }),
+    ).rejects.toThrow(ConflictError);
+  });
+
+  test("createUser は P2002 以外の Prisma エラーはそのまま伝播する", async () => {
+    const otherError = new Prisma.PrismaClientKnownRequestError(
+      "Foreign key constraint failed",
+      { code: "P2003", clientVersion: "0.0.0" },
+    );
+    mockedPrisma.user.create.mockRejectedValueOnce(otherError);
+
+    await expect(
+      prismaUserRepository.createUser({
+        email: "test@example.com",
+        passwordHash: "hashed",
+        name: "Test",
+      }),
+    ).rejects.toThrow(otherError);
   });
 });
