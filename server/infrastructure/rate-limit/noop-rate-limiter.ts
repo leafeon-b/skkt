@@ -5,7 +5,7 @@ import type { RateLimiter } from "@/server/application/common/rate-limiter";
  * （例: getServerSession によるセッション検証）でのみ使用すること。
  */
 export const noopRateLimiter: RateLimiter = {
-  check() {},
-  recordFailure() {},
-  reset() {},
+  async check() {},
+  async recordFailure() {},
+  async reset() {},
 };
