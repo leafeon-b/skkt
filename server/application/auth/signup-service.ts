@@ -1,6 +1,7 @@
 import type { UserId } from "@/server/domain/common/ids";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { PasswordUtils } from "@/server/application/user/user-service";
+import { ConflictError } from "@/server/domain/common/errors";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -43,12 +44,19 @@ export const createSignupService = (deps: SignupServiceDeps) => ({
 
     const passwordHash = deps.passwordUtils.hash(password);
 
-    const userId = await deps.userRepository.createUser({
-      email,
-      passwordHash,
-      name,
-    });
+    try {
+      const userId = await deps.userRepository.createUser({
+        email,
+        passwordHash,
+        name,
+      });
 
-    return { success: true, userId };
+      return { success: true, userId };
+    } catch (error) {
+      if (error instanceof ConflictError) {
+        return { success: false, error: "email_exists" };
+      }
+      throw error;
+    }
   },
 });

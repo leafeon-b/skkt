@@ -14,6 +14,8 @@ import {
   toPersistenceId,
   toPersistenceIds,
 } from "@/server/infrastructure/common/id-utils";
+import { ConflictError } from "@/server/domain/common/errors";
+import { Prisma } from "@/generated/prisma/client";
 
 export const createPrismaUserRepository = (
   client: PrismaClientLike,
@@ -125,15 +127,25 @@ export const createPrismaUserRepository = (
   },
 
   async createUser(data: SignupData): Promise<UserId> {
-    const user = await client.user.create({
-      data: {
-        email: data.email,
-        name: data.name,
-        passwordHash: data.passwordHash,
-      },
-      select: { id: true },
-    });
-    return userId(user.id);
+    try {
+      const user = await client.user.create({
+        data: {
+          email: data.email,
+          name: data.name,
+          passwordHash: data.passwordHash,
+        },
+        select: { id: true },
+      });
+      return userId(user.id);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ConflictError("User already exists");
+      }
+      throw error;
+    }
   },
 });
 
