@@ -5,7 +5,7 @@ const cspDirectives = [
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' https://lh3.googleusercontent.com",
-  "font-src 'self'",
+  "font-src 'self' data:",
   "connect-src 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
