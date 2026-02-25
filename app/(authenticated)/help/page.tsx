@@ -1,3 +1,7 @@
+import { ExternalLink } from "lucide-react";
+
+const contactFormUrl = process.env.NEXT_PUBLIC_CONTACT_FORM_URL;
+
 export default function HelpPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
@@ -145,6 +149,26 @@ export default function HelpPage() {
           </li>
         </ul>
       </section>
+
+      {contactFormUrl && (
+        <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-(--brand-ink)">
+            お問い合わせ
+          </h2>
+          <p className="mt-4 text-sm text-(--brand-ink-muted)">
+            ご意見・ご要望・不具合の報告などは、以下のフォームからお寄せください。
+          </p>
+          <a
+            href={contactFormUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-(--brand-moss) hover:underline"
+          >
+            お問い合わせフォームを開く
+            <ExternalLink className="size-4" />
+          </a>
+        </section>
+      )}
     </div>
   );
 }
