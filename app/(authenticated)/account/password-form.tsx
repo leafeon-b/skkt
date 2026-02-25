@@ -20,6 +20,14 @@ export function PasswordForm() {
       setConfirmPassword("");
     },
     onError: (error) => {
+      if (
+        error.data?.code === "TOO_MANY_REQUESTS" &&
+        error.data.retryAfterMs
+      ) {
+        const minutes = Math.ceil(error.data.retryAfterMs / 60_000);
+        toast.error(`リクエスト回数が上限に達しました。${minutes}分後に再試行してください`);
+        return;
+      }
       toast.error(error.message);
     },
   });
