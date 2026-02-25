@@ -28,7 +28,8 @@ export const createInMemoryRateLimiter = (
       const now = Date.now();
       const recent = prune(key, now);
       if (recent.length >= config.maxAttempts) {
-        throw new TooManyRequestsError();
+        const retryAfterMs = recent[0] + config.windowMs - now;
+        throw new TooManyRequestsError(retryAfterMs);
       }
     },
 

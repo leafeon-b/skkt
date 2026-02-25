@@ -13,7 +13,8 @@ export const createPrismaRateLimiter = (
 ): RateLimiter => {
   return {
     async check(key) {
-      const windowStart = new Date(Date.now() - config.windowMs);
+      const now = Date.now();
+      const windowStart = new Date(now - config.windowMs);
 
       // pruning + count をトランザクションで実行（競合状態を防止）
       const [, count] = await prisma.$transaction([
@@ -33,7 +34,21 @@ export const createPrismaRateLimiter = (
       ]);
 
       if (count >= config.maxAttempts) {
-        throw new TooManyRequestsError();
+        const oldest = await prisma.rateLimitAttempt.findFirst({
+          where: {
+            key,
+            category: config.category,
+            attemptedAt: { gte: windowStart },
+          },
+          orderBy: { attemptedAt: "asc" },
+          select: { attemptedAt: true },
+        });
+
+        const retryAfterMs = oldest
+          ? oldest.attemptedAt.getTime() + config.windowMs - now
+          : config.windowMs;
+
+        throw new TooManyRequestsError(retryAfterMs);
       }
     },
 
