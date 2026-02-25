@@ -194,6 +194,7 @@ export const createPrismaCircleSessionRepository = (
   async removeMembership(
     circleSessionId: CircleSessionId,
     userId: UserId,
+    deletedAt: Date,
   ): Promise<void> {
     const persistedCircleSessionId = toPersistenceId(circleSessionId);
     const persistedUserId = toPersistenceId(userId);
@@ -204,7 +205,7 @@ export const createPrismaCircleSessionRepository = (
         userId: persistedUserId,
         deletedAt: null,
       },
-      data: { deletedAt: new Date() },
+      data: { deletedAt },
     });
     if (result.count === 0) {
       throw new NotFoundError("CircleSessionMembership");

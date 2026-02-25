@@ -359,7 +359,7 @@ describe("CircleSession セッションメンバーシップサービス", () =>
 
     expect(
       circleSessionRepository.removeMembership,
-    ).toHaveBeenCalledWith(circleSessionId("session-1"), userId("user-1"));
+    ).toHaveBeenCalledWith(circleSessionId("session-1"), userId("user-1"), expect.any(Date));
   });
 
   describe("withdrawMembership", () => {
@@ -386,6 +386,7 @@ describe("CircleSession セッションメンバーシップサービス", () =>
       ).toHaveBeenCalledWith(
         circleSessionId("session-1"),
         userId("user-actor"),
+        expect.any(Date),
       );
     });
 
@@ -437,6 +438,7 @@ describe("CircleSession セッションメンバーシップサービス", () =>
       ).toHaveBeenCalledWith(
         circleSessionId("session-1"),
         userId("user-actor"),
+        expect.any(Date),
       );
     });
 

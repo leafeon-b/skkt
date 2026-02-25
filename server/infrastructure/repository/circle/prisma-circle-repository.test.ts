@@ -312,12 +312,14 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
 
   test("論理削除後の再参加で create が呼ばれる", async () => {
     // 1. removeMembership で論理削除
+    const deletedAt = new Date("2025-06-01T00:00:00Z");
     mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
       count: 1,
     });
     await prismaCircleRepository.removeMembership(
       circleId("circle-1"),
       userId("user-1"),
+      deletedAt,
     );
 
     expect(mockedPrisma.circleMembership.updateMany).toHaveBeenCalledWith({
@@ -326,7 +328,7 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
         userId: "user-1",
         deletedAt: null,
       },
-      data: { deletedAt: expect.any(Date) },
+      data: { deletedAt },
     });
 
     // 2. addMembership で再参加（新レコード作成）
@@ -383,6 +385,7 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
   });
 
   test("removeMembership はレコードが見つからない場合エラーをスローする", async () => {
+    const deletedAt = new Date("2025-06-01T00:00:00Z");
     mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
       count: 0,
     });
@@ -391,17 +394,20 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
       prismaCircleRepository.removeMembership(
         circleId("circle-1"),
         userId("user-1"),
+        deletedAt,
       ),
     ).rejects.toThrow("CircleMembership not found");
   });
 
   test("removeMembership は研究会メンバーシップを論理削除する", async () => {
+    const deletedAt = new Date("2025-06-01T00:00:00Z");
     mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
       count: 1,
     });
     await prismaCircleRepository.removeMembership(
       circleId("circle-1"),
       userId("user-1"),
+      deletedAt,
     );
 
     expect(mockedPrisma.circleMembership.updateMany).toHaveBeenCalledWith({
@@ -410,7 +416,7 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
         userId: "user-1",
         deletedAt: null,
       },
-      data: { deletedAt: expect.any(Date) },
+      data: { deletedAt },
     });
   });
 });

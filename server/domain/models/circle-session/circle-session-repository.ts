@@ -36,5 +36,6 @@ export type CircleSessionRepository = {
   removeMembership(
     circleSessionId: CircleSessionId,
     userId: UserId,
+    deletedAt: Date,
   ): Promise<void>;
 };
