@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { middleware } from "./middleware";
+import { matcherSource, middleware } from "./middleware";
 
 const FIXED_NONCE = "test-nonce-00000000-0000-0000-0000";
 
@@ -94,5 +94,46 @@ describe("middleware", () => {
     for (const prefix of expectedPrefixes) {
       expect(directives.some((d) => d.startsWith(prefix))).toBe(true);
     }
+  });
+});
+
+describe("matcherSource", () => {
+  // matcherSource をそのまま正規表現として使い、パスがマッチするかを検証する
+  // Next.js は内部でこのパターンを path-to-regexp で処理するが、
+  // 本パターンは標準正規表現としても有効
+  const matcherRegex = new RegExp(`^${matcherSource}$`);
+
+  function isMatched(pathname: string): boolean {
+    return matcherRegex.test(pathname);
+  }
+
+  test("API ルート /api/trpc/* が除外される", () => {
+    expect(isMatched("/api/trpc/circles.list")).toBe(false);
+    expect(isMatched("/api/trpc/users.me")).toBe(false);
+  });
+
+  test("API ルート /api/auth/* が除外される", () => {
+    expect(isMatched("/api/auth/signin")).toBe(false);
+    expect(isMatched("/api/auth/callback/google")).toBe(false);
+  });
+
+  test("末尾スラッシュなしの /api はマッチする（API ルートは常に /api/ 配下）", () => {
+    expect(isMatched("/api")).toBe(true);
+  });
+
+  test("api プレフィックスを含むが API ルートではないパスはマッチする", () => {
+    expect(isMatched("/api-docs")).toBe(true);
+  });
+
+  test("通常のページルートはマッチする", () => {
+    expect(isMatched("/")).toBe(true);
+    expect(isMatched("/circles")).toBe(true);
+    expect(isMatched("/circles/demo/sessions")).toBe(true);
+  });
+
+  test("静的アセットは除外される（既存動作の確認）", () => {
+    expect(isMatched("/_next/static/chunks/main.js")).toBe(false);
+    expect(isMatched("/_next/image")).toBe(false);
+    expect(isMatched("/favicon.ico")).toBe(false);
   });
 });
