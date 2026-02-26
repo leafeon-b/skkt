@@ -40,6 +40,15 @@ vi.mock(
   }),
 );
 
+vi.mock(
+  "@/app/(authenticated)/circles/components/circle-rename-dialog",
+  () => ({
+    CircleRenameDialog: () => (
+      <button data-testid="circle-rename-dialog">名前変更</button>
+    ),
+  }),
+);
+
 afterEach(() => {
   cleanup();
 });
@@ -58,6 +67,7 @@ function buildOverview(
     members: [],
     holidayDates: [],
     canDeleteCircle: false,
+    canRenameCircle: false,
     ...overrides,
   };
 }
@@ -125,6 +135,28 @@ describe("CircleOverviewView ロールベース表示制御", () => {
     const calendar = screen.getByTestId("calendar");
     expect(calendar.dataset.createHref).toBe("");
     expect(screen.queryByTestId("create-link")).not.toBeInTheDocument();
+  });
+
+  it("canRenameCircle が true の場合、名前変更ダイアログが表示される", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({ canRenameCircle: true })}
+      />,
+    );
+
+    expect(screen.getByTestId("circle-rename-dialog")).toBeInTheDocument();
+  });
+
+  it("canRenameCircle が false の場合、名前変更ダイアログが表示されない", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({ canRenameCircle: false })}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId("circle-rename-dialog"),
+    ).not.toBeInTheDocument();
   });
 
   it("canDeleteCircle が true の場合、削除ボタンが表示される", () => {
