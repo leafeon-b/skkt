@@ -7,12 +7,18 @@ import { TrpcProvider } from "@/lib/trpc/client";
 
 type ProvidersProps = {
   children: ReactNode;
+  nonce?: string;
 };
 
-export default function Providers({ children }: ProvidersProps) {
+export default function Providers({ children, nonce }: ProvidersProps) {
   return (
     <SessionProvider>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        nonce={nonce}
+      >
         <TrpcProvider>{children}</TrpcProvider>
       </ThemeProvider>
     </SessionProvider>

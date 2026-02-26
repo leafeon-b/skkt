@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Metadata } from "next";
 import { Shippori_Mincho_B1, Zen_Maru_Gothic } from "next/font/google";
+import { headers } from "next/headers";
 import Providers from "./providers";
 
 const zenMaru = Zen_Maru_Gothic({
@@ -27,17 +28,19 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html lang="ja" suppressHydrationWarning>
       <body
         className={`${zenMaru.variable} ${shippori.variable} min-h-svh w-screen overflow-x-hidden`}
       >
-        <Providers>{children}</Providers>
+        <Providers nonce={nonce}>{children}</Providers>
         <Toaster />
       </body>
     </html>
