@@ -30,13 +30,16 @@ export function middleware(request: NextRequest) {
 }
 
 // Exclude API routes, Next.js internals, and static assets from CSP middleware
+// NOTE: This pattern is duplicated in config.matcher below because Next.js
+// requires config to be statically analyzable (no variable references).
 export const matcherSource =
   "/((?!api/|_next/static|_next/image|favicon\\.ico|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)";
 
 export const config = {
   matcher: [
     {
-      source: matcherSource,
+      source:
+        "/((?!api/|_next/static|_next/image|favicon\\.ico|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },
