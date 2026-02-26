@@ -2,38 +2,33 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  type MutationBehavior,
+  makeMutationMock,
+} from "@/test-helpers/trpc-mutation-mock";
 import { CircleDeleteButton } from "./circle-delete-button";
 
 const pushMock = vi.fn();
 
-type MutationBehavior = "idle" | "success" | "error" | "pending";
 let deleteBehavior: MutationBehavior = "idle";
-let mutateSpy: ReturnType<typeof vi.fn>;
 
-function makeMutationMock(getBehavior: () => MutationBehavior) {
-  return (options?: { onSuccess?: () => void; onError?: () => void }) => {
-    const behavior = getBehavior();
-    mutateSpy = vi.fn(() => {
-      if (behavior === "success") {
-        options?.onSuccess?.();
-      } else if (behavior === "error") {
-        options?.onError?.();
-      }
-    });
-    return {
-      mutate: mutateSpy,
-      isPending: behavior === "pending",
-      data: null,
-      error: null,
-    };
-  };
-}
+const useMutationHolder = vi.hoisted(() => {
+  const noop = (): unknown => ({});
+  return { current: noop as (...args: unknown[]) => unknown };
+});
+
+const { useMutation, mutateSpyRef } = makeMutationMock(
+  () => deleteBehavior,
+  { hasReset: false },
+);
+useMutationHolder.current =
+  useMutation as unknown as typeof useMutationHolder.current;
 
 vi.mock("@/lib/trpc/client", () => ({
   trpc: {
     circles: {
       delete: {
-        useMutation: makeMutationMock(() => deleteBehavior),
+        useMutation: (...args: unknown[]) => useMutationHolder.current(...args),
       },
     },
   },
@@ -149,7 +144,7 @@ describe("CircleDeleteButton", () => {
     });
     await user.click(deleteButton);
 
-    expect(mutateSpy).toHaveBeenCalledWith({ circleId: "circle-1" });
+    expect(mutateSpyRef.current).toHaveBeenCalledWith({ circleId: "circle-1" });
     expect(pushMock).toHaveBeenCalledWith("/");
   });
 
