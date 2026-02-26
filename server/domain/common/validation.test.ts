@@ -1,14 +1,17 @@
 import { describe, expect, test } from "vitest";
 import {
   assertDifferentIds,
+  assertMaxLength,
   assertNonEmpty,
   assertPositiveInteger,
   assertStartBeforeEnd,
   assertValidDate,
 } from "@/server/domain/common/validation";
+import { BadRequestError } from "@/server/domain/common/errors";
 
 describe("バリデーション", () => {
   test("assertNonEmpty は空文字（空白のみ）でエラー", () => {
+    expect(() => assertNonEmpty(" ", "name")).toThrow(BadRequestError);
     expect(() => assertNonEmpty(" ", "name")).toThrow("name is required");
   });
 
@@ -20,11 +23,29 @@ describe("バリデーション", () => {
     expect(assertNonEmpty("  ok  ", "name")).toBe("ok");
   });
 
+  test("assertMaxLength は最大長を超えるとエラー", () => {
+    expect(() => assertMaxLength("abcdef", 5, "title")).toThrow(
+      BadRequestError,
+    );
+    expect(() => assertMaxLength("abcdef", 5, "title")).toThrow(
+      "title must be at most 5 characters",
+    );
+  });
+
+  test("assertMaxLength は最大長ちょうどなら成功する", () => {
+    expect(assertMaxLength("abcde", 5, "title")).toBe("abcde");
+  });
+
+  test("assertMaxLength は最大長未満なら成功する", () => {
+    expect(assertMaxLength("abc", 5, "title")).toBe("abc");
+  });
+
   test("assertPositiveInteger は正の整数で値を返す", () => {
     expect(assertPositiveInteger(3, "count")).toBe(3);
   });
 
   test("assertPositiveInteger は0でエラー", () => {
+    expect(() => assertPositiveInteger(0, "count")).toThrow(BadRequestError);
     expect(() => assertPositiveInteger(0, "count")).toThrow(
       "count must be a positive integer",
     );
@@ -49,6 +70,9 @@ describe("バリデーション", () => {
 
   test("assertValidDate は不正な日付でエラー", () => {
     expect(() => assertValidDate(new Date("invalid"), "createdAt")).toThrow(
+      BadRequestError,
+    );
+    expect(() => assertValidDate(new Date("invalid"), "createdAt")).toThrow(
       "createdAt must be a valid date",
     );
   });
@@ -56,6 +80,9 @@ describe("バリデーション", () => {
   test("assertStartBeforeEnd は開始が後ならエラー", () => {
     const startsAt = new Date("2024-01-02T00:00:00Z");
     const endsAt = new Date("2024-01-01T00:00:00Z");
+    expect(() => assertStartBeforeEnd(startsAt, endsAt, "session")).toThrow(
+      BadRequestError,
+    );
     expect(() => assertStartBeforeEnd(startsAt, endsAt, "session")).toThrow(
       "session start must be before or equal to end",
     );
@@ -75,6 +102,9 @@ describe("バリデーション", () => {
   });
 
   test("assertDifferentIds は同一でエラー", () => {
+    expect(() => assertDifferentIds("id", "id", "target")).toThrow(
+      BadRequestError,
+    );
     expect(() => assertDifferentIds("id", "id", "target")).toThrow(
       "target must be different",
     );
