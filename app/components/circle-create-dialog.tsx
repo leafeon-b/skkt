@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc/client";
 import { CIRCLE_NAME_MAX_LENGTH } from "@/server/domain/models/circle/circle";
 import { CirclePlus } from "lucide-react";
+import { CharacterCounter } from "./character-counter";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
@@ -93,21 +94,11 @@ export function CircleCreateDialog() {
             aria-required="true"
             className="mt-2 bg-white"
           />
-          <p
-            className={`mt-1 text-right text-xs ${
-              name.length >= CIRCLE_NAME_MAX_LENGTH
-                ? "text-destructive"
-                : name.length >= CIRCLE_NAME_MAX_LENGTH * 0.8
-                  ? "text-amber-600"
-                  : "text-(--brand-ink-muted)"
-            }`}
-            aria-live={
-              name.length >= CIRCLE_NAME_MAX_LENGTH * 0.8 ? "polite" : "off"
-            }
-            aria-label="研究会名の文字数"
-          >
-            {name.length} / {CIRCLE_NAME_MAX_LENGTH}
-          </p>
+          <CharacterCounter
+            count={name.length}
+            max={CIRCLE_NAME_MAX_LENGTH}
+            label="研究会名の文字数"
+          />
           {createCircle.error ? (
             <p role="alert" className="mt-2 text-xs text-red-600">
               {createCircle.error.message}
