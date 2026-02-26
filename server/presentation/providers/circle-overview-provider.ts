@@ -58,12 +58,15 @@ export async function getCircleOverviewViewModel(
 
   const viewerId = ctx.actorId ?? null;
 
-  const [users, canDeleteCircle] = await Promise.all([
+  const [users, canDeleteCircle, canRenameCircle] = await Promise.all([
     caller.users.list({
       userIds: memberships.map((m) => m.userId),
     }),
     viewerId
       ? ctx.accessService.canDeleteCircle(viewerId, circleId)
+      : Promise.resolve(false),
+    viewerId
+      ? ctx.accessService.canEditCircle(viewerId, circleId)
       : Promise.resolve(false),
   ]);
   const userNameById = new Map(users.map((user) => [user.id, user.name]));
@@ -105,6 +108,7 @@ export async function getCircleOverviewViewModel(
     })),
     holidayDates: ctx.holidayProvider.getHolidayDateStringsForRange(),
     canDeleteCircle,
+    canRenameCircle,
   };
 
   return overview;

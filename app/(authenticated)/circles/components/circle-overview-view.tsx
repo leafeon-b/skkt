@@ -1,5 +1,6 @@
 import { CircleDeleteButton } from "@/app/(authenticated)/circles/components/circle-delete-button";
 import { CircleOverviewCalendar } from "@/app/(authenticated)/circles/components/circle-overview-calendar";
+import { CircleRenameDialog } from "@/app/(authenticated)/circles/components/circle-rename-dialog";
 import { CircleWithdrawButton } from "@/app/(authenticated)/circles/components/circle-withdraw-button";
 import type {
   CircleOverviewMember,
@@ -75,6 +76,12 @@ export function CircleOverviewView({
         <h1 className="text-3xl font-(--font-display) text-(--brand-ink) sm:text-4xl">
           {overview.circleName}
         </h1>
+        {overview.canRenameCircle ? (
+          <CircleRenameDialog
+            circleId={overview.circleId}
+            circleName={overview.circleName}
+          />
+        ) : null}
         {roleLabel ? (
           <span
             className={`rounded-full px-2.5 py-0.5 text-xs ${roleBadgeClassName}`}
