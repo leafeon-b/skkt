@@ -62,49 +62,6 @@ describe("middleware", () => {
     expect(scriptSrc).not.toContain("'unsafe-inline'");
   });
 
-  test("style-src-elem に unsafe-inline が含まれない", () => {
-    const request = new NextRequest("http://localhost/");
-    const response = middleware(request);
-
-    const csp = response.headers.get("Content-Security-Policy")!;
-    const styleSrcElem = csp
-      .split("; ")
-      .find((d) => d.startsWith("style-src-elem "));
-
-    expect(styleSrcElem).toBeDefined();
-    expect(styleSrcElem).not.toContain("'unsafe-inline'");
-  });
-
-  test("style-src-elem に nonce が含まれる", () => {
-    vi.spyOn(crypto, "randomUUID").mockReturnValue(
-      FIXED_NONCE as `${string}-${string}-${string}-${string}-${string}`,
-    );
-
-    const request = new NextRequest("http://localhost/");
-    const response = middleware(request);
-
-    const csp = response.headers.get("Content-Security-Policy")!;
-    const styleSrcElem = csp
-      .split("; ")
-      .find((d) => d.startsWith("style-src-elem "));
-
-    expect(styleSrcElem).toBeDefined();
-    expect(styleSrcElem).toContain(`'nonce-${FIXED_NONCE}'`);
-  });
-
-  test("style-src-attr は unsafe-inline を許可する", () => {
-    const request = new NextRequest("http://localhost/");
-    const response = middleware(request);
-
-    const csp = response.headers.get("Content-Security-Policy")!;
-    const styleSrcAttr = csp
-      .split("; ")
-      .find((d) => d.startsWith("style-src-attr "));
-
-    expect(styleSrcAttr).toBeDefined();
-    expect(styleSrcAttr).toContain("'unsafe-inline'");
-  });
-
   test("レスポンスヘッダーに Content-Security-Policy が設定される", () => {
     const request = new NextRequest("http://localhost/");
     const response = middleware(request);
@@ -122,9 +79,7 @@ describe("middleware", () => {
     const expectedPrefixes = [
       "default-src",
       "script-src",
-      "style-src ",
-      "style-src-elem",
-      "style-src-attr",
+      "style-src",
       "img-src",
       "font-src",
       "connect-src",

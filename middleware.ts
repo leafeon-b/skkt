@@ -7,9 +7,7 @@ export function middleware(request: NextRequest) {
   const cspDirectives = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}'`,
-    `style-src 'self' 'nonce-${nonce}'`,
-    `style-src-elem 'self' 'nonce-${nonce}'`,
-    "style-src-attr 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
     "img-src 'self' https://lh3.googleusercontent.com",
     "font-src 'self' data:",
     "connect-src 'self'",
