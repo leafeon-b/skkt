@@ -29,11 +29,14 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
+// Exclude API routes, Next.js internals, and static assets from CSP middleware
+export const matcherSource =
+  "/((?!api/|_next/static|_next/image|favicon\\.ico|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)";
+
 export const config = {
   matcher: [
     {
-      source:
-        "/((?!_next/static|_next/image|favicon\\.ico|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+      source: matcherSource,
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },
