@@ -2,41 +2,35 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  type MutationBehavior,
+  makeMutationMock,
+} from "@/test-helpers/trpc-mutation-mock";
 import { CircleCreateDialog } from "./circle-create-dialog";
 
 const pushMock = vi.fn();
 
-type MutationBehavior = "idle" | "success" | "error" | "pending";
 let createBehavior: MutationBehavior = "idle";
-let mutateSpy: ReturnType<typeof vi.fn>;
-const resetSpy = vi.fn();
 
-function makeMutationMock(getBehavior: () => MutationBehavior) {
-  return (options?: { onSuccess?: (data: { id: string }) => void }) => {
-    const behavior = getBehavior();
-    mutateSpy = vi.fn(() => {
-      if (behavior === "success") {
-        options?.onSuccess?.({ id: "new-circle-id" });
-      }
-    });
-    return {
-      mutate: mutateSpy,
-      reset: resetSpy,
-      isPending: behavior === "pending",
-      data: null,
-      error:
-        behavior === "error"
-          ? { message: "作成に失敗しました" }
-          : null,
-    };
-  };
-}
+const useMutationHolder = vi.hoisted(() => {
+  const noop = (): unknown => ({});
+  return { current: noop as (...args: unknown[]) => unknown };
+});
+
+const { useMutation, mutateSpyRef, resetSpy } = makeMutationMock<{
+  id: string;
+}>(() => createBehavior, {
+  errorMessage: "作成に失敗しました",
+  successData: { id: "new-circle-id" },
+});
+useMutationHolder.current =
+  useMutation as unknown as typeof useMutationHolder.current;
 
 vi.mock("@/lib/trpc/client", () => ({
   trpc: {
     circles: {
       create: {
-        useMutation: makeMutationMock(() => createBehavior),
+        useMutation: (...args: unknown[]) => useMutationHolder.current(...args),
       },
     },
   },
@@ -55,6 +49,7 @@ afterEach(() => {
   cleanup();
   pushMock.mockClear();
   resetSpy.mockClear();
+  mutateSpyRef.current.mockClear();
   createBehavior = "idle";
 });
 
@@ -74,7 +69,7 @@ describe("CircleCreateDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "作成" });
     await user.click(submitButton);
 
-    expect(mutateSpy).not.toHaveBeenCalled();
+    expect(mutateSpyRef.current).not.toHaveBeenCalled();
   });
 
   it("有効な名前入力後に送信すると mutate が呼ばれる", async () => {
@@ -86,7 +81,7 @@ describe("CircleCreateDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "作成" });
     await user.click(submitButton);
 
-    expect(mutateSpy).toHaveBeenCalledWith({ name: "新しい研究会" });
+    expect(mutateSpyRef.current).toHaveBeenCalledWith({ name: "新しい研究会" });
   });
 
   it("成功時に router.push が呼ばれダイアログが閉じる", async () => {
@@ -166,7 +161,7 @@ describe("CircleCreateDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "作成" });
     await user.click(submitButton);
 
-    expect(mutateSpy).not.toHaveBeenCalled();
+    expect(mutateSpyRef.current).not.toHaveBeenCalled();
   });
 
   it("前後の空白を除去して mutate が呼ばれる", async () => {
@@ -178,7 +173,7 @@ describe("CircleCreateDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "作成" });
     await user.click(submitButton);
 
-    expect(mutateSpy).toHaveBeenCalledWith({ name: "新しい研究会" });
+    expect(mutateSpyRef.current).toHaveBeenCalledWith({ name: "新しい研究会" });
   });
 
   it("80%（40文字）以上で aria-live='polite' が有効化される", async () => {

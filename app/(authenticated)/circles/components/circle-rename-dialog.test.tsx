@@ -2,41 +2,33 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  type MutationBehavior,
+  makeMutationMock,
+} from "@/test-helpers/trpc-mutation-mock";
 import { CircleRenameDialog } from "./circle-rename-dialog";
 
 const refreshMock = vi.fn();
 
-type MutationBehavior = "idle" | "success" | "error" | "pending";
 let renameBehavior: MutationBehavior = "idle";
-let mutateSpy: ReturnType<typeof vi.fn>;
-const resetSpy = vi.fn();
 
-function makeMutationMock(getBehavior: () => MutationBehavior) {
-  return (options?: { onSuccess?: () => void }) => {
-    const behavior = getBehavior();
-    mutateSpy = vi.fn(() => {
-      if (behavior === "success") {
-        options?.onSuccess?.();
-      }
-    });
-    return {
-      mutate: mutateSpy,
-      reset: resetSpy,
-      isPending: behavior === "pending",
-      data: null,
-      error:
-        behavior === "error"
-          ? { message: "変更に失敗しました" }
-          : null,
-    };
-  };
-}
+const useMutationHolder = vi.hoisted(() => {
+  const noop = (): unknown => ({});
+  return { current: noop as (...args: unknown[]) => unknown };
+});
+
+const { useMutation, mutateSpyRef, resetSpy } = makeMutationMock(
+  () => renameBehavior,
+  { errorMessage: "変更に失敗しました" },
+);
+useMutationHolder.current =
+  useMutation as unknown as typeof useMutationHolder.current;
 
 vi.mock("@/lib/trpc/client", () => ({
   trpc: {
     circles: {
       rename: {
-        useMutation: makeMutationMock(() => renameBehavior),
+        useMutation: (...args: unknown[]) => useMutationHolder.current(...args),
       },
     },
   },
@@ -55,6 +47,7 @@ afterEach(() => {
   cleanup();
   refreshMock.mockClear();
   resetSpy.mockClear();
+  mutateSpyRef.current.mockClear();
   renameBehavior = "idle";
 });
 
@@ -105,7 +98,7 @@ describe("CircleRenameDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "変更" });
     await user.click(submitButton);
 
-    expect(mutateSpy).toHaveBeenCalledWith({
+    expect(mutateSpyRef.current).toHaveBeenCalledWith({
       circleId: CIRCLE_ID,
       name: "新しい名前",
     });
@@ -193,7 +186,7 @@ describe("CircleRenameDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "変更" });
     await user.click(submitButton);
 
-    expect(mutateSpy).not.toHaveBeenCalled();
+    expect(mutateSpyRef.current).not.toHaveBeenCalled();
   });
 
   it("前後の空白を除去して mutate が呼ばれる", async () => {
@@ -206,7 +199,7 @@ describe("CircleRenameDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "変更" });
     await user.click(submitButton);
 
-    expect(mutateSpy).toHaveBeenCalledWith({
+    expect(mutateSpyRef.current).toHaveBeenCalledWith({
       circleId: CIRCLE_ID,
       name: "新しい名前",
     });
