@@ -6,6 +6,7 @@ import type {
   CircleOverviewViewModel,
   CircleRoleKey,
 } from "@/server/presentation/view-models/circle-overview";
+import { UserPlus } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -151,8 +152,9 @@ export function CircleOverviewView({
               {getInviteLinkHref?.() ? (
                 <Link
                   href={getInviteLinkHref()!}
-                  className="rounded-md px-2 py-1 text-xs font-semibold text-(--brand-moss) hover:bg-(--brand-moss)/10"
+                  className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-(--brand-moss) hover:bg-(--brand-moss)/10"
                 >
+                  <UserPlus className="size-3.5" aria-hidden="true" />
                   招待リンク
                 </Link>
               ) : null}

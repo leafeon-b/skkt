@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Link } from "lucide-react";
+import { Copy, Check, Link, Clock, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc/client";
 
@@ -86,7 +86,8 @@ export function InviteLinkGenerator({ circleId }: InviteLinkGeneratorProps) {
               {copied ? "コピー済み" : "コピー"}
             </Button>
           </div>
-          <p className="text-xs text-(--brand-ink-muted)">
+          <p className="flex items-center gap-1 text-xs text-(--brand-ink-muted)">
+            <Clock className="size-3.5" aria-hidden="true" />
             有効期限:{" "}
             {createInviteLink.data.expiresAt.toLocaleDateString("ja-JP")}
           </p>
@@ -98,6 +99,7 @@ export function InviteLinkGenerator({ circleId }: InviteLinkGeneratorProps) {
             }}
             className="self-start"
           >
+            <RefreshCw className="size-4" />
             別のリンクを作成
           </Button>
         </div>
