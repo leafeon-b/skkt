@@ -2,7 +2,7 @@ import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, UserPlus } from "lucide-react";
 import { InviteLinkGenerator } from "./invite-link-generator";
 
 type InviteLinkPageProps = {
@@ -31,7 +31,8 @@ export default async function InviteLinkPage({ params }: InviteLinkPageProps) {
         <ChevronLeft className="size-4" />
         {circle.name} に戻る
       </Link>
-      <h1 className="text-2xl font-(--font-display) text-(--brand-ink)">
+      <h1 className="flex items-center gap-2 text-2xl font-(--font-display) text-(--brand-ink)">
+        <UserPlus className="size-6" aria-hidden="true" />
         メンバーを招待
       </h1>
       <InviteLinkGenerator circleId={circleId} />
