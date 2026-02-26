@@ -3,6 +3,7 @@ import type { JWT } from "next-auth/jwt";
 import type { RateLimiter } from "@/server/application/common/rate-limiter";
 import { TooManyRequestsError } from "@/server/domain/common/errors";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
+import { USER_NAME_MAX_LENGTH } from "@/server/domain/models/user/user";
 
 const prismaValue = vi.hoisted(() => ({
   prisma: {},
@@ -107,6 +108,7 @@ describe("NextAuth ハンドラ", () => {
     expect(Google).toHaveBeenCalledWith({
       clientId: "client-id",
       clientSecret: "client-secret",
+      profile: expect.any(Function),
     });
     expect(NextAuth).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -120,6 +122,108 @@ describe("NextAuth ハンドラ", () => {
         },
       }),
     );
+  });
+});
+
+describe("Google プロバイダの profile コールバック", () => {
+  const extractGoogleProfile = () => {
+    googleMock.mockClear();
+    process.env.GOOGLE_CLIENT_ID = "client-id";
+    process.env.GOOGLE_CLIENT_SECRET = "client-secret";
+    createAuthOptions({
+      userRepository: createMockUserRepository(),
+      loginRateLimiter: createMockRateLimiter(),
+    });
+    return googleMock.mock.calls[0][0].profile as (profile: {
+      sub: string;
+      name: string;
+      email: string;
+      picture: string;
+    }) => { id: string; name: string | null; email: string; image: string };
+  };
+
+  afterEach(() => {
+    process.env.GOOGLE_CLIENT_ID = ORIGINAL_CLIENT_ID;
+    process.env.GOOGLE_CLIENT_SECRET = ORIGINAL_CLIENT_SECRET;
+    vi.clearAllMocks();
+  });
+
+  test("name が undefined の場合は null を返す", () => {
+    const profile = extractGoogleProfile();
+
+    const result = profile({
+      sub: "google-undef",
+      name: undefined as unknown as string,
+      email: "user@example.com",
+      picture: "https://example.com/photo.jpg",
+    });
+
+    expect(result.name).toBeNull();
+  });
+
+  test("name が空文字列の場合はそのまま返す", () => {
+    const profile = extractGoogleProfile();
+
+    const result = profile({
+      sub: "google-empty",
+      name: "",
+      email: "user@example.com",
+      picture: "https://example.com/photo.jpg",
+    });
+
+    expect(result.name).toBe("");
+  });
+
+  test("50文字以内の name はそのまま返す", () => {
+    const profile = extractGoogleProfile();
+    const name = "a".repeat(USER_NAME_MAX_LENGTH);
+
+    const result = profile({
+      sub: "google-123",
+      name,
+      email: "user@example.com",
+      picture: "https://example.com/photo.jpg",
+    });
+
+    expect(result).toEqual({
+      id: "google-123",
+      name,
+      email: "user@example.com",
+      image: "https://example.com/photo.jpg",
+    });
+  });
+
+  test("50文字超の name は50文字に切り詰める", () => {
+    const profile = extractGoogleProfile();
+    const longName = "a".repeat(USER_NAME_MAX_LENGTH + 10);
+
+    const result = profile({
+      sub: "google-456",
+      name: longName,
+      email: "user@example.com",
+      picture: "https://example.com/photo.jpg",
+    });
+
+    expect(result.name).toBe("a".repeat(USER_NAME_MAX_LENGTH));
+    expect(result.name!.length).toBe(USER_NAME_MAX_LENGTH);
+  });
+
+  test("必須フィールド（id, email, name, image）をすべて返す", () => {
+    const profile = extractGoogleProfile();
+
+    const result = profile({
+      sub: "google-789",
+      name: "Test User",
+      email: "test@example.com",
+      picture: "https://example.com/pic.jpg",
+    });
+
+    expect(result).toEqual({
+      id: "google-789",
+      name: "Test User",
+      email: "test@example.com",
+      image: "https://example.com/pic.jpg",
+    });
   });
 });
 
