@@ -65,7 +65,7 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
         email,
         password,
         redirect: false,
-        callbackUrl: callbackUrl ?? "/home",
+        callbackUrl: sanitizeCallbackUrl(callbackUrl),
       });
 
       if (!result || result.error) {
