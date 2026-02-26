@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { sanitizeCallbackUrl } from "@/lib/url";
 import { signIn } from "next-auth/react";
 
 type LoginButtonProps = {
@@ -17,7 +18,7 @@ export default function LoginButton({
   return (
     <Button
       className={className}
-      onClick={() => signIn("google", { callbackUrl: callbackUrl ?? "/home" })}
+      onClick={() => signIn("google", { callbackUrl: sanitizeCallbackUrl(callbackUrl) })}
     >
       {label ?? "Googleでログイン"}
     </Button>

@@ -33,7 +33,7 @@ export default function CredentialsLoginForm({
         email,
         password,
         redirect: false,
-        callbackUrl: callbackUrl ?? "/home",
+        callbackUrl: sanitizeCallbackUrl(callbackUrl),
       });
       if (!result || result.error) {
         try {
