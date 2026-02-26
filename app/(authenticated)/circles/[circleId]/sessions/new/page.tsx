@@ -32,6 +32,15 @@ export default async function NewCircleSessionPage({
   }
 
   const { startsAt, title, endsAt, location, note } = await searchParams;
+  const dateFormat = /^\d{4}-\d{2}-\d{2}$/;
+  const validStartsAt = dateFormat.test(startsAt ?? "")
+    ? startsAt
+    : undefined;
+  const validEndsAt = dateFormat.test(endsAt ?? "") ? endsAt : undefined;
+  const validTitle = title && title.length <= 100 ? title : undefined;
+  const validLocation =
+    location && location.length <= 200 ? location : undefined;
+  const validNote = note && note.length <= 1000 ? note : undefined;
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 py-8">
@@ -40,11 +49,11 @@ export default async function NewCircleSessionPage({
       </h1>
       <CircleSessionCreateForm
         circleId={circleId}
-        defaultStartsAt={startsAt}
-        defaultTitle={title}
-        defaultEndsAt={endsAt}
-        defaultLocation={location}
-        defaultNote={note}
+        defaultStartsAt={validStartsAt}
+        defaultTitle={validTitle}
+        defaultEndsAt={validEndsAt}
+        defaultLocation={validLocation}
+        defaultNote={validNote}
       />
     </div>
   );
