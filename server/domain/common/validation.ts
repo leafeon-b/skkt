@@ -1,7 +1,15 @@
+/**
+ * SECURITY: これらのバリデーション関数は BadRequestError を throw し、
+ * そのメッセージはクライアントへそのまま返される。
+ * field / label 引数には開発者が定義した文字列リテラルのみを渡すこと。
+ * ユーザー入力を渡してはならない。
+ */
+import { BadRequestError } from "./errors";
+
 export const assertNonEmpty = (value: string, field: string): string => {
   const trimmed = value.trim();
   if (!trimmed) {
-    throw new Error(`${field} is required`);
+    throw new BadRequestError(`${field} is required`);
   }
   return trimmed;
 };
@@ -12,21 +20,21 @@ export const assertMaxLength = (
   field: string,
 ): string => {
   if (value.length > maxLength) {
-    throw new Error(`${field} must be at most ${maxLength} characters`);
+    throw new BadRequestError(`${field} must be at most ${maxLength} characters`);
   }
   return value;
 };
 
 export const assertPositiveInteger = (value: number, field: string): number => {
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${field} must be a positive integer`);
+    throw new BadRequestError(`${field} must be a positive integer`);
   }
   return value;
 };
 
 export const assertValidDate = (value: Date, field: string): Date => {
   if (Number.isNaN(value.getTime())) {
-    throw new Error(`${field} must be a valid date`);
+    throw new BadRequestError(`${field} must be a valid date`);
   }
   return value;
 };
@@ -37,7 +45,7 @@ export const assertStartBeforeEnd = (
   field: string,
 ): void => {
   if (startsAt.getTime() > endsAt.getTime()) {
-    throw new Error(`${field} start must be before or equal to end`);
+    throw new BadRequestError(`${field} start must be before or equal to end`);
   }
 };
 
@@ -47,6 +55,6 @@ export const assertDifferentIds = (
   field: string,
 ): void => {
   if (left === right) {
-    throw new Error(`${field} must be different`);
+    throw new BadRequestError(`${field} must be different`);
   }
 };
