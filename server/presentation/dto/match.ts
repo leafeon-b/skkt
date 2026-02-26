@@ -33,12 +33,17 @@ export const matchListInputSchema = z.object({
 
 export type MatchListInput = z.infer<typeof matchListInputSchema>;
 
-export const matchCreateInputSchema = z.object({
-  circleSessionId: circleSessionIdSchema,
-  player1Id: userIdSchema,
-  player2Id: userIdSchema,
-  outcome: matchOutcomeSchema.optional(),
-});
+export const matchCreateInputSchema = z
+  .object({
+    circleSessionId: circleSessionIdSchema,
+    player1Id: userIdSchema,
+    player2Id: userIdSchema,
+    outcome: matchOutcomeSchema.optional(),
+  })
+  .refine((v) => v.player1Id !== v.player2Id, {
+    message: "player1Id and player2Id must be different",
+    path: ["player2Id"],
+  });
 
 export type MatchCreateInput = z.infer<typeof matchCreateInputSchema>;
 
@@ -56,6 +61,13 @@ export const matchUpdateInputSchema = z
     {
       message: "player1Id and player2Id must both be provided",
       path: ["player1Id"],
+    },
+  )
+  .refine(
+    (v) => !v.player1Id || !v.player2Id || v.player1Id !== v.player2Id,
+    {
+      message: "player1Id and player2Id must be different",
+      path: ["player2Id"],
     },
   );
 

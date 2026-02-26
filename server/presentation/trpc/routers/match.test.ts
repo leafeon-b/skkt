@@ -261,11 +261,8 @@ describe("match tRPC ルーター", () => {
       ).rejects.toMatchObject({ code: "FORBIDDEN" });
     });
 
-    test("BadRequestError（プレイヤー不正）→ BAD_REQUEST", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.matchService.recordMatch.mockRejectedValueOnce(
-        new BadRequestError("Players must be different"),
-      );
+    test("同一プレイヤーID → BAD_REQUEST（Zodバリデーション）", async () => {
+      const { context } = createTestContext();
 
       const caller = appRouter.createCaller(context);
 
