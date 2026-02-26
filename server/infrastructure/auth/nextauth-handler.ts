@@ -2,6 +2,7 @@
 import { prisma } from "@/server/infrastructure/db";
 import { verifyPassword } from "@/server/infrastructure/auth/password";
 import { userId } from "@/server/domain/common/ids";
+import { USER_NAME_MAX_LENGTH } from "@/server/domain/models/user/user";
 import type { RateLimiter } from "@/server/application/common/rate-limiter";
 import { TooManyRequestsError } from "@/server/domain/common/errors";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
@@ -87,6 +88,14 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name?.slice(0, USER_NAME_MAX_LENGTH) ?? null,
+          email: profile.email,
+          image: profile.picture,
+        };
+      },
     }),
   ],
   session: { strategy: "jwt" },
