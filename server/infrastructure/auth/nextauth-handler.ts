@@ -91,7 +91,10 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
       profile(profile) {
         return {
           id: profile.sub,
-          name: profile.name?.slice(0, USER_NAME_MAX_LENGTH) ?? null,
+          name:
+            profile.name != null
+              ? [...profile.name].slice(0, USER_NAME_MAX_LENGTH).join("")
+              : null,
           email: profile.email,
           image: profile.picture,
         };

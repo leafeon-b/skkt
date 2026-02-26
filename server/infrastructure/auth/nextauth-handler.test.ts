@@ -208,6 +208,23 @@ describe("Google プロバイダの profile コールバック", () => {
     expect(result.name!.length).toBe(USER_NAME_MAX_LENGTH);
   });
 
+  test("サロゲートペアを含む50文字超の name を切り詰めてもサロゲートペアが分割されない", () => {
+    const profile = extractGoogleProfile();
+    // 49文字のASCII + 2文字の絵文字（各サロゲートペア）= 51コードポイント
+    const nameWithEmoji = "a".repeat(49) + "🍣🍺";
+
+    const result = profile({
+      sub: "google-sp",
+      name: nameWithEmoji,
+      email: "user@example.com",
+      picture: "https://example.com/photo.jpg",
+    });
+
+    expect(result.name).toBe("a".repeat(49) + "🍣");
+    expect(result.name!.length).toBe(USER_NAME_MAX_LENGTH + 1); // サロゲートペアは length 2
+    expect([...result.name!].length).toBe(USER_NAME_MAX_LENGTH); // コードポイント数は50
+  });
+
   test("必須フィールド（id, email, name, image）をすべて返す", () => {
     const profile = extractGoogleProfile();
 
