@@ -101,6 +101,15 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
       },
     }),
   ],
+  // These paths must match the corresponding App Router page files:
+  //   app/(public)/page.tsx    -> "/"
+  //   app/signout/page.tsx     -> "/signout"
+  //   app/auth/error/page.tsx  -> "/auth/error"
+  pages: {
+    signIn: "/",
+    signOut: "/signout",
+    error: "/auth/error",
+  },
   session: { strategy: "jwt" },
   debug: isDebug,
   callbacks: {
