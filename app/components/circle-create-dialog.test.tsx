@@ -188,4 +188,58 @@ describe("CircleCreateDialog", () => {
 
     expect(counter).toHaveAttribute("aria-live", "polite");
   });
+
+  describe("文字数カウンターのカラー遷移", () => {
+    it("0文字 → muted カラー", async () => {
+      const { dialog } = await openDialog();
+
+      const counter = within(dialog).getByLabelText("研究会名の文字数");
+      expect(counter).toHaveClass("text-(--brand-ink-muted)");
+      expect(counter).toHaveAttribute("aria-live", "off");
+    });
+
+    it("39文字 → muted カラー（amber 閾値の直前）", async () => {
+      const { user, dialog } = await openDialog();
+
+      const input = within(dialog).getByPlaceholderText("研究会名");
+      await user.type(input, "あ".repeat(39));
+
+      const counter = within(dialog).getByLabelText("研究会名の文字数");
+      expect(counter).toHaveClass("text-(--brand-ink-muted)");
+      expect(counter).toHaveAttribute("aria-live", "off");
+    });
+
+    it("40文字 → amber カラー（80% 閾値境界）", async () => {
+      const { user, dialog } = await openDialog();
+
+      const input = within(dialog).getByPlaceholderText("研究会名");
+      await user.type(input, "あ".repeat(40));
+
+      const counter = within(dialog).getByLabelText("研究会名の文字数");
+      expect(counter).toHaveClass("text-amber-600");
+      expect(counter).toHaveAttribute("aria-live", "polite");
+    });
+
+    it("49文字 → amber カラー（destructive 直前）", async () => {
+      const { user, dialog } = await openDialog();
+
+      const input = within(dialog).getByPlaceholderText("研究会名");
+      await user.type(input, "あ".repeat(49));
+
+      const counter = within(dialog).getByLabelText("研究会名の文字数");
+      expect(counter).toHaveClass("text-amber-600");
+      expect(counter).toHaveAttribute("aria-live", "polite");
+    });
+
+    it("50文字 → destructive カラー（上限境界）", async () => {
+      const { user, dialog } = await openDialog();
+
+      const input = within(dialog).getByPlaceholderText("研究会名");
+      await user.type(input, "あ".repeat(50));
+
+      const counter = within(dialog).getByLabelText("研究会名の文字数");
+      expect(counter).toHaveClass("text-destructive");
+      expect(counter).toHaveAttribute("aria-live", "polite");
+    });
+  });
 });
