@@ -1,11 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
-import {
-  circleId,
-  circleSessionId,
-  userId,
-} from "@/server/domain/common/ids";
+import { userId } from "@/server/domain/common/ids";
 import { BadRequestError } from "@/server/domain/common/errors";
 
 const createTestContext = (
