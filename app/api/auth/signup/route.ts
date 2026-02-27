@@ -46,12 +46,16 @@ export async function POST(request: Request) {
       terms_not_agreed: "利用規約およびプライバシーポリシーに同意してください。",
       invalid_email: "メールアドレスを入力してください。",
       password_too_short: "パスワードは8文字以上で入力してください。",
+      password_too_long: "パスワードは128文字以内で入力してください。",
+      name_too_long: "表示名は50文字以内で入力してください。",
       email_exists: "このメールアドレスは既に登録されています。",
     };
     const statusCodes = {
       terms_not_agreed: 400,
       invalid_email: 400,
       password_too_short: 400,
+      password_too_long: 400,
+      name_too_long: 400,
       email_exists: 409,
     };
     return NextResponse.json(

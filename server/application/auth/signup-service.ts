@@ -2,6 +2,10 @@ import type { UserId } from "@/server/domain/common/ids";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { PasswordUtils } from "@/server/application/user/user-service";
 import { ConflictError } from "@/server/domain/common/errors";
+import {
+  USER_NAME_MAX_LENGTH,
+  USER_PASSWORD_MAX_LENGTH,
+} from "@/server/domain/models/user/user";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -25,6 +29,8 @@ export type SignupResult =
         | "terms_not_agreed"
         | "invalid_email"
         | "password_too_short"
+        | "password_too_long"
+        | "name_too_long"
         | "email_exists";
     };
 
@@ -44,6 +50,14 @@ export const createSignupService = (deps: SignupServiceDeps) => ({
 
     if (password.length < MIN_PASSWORD_LENGTH) {
       return { success: false, error: "password_too_short" };
+    }
+
+    if (password.length > USER_PASSWORD_MAX_LENGTH) {
+      return { success: false, error: "password_too_long" };
+    }
+
+    if (name !== null && name.length > USER_NAME_MAX_LENGTH) {
+      return { success: false, error: "name_too_long" };
     }
 
     const exists = await deps.userRepository.emailExists(email);
