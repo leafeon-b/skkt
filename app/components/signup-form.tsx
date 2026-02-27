@@ -31,7 +31,7 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
     }
 
     if (!agreedToTerms) {
-      setErrorMessage("利用規約に同意してください。");
+      setErrorMessage("利用規約およびプライバシーポリシーに同意してください。");
       return;
     }
 
@@ -183,6 +183,15 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
             className="font-semibold text-(--brand-moss) hover:underline"
           >
             利用規約
+          </a>
+          および
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-(--brand-moss) hover:underline"
+          >
+            プライバシーポリシー
           </a>
           に同意する
         </label>
