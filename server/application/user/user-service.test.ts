@@ -191,6 +191,26 @@ describe("changePassword", () => {
     expect(userRepository.updatePasswordHash).not.toHaveBeenCalled();
   });
 
+  test("新パスワードが128文字の場合は許可される", async () => {
+    userRepository.findPasswordHashById.mockResolvedValue("hashed:oldpass");
+    const maxPassword = "a".repeat(128);
+
+    await service.changePassword(actorId, "oldpass", maxPassword);
+
+    expect(userRepository.updatePasswordHash).toHaveBeenCalled();
+  });
+
+  test("新パスワードが128文字を超える場合 BadRequest エラー", async () => {
+    userRepository.findPasswordHashById.mockResolvedValue("hashed:oldpass");
+    const longPassword = "a".repeat(129);
+
+    await expect(
+      service.changePassword(actorId, "oldpass", longPassword),
+    ).rejects.toThrow("Password too long");
+
+    expect(userRepository.updatePasswordHash).not.toHaveBeenCalled();
+  });
+
   test("OAuthユーザー（パスワード未設定）の場合 BadRequest エラー", async () => {
     userRepository.findPasswordHashById.mockResolvedValue(null);
 

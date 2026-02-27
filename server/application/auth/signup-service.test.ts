@@ -61,6 +61,57 @@ describe("SignupService", () => {
     expect(deps.userRepository.emailExists).not.toHaveBeenCalled();
   });
 
+  test("パスワードが128文字を超える場合 password_too_long を返す", async () => {
+    const deps = createDeps();
+    const service = createSignupService(deps);
+    const longPassword = "a".repeat(129);
+
+    const result = await service.signup({ ...validInput, password: longPassword });
+
+    expect(result).toEqual({ success: false, error: "password_too_long" });
+    expect(deps.userRepository.emailExists).not.toHaveBeenCalled();
+  });
+
+  test("パスワードが128文字の場合は許可される", async () => {
+    const deps = createDeps();
+    const service = createSignupService(deps);
+    const maxPassword = "a".repeat(128);
+
+    const result = await service.signup({ ...validInput, password: maxPassword });
+
+    expect(result).toEqual({ success: true, userId: userId("new-user-id") });
+  });
+
+  test("名前が50文字を超える場合 name_too_long を返す", async () => {
+    const deps = createDeps();
+    const service = createSignupService(deps);
+    const longName = "あ".repeat(51);
+
+    const result = await service.signup({ ...validInput, name: longName });
+
+    expect(result).toEqual({ success: false, error: "name_too_long" });
+    expect(deps.userRepository.emailExists).not.toHaveBeenCalled();
+  });
+
+  test("名前が50文字の場合は許可される", async () => {
+    const deps = createDeps();
+    const service = createSignupService(deps);
+    const maxName = "あ".repeat(50);
+
+    const result = await service.signup({ ...validInput, name: maxName });
+
+    expect(result).toEqual({ success: true, userId: userId("new-user-id") });
+  });
+
+  test("名前がnullの場合は name_too_long チェックをスキップする", async () => {
+    const deps = createDeps();
+    const service = createSignupService(deps);
+
+    const result = await service.signup({ ...validInput, name: null });
+
+    expect(result).toEqual({ success: true, userId: userId("new-user-id") });
+  });
+
   test("createUser が ConflictError 以外をスローした場合はそのまま伝播する", async () => {
     const otherError = new Error("Database connection failed");
     const deps = createDeps({
