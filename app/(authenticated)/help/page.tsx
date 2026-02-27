@@ -1,5 +1,66 @@
 import { ExternalLink } from "lucide-react";
 
+type PermissionRow = {
+  operation: string;
+  owner: string;
+  manager: string;
+  member: string;
+};
+
+type PermissionTableConfig = {
+  title: string;
+  ariaLabel: string;
+  rows: PermissionRow[];
+};
+
+const memberManagementRows: PermissionRow[] = [
+  { operation: "メンバーの追加", owner: "○", manager: "○", member: "○" },
+  { operation: "メンバーの除外", owner: "○", manager: "○", member: "—" },
+  { operation: "ロール変更", owner: "○", manager: "○ ※", member: "—" },
+  { operation: "オーナー移譲", owner: "○", manager: "—", member: "—" },
+];
+
+const matchRow: PermissionRow = {
+  operation: "対局の記録・閲覧・修正・削除",
+  owner: "○",
+  manager: "○",
+  member: "○",
+};
+
+const permissionTables: PermissionTableConfig[] = [
+  {
+    title: "研究会ロール",
+    ariaLabel: "研究会ロール権限一覧",
+    rows: [
+      { operation: "研究会の編集", owner: "○", manager: "○", member: "—" },
+      { operation: "研究会の削除", owner: "○", manager: "—", member: "—" },
+      ...memberManagementRows,
+      { operation: "セッション作成", owner: "○", manager: "○", member: "—" },
+      matchRow,
+    ],
+  },
+  {
+    title: "セッションロール",
+    ariaLabel: "セッションロール権限一覧",
+    rows: [
+      {
+        operation: "セッションの編集",
+        owner: "○",
+        manager: "○",
+        member: "—",
+      },
+      {
+        operation: "セッションの削除",
+        owner: "○",
+        manager: "—",
+        member: "—",
+      },
+      ...memberManagementRows,
+      matchRow,
+    ],
+  },
+];
+
 const contactFormUrl = process.env.NEXT_PUBLIC_CONTACT_FORM_URL;
 
 export default function HelpPage() {
@@ -26,221 +87,71 @@ export default function HelpPage() {
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-(--brand-ink)">
-          研究会ロール
-        </h2>
-        <div
-          className="mt-4 overflow-x-auto rounded-md focus:outline-2 focus:outline-offset-2 focus:outline-(--brand-moss)"
-          tabIndex={0}
-          role="region"
-          aria-label="研究会ロール権限一覧"
+      {permissionTables.map((table) => (
+        <section
+          key={table.title}
+          className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm"
         >
-          <table className="w-full text-sm text-(--brand-ink-muted)">
-            <thead>
-              <tr className="border-b border-border/60 text-left">
-                <th
-                  scope="col"
-                  className="pb-2 pr-4 font-semibold text-(--brand-ink)"
-                >
-                  操作
-                </th>
-                <th
-                  scope="col"
-                  className="pb-2 text-center font-semibold text-(--brand-ink)"
-                >
-                  オーナー
-                </th>
-                <th
-                  scope="col"
-                  className="pb-2 text-center font-semibold text-(--brand-ink)"
-                >
-                  マネージャー
-                </th>
-                <th
-                  scope="col"
-                  className="pb-2 text-center font-semibold text-(--brand-ink)"
-                >
-                  メンバー
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/40">
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  研究会の編集
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  研究会の削除
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">—</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  メンバーの追加
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  メンバーの除外
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  ロール変更
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○ ※</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  オーナー移譲
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">—</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  セッション作成
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  対局の記録・閲覧・修正・削除
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-2 text-xs text-(--brand-ink-muted)">
-          ※ マネージャーは自分より上位のロールの変更不可
-        </p>
-      </section>
-
-      <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-(--brand-ink)">
-          セッションロール
-        </h2>
-        <div
-          className="mt-4 overflow-x-auto rounded-md focus:outline-2 focus:outline-offset-2 focus:outline-(--brand-moss)"
-          tabIndex={0}
-          role="region"
-          aria-label="セッションロール権限一覧"
-        >
-          <table className="w-full text-sm text-(--brand-ink-muted)">
-            <thead>
-              <tr className="border-b border-border/60 text-left">
-                <th
-                  scope="col"
-                  className="pb-2 pr-4 font-semibold text-(--brand-ink)"
-                >
-                  操作
-                </th>
-                <th
-                  scope="col"
-                  className="pb-2 text-center font-semibold text-(--brand-ink)"
-                >
-                  オーナー
-                </th>
-                <th
-                  scope="col"
-                  className="pb-2 text-center font-semibold text-(--brand-ink)"
-                >
-                  マネージャー
-                </th>
-                <th
-                  scope="col"
-                  className="pb-2 text-center font-semibold text-(--brand-ink)"
-                >
-                  メンバー
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/40">
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  セッションの編集
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  セッションの削除
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">—</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  メンバーの追加
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  メンバーの除外
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  ロール変更
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○ ※</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  オーナー移譲
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">—</td>
-                <td className="py-3 text-center">—</td>
-              </tr>
-              <tr>
-                <th scope="row" className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)">
-                  対局の記録・閲覧・修正・削除
-                </th>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-                <td className="py-3 text-center">○</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-2 text-xs text-(--brand-ink-muted)">
-          ※ マネージャーは自分より上位のロールの変更不可
-        </p>
-      </section>
+          <h2 className="text-lg font-semibold text-(--brand-ink)">
+            {table.title}
+          </h2>
+          <div
+            className="mt-4 overflow-x-auto rounded-md focus:outline-2 focus:outline-offset-2 focus:outline-(--brand-moss)"
+            tabIndex={0}
+            role="region"
+            aria-label={table.ariaLabel}
+          >
+            <table className="w-full text-sm text-(--brand-ink-muted)">
+              <thead>
+                <tr className="border-b border-border/60 text-left">
+                  <th
+                    scope="col"
+                    className="pb-2 pr-4 font-semibold text-(--brand-ink)"
+                  >
+                    操作
+                  </th>
+                  <th
+                    scope="col"
+                    className="pb-2 text-center font-semibold text-(--brand-ink)"
+                  >
+                    オーナー
+                  </th>
+                  <th
+                    scope="col"
+                    className="pb-2 text-center font-semibold text-(--brand-ink)"
+                  >
+                    マネージャー
+                  </th>
+                  <th
+                    scope="col"
+                    className="pb-2 text-center font-semibold text-(--brand-ink)"
+                  >
+                    メンバー
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {table.rows.map((row) => (
+                  <tr key={row.operation}>
+                    <th
+                      scope="row"
+                      className="py-3 pr-4 text-left font-medium whitespace-nowrap text-(--brand-ink)"
+                    >
+                      {row.operation}
+                    </th>
+                    <td className="py-3 text-center">{row.owner}</td>
+                    <td className="py-3 text-center">{row.manager}</td>
+                    <td className="py-3 text-center">{row.member}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2 text-xs text-(--brand-ink-muted)">
+            ※ マネージャーは自分より上位のロールの変更不可
+          </p>
+        </section>
+      ))}
 
       <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-(--brand-ink)">補足</h2>
