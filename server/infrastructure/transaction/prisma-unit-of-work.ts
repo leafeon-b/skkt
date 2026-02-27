@@ -1,4 +1,4 @@
-import type { UnitOfWork } from "@/server/application/common/unit-of-work";
+import type { UnitOfWork } from "@/server/domain/common/unit-of-work";
 import { prisma } from "@/server/infrastructure/db";
 import { createPrismaCircleRepository } from "@/server/infrastructure/repository/circle/prisma-circle-repository";
 import { createPrismaCircleSessionRepository } from "@/server/infrastructure/repository/circle-session/prisma-circle-session-repository";

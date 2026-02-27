@@ -10,7 +10,7 @@ import type { createAccessService } from "@/server/application/authz/access-serv
 import type {
   Repositories,
   UnitOfWork,
-} from "@/server/application/common/unit-of-work";
+} from "@/server/domain/common/unit-of-work";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { ForbiddenError, NotFoundError } from "@/server/domain/common/errors";
 

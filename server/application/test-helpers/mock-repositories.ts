@@ -8,7 +8,7 @@ import type { AuthzRepository } from "@/server/domain/services/authz/authz-repos
 import type {
   Repositories,
   UnitOfWork,
-} from "@/server/application/common/unit-of-work";
+} from "@/server/domain/common/unit-of-work";
 
 export const createMockMatchRepository = () =>
   ({

@@ -1,4 +1,4 @@
-import type { Repositories } from "@/server/application/common/unit-of-work";
+import type { Repositories } from "@/server/domain/common/unit-of-work";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import {
   createInMemoryCircleRepository,
@@ -24,7 +24,7 @@ import {
 } from "./in-memory-circle-invite-link-repository";
 import { createInMemoryAuthzRepository } from "./in-memory-authz-repository";
 import { createInMemoryUnitOfWork } from "./in-memory-unit-of-work";
-import type { UnitOfWork } from "@/server/application/common/unit-of-work";
+import type { UnitOfWork } from "@/server/domain/common/unit-of-work";
 
 export type InMemoryStores = {
   circleStore: CircleStore;
