@@ -10,6 +10,7 @@ type PermissionRow = {
 type PermissionTableConfig = {
   title: string;
   ariaLabel: string;
+  noteId: string;
   rows: PermissionRow[];
 };
 
@@ -31,6 +32,7 @@ const permissionTables: PermissionTableConfig[] = [
   {
     title: "研究会ロール",
     ariaLabel: "研究会ロール権限一覧",
+    noteId: "circle-role-note",
     rows: [
       { operation: "研究会の編集", owner: "○", manager: "○", member: "—" },
       { operation: "研究会の削除", owner: "○", manager: "—", member: "—" },
@@ -42,6 +44,7 @@ const permissionTables: PermissionTableConfig[] = [
   {
     title: "セッションロール",
     ariaLabel: "セッションロール権限一覧",
+    noteId: "session-role-note",
     rows: [
       {
         operation: "セッションの編集",
@@ -60,6 +63,41 @@ const permissionTables: PermissionTableConfig[] = [
     ],
   },
 ];
+
+function renderPermissionCell(value: string, noteId?: string) {
+  switch (value) {
+    case "○ ※":
+      return {
+        content: (
+          <>
+            <span aria-hidden="true">○ ※</span>
+            <span className="sr-only">許可（条件付き）</span>
+          </>
+        ),
+        describedBy: noteId,
+      };
+    case "○":
+      return {
+        content: (
+          <>
+            <span aria-hidden="true">○</span>
+            <span className="sr-only">許可</span>
+          </>
+        ),
+      };
+    case "—":
+      return {
+        content: (
+          <>
+            <span aria-hidden="true">—</span>
+            <span className="sr-only">不可</span>
+          </>
+        ),
+      };
+    default:
+      return { content: value };
+  }
+}
 
 const contactFormUrl = process.env.NEXT_PUBLIC_CONTACT_FORM_URL;
 
@@ -102,6 +140,7 @@ export default function HelpPage() {
             aria-label={table.ariaLabel}
           >
             <table className="w-full text-sm text-(--brand-ink-muted)">
+              <caption className="sr-only">{table.ariaLabel}</caption>
               <thead>
                 <tr className="border-b border-border/60 text-left">
                   <th
@@ -139,15 +178,27 @@ export default function HelpPage() {
                     >
                       {row.operation}
                     </th>
-                    <td className="py-3 text-center">{row.owner}</td>
-                    <td className="py-3 text-center">{row.manager}</td>
-                    <td className="py-3 text-center">{row.member}</td>
+                    {(["owner", "manager", "member"] as const).map((role) => {
+                      const cell = renderPermissionCell(
+                        row[role],
+                        table.noteId,
+                      );
+                      return (
+                        <td
+                          key={role}
+                          className="py-3 text-center"
+                          aria-describedby={cell.describedBy}
+                        >
+                          {cell.content}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-xs text-(--brand-ink-muted)">
+          <p id={table.noteId} className="mt-2 text-xs text-(--brand-ink-muted)">
             ※ マネージャーは自分より上位のロールの変更不可
           </p>
         </section>
