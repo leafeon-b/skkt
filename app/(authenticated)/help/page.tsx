@@ -145,7 +145,7 @@ export default function HelpPage() {
         <ul className="mt-4 space-y-3 text-sm text-(--brand-ink-muted)">
           <li>・オーナー移譲時、移譲元のオーナーはマネージャーになります。</li>
           <li>
-            ・対局結果の記録・閲覧・修正・削除・編集履歴の閲覧は、研究会参加者またはセッション参加者であればロールを問わず可能です。
+            ・対局結果の記録・閲覧・修正・削除は、研究会参加者またはセッション参加者であればロールを問わず可能です。
           </li>
         </ul>
       </section>
