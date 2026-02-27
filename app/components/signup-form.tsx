@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { sanitizeCallbackUrl } from "@/lib/url";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -19,12 +20,18 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmitting) {
+      return;
+    }
+
+    if (!agreedToTerms) {
+      setErrorMessage("利用規約に同意してください。");
       return;
     }
 
@@ -156,6 +163,28 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
           required
           aria-required="true"
         />
+      </div>
+      <div className="flex items-start gap-2">
+        <Checkbox
+          id="agree-to-terms"
+          checked={agreedToTerms}
+          onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+          aria-required="true"
+        />
+        <label
+          htmlFor="agree-to-terms"
+          className="text-xs leading-relaxed text-(--brand-ink-muted)"
+        >
+          <a
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-(--brand-moss) hover:underline"
+          >
+            利用規約
+          </a>
+          に同意する
+        </label>
       </div>
       {errorMessage ? (
         <p role="alert" className="text-xs font-semibold text-red-600">
