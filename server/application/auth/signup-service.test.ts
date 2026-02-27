@@ -11,6 +11,7 @@ const validInput = {
   email: "test@example.com",
   password: "password123",
   name: "Test User",
+  agreedToTerms: true,
 };
 
 const createDeps = (
@@ -48,6 +49,16 @@ describe("SignupService", () => {
     const result = await service.signup(validInput);
 
     expect(result).toEqual({ success: false, error: "email_exists" });
+  });
+
+  test("agreedToTerms が false の場合 terms_not_agreed を返す", async () => {
+    const deps = createDeps();
+    const service = createSignupService(deps);
+
+    const result = await service.signup({ ...validInput, agreedToTerms: false });
+
+    expect(result).toEqual({ success: false, error: "terms_not_agreed" });
+    expect(deps.userRepository.emailExists).not.toHaveBeenCalled();
   });
 
   test("createUser が ConflictError 以外をスローした場合はそのまま伝播する", async () => {

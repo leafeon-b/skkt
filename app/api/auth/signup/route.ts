@@ -15,6 +15,7 @@ type SignupPayload = {
   email?: string;
   password?: string;
   name?: string;
+  agreedToTerms?: boolean;
 };
 
 export async function POST(request: Request) {
@@ -31,15 +32,24 @@ export async function POST(request: Request) {
   const name =
     typeof body.name === "string" && body.name.trim() ? body.name.trim() : null;
 
-  const result = await signupService.signup({ email, password, name });
+  const agreedToTerms = body.agreedToTerms === true;
+
+  const result = await signupService.signup({
+    email,
+    password,
+    name,
+    agreedToTerms,
+  });
 
   if (!result.success) {
     const errorMessages = {
+      terms_not_agreed: "利用規約に同意してください。",
       invalid_email: "メールアドレスを入力してください。",
       password_too_short: "パスワードは8文字以上で入力してください。",
       email_exists: "このメールアドレスは既に登録されています。",
     };
     const statusCodes = {
+      terms_not_agreed: 400,
       invalid_email: 400,
       password_too_short: 400,
       email_exists: 409,

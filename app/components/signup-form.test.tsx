@@ -79,7 +79,10 @@ describe("SignupForm 利用規約チェックボックス", () => {
     expect(screen.queryByText("利用規約に同意してください。")).toBeNull();
     expect(fetchSpy).toHaveBeenCalledWith(
       "/api/auth/signup",
-      expect.objectContaining({ method: "POST" }),
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining('"agreedToTerms":true'),
+      }),
     );
   });
 
