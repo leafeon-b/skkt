@@ -32,13 +32,10 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
       return;
     }
 
-    if (!agreedToTerms) {
-      setErrorMessage("利用規約およびプライバシーポリシーに同意してください。");
-      return;
-    }
-
-    if (password !== passwordConfirm) {
-      setErrorMessage("パスワードが一致しません。");
+    if (name.trim().length > MAX_NAME_LENGTH) {
+      setErrorMessage(
+        `表示名は${MAX_NAME_LENGTH}文字以内で入力してください。`,
+      );
       return;
     }
     if (password.length < MIN_PASSWORD_LENGTH) {
@@ -53,10 +50,12 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
       );
       return;
     }
-    if (name.trim().length > MAX_NAME_LENGTH) {
-      setErrorMessage(
-        `表示名は${MAX_NAME_LENGTH}文字以内で入力してください。`,
-      );
+    if (password !== passwordConfirm) {
+      setErrorMessage("パスワードが一致しません。");
+      return;
+    }
+    if (!agreedToTerms) {
+      setErrorMessage("利用規約およびプライバシーポリシーに同意してください。");
       return;
     }
 
