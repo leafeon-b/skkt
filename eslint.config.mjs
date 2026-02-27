@@ -128,6 +128,7 @@ const eslintConfig = defineConfig([
       "server/infrastructure/transaction/**/*.{ts,tsx}",
       "server/infrastructure/auth/**/*.{ts,tsx}",
       "server/infrastructure/holiday/**/*.{ts,tsx}",
+      "server/infrastructure/repository/in-memory/**/*.{ts,tsx}",
     ],
     rules: {
       "no-restricted-imports": [
