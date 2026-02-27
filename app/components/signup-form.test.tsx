@@ -55,7 +55,7 @@ describe("SignupForm 利用規約チェックボックス", () => {
     await user.click(submitButton);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "利用規約に同意してください。",
+      "利用規約およびプライバシーポリシーに同意してください。",
     );
   });
 
