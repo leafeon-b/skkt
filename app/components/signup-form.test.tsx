@@ -86,6 +86,25 @@ describe("SignupForm 利用規約チェックボックス", () => {
     );
   });
 
+  it("パスワード不一致 + 利用規約未同意のとき、パスワード不一致エラーが優先表示される", async () => {
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    await user.type(screen.getByPlaceholderText("demo1@example.com"), "test@example.com");
+    const passwordInputs = screen.getAllByPlaceholderText("••••••••");
+    await user.type(passwordInputs[0], "password123");
+    await user.type(passwordInputs[1], "different456");
+
+    const submitButton = screen.getByRole("button", {
+      name: "アカウントを作成",
+    });
+    await user.click(submitButton);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "パスワードが一致しません。",
+    );
+  });
+
   it("利用規約リンクが新しいタブで開くように設定されている", () => {
     render(<SignupForm />);
 
