@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import SignupForm from "./signup-form";
@@ -83,6 +83,49 @@ describe("SignupForm 利用規約チェックボックス", () => {
         method: "POST",
         body: expect.stringContaining('"agreedToTerms":true'),
       }),
+    );
+  });
+
+  it("表示名超過 + パスワード短すぎのとき、表示名超過エラーが優先表示される", async () => {
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    fireEvent.change(screen.getByPlaceholderText("例: 佐藤 太郎"), {
+      target: { value: "あ".repeat(51) },
+    });
+    await user.type(screen.getByPlaceholderText("demo1@example.com"), "test@example.com");
+    const passwordInputs = screen.getAllByPlaceholderText("••••••••");
+    await user.type(passwordInputs[0], "short12");
+    await user.type(passwordInputs[1], "short12");
+    await user.click(screen.getByRole("checkbox"));
+
+    const submitButton = screen.getByRole("button", {
+      name: "アカウントを作成",
+    });
+    await user.click(submitButton);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "表示名は50文字以内で入力してください。",
+    );
+  });
+
+  it("パスワード短すぎ + パスワード不一致のとき、パスワード短すぎエラーが優先表示される", async () => {
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    await user.type(screen.getByPlaceholderText("demo1@example.com"), "test@example.com");
+    const passwordInputs = screen.getAllByPlaceholderText("••••••••");
+    await user.type(passwordInputs[0], "short12");
+    await user.type(passwordInputs[1], "differ1");
+    await user.click(screen.getByRole("checkbox"));
+
+    const submitButton = screen.getByRole("button", {
+      name: "アカウントを作成",
+    });
+    await user.click(submitButton);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "パスワードは8文字以上で入力してください。",
     );
   });
 
