@@ -57,6 +57,7 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
           name: name.trim() ? name.trim() : undefined,
           email,
           password,
+          agreedToTerms,
         }),
       });
 

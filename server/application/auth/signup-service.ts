@@ -14,17 +14,26 @@ export type SignupInput = {
   email: string;
   password: string;
   name: string | null;
+  agreedToTerms: boolean;
 };
 
 export type SignupResult =
   | { success: true; userId: UserId }
   | {
       success: false;
-      error: "invalid_email" | "password_too_short" | "email_exists";
+      error:
+        | "terms_not_agreed"
+        | "invalid_email"
+        | "password_too_short"
+        | "email_exists";
     };
 
 export const createSignupService = (deps: SignupServiceDeps) => ({
   async signup(input: SignupInput): Promise<SignupResult> {
+    if (input.agreedToTerms !== true) {
+      return { success: false, error: "terms_not_agreed" };
+    }
+
     const email = input.email.trim();
     const password = input.password;
     const name = input.name?.trim() || null;
