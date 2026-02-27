@@ -272,7 +272,12 @@ describe("match tRPC ルーター", () => {
           player1Id: "player-1",
           player2Id: "player-1",
         }),
-      ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+      ).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+        message: expect.stringContaining(
+          "player1Id and player2Id must be different",
+        ),
+      });
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
@@ -409,14 +414,17 @@ describe("match tRPC ルーター", () => {
     test("BadRequestError（削除済み対局）→ BAD_REQUEST", async () => {
       const { context, mocks } = createTestContext();
       mocks.matchService.deleteMatch.mockRejectedValueOnce(
-        new BadRequestError("Match is already deleted"),
+        new BadRequestError("Match is deleted"),
       );
 
       const caller = appRouter.createCaller(context);
 
       await expect(
         caller.matches.delete({ matchId: "match-1" }),
-      ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+      ).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Match is deleted",
+      });
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
