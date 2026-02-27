@@ -16,7 +16,7 @@ import type { createAccessService } from "@/server/application/authz/access-serv
 import type {
   Repositories,
   UnitOfWork,
-} from "@/server/application/common/unit-of-work";
+} from "@/server/domain/common/unit-of-work";
 import {
   BadRequestError,
   ForbiddenError,

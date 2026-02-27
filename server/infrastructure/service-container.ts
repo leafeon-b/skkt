@@ -12,7 +12,7 @@ import type { RateLimiter } from "@/server/application/common/rate-limiter";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
-import type { UnitOfWork } from "@/server/application/common/unit-of-work";
+import type { UnitOfWork } from "@/server/domain/common/unit-of-work";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
