@@ -9,6 +9,12 @@ export default function Footer() {
       <span className="mx-2" aria-hidden="true">
         |
       </span>
+      <Link href="/privacy" className="hover:underline">
+        プライバシーポリシー
+      </Link>
+      <span className="mx-2" aria-hidden="true">
+        |
+      </span>
       Copyright &copy; {new Date().getFullYear()} SKKT. All rights reserved.
     </footer>
   );
