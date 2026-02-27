@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { matcherSource, middleware } from "./middleware";
+import { matcherSource, proxy } from "./proxy";
 
 const FIXED_NONCE = "test-nonce-00000000-0000-0000-0000";
 
-describe("middleware", () => {
+describe("proxy", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -15,7 +15,7 @@ describe("middleware", () => {
     );
 
     const request = new NextRequest("http://localhost/");
-    const response = middleware(request);
+    const response = proxy(request);
 
     const csp = response.headers.get("Content-Security-Policy");
     expect(csp).toContain(`'nonce-${FIXED_NONCE}'`);
@@ -27,7 +27,7 @@ describe("middleware", () => {
     );
 
     const request = new NextRequest("http://localhost/");
-    const response = middleware(request);
+    const response = proxy(request);
 
     // NextResponse.next({ request: { headers } }) は内部で
     // x-middleware-request-<name> ヘッダーとしてリクエストヘッダーを転送する
@@ -38,8 +38,8 @@ describe("middleware", () => {
   test("リクエストごとに異なる nonce が生成される", () => {
     const request1 = new NextRequest("http://localhost/");
     const request2 = new NextRequest("http://localhost/");
-    const response1 = middleware(request1);
-    const response2 = middleware(request2);
+    const response1 = proxy(request1);
+    const response2 = proxy(request2);
 
     const nonce1 = response1.headers.get("x-middleware-request-x-nonce");
     const nonce2 = response2.headers.get("x-middleware-request-x-nonce");
@@ -51,7 +51,7 @@ describe("middleware", () => {
 
   test("script-src に unsafe-inline が含まれない", () => {
     const request = new NextRequest("http://localhost/");
-    const response = middleware(request);
+    const response = proxy(request);
 
     const csp = response.headers.get("Content-Security-Policy")!;
     const scriptSrc = csp
@@ -64,14 +64,14 @@ describe("middleware", () => {
 
   test("レスポンスヘッダーに Content-Security-Policy が設定される", () => {
     const request = new NextRequest("http://localhost/");
-    const response = middleware(request);
+    const response = proxy(request);
 
     expect(response.headers.has("Content-Security-Policy")).toBe(true);
   });
 
   test("全 CSP ディレクティブが正しく構築される", () => {
     const request = new NextRequest("http://localhost/");
-    const response = middleware(request);
+    const response = proxy(request);
 
     const csp = response.headers.get("Content-Security-Policy")!;
     const directives = csp.split("; ");

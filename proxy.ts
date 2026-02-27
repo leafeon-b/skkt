@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const nonce = crypto.randomUUID();
 
   const cspDirectives = [
@@ -29,7 +29,7 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// Exclude API routes, Next.js internals, and static assets from CSP middleware
+// Exclude API routes, Next.js internals, and static assets from CSP proxy
 // NOTE: This pattern is duplicated in config.matcher below because Next.js
 // requires config to be statically analyzable (no variable references).
 export const matcherSource =
