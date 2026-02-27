@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 
 const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 128;
+const MAX_NAME_LENGTH = 50;
 
 type SignupFormProps = {
   callbackUrl?: string;
@@ -42,6 +44,18 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
     if (password.length < MIN_PASSWORD_LENGTH) {
       setErrorMessage(
         `パスワードは${MIN_PASSWORD_LENGTH}文字以上で入力してください。`,
+      );
+      return;
+    }
+    if (password.length > MAX_PASSWORD_LENGTH) {
+      setErrorMessage(
+        `パスワードは${MAX_PASSWORD_LENGTH}文字以内で入力してください。`,
+      );
+      return;
+    }
+    if (name.trim().length > MAX_NAME_LENGTH) {
+      setErrorMessage(
+        `表示名は${MAX_NAME_LENGTH}文字以内で入力してください。`,
       );
       return;
     }
@@ -108,6 +122,7 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
           value={name}
           autoComplete="name"
           placeholder="例: 佐藤 太郎"
+          maxLength={MAX_NAME_LENGTH}
           onChange={(event) => setName(event.target.value)}
         />
       </div>
@@ -142,6 +157,7 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
           value={password}
           autoComplete="new-password"
           placeholder="••••••••"
+          maxLength={MAX_PASSWORD_LENGTH}
           onChange={(event) => setPassword(event.target.value)}
           required
           aria-required="true"
@@ -160,6 +176,7 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
           value={passwordConfirm}
           autoComplete="new-password"
           placeholder="••••••••"
+          maxLength={MAX_PASSWORD_LENGTH}
           onChange={(event) => setPasswordConfirm(event.target.value)}
           required
           aria-required="true"
