@@ -1,10 +1,10 @@
 import { createCircleSessionService } from "@/server/application/circle-session/circle-session-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
-  createMockCircleRepository,
-  createMockCircleSessionRepository,
-  createMockUnitOfWork,
-} from "@/server/application/test-helpers/mock-repositories";
+  createInMemoryCircleRepository,
+  createInMemoryCircleSessionRepository,
+  createInMemoryRepositories,
+} from "@/server/infrastructure/repository/in-memory";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 import {
   CIRCLE_SESSION_NOTE_MAX_LENGTH,
@@ -12,12 +12,11 @@ import {
   createCircleSession,
 } from "@/server/domain/models/circle-session/circle-session";
 import { createCircle } from "@/server/domain/models/circle/circle";
-import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const circleRepository = createMockCircleRepository();
+const circleRepository = createInMemoryCircleRepository();
 
-const circleSessionRepository = createMockCircleSessionRepository();
+const circleSessionRepository = createInMemoryCircleSessionRepository();
 
 const accessService = createAccessServiceStub();
 
@@ -43,8 +42,13 @@ const baseSessionParams = {
   note: "メモ",
 };
 
-beforeEach(() => {
+beforeEach(async () => {
+  circleRepository._circleStore.clear();
+  circleRepository._membershipStore.clear();
+  circleSessionRepository._sessionStore.clear();
+  circleSessionRepository._membershipStore.clear();
   vi.clearAllMocks();
+  await circleRepository.save(baseCircle);
   vi.mocked(accessService.canCreateCircleSession).mockResolvedValue(true);
   vi.mocked(accessService.canEditCircleSession).mockResolvedValue(true);
   vi.mocked(accessService.canViewCircleSession).mockResolvedValue(true);
@@ -55,7 +59,6 @@ beforeEach(() => {
 describe("CircleSession サービス", () => {
   describe("認可拒否時のエラー", () => {
     test("createCircleSession は認可拒否時に Forbidden エラー", async () => {
-      vi.mocked(circleRepository.findById).mockResolvedValue(baseCircle);
       vi.mocked(accessService.canCreateCircleSession).mockResolvedValue(false);
 
       await expect(
@@ -65,7 +68,10 @@ describe("CircleSession サービス", () => {
         }),
       ).rejects.toThrow("Forbidden");
 
-      expect(circleSessionRepository.save).not.toHaveBeenCalled();
+      const saved = await circleSessionRepository.findById(
+        baseSessionParams.id,
+      );
+      expect(saved).toBeNull();
     });
 
     test("rescheduleCircleSession は認可拒否時に Forbidden エラー", async () => {
@@ -73,7 +79,7 @@ describe("CircleSession サービス", () => {
         ...baseSessionParams,
         createdAt: new Date("2024-01-01T00:00:00Z"),
       });
-      vi.mocked(circleSessionRepository.findById).mockResolvedValue(existing);
+      await circleSessionRepository.save(existing);
       vi.mocked(accessService.canEditCircleSession).mockResolvedValue(false);
 
       await expect(
@@ -85,12 +91,13 @@ describe("CircleSession サービス", () => {
         ),
       ).rejects.toThrow("Forbidden");
 
-      expect(circleSessionRepository.save).not.toHaveBeenCalled();
+      const saved = await circleSessionRepository.findById(existing.id);
+      expect(saved?.startsAt.toISOString()).toBe("2024-01-01T00:00:00.000Z");
     });
   });
 
   test("createCircleSession は研究会が存在しないとエラー", async () => {
-    vi.mocked(circleRepository.findById).mockResolvedValue(null);
+    circleRepository._circleStore.clear();
 
     await expect(
       service.createCircleSession({
@@ -99,18 +106,18 @@ describe("CircleSession サービス", () => {
       }),
     ).rejects.toThrow("Circle not found");
 
-    expect(circleSessionRepository.save).not.toHaveBeenCalled();
+    const saved = await circleSessionRepository.findById(baseSessionParams.id);
+    expect(saved).toBeNull();
   });
 
   test("createCircleSession はセッションを保存する", async () => {
-    vi.mocked(circleRepository.findById).mockResolvedValue(baseCircle);
-
     const session = await service.createCircleSession({
       actorId: "user-1",
       ...baseSessionParams,
     });
 
-    expect(circleSessionRepository.save).toHaveBeenCalledWith(session);
+    const saved = await circleSessionRepository.findById(session.id);
+    expect(saved).toEqual(session);
   });
 
   test("updateCircleSessionDetails は開始・終了が片方だけだとエラー", async () => {
@@ -118,15 +125,13 @@ describe("CircleSession サービス", () => {
       ...baseSessionParams,
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
-    vi.mocked(circleSessionRepository.findById).mockResolvedValue(existing);
+    await circleSessionRepository.save(existing);
 
     await expect(
       service.updateCircleSessionDetails("user-1", existing.id, {
         startsAt: new Date("2024-02-01T00:00:00Z"),
       }),
     ).rejects.toThrow("startsAt and endsAt must both be provided");
-
-    expect(circleSessionRepository.save).not.toHaveBeenCalled();
   });
 
   test("rescheduleCircleSession は更新を保存する", async () => {
@@ -134,7 +139,7 @@ describe("CircleSession サービス", () => {
       ...baseSessionParams,
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
-    vi.mocked(circleSessionRepository.findById).mockResolvedValue(existing);
+    await circleSessionRepository.save(existing);
 
     const updated = await service.rescheduleCircleSession(
       "user-1",
@@ -143,7 +148,8 @@ describe("CircleSession サービス", () => {
       new Date("2024-02-02T00:00:00Z"),
     );
 
-    expect(circleSessionRepository.save).toHaveBeenCalledWith(updated);
+    const saved = await circleSessionRepository.findById(existing.id);
+    expect(saved).toEqual(updated);
     expect(updated.startsAt.toISOString()).toBe("2024-02-01T00:00:00.000Z");
   });
 
@@ -152,7 +158,7 @@ describe("CircleSession サービス", () => {
       ...baseSessionParams,
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
-    vi.mocked(circleSessionRepository.findById).mockResolvedValue(existing);
+    await circleSessionRepository.save(existing);
 
     await expect(
       service.updateCircleSessionDetails("user-1", existing.id, {
@@ -162,7 +168,8 @@ describe("CircleSession サービス", () => {
       `CircleSession title must be at most ${CIRCLE_SESSION_TITLE_MAX_LENGTH} characters`,
     );
 
-    expect(circleSessionRepository.save).not.toHaveBeenCalled();
+    const saved = await circleSessionRepository.findById(existing.id);
+    expect(saved?.title).toBe(existing.title);
   });
 
   test("updateCircleSessionDetails はノートが最大文字数超過時にエラー", async () => {
@@ -170,7 +177,7 @@ describe("CircleSession サービス", () => {
       ...baseSessionParams,
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
-    vi.mocked(circleSessionRepository.findById).mockResolvedValue(existing);
+    await circleSessionRepository.save(existing);
 
     await expect(
       service.updateCircleSessionDetails("user-1", existing.id, {
@@ -180,7 +187,8 @@ describe("CircleSession サービス", () => {
       `CircleSession note must be at most ${CIRCLE_SESSION_NOTE_MAX_LENGTH} characters`,
     );
 
-    expect(circleSessionRepository.save).not.toHaveBeenCalled();
+    const saved = await circleSessionRepository.findById(existing.id);
+    expect(saved?.note).toBe(existing.note);
   });
 
   test("updateCircleSessionDetails はタイトル・場所・メモを更新する", async () => {
@@ -188,7 +196,7 @@ describe("CircleSession サービス", () => {
       ...baseSessionParams,
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
-    vi.mocked(circleSessionRepository.findById).mockResolvedValue(existing);
+    await circleSessionRepository.save(existing);
 
     const updated = await service.updateCircleSessionDetails(
       "user-1",
@@ -200,7 +208,8 @@ describe("CircleSession サービス", () => {
       },
     );
 
-    expect(circleSessionRepository.save).toHaveBeenCalledWith(updated);
+    const saved = await circleSessionRepository.findById(existing.id);
+    expect(saved).toEqual(updated);
     expect(updated.title).toBe("更新後タイトル");
     expect(updated.location).toBe("Osaka");
     expect(updated.note).toBe("更新後メモ");
@@ -208,24 +217,20 @@ describe("CircleSession サービス", () => {
 
   describe("セッション作成時の自動参加登録", () => {
     test("createCircleSession は作成者を CircleSessionOwner として参加登録する", async () => {
-      vi.mocked(circleRepository.findById).mockResolvedValue(baseCircle);
-
       await service.createCircleSession({
         actorId: "user-1",
         ...baseSessionParams,
       });
 
-      expect(
-        circleSessionRepository.addMembership,
-      ).toHaveBeenCalledWith(
+      const memberships = await circleSessionRepository.listMemberships(
         baseSessionParams.id,
-        userId("user-1"),
-        CircleSessionRole.CircleSessionOwner,
       );
+      expect(memberships).toHaveLength(1);
+      expect(memberships[0].userId).toBe(userId("user-1"));
+      expect(memberships[0].role).toBe("CircleSessionOwner");
     });
 
-    test("認可失敗時は addMembership が呼ばれない", async () => {
-      vi.mocked(circleRepository.findById).mockResolvedValue(baseCircle);
+    test("認可失敗時は参加登録されない", async () => {
       vi.mocked(accessService.canCreateCircleSession).mockResolvedValue(false);
 
       await expect(
@@ -235,13 +240,14 @@ describe("CircleSession サービス", () => {
         }),
       ).rejects.toThrow("Forbidden");
 
-      expect(
-        circleSessionRepository.addMembership,
-      ).not.toHaveBeenCalled();
+      const memberships = await circleSessionRepository.listMemberships(
+        baseSessionParams.id,
+      );
+      expect(memberships).toHaveLength(0);
     });
 
-    test("研究会が存在しない場合は addMembership が呼ばれない", async () => {
-      vi.mocked(circleRepository.findById).mockResolvedValue(null);
+    test("研究会が存在しない場合は参加登録されない", async () => {
+      circleRepository._circleStore.clear();
 
       await expect(
         service.createCircleSession({
@@ -250,23 +256,22 @@ describe("CircleSession サービス", () => {
         }),
       ).rejects.toThrow("Circle not found");
 
-      expect(
-        circleSessionRepository.addMembership,
-      ).not.toHaveBeenCalled();
+      const memberships = await circleSessionRepository.listMemberships(
+        baseSessionParams.id,
+      );
+      expect(memberships).toHaveLength(0);
     });
   });
 });
 
 describe("UnitOfWork 経路", () => {
-  const depsCircleRepository = createMockCircleRepository();
-  const depsCircleSessionRepository = createMockCircleSessionRepository();
-  const { unitOfWork, repos } = createMockUnitOfWork();
+  const { repos, unitOfWork, stores } = createInMemoryRepositories();
 
   const uowAccessService = createAccessServiceStub();
 
   const uowService = createCircleSessionService({
-    circleRepository: depsCircleRepository,
-    circleSessionRepository: depsCircleSessionRepository,
+    circleRepository: repos.circleRepository,
+    circleSessionRepository: repos.circleSessionRepository,
     accessService: uowAccessService,
     unitOfWork,
   });
@@ -277,36 +282,43 @@ describe("UnitOfWork 経路", () => {
     createdAt: new Date("2024-01-01T00:00:00Z"),
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    stores.circleStore.clear();
+    stores.circleMembershipStore.clear();
+    stores.circleSessionStore.clear();
+    stores.circleSessionMembershipStore.clear();
     vi.clearAllMocks();
     vi.mocked(uowAccessService.canCreateCircleSession).mockResolvedValue(true);
-    vi.mocked(depsCircleRepository.findById).mockResolvedValue(uowBaseCircle);
+    await repos.circleRepository.save(uowBaseCircle);
   });
 
-  test("createCircleSession は unitOfWork を呼び出す", async () => {
+  test("createCircleSession は UoW 経由でセッションとオーナーメンバーシップを保存する", async () => {
     const session = await uowService.createCircleSession({
       actorId: "user-1",
       ...baseSessionParams,
     });
 
-    expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(repos.circleSessionRepository.save).toHaveBeenCalledWith(session);
-    expect(repos.circleSessionRepository.addMembership).toHaveBeenCalled();
-    // deps側のリポジトリは呼ばれない
-    expect(depsCircleSessionRepository.save).not.toHaveBeenCalled();
-    expect(depsCircleSessionRepository.addMembership).not.toHaveBeenCalled();
+    const saved = await repos.circleSessionRepository.findById(session.id);
+    expect(saved).toEqual(session);
+    const memberships = await repos.circleSessionRepository.listMemberships(
+      session.id,
+    );
+    expect(memberships).toHaveLength(1);
+    expect(memberships[0].userId).toBe(userId("user-1"));
+    expect(memberships[0].role).toBe("CircleSessionOwner");
   });
 
-  test("addMembership 失敗時にエラーが伝播する", async () => {
-    vi.mocked(repos.circleSessionRepository.addMembership).mockRejectedValue(
-      new Error("DB error"),
-    );
+  test("UoW 内で重複メンバーシップ追加時にエラーが伝播する", async () => {
+    await uowService.createCircleSession({
+      actorId: "user-1",
+      ...baseSessionParams,
+    });
 
     await expect(
       uowService.createCircleSession({
         actorId: "user-1",
         ...baseSessionParams,
       }),
-    ).rejects.toThrow("DB error");
+    ).rejects.toThrow("Membership already exists");
   });
 });
