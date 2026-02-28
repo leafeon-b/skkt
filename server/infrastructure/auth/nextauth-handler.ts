@@ -3,7 +3,7 @@ import { prisma } from "@/server/infrastructure/db";
 import { verifyPassword } from "@/server/infrastructure/auth/password";
 import { userId } from "@/server/domain/common/ids";
 import { USER_NAME_MAX_LENGTH } from "@/server/domain/models/user/user";
-import type { RateLimiter } from "@/server/application/common/rate-limiter";
+import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import { TooManyRequestsError } from "@/server/domain/common/errors";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import { PrismaAdapter } from "@auth/prisma-adapter";

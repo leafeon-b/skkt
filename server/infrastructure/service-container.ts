@@ -8,7 +8,7 @@ import { createUserService } from "@/server/application/user/user-service";
 import { createSignupService } from "@/server/application/auth/signup-service";
 import { createCircleInviteLinkService } from "@/server/application/circle/circle-invite-link-service";
 import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
-import type { RateLimiter } from "@/server/application/common/rate-limiter";
+import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
