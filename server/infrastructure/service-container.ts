@@ -17,7 +17,7 @@ import type { AuthzRepository } from "@/server/domain/services/authz/authz-repos
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { PasswordUtils } from "@/server/application/user/user-service";
-import type { HolidayProvider } from "@/server/application/common/holiday-provider";
+import type { HolidayProvider } from "@/server/domain/common/holiday-provider";
 
 export type ServiceContainer = {
   circleService: ReturnType<typeof createCircleService>;

@@ -121,22 +121,6 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": "off",
     },
   },
-  // infrastructure exception: application/common（port 定義 — HolidayProvider）の import を許可
-  {
-    files: [
-      "server/infrastructure/auth/**/*.{ts,tsx}",
-      "server/infrastructure/holiday/**/*.{ts,tsx}",
-    ],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: ["@/server/presentation/**"],
-        },
-      ],
-    },
-  },
-
   // app (frontend): no importing infrastructure
   {
     files: ["app/**/*.{ts,tsx}"],
