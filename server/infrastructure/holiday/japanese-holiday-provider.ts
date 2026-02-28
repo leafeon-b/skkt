@@ -1,5 +1,5 @@
 import holiday_jp from "@holiday-jp/holiday_jp";
-import type { HolidayProvider } from "@/server/application/common/holiday-provider";
+import type { HolidayProvider } from "@/server/domain/common/holiday-provider";
 
 /**
  * 指定期間内の日本の祝日を "YYYY-MM-DD" 形式の文字列配列で返す（サーバー専用）
