@@ -1,4 +1,4 @@
-import type { RateLimiter } from "@/server/application/common/rate-limiter";
+import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import { TooManyRequestsError } from "@/server/domain/common/errors";
 
 export type InMemoryRateLimiterConfig = {

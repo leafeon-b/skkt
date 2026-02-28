@@ -3,7 +3,7 @@ import { createUserService } from "@/server/application/user/user-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import { createMockUserRepository } from "@/server/application/test-helpers/mock-repositories";
 import type { PasswordUtils } from "@/server/application/user/user-service";
-import type { RateLimiter } from "@/server/application/common/rate-limiter";
+import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import { userId } from "@/server/domain/common/ids";
 import {
   createUser,

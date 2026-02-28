@@ -121,10 +121,9 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": "off",
     },
   },
-  // infrastructure exception: application/common（port 定義 — RateLimiter, HolidayProvider）の import を許可
+  // infrastructure exception: application/common（port 定義 — HolidayProvider）の import を許可
   {
     files: [
-      "server/infrastructure/rate-limit/**/*.{ts,tsx}",
       "server/infrastructure/auth/**/*.{ts,tsx}",
       "server/infrastructure/holiday/**/*.{ts,tsx}",
     ],
