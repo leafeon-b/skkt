@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleService } from "@/server/application/circle/circle-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
-  createMockCircleRepository,
-  createMockUnitOfWork,
-} from "@/server/application/test-helpers/mock-repositories";
+  createInMemoryCircleRepository,
+  createInMemoryRepositories,
+} from "@/server/infrastructure/repository/in-memory";
 import { circleId } from "@/server/domain/common/ids";
 import { createCircle } from "@/server/domain/models/circle/circle";
 
-const circleRepository = createMockCircleRepository();
+const circleRepository = createInMemoryCircleRepository();
 
 const accessService = createAccessServiceStub();
 
@@ -18,6 +18,8 @@ const service = createCircleService({
 });
 
 beforeEach(() => {
+  circleRepository._circleStore.clear();
+  circleRepository._membershipStore.clear();
   vi.clearAllMocks();
   vi.mocked(accessService.canCreateCircle).mockResolvedValue(true);
   vi.mocked(accessService.canEditCircle).mockResolvedValue(true);
@@ -39,7 +41,8 @@ describe("Circle サービス", () => {
         }),
       ).rejects.toThrow("Forbidden");
 
-      expect(circleRepository.save).not.toHaveBeenCalled();
+      const saved = await circleRepository.findById(circleId("circle-1"));
+      expect(saved).toBeNull();
     });
 
     test("renameCircle は認可拒否時に Forbidden エラー", async () => {
@@ -48,14 +51,15 @@ describe("Circle サービス", () => {
         name: "Home",
         createdAt: new Date("2024-01-01T00:00:00Z"),
       });
-      vi.mocked(circleRepository.findById).mockResolvedValue(existing);
+      await circleRepository.save(existing);
       vi.mocked(accessService.canEditCircle).mockResolvedValue(false);
 
       await expect(
         service.renameCircle("user-1", existing.id, "Next"),
       ).rejects.toThrow("Forbidden");
 
-      expect(circleRepository.save).not.toHaveBeenCalled();
+      const saved = await circleRepository.findById(circleId("circle-1"));
+      expect(saved?.name).toBe("Home");
     });
   });
 
@@ -69,20 +73,22 @@ describe("Circle サービス", () => {
       createdAt,
     });
 
-    expect(circleRepository.save).toHaveBeenCalledWith(circle);
-    expect(circleRepository.addMembership).toHaveBeenCalled();
+    const saved = await circleRepository.findById(circleId("circle-1"));
+    expect(saved?.name).toBe("Home");
+    const memberships = await circleRepository.listMembershipsByCircleId(
+      circleId("circle-1"),
+    );
+    expect(memberships).toHaveLength(1);
+    expect(memberships[0].userId).toBe("user-1");
+    expect(memberships[0].role).toBe("CircleOwner");
     expect(circle.name).toBe("Home");
     expect(circle.createdAt.toISOString()).toBe("2024-01-01T00:00:00.000Z");
   });
 
   test("renameCircle は存在しないとエラー", async () => {
-    vi.mocked(circleRepository.findById).mockResolvedValue(null);
-
     await expect(
       service.renameCircle("user-1", circleId("circle-1"), "Next"),
     ).rejects.toThrow("Circle not found");
-
-    expect(circleRepository.save).not.toHaveBeenCalled();
   });
 
   test("renameCircle は更新を保存する", async () => {
@@ -91,52 +97,60 @@ describe("Circle サービス", () => {
       name: "Home",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
-    vi.mocked(circleRepository.findById).mockResolvedValue(existing);
+    await circleRepository.save(existing);
 
     const updated = await service.renameCircle("user-1", existing.id, "Next");
 
-    expect(circleRepository.save).toHaveBeenCalledWith(updated);
+    const saved = await circleRepository.findById(circleId("circle-1"));
+    expect(saved?.name).toBe("Next");
     expect(updated.name).toBe("Next");
   });
 });
 
 describe("UnitOfWork 経路", () => {
-  const depsCircleRepository = createMockCircleRepository();
-  const { unitOfWork, repos } = createMockUnitOfWork();
+  const { repos, unitOfWork, stores } = createInMemoryRepositories();
 
   const uowAccessService = createAccessServiceStub();
 
   const uowService = createCircleService({
-    circleRepository: depsCircleRepository,
+    circleRepository: repos.circleRepository,
     accessService: uowAccessService,
     unitOfWork,
   });
 
   beforeEach(() => {
+    stores.circleStore.clear();
+    stores.circleMembershipStore.clear();
     vi.clearAllMocks();
     vi.mocked(uowAccessService.canCreateCircle).mockResolvedValue(true);
   });
 
-  test("createCircle は unitOfWork を呼び出す", async () => {
-    const circle = await uowService.createCircle({
+  test("createCircle は UoW 経由で研究会とオーナーメンバーシップを保存する", async () => {
+    await uowService.createCircle({
       actorId: "user-1",
       id: circleId("circle-1"),
       name: "Home",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
 
-    expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(repos.circleRepository.save).toHaveBeenCalledWith(circle);
-    expect(repos.circleRepository.addMembership).toHaveBeenCalled();
-    // deps側のリポジトリは呼ばれない
-    expect(depsCircleRepository.save).not.toHaveBeenCalled();
-    expect(depsCircleRepository.addMembership).not.toHaveBeenCalled();
+    const saved = await repos.circleRepository.findById(circleId("circle-1"));
+    expect(saved?.name).toBe("Home");
+    const memberships =
+      await repos.circleRepository.listMembershipsByCircleId(
+        circleId("circle-1"),
+      );
+    expect(memberships).toHaveLength(1);
+    expect(memberships[0].userId).toBe("user-1");
+    expect(memberships[0].role).toBe("CircleOwner");
   });
 
-  test("addMembership 失敗時にエラーが伝播する", async () => {
-    vi.mocked(repos.circleRepository.addMembership).mockRejectedValue(
-      new Error("DB error"),
-    );
+  test("UoW 内で重複メンバーシップ追加時にエラーが伝播する", async () => {
+    await uowService.createCircle({
+      actorId: "user-1",
+      id: circleId("circle-1"),
+      name: "Home",
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+    });
 
     await expect(
       uowService.createCircle({
@@ -145,6 +159,6 @@ describe("UnitOfWork 経路", () => {
         name: "Home",
         createdAt: new Date("2024-01-01T00:00:00Z"),
       }),
-    ).rejects.toThrow("DB error");
+    ).rejects.toThrow("Membership already exists");
   });
 });
