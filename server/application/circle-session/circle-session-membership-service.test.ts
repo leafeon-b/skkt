@@ -2,15 +2,16 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleSessionMembershipService } from "@/server/application/circle-session/circle-session-membership-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
-  createMockCircleSessionRepository,
-  createMockCircleRepository,
-} from "@/server/application/test-helpers/mock-repositories";
+  createInMemoryCircleRepository,
+  createInMemoryCircleSessionRepository,
+} from "@/server/infrastructure/repository/in-memory";
 import { ConflictError } from "@/server/domain/common/errors";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
+import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
 
-const circleSessionRepository = createMockCircleSessionRepository();
+const circleSessionRepository = createInMemoryCircleSessionRepository();
 
-const circleRepository = createMockCircleRepository();
+const circleRepository = createInMemoryCircleRepository();
 
 const accessService = createAccessServiceStub();
 
@@ -20,20 +21,25 @@ const service = createCircleSessionMembershipService({
   accessService,
 });
 
-const baseSession = () => ({
-  id: circleSessionId("session-1"),
-  circleId: circleId("circle-1"),
-  title: "第1回 研究会",
-  startsAt: new Date(),
-  endsAt: new Date(),
-  location: null,
-  note: "",
-  createdAt: new Date(),
-});
+const baseSession = () =>
+  createCircleSession({
+    id: circleSessionId("session-1"),
+    circleId: circleId("circle-1"),
+    title: "第1回 研究会",
+    startsAt: new Date("2024-06-01T10:00:00Z"),
+    endsAt: new Date("2024-06-01T12:00:00Z"),
+    location: null,
+    note: "",
+    createdAt: new Date("2024-06-01T00:00:00Z"),
+  });
 
-beforeEach(() => {
+beforeEach(async () => {
+  circleSessionRepository._sessionStore.clear();
+  circleSessionRepository._membershipStore.clear();
+  circleRepository._circleStore.clear();
+  circleRepository._membershipStore.clear();
   vi.clearAllMocks();
-  vi.mocked(circleSessionRepository.findById).mockResolvedValue(baseSession());
+  await circleSessionRepository.save(baseSession());
   vi.mocked(accessService.canListOwnCircles).mockResolvedValue(true);
   vi.mocked(accessService.canViewCircleSession).mockResolvedValue(true);
   vi.mocked(accessService.canAddCircleSessionMember).mockResolvedValue(true);
@@ -58,10 +64,6 @@ describe("CircleSession セッションメンバーシップサービス", () =>
           circleSessionId: circleSessionId("session-1"),
         }),
       ).rejects.toThrow("Forbidden");
-
-      expect(
-        circleSessionRepository.listMemberships,
-      ).not.toHaveBeenCalled();
     });
 
     test("addMembership は認可拒否時に Forbidden エラー", async () => {
@@ -78,51 +80,47 @@ describe("CircleSession セッションメンバーシップサービス", () =>
         }),
       ).rejects.toThrow("Forbidden");
 
-      expect(
-        circleSessionRepository.addMembership,
-      ).not.toHaveBeenCalled();
+      const memberships = await circleSessionRepository.listMemberships(
+        circleSessionId("session-1"),
+      );
+      expect(memberships).toHaveLength(0);
     });
   });
 
   test("listMemberships は一覧を返す", async () => {
-    vi.mocked(
-      circleSessionRepository.listMemberships,
-    ).mockResolvedValueOnce([
-      {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
-        role: "CircleSessionOwner",
-      },
-    ]);
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-1"),
+      "CircleSessionOwner",
+    );
 
     const result = await service.listMemberships({
       actorId: "user-actor",
       circleSessionId: circleSessionId("session-1"),
     });
 
-    expect(
-      circleSessionRepository.listMemberships,
-    ).toHaveBeenCalledWith(circleSessionId("session-1"));
-    expect(result).toEqual([
-      {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
-        role: "CircleSessionOwner",
-      },
-    ]);
+    expect(result).toHaveLength(1);
+    expect(result[0].circleSessionId).toBe(circleSessionId("session-1"));
+    expect(result[0].userId).toBe(userId("user-1"));
+    expect(result[0].role).toBe("CircleSessionOwner");
   });
 
   test("addMembership は論理削除済みユーザーをセッションに再参加できる", async () => {
-    // listMemberships はアクティブメンバーのみ返す（論理削除済みユーザーは含まれない）
-    vi.mocked(
-      circleSessionRepository.listMemberships,
-    ).mockResolvedValueOnce([
-      {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
-        role: "CircleSessionOwner",
-      },
-    ]);
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-owner"),
+      "CircleSessionOwner",
+    );
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-rejoining"),
+      "CircleSessionMember",
+    );
+    await circleSessionRepository.removeMembership(
+      circleSessionId("session-1"),
+      userId("user-rejoining"),
+      new Date(),
+    );
 
     const result = await service.addMembership({
       actorId: "user-actor",
@@ -132,25 +130,19 @@ describe("CircleSession セッションメンバーシップサービス", () =>
     });
 
     expect(result).toBeUndefined();
-    expect(
-      circleSessionRepository.addMembership,
-    ).toHaveBeenCalledWith(
+    const memberships = await circleSessionRepository.listMemberships(
       circleSessionId("session-1"),
-      userId("user-rejoining"),
-      "CircleSessionMember",
     );
+    const rejoined = memberships.find((m) => m.userId === "user-rejoining");
+    expect(rejoined?.role).toBe("CircleSessionMember");
   });
 
   test("addMembership は既存メンバーの重複追加で ConflictError", async () => {
-    vi.mocked(
-      circleSessionRepository.listMemberships,
-    ).mockResolvedValueOnce([
-      {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
-        role: "CircleSessionOwner",
-      },
-    ]);
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-1"),
+      "CircleSessionOwner",
+    );
 
     await expect(
       service.addMembership({
@@ -161,16 +153,13 @@ describe("CircleSession セッションメンバーシップサービス", () =>
       }),
     ).rejects.toThrow(ConflictError);
 
-    expect(
-      circleSessionRepository.addMembership,
-    ).not.toHaveBeenCalled();
+    const memberships = await circleSessionRepository.listMemberships(
+      circleSessionId("session-1"),
+    );
+    expect(memberships).toHaveLength(1);
   });
 
   test("addMembership は Owner がいない状態で Member を拒否する", async () => {
-    vi.mocked(
-      circleSessionRepository.listMemberships,
-    ).mockResolvedValueOnce([]);
-
     await expect(
       service.addMembership({
         actorId: "user-actor",
@@ -180,28 +169,20 @@ describe("CircleSession セッションメンバーシップサービス", () =>
       }),
     ).rejects.toThrow("CircleSession must have exactly one owner");
 
-    expect(
-      circleSessionRepository.addMembership,
-    ).not.toHaveBeenCalled();
+    const memberships = await circleSessionRepository.listMemberships(
+      circleSessionId("session-1"),
+    );
+    expect(memberships).toHaveLength(0);
   });
 
   test("listByUserId は参加回の要約を返す", async () => {
-    vi.mocked(
-      circleSessionRepository.listMembershipsByUserId,
-    ).mockResolvedValueOnce([
-      {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
-        role: "CircleSessionMember",
-      },
-      {
-        circleSessionId: circleSessionId("session-2"),
-        userId: userId("user-1"),
-        role: "CircleSessionMember",
-      },
-    ]);
-    vi.mocked(circleSessionRepository.findByIds).mockResolvedValueOnce([
-      {
+    await circleRepository.save({
+      id: circleId("circle-1"),
+      name: "京大将棋研究会",
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+    });
+    await circleSessionRepository.save(
+      createCircleSession({
         id: circleSessionId("session-1"),
         circleId: circleId("circle-1"),
         title: "第1回 研究会",
@@ -210,8 +191,10 @@ describe("CircleSession セッションメンバーシップサービス", () =>
         location: "京都キャンパス A",
         note: "",
         createdAt: new Date("2024-02-01T00:00:00Z"),
-      },
-      {
+      }),
+    );
+    await circleSessionRepository.save(
+      createCircleSession({
         id: circleSessionId("session-2"),
         circleId: circleId("circle-1"),
         title: "第2回 研究会",
@@ -220,46 +203,35 @@ describe("CircleSession セッションメンバーシップサービス", () =>
         location: null,
         note: "",
         createdAt: new Date("2024-03-01T00:00:00Z"),
-      },
-    ]);
-    vi.mocked(circleRepository.findByIds).mockResolvedValueOnce([
-      {
-        id: circleId("circle-1"),
-        name: "京大将棋研究会",
-        createdAt: new Date("2024-01-01T00:00:00Z"),
-      },
-    ]);
+      }),
+    );
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-1"),
+      "CircleSessionMember",
+    );
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-2"),
+      userId("user-1"),
+      "CircleSessionMember",
+    );
 
     const result = await service.listByUserId({
       actorId: "user-1",
       userId: userId("user-1"),
     });
 
-    expect(
-      circleSessionRepository.listMembershipsByUserId,
-    ).toHaveBeenCalledWith(userId("user-1"));
-    expect(circleSessionRepository.findByIds).toHaveBeenCalledWith([
-      circleSessionId("session-1"),
-      circleSessionId("session-2"),
-    ]);
-    expect(circleRepository.findByIds).toHaveBeenCalledWith([
-      circleId("circle-1"),
-    ]);
     expect(result).toHaveLength(2);
     expect(result[0]?.circleName).toBe("京大将棋研究会");
     expect(result[0]?.title).toBe("第2回 研究会");
   });
 
   test("addMembership は Owner がいる場合に Member を追加できる", async () => {
-    vi.mocked(
-      circleSessionRepository.listMemberships,
-    ).mockResolvedValueOnce([
-      {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
-        role: "CircleSessionOwner",
-      },
-    ]);
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-1"),
+      "CircleSessionOwner",
+    );
 
     const result = await service.addMembership({
       actorId: "user-actor",
@@ -269,25 +241,20 @@ describe("CircleSession セッションメンバーシップサービス", () =>
     });
 
     expect(result).toBeUndefined();
-    expect(
-      circleSessionRepository.addMembership,
-    ).toHaveBeenCalledWith(
+    const memberships = await circleSessionRepository.listMemberships(
       circleSessionId("session-1"),
-      userId("user-2"),
-      "CircleSessionMember",
     );
+    expect(memberships).toHaveLength(2);
+    const added = memberships.find((m) => m.userId === "user-2");
+    expect(added?.role).toBe("CircleSessionMember");
   });
 
   test("changeMembershipRole は Owner への変更を拒否する", async () => {
-    vi.mocked(
-      circleSessionRepository.listMemberships,
-    ).mockResolvedValueOnce([
-      {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
-        role: "CircleSessionMember",
-      },
-    ]);
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-1"),
+      "CircleSessionMember",
+    );
 
     await expect(
       service.changeMembershipRole({
@@ -300,20 +267,16 @@ describe("CircleSession セッションメンバーシップサービス", () =>
   });
 
   test("transferOwnership は Owner を移譲する", async () => {
-    vi.mocked(
-      circleSessionRepository.listMemberships,
-    ).mockResolvedValueOnce([
-      {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
-        role: "CircleSessionOwner",
-      },
-      {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-2"),
-        role: "CircleSessionMember",
-      },
-    ]);
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-1"),
+      "CircleSessionOwner",
+    );
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-2"),
+      "CircleSessionMember",
+    );
 
     await service.transferOwnership({
       actorId: "user-actor",
@@ -322,32 +285,21 @@ describe("CircleSession セッションメンバーシップサービス", () =>
       toUserId: userId("user-2"),
     });
 
-    expect(
-      circleSessionRepository.updateMembershipRole,
-    ).toHaveBeenCalledWith(
+    const memberships = await circleSessionRepository.listMemberships(
       circleSessionId("session-1"),
-      userId("user-1"),
-      "CircleSessionManager",
     );
-    expect(
-      circleSessionRepository.updateMembershipRole,
-    ).toHaveBeenCalledWith(
-      circleSessionId("session-1"),
-      userId("user-2"),
-      "CircleSessionOwner",
-    );
+    const user1 = memberships.find((m) => m.userId === "user-1");
+    const user2 = memberships.find((m) => m.userId === "user-2");
+    expect(user1?.role).toBe("CircleSessionManager");
+    expect(user2?.role).toBe("CircleSessionOwner");
   });
 
   test("removeMembership は対局記録があっても削除できる", async () => {
-    vi.mocked(
-      circleSessionRepository.listMemberships,
-    ).mockResolvedValueOnce([
-      {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
-        role: "CircleSessionMember",
-      },
-    ]);
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-1"),
+      "CircleSessionMember",
+    );
 
     await expect(
       service.removeMembership({
@@ -357,22 +309,19 @@ describe("CircleSession セッションメンバーシップサービス", () =>
       }),
     ).resolves.toBeUndefined();
 
-    expect(
-      circleSessionRepository.removeMembership,
-    ).toHaveBeenCalledWith(circleSessionId("session-1"), userId("user-1"), expect.any(Date));
+    const memberships = await circleSessionRepository.listMemberships(
+      circleSessionId("session-1"),
+    );
+    expect(memberships.find((m) => m.userId === "user-1")).toBeUndefined();
   });
 
   describe("withdrawMembership", () => {
     test("メンバーは退会できる", async () => {
-      vi.mocked(
-        circleSessionRepository.listMemberships,
-      ).mockResolvedValueOnce([
-        {
-          circleSessionId: circleSessionId("session-1"),
-          userId: userId("user-actor"),
-          role: "CircleSessionMember",
-        },
-      ]);
+      await circleSessionRepository.addMembership(
+        circleSessionId("session-1"),
+        userId("user-actor"),
+        "CircleSessionMember",
+      );
 
       await expect(
         service.withdrawMembership({
@@ -381,25 +330,20 @@ describe("CircleSession セッションメンバーシップサービス", () =>
         }),
       ).resolves.toBeUndefined();
 
-      expect(
-        circleSessionRepository.removeMembership,
-      ).toHaveBeenCalledWith(
+      const memberships = await circleSessionRepository.listMemberships(
         circleSessionId("session-1"),
-        userId("user-actor"),
-        expect.any(Date),
       );
+      expect(
+        memberships.find((m) => m.userId === "user-actor"),
+      ).toBeUndefined();
     });
 
     test("オーナーは退会できない", async () => {
-      vi.mocked(
-        circleSessionRepository.listMemberships,
-      ).mockResolvedValueOnce([
-        {
-          circleSessionId: circleSessionId("session-1"),
-          userId: userId("user-actor"),
-          role: "CircleSessionOwner",
-        },
-      ]);
+      await circleSessionRepository.addMembership(
+        circleSessionId("session-1"),
+        userId("user-actor"),
+        "CircleSessionOwner",
+      );
 
       await expect(
         service.withdrawMembership({
@@ -410,21 +354,19 @@ describe("CircleSession セッションメンバーシップサービス", () =>
         "Owner cannot withdraw from session. Use transferOwnership instead",
       );
 
-      expect(
-        circleSessionRepository.removeMembership,
-      ).not.toHaveBeenCalled();
+      const memberships = await circleSessionRepository.listMemberships(
+        circleSessionId("session-1"),
+      );
+      expect(memberships).toHaveLength(1);
+      expect(memberships[0].userId).toBe("user-actor");
     });
 
     test("対局記録があっても退会できる", async () => {
-      vi.mocked(
-        circleSessionRepository.listMemberships,
-      ).mockResolvedValueOnce([
-        {
-          circleSessionId: circleSessionId("session-1"),
-          userId: userId("user-actor"),
-          role: "CircleSessionMember",
-        },
-      ]);
+      await circleSessionRepository.addMembership(
+        circleSessionId("session-1"),
+        userId("user-actor"),
+        "CircleSessionMember",
+      );
 
       await expect(
         service.withdrawMembership({
@@ -433,13 +375,12 @@ describe("CircleSession セッションメンバーシップサービス", () =>
         }),
       ).resolves.toBeUndefined();
 
-      expect(
-        circleSessionRepository.removeMembership,
-      ).toHaveBeenCalledWith(
+      const memberships = await circleSessionRepository.listMemberships(
         circleSessionId("session-1"),
-        userId("user-actor"),
-        expect.any(Date),
       );
+      expect(
+        memberships.find((m) => m.userId === "user-actor"),
+      ).toBeUndefined();
     });
 
     test("非メンバーは Forbidden エラー", async () => {
@@ -453,10 +394,6 @@ describe("CircleSession セッションメンバーシップサービス", () =>
           circleSessionId: circleSessionId("session-1"),
         }),
       ).rejects.toThrow("Forbidden");
-
-      expect(
-        circleSessionRepository.removeMembership,
-      ).not.toHaveBeenCalled();
     });
   });
 
@@ -473,43 +410,42 @@ describe("CircleSession セッションメンバーシップサービス", () =>
     });
 
     test("参加データ0件 → 0を返す", async () => {
-      vi.mocked(
-        circleSessionRepository.listMembershipsByUserId,
-      ).mockResolvedValueOnce([]);
-
       const result = await service.countPastSessionsByUserId(userId("user-1"));
 
       expect(result).toBe(0);
-      expect(circleSessionRepository.findByIds).not.toHaveBeenCalled();
     });
 
     test("全セッションが過去 → 全件カウント", async () => {
-      vi.mocked(
-        circleSessionRepository.listMembershipsByUserId,
-      ).mockResolvedValueOnce([
-        {
-          circleSessionId: circleSessionId("session-1"),
-          userId: userId("user-1"),
-          role: "CircleSessionMember",
-        },
-        {
-          circleSessionId: circleSessionId("session-2"),
-          userId: userId("user-1"),
-          role: "CircleSessionMember",
-        },
-      ]);
-      vi.mocked(circleSessionRepository.findByIds).mockResolvedValueOnce([
-        {
-          ...baseSession(),
-          id: circleSessionId("session-1"),
+      await circleSessionRepository.save(
+        createCircleSession({
+          id: circleSessionId("past-1"),
+          circleId: circleId("circle-1"),
+          title: "Past 1",
+          startsAt: new Date("2025-05-01T10:00:00Z"),
           endsAt: new Date("2025-05-01T12:00:00Z"),
-        },
-        {
-          ...baseSession(),
-          id: circleSessionId("session-2"),
+          createdAt: new Date("2025-04-01T00:00:00Z"),
+        }),
+      );
+      await circleSessionRepository.save(
+        createCircleSession({
+          id: circleSessionId("past-2"),
+          circleId: circleId("circle-1"),
+          title: "Past 2",
+          startsAt: new Date("2025-05-15T10:00:00Z"),
           endsAt: new Date("2025-05-15T12:00:00Z"),
-        },
-      ]);
+          createdAt: new Date("2025-05-01T00:00:00Z"),
+        }),
+      );
+      await circleSessionRepository.addMembership(
+        circleSessionId("past-1"),
+        userId("user-1"),
+        "CircleSessionMember",
+      );
+      await circleSessionRepository.addMembership(
+        circleSessionId("past-2"),
+        userId("user-1"),
+        "CircleSessionMember",
+      );
 
       const result = await service.countPastSessionsByUserId(userId("user-1"));
 
@@ -517,32 +453,36 @@ describe("CircleSession セッションメンバーシップサービス", () =>
     });
 
     test("全セッションが未来 → 0を返す", async () => {
-      vi.mocked(
-        circleSessionRepository.listMembershipsByUserId,
-      ).mockResolvedValueOnce([
-        {
-          circleSessionId: circleSessionId("session-1"),
-          userId: userId("user-1"),
-          role: "CircleSessionMember",
-        },
-        {
-          circleSessionId: circleSessionId("session-2"),
-          userId: userId("user-1"),
-          role: "CircleSessionMember",
-        },
-      ]);
-      vi.mocked(circleSessionRepository.findByIds).mockResolvedValueOnce([
-        {
-          ...baseSession(),
-          id: circleSessionId("session-1"),
+      await circleSessionRepository.save(
+        createCircleSession({
+          id: circleSessionId("future-1"),
+          circleId: circleId("circle-1"),
+          title: "Future 1",
+          startsAt: new Date("2025-07-01T10:00:00Z"),
           endsAt: new Date("2025-07-01T12:00:00Z"),
-        },
-        {
-          ...baseSession(),
-          id: circleSessionId("session-2"),
+          createdAt: new Date("2025-06-01T00:00:00Z"),
+        }),
+      );
+      await circleSessionRepository.save(
+        createCircleSession({
+          id: circleSessionId("future-2"),
+          circleId: circleId("circle-1"),
+          title: "Future 2",
+          startsAt: new Date("2025-08-01T10:00:00Z"),
           endsAt: new Date("2025-08-01T12:00:00Z"),
-        },
-      ]);
+          createdAt: new Date("2025-07-01T00:00:00Z"),
+        }),
+      );
+      await circleSessionRepository.addMembership(
+        circleSessionId("future-1"),
+        userId("user-1"),
+        "CircleSessionMember",
+      );
+      await circleSessionRepository.addMembership(
+        circleSessionId("future-2"),
+        userId("user-1"),
+        "CircleSessionMember",
+      );
 
       const result = await service.countPastSessionsByUserId(userId("user-1"));
 
@@ -550,42 +490,51 @@ describe("CircleSession セッションメンバーシップサービス", () =>
     });
 
     test("過去・未来混在 → 過去のみカウント", async () => {
-      vi.mocked(
-        circleSessionRepository.listMembershipsByUserId,
-      ).mockResolvedValueOnce([
-        {
-          circleSessionId: circleSessionId("session-1"),
-          userId: userId("user-1"),
-          role: "CircleSessionMember",
-        },
-        {
-          circleSessionId: circleSessionId("session-2"),
-          userId: userId("user-1"),
-          role: "CircleSessionMember",
-        },
-        {
-          circleSessionId: circleSessionId("session-3"),
-          userId: userId("user-1"),
-          role: "CircleSessionMember",
-        },
-      ]);
-      vi.mocked(circleSessionRepository.findByIds).mockResolvedValueOnce([
-        {
-          ...baseSession(),
-          id: circleSessionId("session-1"),
+      await circleSessionRepository.save(
+        createCircleSession({
+          id: circleSessionId("past-1"),
+          circleId: circleId("circle-1"),
+          title: "Past 1",
+          startsAt: new Date("2025-04-01T10:00:00Z"),
           endsAt: new Date("2025-04-01T12:00:00Z"),
-        },
-        {
-          ...baseSession(),
-          id: circleSessionId("session-2"),
+          createdAt: new Date("2025-03-01T00:00:00Z"),
+        }),
+      );
+      await circleSessionRepository.save(
+        createCircleSession({
+          id: circleSessionId("past-2"),
+          circleId: circleId("circle-1"),
+          title: "Past 2",
+          startsAt: new Date("2025-05-15T10:00:00Z"),
           endsAt: new Date("2025-05-15T12:00:00Z"),
-        },
-        {
-          ...baseSession(),
-          id: circleSessionId("session-3"),
+          createdAt: new Date("2025-05-01T00:00:00Z"),
+        }),
+      );
+      await circleSessionRepository.save(
+        createCircleSession({
+          id: circleSessionId("future-1"),
+          circleId: circleId("circle-1"),
+          title: "Future 1",
+          startsAt: new Date("2025-07-01T10:00:00Z"),
           endsAt: new Date("2025-07-01T12:00:00Z"),
-        },
-      ]);
+          createdAt: new Date("2025-06-01T00:00:00Z"),
+        }),
+      );
+      await circleSessionRepository.addMembership(
+        circleSessionId("past-1"),
+        userId("user-1"),
+        "CircleSessionMember",
+      );
+      await circleSessionRepository.addMembership(
+        circleSessionId("past-2"),
+        userId("user-1"),
+        "CircleSessionMember",
+      );
+      await circleSessionRepository.addMembership(
+        circleSessionId("future-1"),
+        userId("user-1"),
+        "CircleSessionMember",
+      );
 
       const result = await service.countPastSessionsByUserId(userId("user-1"));
 
@@ -593,22 +542,21 @@ describe("CircleSession セッションメンバーシップサービス", () =>
     });
 
     test("境界値: endsAt === now → 過去としてカウント", async () => {
-      vi.mocked(
-        circleSessionRepository.listMembershipsByUserId,
-      ).mockResolvedValueOnce([
-        {
-          circleSessionId: circleSessionId("session-1"),
-          userId: userId("user-1"),
-          role: "CircleSessionMember",
-        },
-      ]);
-      vi.mocked(circleSessionRepository.findByIds).mockResolvedValueOnce([
-        {
-          ...baseSession(),
-          id: circleSessionId("session-1"),
+      await circleSessionRepository.save(
+        createCircleSession({
+          id: circleSessionId("boundary"),
+          circleId: circleId("circle-1"),
+          title: "Boundary",
+          startsAt: new Date("2025-05-31T22:00:00Z"),
           endsAt: new Date("2025-06-01T00:00:00Z"),
-        },
-      ]);
+          createdAt: new Date("2025-05-01T00:00:00Z"),
+        }),
+      );
+      await circleSessionRepository.addMembership(
+        circleSessionId("boundary"),
+        userId("user-1"),
+        "CircleSessionMember",
+      );
 
       const result = await service.countPastSessionsByUserId(userId("user-1"));
 
