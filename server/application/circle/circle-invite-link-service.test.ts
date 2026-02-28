@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createCircleInviteLinkService } from "@/server/application/circle/circle-invite-link-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
-  createMockCircleInviteLinkRepository,
-  createMockCircleRepository,
-} from "@/server/application/test-helpers/mock-repositories";
+  createInMemoryCircleInviteLinkRepository,
+  createInMemoryCircleRepository,
+} from "@/server/infrastructure/repository/in-memory";
 import {
   circleId,
   circleInviteLinkId,
@@ -12,9 +12,9 @@ import {
   userId,
 } from "@/server/domain/common/ids";
 
-const circleInviteLinkRepository = createMockCircleInviteLinkRepository();
+const circleInviteLinkRepository = createInMemoryCircleInviteLinkRepository();
 
-const circleRepository = createMockCircleRepository();
+const circleRepository = createInMemoryCircleRepository();
 
 const accessService = createAccessServiceStub();
 
@@ -44,13 +44,13 @@ const baseLink = () => ({
   createdAt: new Date(),
 });
 
-beforeEach(() => {
+beforeEach(async () => {
+  circleInviteLinkRepository._store.clear();
+  circleRepository._circleStore.clear();
+  circleRepository._membershipStore.clear();
   vi.clearAllMocks();
-  vi.mocked(circleRepository.findById).mockResolvedValue(baseCircle());
+  await circleRepository.save(baseCircle());
   vi.mocked(accessService.canViewCircle).mockResolvedValue(true);
-  vi.mocked(circleInviteLinkRepository.findActiveByCircleId).mockResolvedValue(
-    null,
-  );
 });
 
 describe("招待リンクサービス", () => {
@@ -63,12 +63,12 @@ describe("招待リンクサービス", () => {
 
       expect(result.token).toBe(TEST_TOKEN_UUID);
       expect(result.circleId).toBe("circle-1");
-      expect(circleInviteLinkRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({
-          token: inviteLinkToken(TEST_TOKEN_UUID),
-          circleId: circleId("circle-1"),
-        }),
+      const saved = await circleInviteLinkRepository.findByToken(
+        inviteLinkToken(TEST_TOKEN_UUID),
       );
+      expect(saved).not.toBeNull();
+      expect(saved?.token).toBe(inviteLinkToken(TEST_TOKEN_UUID));
+      expect(saved?.circleId).toBe(circleId("circle-1"));
     });
 
     test("有効期限のカスタム日数を指定できる", async () => {
@@ -85,7 +85,7 @@ describe("招待リンクサービス", () => {
     });
 
     test("研究会が存在しない場合はエラー", async () => {
-      vi.mocked(circleRepository.findById).mockResolvedValue(null);
+      circleRepository._circleStore.clear();
 
       await expect(
         service.createInviteLink({
@@ -97,9 +97,7 @@ describe("招待リンクサービス", () => {
 
     test("既存の有効リンクがあればそれを返し新規作成しない (BR-011)", async () => {
       const existing = baseLink();
-      vi.mocked(
-        circleInviteLinkRepository.findActiveByCircleId,
-      ).mockResolvedValue(existing);
+      await circleInviteLinkRepository.save(existing);
 
       const result = await service.createInviteLink({
         actorId: "user-1",
@@ -107,19 +105,20 @@ describe("招待リンクサービス", () => {
       });
 
       expect(result).toEqual(existing);
-      expect(circleInviteLinkRepository.save).not.toHaveBeenCalled();
+      expect(circleInviteLinkRepository._store.size).toBe(1);
     });
 
     test("有効リンクがなければ新規作成する (BR-011)", async () => {
-      // findActiveByCircleId returns null (default mock in beforeEach)
-
       const result = await service.createInviteLink({
         actorId: "user-1",
         circleId: circleId("circle-1"),
       });
 
       expect(result.token).toBe(TEST_TOKEN_UUID);
-      expect(circleInviteLinkRepository.save).toHaveBeenCalled();
+      const saved = await circleInviteLinkRepository.findByToken(
+        inviteLinkToken(TEST_TOKEN_UUID),
+      );
+      expect(saved).not.toBeNull();
     });
 
     test("認可拒否時はエラー", async () => {
@@ -132,15 +131,13 @@ describe("招待リンクサービス", () => {
         }),
       ).rejects.toThrow("Forbidden");
 
-      expect(circleInviteLinkRepository.save).not.toHaveBeenCalled();
+      expect(circleInviteLinkRepository._store.size).toBe(0);
     });
   });
 
   describe("getInviteLinkInfo", () => {
     test("トークンから研究会情報を取得できる", async () => {
-      vi.mocked(circleInviteLinkRepository.findByToken).mockResolvedValue(
-        baseLink(),
-      );
+      await circleInviteLinkRepository.save(baseLink());
 
       const result = await service.getInviteLinkInfo({
         token: inviteLinkToken(TEST_TOKEN_UUID),
@@ -156,9 +153,7 @@ describe("招待リンクサービス", () => {
         ...baseLink(),
         expiresAt: new Date(Date.now() - 1000),
       };
-      vi.mocked(circleInviteLinkRepository.findByToken).mockResolvedValue(
-        expiredLink,
-      );
+      await circleInviteLinkRepository.save(expiredLink);
 
       const result = await service.getInviteLinkInfo({
         token: inviteLinkToken(TEST_TOKEN_UUID),
@@ -168,8 +163,6 @@ describe("招待リンクサービス", () => {
     });
 
     test("存在しないトークンはエラー", async () => {
-      vi.mocked(circleInviteLinkRepository.findByToken).mockResolvedValue(null);
-
       await expect(
         service.getInviteLinkInfo({
           token: inviteLinkToken(NONEXISTENT_TOKEN_UUID),
@@ -179,13 +172,8 @@ describe("招待リンクサービス", () => {
   });
 
   describe("redeemInviteLink", () => {
-    beforeEach(() => {
-      vi.mocked(circleInviteLinkRepository.findByToken).mockResolvedValue(
-        baseLink(),
-      );
-      vi.mocked(circleRepository.listMembershipsByCircleId).mockResolvedValue(
-        [],
-      );
+    beforeEach(async () => {
+      await circleInviteLinkRepository.save(baseLink());
     });
 
     test("新規ユーザーが招待リンクで参加できる", async () => {
@@ -196,25 +184,19 @@ describe("招待リンクサービス", () => {
 
       expect(result.circleId).toBe("circle-1");
       expect(result.alreadyMember).toBe(false);
-      expect(
-        circleRepository.addMembership,
-      ).toHaveBeenCalledWith(
+      const memberships = await circleRepository.listMembershipsByCircleId(
         circleId("circle-1"),
-        userId("user-new"),
-        "CircleMember",
       );
+      expect(memberships).toHaveLength(1);
+      expect(memberships[0].userId).toBe("user-new");
+      expect(memberships[0].role).toBe("CircleMember");
     });
 
     test("既存メンバーはalreadyMember=trueを返す", async () => {
-      vi.mocked(circleRepository.listMembershipsByCircleId).mockResolvedValue(
-        [
-          {
-            circleId: circleId("circle-1"),
-            userId: userId("user-existing"),
-            role: "CircleMember",
-            createdAt: new Date(),
-          },
-        ],
+      await circleRepository.addMembership(
+        circleId("circle-1"),
+        userId("user-existing"),
+        "CircleMember",
       );
 
       const result = await service.redeemInviteLink({
@@ -223,19 +205,19 @@ describe("招待リンクサービス", () => {
       });
 
       expect(result.alreadyMember).toBe(true);
-      expect(
-        circleRepository.addMembership,
-      ).not.toHaveBeenCalled();
+      const memberships = await circleRepository.listMembershipsByCircleId(
+        circleId("circle-1"),
+      );
+      expect(memberships).toHaveLength(1);
     });
 
     test("期限切れリンクはエラー", async () => {
+      circleInviteLinkRepository._store.clear();
       const expiredLink = {
         ...baseLink(),
         expiresAt: new Date(Date.now() - 1000),
       };
-      vi.mocked(circleInviteLinkRepository.findByToken).mockResolvedValue(
-        expiredLink,
-      );
+      await circleInviteLinkRepository.save(expiredLink);
 
       await expect(
         service.redeemInviteLink({
@@ -246,8 +228,6 @@ describe("招待リンクサービス", () => {
     });
 
     test("存在しないトークンはエラー", async () => {
-      vi.mocked(circleInviteLinkRepository.findByToken).mockResolvedValue(null);
-
       await expect(
         service.redeemInviteLink({
           actorId: "user-new",
