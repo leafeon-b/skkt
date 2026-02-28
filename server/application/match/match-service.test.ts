@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createMatchService } from "@/server/application/match/match-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import {
-  createMockMatchRepository,
-  createMockCircleSessionRepository,
-  createMockUnitOfWork,
-} from "@/server/application/test-helpers/mock-repositories";
+  createInMemoryMatchRepository,
+  createInMemoryCircleSessionRepository,
+  createInMemoryRepositories,
+} from "@/server/infrastructure/repository/in-memory";
 import {
   circleId,
   circleSessionId,
@@ -13,10 +13,11 @@ import {
   userId,
 } from "@/server/domain/common/ids";
 import { createMatch } from "@/server/domain/models/match/match";
+import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
 
-const matchRepository = createMockMatchRepository();
+const matchRepository = createInMemoryMatchRepository();
 
-const circleSessionRepository = createMockCircleSessionRepository();
+const circleSessionRepository = createInMemoryCircleSessionRepository();
 
 const accessService = createAccessServiceStub();
 
@@ -34,20 +35,38 @@ const baseMatchParams = {
   outcome: "P1_WIN" as const,
 };
 
-const baseSession = () => ({
-  id: circleSessionId("session-1"),
-  circleId: circleId("circle-1"),
-  title: "第1回 研究会",
-  startsAt: new Date("2024-01-01T00:00:00Z"),
-  endsAt: new Date("2024-01-02T00:00:00Z"),
-  location: null,
-  note: "",
-  createdAt: new Date("2024-01-01T00:00:00Z"),
-});
+const baseSession = () =>
+  createCircleSession({
+    id: circleSessionId("session-1"),
+    circleId: circleId("circle-1"),
+    title: "第1回 研究会",
+    startsAt: new Date("2024-01-01T00:00:00Z"),
+    endsAt: new Date("2024-01-02T00:00:00Z"),
+    location: null,
+    note: "",
+    createdAt: new Date("2024-01-01T00:00:00Z"),
+  });
 
-beforeEach(() => {
+const addSessionMemberships = async () => {
+  await circleSessionRepository.addMembership(
+    circleSessionId("session-1"),
+    userId("user-1"),
+    "CircleSessionMember",
+  );
+  await circleSessionRepository.addMembership(
+    circleSessionId("session-1"),
+    userId("user-2"),
+    "CircleSessionMember",
+  );
+};
+
+beforeEach(async () => {
+  matchRepository._store.clear();
+  circleSessionRepository._sessionStore.clear();
+  circleSessionRepository._membershipStore.clear();
   vi.clearAllMocks();
-  vi.mocked(circleSessionRepository.findById).mockResolvedValue(baseSession());
+  await circleSessionRepository.save(baseSession());
+  await addSessionMemberships();
   vi.mocked(accessService.canRecordMatch).mockResolvedValue(true);
   vi.mocked(accessService.canViewMatch).mockResolvedValue(true);
   vi.mocked(accessService.canEditMatch).mockResolvedValue(true);
@@ -66,12 +85,13 @@ describe("Match サービス", () => {
         }),
       ).rejects.toThrow("Forbidden");
 
-      expect(matchRepository.save).not.toHaveBeenCalled();
+      const saved = await matchRepository.findById(baseMatchParams.id);
+      expect(saved).toBeNull();
     });
 
     test("updateMatch は認可拒否時に Forbidden エラー", async () => {
       const existing = createMatch(baseMatchParams);
-      vi.mocked(matchRepository.findById).mockResolvedValue(existing);
+      await matchRepository.save(existing);
       vi.mocked(accessService.canEditMatch).mockResolvedValue(false);
 
       await expect(
@@ -82,14 +102,13 @@ describe("Match サービス", () => {
         }),
       ).rejects.toThrow("Forbidden");
 
-      expect(matchRepository.save).not.toHaveBeenCalled();
+      const saved = await matchRepository.findById(baseMatchParams.id);
+      expect(saved!.outcome).toBe("P1_WIN");
     });
   });
 
   test("recordMatch は参加者でない場合にエラー", async () => {
-    vi.mocked(
-      circleSessionRepository.areUsersParticipating,
-    ).mockResolvedValue(false);
+    circleSessionRepository._membershipStore.clear();
 
     await expect(
       service.recordMatch({
@@ -98,34 +117,29 @@ describe("Match サービス", () => {
       }),
     ).rejects.toThrow("Players must belong to the circle session");
 
-    expect(matchRepository.save).not.toHaveBeenCalled();
+    const saved = await matchRepository.findById(baseMatchParams.id);
+    expect(saved).toBeNull();
   });
 
   test("recordMatch は対局を保存する", async () => {
-    vi.mocked(
-      circleSessionRepository.areUsersParticipating,
-    ).mockResolvedValue(true);
-
     const result = await service.recordMatch({
       actorId: userId("user-3"),
       ...baseMatchParams,
     });
 
-    expect(matchRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: baseMatchParams.id,
-        circleSessionId: baseMatchParams.circleSessionId,
-        player1Id: baseMatchParams.player1Id,
-        player2Id: baseMatchParams.player2Id,
-        outcome: "P1_WIN",
-      }),
-    );
+    const saved = await matchRepository.findById(baseMatchParams.id);
+    expect(saved).not.toBeNull();
+    expect(saved!.id).toBe(baseMatchParams.id);
+    expect(saved!.circleSessionId).toBe(baseMatchParams.circleSessionId);
+    expect(saved!.player1Id).toBe(baseMatchParams.player1Id);
+    expect(saved!.player2Id).toBe(baseMatchParams.player2Id);
+    expect(saved!.outcome).toBe("P1_WIN");
     expect(result.outcome).toBe("P1_WIN");
   });
 
   test("updateMatch は片方だけの指定でエラー", async () => {
     const existing = createMatch(baseMatchParams);
-    vi.mocked(matchRepository.findById).mockResolvedValue(existing);
+    await matchRepository.save(existing);
 
     await expect(
       service.updateMatch({
@@ -135,15 +149,13 @@ describe("Match サービス", () => {
       }),
     ).rejects.toThrow("player1Id and player2Id must both be provided");
 
-    expect(matchRepository.save).not.toHaveBeenCalled();
+    const saved = await matchRepository.findById(baseMatchParams.id);
+    expect(saved!.player1Id).toBe(baseMatchParams.player1Id);
   });
 
   test("updateMatch は参加者でない場合にエラー", async () => {
     const existing = createMatch(baseMatchParams);
-    vi.mocked(matchRepository.findById).mockResolvedValue(existing);
-    vi.mocked(
-      circleSessionRepository.areUsersParticipating,
-    ).mockResolvedValue(false);
+    await matchRepository.save(existing);
 
     await expect(
       service.updateMatch({
@@ -154,12 +166,14 @@ describe("Match サービス", () => {
       }),
     ).rejects.toThrow("Players must belong to the circle session");
 
-    expect(matchRepository.save).not.toHaveBeenCalled();
+    const saved = await matchRepository.findById(baseMatchParams.id);
+    expect(saved!.player1Id).toBe(baseMatchParams.player1Id);
+    expect(saved!.player2Id).toBe(baseMatchParams.player2Id);
   });
 
   test("updateMatch は結果を更新する", async () => {
     const existing = createMatch(baseMatchParams);
-    vi.mocked(matchRepository.findById).mockResolvedValue(existing);
+    await matchRepository.save(existing);
 
     const updated = await service.updateMatch({
       actorId: userId("user-3"),
@@ -167,9 +181,8 @@ describe("Match サービス", () => {
       outcome: "DRAW",
     });
 
-    expect(matchRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({ outcome: "DRAW" }),
-    );
+    const saved = await matchRepository.findById(baseMatchParams.id);
+    expect(saved!.outcome).toBe("DRAW");
     expect(updated.outcome).toBe("DRAW");
   });
 
@@ -178,7 +191,7 @@ describe("Match サービス", () => {
       ...createMatch(baseMatchParams),
       deletedAt: new Date("2024-01-01T00:00:00Z"),
     };
-    vi.mocked(matchRepository.findById).mockResolvedValue(existing);
+    await matchRepository.save(existing);
 
     await expect(
       service.deleteMatch({
@@ -187,33 +200,37 @@ describe("Match サービス", () => {
       }),
     ).rejects.toThrow("Match is deleted");
 
-    expect(matchRepository.save).not.toHaveBeenCalled();
+    const saved = await matchRepository.findById(baseMatchParams.id);
+    expect(saved!.deletedAt).toEqual(new Date("2024-01-01T00:00:00Z"));
   });
 
   test("deleteMatch は対局を論理削除する", async () => {
     const existing = createMatch(baseMatchParams);
-    vi.mocked(matchRepository.findById).mockResolvedValue(existing);
+    await matchRepository.save(existing);
 
     const deleted = await service.deleteMatch({
       actorId: userId("user-3"),
       id: baseMatchParams.id,
     });
 
-    expect(matchRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: baseMatchParams.id,
-        deletedAt: expect.any(Date),
-      }),
-    );
+    const saved = await matchRepository.findById(baseMatchParams.id);
+    expect(saved!.deletedAt).not.toBeNull();
     expect(deleted.deletedAt).not.toBeNull();
   });
 
   test("updateMatch はプレイヤーを変更する", async () => {
     const existing = createMatch(baseMatchParams);
-    vi.mocked(matchRepository.findById).mockResolvedValue(existing);
-    vi.mocked(
-      circleSessionRepository.areUsersParticipating,
-    ).mockResolvedValue(true);
+    await matchRepository.save(existing);
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-4"),
+      "CircleSessionMember",
+    );
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-5"),
+      "CircleSessionMember",
+    );
 
     const updated = await service.updateMatch({
       actorId: userId("user-3"),
@@ -222,67 +239,77 @@ describe("Match サービス", () => {
       player2Id: userId("user-5"),
     });
 
-    expect(
-      circleSessionRepository.areUsersParticipating,
-    ).toHaveBeenCalledWith(baseMatchParams.circleSessionId, [
-      userId("user-4"),
-      userId("user-5"),
-    ]);
-    expect(matchRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        player1Id: userId("user-4"),
-        player2Id: userId("user-5"),
-      }),
-    );
+    const saved = await matchRepository.findById(baseMatchParams.id);
+    expect(saved!.player1Id).toBe(userId("user-4"));
+    expect(saved!.player2Id).toBe(userId("user-5"));
     expect(updated.player1Id).toBe(userId("user-4"));
     expect(updated.player2Id).toBe(userId("user-5"));
   });
 });
 
 describe("UnitOfWork 経路", () => {
-  const depsMatchRepository = createMockMatchRepository();
-  const depsCircleSessionRepository = createMockCircleSessionRepository();
-  const { unitOfWork, repos } = createMockUnitOfWork();
+  const { repos, unitOfWork, stores } = createInMemoryRepositories();
 
   const uowAccessService = createAccessServiceStub();
 
   const uowService = createMatchService({
-    matchRepository: depsMatchRepository,
-    circleSessionRepository: depsCircleSessionRepository,
+    matchRepository: repos.matchRepository,
+    circleSessionRepository: repos.circleSessionRepository,
     accessService: uowAccessService,
     unitOfWork,
   });
 
-  beforeEach(() => {
+  const uowBaseSession = () =>
+    createCircleSession({
+      id: circleSessionId("session-1"),
+      circleId: circleId("circle-1"),
+      title: "第1回 研究会",
+      startsAt: new Date("2024-01-01T00:00:00Z"),
+      endsAt: new Date("2024-01-02T00:00:00Z"),
+      location: null,
+      note: "",
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+    });
+
+  const addUowSessionMemberships = async () => {
+    await repos.circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-1"),
+      "CircleSessionMember",
+    );
+    await repos.circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-2"),
+      "CircleSessionMember",
+    );
+  };
+
+  beforeEach(async () => {
+    stores.matchStore.clear();
+    stores.circleSessionStore.clear();
+    stores.circleSessionMembershipStore.clear();
     vi.clearAllMocks();
     vi.mocked(uowAccessService.canRecordMatch).mockResolvedValue(true);
     vi.mocked(uowAccessService.canEditMatch).mockResolvedValue(true);
     vi.mocked(uowAccessService.canDeleteMatch).mockResolvedValue(true);
-    vi.mocked(repos.circleSessionRepository.findById).mockResolvedValue(
-      baseSession(),
-    );
-    vi.mocked(
-      repos.circleSessionRepository.areUsersParticipating,
-    ).mockResolvedValue(true);
+    await repos.circleSessionRepository.save(uowBaseSession());
+    await addUowSessionMemberships();
   });
 
-  test("recordMatch は unitOfWork を呼び出す", async () => {
+  test("recordMatch は UoW 経由で対局を保存する", async () => {
     await uowService.recordMatch({
       actorId: userId("user-3"),
       ...baseMatchParams,
     });
 
-    expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(repos.matchRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({ id: baseMatchParams.id }),
-    );
-    // deps側のリポジトリは呼ばれない
-    expect(depsMatchRepository.save).not.toHaveBeenCalled();
+    const saved = await repos.matchRepository.findById(baseMatchParams.id);
+    expect(saved).not.toBeNull();
+    expect(saved!.id).toBe(baseMatchParams.id);
   });
 
-  test("updateMatch は unitOfWork を呼び出す", async () => {
+  test("updateMatch は UoW 経由で結果を更新する", async () => {
     const existing = createMatch(baseMatchParams);
-    vi.mocked(repos.matchRepository.findById).mockResolvedValue(existing);
+    await repos.matchRepository.save(existing);
 
     await uowService.updateMatch({
       actorId: userId("user-3"),
@@ -290,31 +317,25 @@ describe("UnitOfWork 経路", () => {
       outcome: "DRAW",
     });
 
-    expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(repos.matchRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({ outcome: "DRAW" }),
-    );
-    expect(depsMatchRepository.save).not.toHaveBeenCalled();
+    const saved = await repos.matchRepository.findById(baseMatchParams.id);
+    expect(saved!.outcome).toBe("DRAW");
   });
 
-  test("deleteMatch は unitOfWork を呼び出す", async () => {
+  test("deleteMatch は UoW 経由で対局を論理削除する", async () => {
     const existing = createMatch(baseMatchParams);
-    vi.mocked(repos.matchRepository.findById).mockResolvedValue(existing);
+    await repos.matchRepository.save(existing);
 
     await uowService.deleteMatch({
       actorId: userId("user-3"),
       id: baseMatchParams.id,
     });
 
-    expect(unitOfWork).toHaveBeenCalledOnce();
-    expect(repos.matchRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({ deletedAt: expect.any(Date) }),
-    );
-    expect(depsMatchRepository.save).not.toHaveBeenCalled();
+    const saved = await repos.matchRepository.findById(baseMatchParams.id);
+    expect(saved!.deletedAt).not.toBeNull();
   });
 
   test("UoW 内でエラーが発生した場合に伝播する", async () => {
-    vi.mocked(repos.matchRepository.save).mockRejectedValue(
+    vi.spyOn(repos.matchRepository, "save").mockRejectedValueOnce(
       new Error("DB error"),
     );
 
