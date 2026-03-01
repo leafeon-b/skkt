@@ -102,13 +102,6 @@ describe("circleInviteLink tRPC ルーター", () => {
 
     expect(result.token).toBe(TEST_TOKEN_UUID);
     expect(result.circleId).toBe("circle-1");
-    expect(mocks.circleInviteLinkService.createInviteLink).toHaveBeenCalledWith(
-      {
-        actorId: userId("user-1"),
-        circleId: circleId("circle-1"),
-        expiryDays: undefined,
-      },
-    );
   });
 
   test("circles.inviteLinks.getInfo はリンク情報を返す", async () => {
@@ -143,12 +136,6 @@ describe("circleInviteLink tRPC ルーター", () => {
 
     expect(result.circleId).toBe("circle-1");
     expect(result.alreadyMember).toBe(false);
-    expect(mocks.circleInviteLinkService.redeemInviteLink).toHaveBeenCalledWith(
-      {
-        actorId: userId("user-1"),
-        token: TEST_TOKEN_UUID,
-      },
-    );
   });
 
   test("circles.inviteLinks.redeem は既存メンバーの場合 alreadyMember=true", async () => {

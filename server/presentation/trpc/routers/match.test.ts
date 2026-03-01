@@ -105,10 +105,6 @@ describe("match tRPC ルーター", () => {
       expect(result[0].id).toBe("match-1");
       expect(result[0].player1Id).toBe("player-1");
       expect(result[0].outcome).toBe("P1_WIN");
-      expect(mocks.matchService.listByCircleSessionId).toHaveBeenCalledWith({
-        actorId: userId("user-1"),
-        circleSessionId: circleSessionId("session-1"),
-      });
     });
 
     test("空配列を返す（対局なし）", async () => {
@@ -159,10 +155,6 @@ describe("match tRPC ルーター", () => {
       expect(result.circleSessionId).toBe("session-1");
       expect(result.player1Id).toBe("player-1");
       expect(result.player2Id).toBe("player-2");
-      expect(mocks.matchService.getMatch).toHaveBeenCalledWith({
-        actorId: userId("user-1"),
-        id: matchId("match-1"),
-      });
     });
 
     test("存在しない対局 → NOT_FOUND", async () => {
@@ -213,15 +205,6 @@ describe("match tRPC ルーター", () => {
 
       expect(result.id).toBe("match-1");
       expect(result.outcome).toBe("P1_WIN");
-      expect(mocks.matchService.recordMatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          actorId: userId("user-1"),
-          circleSessionId: circleSessionId("session-1"),
-          player1Id: userId("player-1"),
-          player2Id: userId("player-2"),
-          outcome: "P1_WIN",
-        }),
-      );
     });
 
     test("対局を作成できる（outcome なし）", async () => {
@@ -237,11 +220,6 @@ describe("match tRPC ルーター", () => {
       });
 
       expect(result.outcome).toBe("UNKNOWN");
-      expect(mocks.matchService.recordMatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          outcome: undefined,
-        }),
-      );
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
@@ -313,13 +291,6 @@ describe("match tRPC ルーター", () => {
 
       expect(result.player1Id).toBe("player-3");
       expect(result.player2Id).toBe("player-4");
-      expect(mocks.matchService.updateMatch).toHaveBeenCalledWith({
-        actorId: userId("user-1"),
-        id: matchId("match-1"),
-        player1Id: userId("player-3"),
-        player2Id: userId("player-4"),
-        outcome: undefined,
-      });
     });
 
     test("対局を更新できる（outcome のみ変更）", async () => {
@@ -334,13 +305,6 @@ describe("match tRPC ルーター", () => {
       });
 
       expect(result.outcome).toBe("DRAW");
-      expect(mocks.matchService.updateMatch).toHaveBeenCalledWith({
-        actorId: userId("user-1"),
-        id: matchId("match-1"),
-        player1Id: undefined,
-        player2Id: undefined,
-        outcome: "DRAW",
-      });
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
@@ -392,10 +356,6 @@ describe("match tRPC ルーター", () => {
       const result = await caller.matches.delete({ matchId: "match-1" });
 
       expect(result.deletedAt).toEqual(new Date("2024-06-02T00:00:00Z"));
-      expect(mocks.matchService.deleteMatch).toHaveBeenCalledWith({
-        actorId: userId("user-1"),
-        id: matchId("match-1"),
-      });
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {

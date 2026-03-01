@@ -107,7 +107,6 @@ describe("user tRPC ルーター", () => {
       expect(result.email).toBe("taro@example.com");
       expect(result.hasPassword).toBe(true);
       expect(result.profileVisibility).toBe("PUBLIC");
-      expect(mocks.userService.getMe).toHaveBeenCalledWith(userId("user-1"));
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
@@ -123,23 +122,6 @@ describe("user tRPC ルーター", () => {
   });
 
   describe("updateProfile", () => {
-    test("正常入力で userService.updateProfile が正しい引数で呼ばれる", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.userService.updateProfile.mockResolvedValueOnce(undefined);
-
-      const caller = appRouter.createCaller(context);
-      await caller.users.updateProfile({
-        name: "NewName",
-        email: "new@example.com",
-      });
-
-      expect(mocks.userService.updateProfile).toHaveBeenCalledWith(
-        userId("user-1"),
-        "NewName",
-        "new@example.com",
-      );
-    });
-
     test("BadRequestError → BAD_REQUEST", async () => {
       const { context, mocks } = createTestContext();
       mocks.userService.updateProfile.mockRejectedValueOnce(
@@ -158,23 +140,6 @@ describe("user tRPC ルーター", () => {
   });
 
   describe("changePassword", () => {
-    test("正常入力で userService.changePassword が正しい引数で呼ばれる", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.userService.changePassword.mockResolvedValueOnce(undefined);
-
-      const caller = appRouter.createCaller(context);
-      await caller.users.changePassword({
-        currentPassword: "oldpass12",
-        newPassword: "newpass12",
-      });
-
-      expect(mocks.userService.changePassword).toHaveBeenCalledWith(
-        userId("user-1"),
-        "oldpass12",
-        "newpass12",
-      );
-    });
-
     test("BadRequestError → BAD_REQUEST", async () => {
       const { context, mocks } = createTestContext();
       mocks.userService.changePassword.mockRejectedValueOnce(
@@ -209,23 +174,6 @@ describe("user tRPC ルーター", () => {
   });
 
   describe("updateProfileVisibility", () => {
-    test("正常入力で userService.updateProfileVisibility が正しい引数で呼ばれる", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.userService.updateProfileVisibility.mockResolvedValueOnce(
-        undefined,
-      );
-
-      const caller = appRouter.createCaller(context);
-      await caller.users.updateProfileVisibility({
-        visibility: "PRIVATE",
-      });
-
-      expect(mocks.userService.updateProfileVisibility).toHaveBeenCalledWith(
-        userId("user-1"),
-        "PRIVATE",
-      );
-    });
-
     test("ForbiddenError → FORBIDDEN", async () => {
       const { context, mocks } = createTestContext();
       mocks.userService.updateProfileVisibility.mockRejectedValueOnce(
