@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import SignupForm from "./signup-form";
+import { SIGNUP_ERROR_MESSAGES } from "./signup-form-messages";
 
 beforeAll(() => {
   globalThis.ResizeObserver = class {
@@ -55,7 +56,7 @@ describe("SignupForm 利用規約チェックボックス", () => {
     await user.click(submitButton);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "利用規約およびプライバシーポリシーに同意してください。",
+      SIGNUP_ERROR_MESSAGES.termsNotAgreed,
     );
   });
 
@@ -100,7 +101,7 @@ describe("SignupForm 利用規約チェックボックス", () => {
     await user.click(submitButton);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "表示名は50文字以内で入力してください。",
+      SIGNUP_ERROR_MESSAGES.nameTooLong,
     );
   });
 
@@ -120,7 +121,7 @@ describe("SignupForm 利用規約チェックボックス", () => {
     await user.click(submitButton);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "パスワードは8文字以上で入力してください。",
+      SIGNUP_ERROR_MESSAGES.passwordTooShort,
     );
   });
 
@@ -139,7 +140,7 @@ describe("SignupForm 利用規約チェックボックス", () => {
     await user.click(submitButton);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "パスワードが一致しません。",
+      SIGNUP_ERROR_MESSAGES.passwordMismatch,
     );
   });
 

@@ -7,10 +7,12 @@ import { sanitizeCallbackUrl } from "@/lib/url";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-
-const MIN_PASSWORD_LENGTH = 8;
-const MAX_PASSWORD_LENGTH = 128;
-const MAX_NAME_LENGTH = 50;
+import {
+  MAX_NAME_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  SIGNUP_ERROR_MESSAGES,
+} from "./signup-form-messages";
 
 type SignupFormProps = {
   callbackUrl?: string;
@@ -33,29 +35,23 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
     }
 
     if (name.trim().length > MAX_NAME_LENGTH) {
-      setErrorMessage(
-        `表示名は${MAX_NAME_LENGTH}文字以内で入力してください。`,
-      );
+      setErrorMessage(SIGNUP_ERROR_MESSAGES.nameTooLong);
       return;
     }
     if (password.length < MIN_PASSWORD_LENGTH) {
-      setErrorMessage(
-        `パスワードは${MIN_PASSWORD_LENGTH}文字以上で入力してください。`,
-      );
+      setErrorMessage(SIGNUP_ERROR_MESSAGES.passwordTooShort);
       return;
     }
     if (password.length > MAX_PASSWORD_LENGTH) {
-      setErrorMessage(
-        `パスワードは${MAX_PASSWORD_LENGTH}文字以内で入力してください。`,
-      );
+      setErrorMessage(SIGNUP_ERROR_MESSAGES.passwordTooLong);
       return;
     }
     if (password !== passwordConfirm) {
-      setErrorMessage("パスワードが一致しません。");
+      setErrorMessage(SIGNUP_ERROR_MESSAGES.passwordMismatch);
       return;
     }
     if (!agreedToTerms) {
-      setErrorMessage("利用規約およびプライバシーポリシーに同意してください。");
+      setErrorMessage(SIGNUP_ERROR_MESSAGES.termsNotAgreed);
       return;
     }
 
@@ -78,7 +74,7 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
         const payload = (await response.json().catch(() => null)) as {
           message?: string;
         } | null;
-        setErrorMessage(payload?.message ?? "登録に失敗しました。");
+        setErrorMessage(payload?.message ?? SIGNUP_ERROR_MESSAGES.signupFailed);
         return;
       }
 
@@ -90,7 +86,7 @@ export default function SignupForm({ callbackUrl }: SignupFormProps) {
       });
 
       if (!result || result.error) {
-        setErrorMessage("登録は完了しましたが、ログインに失敗しました。");
+        setErrorMessage(SIGNUP_ERROR_MESSAGES.loginAfterSignupFailed);
         return;
       }
 
