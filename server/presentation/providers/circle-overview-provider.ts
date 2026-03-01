@@ -71,6 +71,22 @@ export async function getCircleOverviewViewModel(
   ]);
   const userNameById = new Map(users.map((user) => [user.id, user.name]));
 
+  const canChangeRoleByUserId = new Map<string, boolean>();
+  if (viewerId) {
+    const results = await Promise.all(
+      memberships.map((m) =>
+        ctx.accessService.canChangeCircleMemberRole(
+          viewerId,
+          m.userId,
+          circleId,
+        ),
+      ),
+    );
+    memberships.forEach((m, i) => {
+      canChangeRoleByUserId.set(m.userId, results[i]);
+    });
+  }
+
   const viewerRole = getViewerRole(memberships, viewerId);
 
   const allSessions = sessions
@@ -105,6 +121,7 @@ export async function getCircleOverviewViewModel(
       userId: membership.userId,
       name: userNameById.get(membership.userId) ?? membership.userId,
       role: roleKeyByDto[membership.role] ?? "member",
+      canChangeRole: canChangeRoleByUserId.get(membership.userId) ?? false,
     })),
     holidayDates: ctx.holidayProvider.getHolidayDateStringsForRange(),
     canDeleteCircle,

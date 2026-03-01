@@ -49,6 +49,15 @@ vi.mock(
   }),
 );
 
+vi.mock(
+  "@/app/(authenticated)/circles/components/member-role-dropdown",
+  () => ({
+    MemberRoleDropdown: ({ userId }: { userId: string }) => (
+      <button data-testid={`role-edit-${userId}`}>ロールを変更</button>
+    ),
+  }),
+);
+
 afterEach(() => {
   cleanup();
 });
@@ -179,5 +188,45 @@ describe("CircleOverviewView ロールベース表示制御", () => {
     expect(
       screen.queryByTestId("circle-delete-button"),
     ).not.toBeInTheDocument();
+  });
+
+  it("canChangeRole が true のメンバーにはロールバッジと編集ボタンが表示される", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({
+          members: [
+            {
+              userId: "user-1",
+              name: "テストユーザー",
+              role: "manager",
+              canChangeRole: true,
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText("マネージャー")).toBeInTheDocument();
+    expect(screen.getByTestId("role-edit-user-1")).toBeInTheDocument();
+  });
+
+  it("canChangeRole が false のメンバーにはロールバッジのみ表示される", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({
+          members: [
+            {
+              userId: "user-2",
+              name: "オーナーユーザー",
+              role: "owner",
+              canChangeRole: false,
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText("オーナー")).toBeInTheDocument();
+    expect(screen.queryByTestId("role-edit-user-2")).not.toBeInTheDocument();
   });
 });
