@@ -33,7 +33,7 @@ const buildServiceContainer = (): ServiceContainer =>
     userRepository: prismaUserRepository,
     authzRepository: prismaAuthzRepository,
     circleInviteLinkRepository: prismaCircleInviteLinkRepository,
-    passwordUtils: { hash: hashPassword, verify: verifyPassword },
+    passwordHasher: { hash: hashPassword, verify: verifyPassword },
     changePasswordRateLimiter,
     holidayProvider: japaneseHolidayProvider,
     unitOfWork: prismaUnitOfWork,

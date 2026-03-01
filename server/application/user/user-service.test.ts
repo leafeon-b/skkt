@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createUserService } from "@/server/application/user/user-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import { createMockUserRepository } from "@/server/application/test-helpers/mock-repositories";
-import type { PasswordUtils } from "@/server/application/user/user-service";
+import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import { userId } from "@/server/domain/common/ids";
 import {
@@ -15,7 +15,7 @@ const userRepository = createMockUserRepository();
 
 const accessService = createAccessServiceStub();
 
-const passwordUtils: PasswordUtils = {
+const passwordHasher: PasswordHasher = {
   hash: vi.fn((p: string) => `hashed:${p}`),
   verify: vi.fn((p: string, h: string) => h === `hashed:${p}`),
 };
@@ -29,7 +29,7 @@ const changePasswordRateLimiter: RateLimiter = {
 const service = createUserService({
   userRepository,
   accessService,
-  passwordUtils,
+  passwordHasher,
   changePasswordRateLimiter,
 });
 

@@ -8,7 +8,7 @@ import {
 
 const signupService = createSignupService({
   userRepository: prismaUserRepository,
-  passwordUtils: { hash: hashPassword, verify: verifyPassword },
+  passwordHasher: { hash: hashPassword, verify: verifyPassword },
 });
 
 type SignupPayload = {
