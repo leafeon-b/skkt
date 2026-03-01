@@ -9,6 +9,8 @@ export type CircleSessionMatchOutcome =
 export type CircleSessionMembership = {
   id: string;
   name: string;
+  role: CircleSessionRoleKey | null;
+  canChangeRole: boolean;
 };
 
 export type CircleSessionMatch = {

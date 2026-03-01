@@ -55,6 +55,16 @@ vi.mock("@/lib/trpc/client", () => ({
           reset: vi.fn(),
         }),
       },
+      memberships: {
+        updateRole: {
+          useMutation: () => ({
+            mutate: vi.fn(),
+            isPending: false,
+            data: null,
+            error: null,
+          }),
+        },
+      },
     },
     matches: {
       create: {
@@ -242,8 +252,8 @@ describe("CircleSessionDetailView 複製ボタン", () => {
 });
 
 const twoMemberships = [
-  { id: "p1", name: "藤井太郎" },
-  { id: "p2", name: "羽生次郎" },
+  { id: "p1", name: "藤井太郎", role: "member" as const, canChangeRole: false },
+  { id: "p2", name: "羽生次郎", role: "member" as const, canChangeRole: false },
 ];
 
 const oneMatch = [
