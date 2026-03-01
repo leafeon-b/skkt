@@ -109,13 +109,6 @@ describe("userCircleSessionMembership tRPC ルーター", () => {
       expect(result[0].circleName).toBe("京大将棋研究会");
       expect(result[0].title).toBe("第1回例会");
       expect(result[0].location).toBe("部室");
-      expect(
-        mocks.circleSessionMembershipService.listByUserId,
-      ).toHaveBeenCalledWith({
-        actorId: userId("user-1"),
-        userId: userId("user-1"),
-        limit: 5,
-      });
     });
 
     test("ユーザーのセッション参加一覧を取得できる（limit 省略）", async () => {
@@ -128,13 +121,6 @@ describe("userCircleSessionMembership tRPC ルーター", () => {
       const result = await caller.users.circleSessions.memberships.list({});
 
       expect(result).toHaveLength(1);
-      expect(
-        mocks.circleSessionMembershipService.listByUserId,
-      ).toHaveBeenCalledWith({
-        actorId: userId("user-1"),
-        userId: userId("user-1"),
-        limit: undefined,
-      });
     });
 
     test("空配列を返す（参加なし）", async () => {

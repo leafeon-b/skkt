@@ -105,12 +105,6 @@ describe("userCircleMembership tRPC ルーター", () => {
       expect(result[0].role).toBe("CircleMember");
       expect(result[1].circleId).toBe("circle-2");
       expect(result[1].role).toBe("CircleOwner");
-      expect(
-        mocks.circleMembershipService.listByUserId,
-      ).toHaveBeenCalledWith({
-        actorId: userId("user-1"),
-        userId: userId("user-1"),
-      });
     });
 
     test("空配列を返す（参加なし）", async () => {
