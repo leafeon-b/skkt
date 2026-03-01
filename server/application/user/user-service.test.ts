@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createUserService } from "@/server/application/user/user-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import { createMockUserRepository } from "@/server/application/test-helpers/mock-repositories";
+import { createInMemoryUserRepository } from "@/server/infrastructure/repository/in-memory";
+import type { UserStore } from "@/server/infrastructure/repository/in-memory/in-memory-user-repository";
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import { userId } from "@/server/domain/common/ids";
@@ -11,7 +12,8 @@ import {
 } from "@/server/domain/models/user/user";
 import { TooManyRequestsError } from "@/server/domain/common/errors";
 
-const userRepository = createMockUserRepository();
+const userStore: UserStore = new Map();
+const userRepository = createInMemoryUserRepository(userStore);
 
 const accessService = createAccessServiceStub();
 
@@ -41,14 +43,22 @@ const testUser = createUser({
   createdAt: new Date("2024-01-01"),
 });
 
+const addTestUser = (passwordHash: string | null = null) => {
+  userStore.set(actorId, {
+    ...testUser,
+    passwordHash,
+    passwordChangedAt: null,
+  });
+};
+
 beforeEach(() => {
+  userStore.clear();
   vi.clearAllMocks();
 });
 
 describe("getMe", () => {
   test("ユーザー情報とhasPasswordを返す", async () => {
-    userRepository.findById.mockResolvedValue(testUser);
-    userRepository.findPasswordHashById.mockResolvedValue("hashed:pass");
+    addTestUser("hashed:pass");
 
     const result = await service.getMe(actorId);
 
@@ -57,8 +67,7 @@ describe("getMe", () => {
   });
 
   test("パスワード未設定の場合 hasPassword=false", async () => {
-    userRepository.findById.mockResolvedValue(testUser);
-    userRepository.findPasswordHashById.mockResolvedValue(null);
+    addTestUser(null);
 
     const result = await service.getMe(actorId);
 
@@ -66,92 +75,88 @@ describe("getMe", () => {
   });
 
   test("ユーザーが存在しない場合 Forbidden エラー", async () => {
-    userRepository.findById.mockResolvedValue(null);
-
     await expect(service.getMe(actorId)).rejects.toThrow("Forbidden");
   });
 });
 
 describe("updateProfile", () => {
   test("プロフィールを更新する", async () => {
-    userRepository.findById.mockResolvedValue(testUser);
-    userRepository.findPasswordHashById.mockResolvedValue("hashed:pass");
-    userRepository.emailExists.mockResolvedValue(false);
+    addTestUser("hashed:pass");
 
     await service.updateProfile(actorId, "NewName", "new@example.com");
 
-    expect(userRepository.updateProfile).toHaveBeenCalledWith(
-      actorId,
-      "NewName",
-      "new@example.com",
-    );
+    const stored = userStore.get(actorId);
+    expect(stored?.name).toBe("NewName");
+    expect(stored?.email).toBe("new@example.com");
   });
 
   test("メールがnullの場合はメール重複チェックをスキップ", async () => {
-    userRepository.findById.mockResolvedValue(testUser);
+    addTestUser();
 
     await service.updateProfile(actorId, "NewName", null);
 
-    expect(userRepository.emailExists).not.toHaveBeenCalled();
-    expect(userRepository.updateProfile).toHaveBeenCalledWith(
-      actorId,
-      "NewName",
-      null,
-    );
+    const stored = userStore.get(actorId);
+    expect(stored?.name).toBe("NewName");
+    expect(stored?.email).toBeNull();
   });
 
   test("メール重複時に BadRequest エラー", async () => {
-    userRepository.findById.mockResolvedValue(testUser);
-    userRepository.findPasswordHashById.mockResolvedValue("hashed:pass");
-    userRepository.emailExists.mockResolvedValue(true);
+    addTestUser("hashed:pass");
+    // 別のユーザーが同じメールを使用中
+    userStore.set("other-user", {
+      id: userId("other-user"),
+      name: "Other",
+      email: "taken@example.com",
+      image: null,
+      profileVisibility: "PUBLIC",
+      createdAt: new Date(),
+      passwordHash: null,
+      passwordChangedAt: null,
+    });
 
     await expect(
       service.updateProfile(actorId, "NewName", "taken@example.com"),
     ).rejects.toThrow("Email already in use");
 
-    expect(userRepository.updateProfile).not.toHaveBeenCalled();
+    // ストアが変更されていないことを検証
+    const stored = userStore.get(actorId);
+    expect(stored?.name).toBe("Taro");
+    expect(stored?.email).toBe("taro@example.com");
   });
 
   test("name=null, email=null の場合はメール重複チェックをスキップして更新する", async () => {
-    userRepository.findById.mockResolvedValue(testUser);
+    addTestUser();
 
     await service.updateProfile(actorId, null, null);
 
-    expect(userRepository.emailExists).not.toHaveBeenCalled();
-    expect(userRepository.updateProfile).toHaveBeenCalledWith(
-      actorId,
-      null,
-      null,
-    );
+    const stored = userStore.get(actorId);
+    expect(stored?.name).toBeNull();
+    expect(stored?.email).toBeNull();
   });
 
   test("OAuthユーザーでもメールがnullなら名前のみ更新できる", async () => {
-    userRepository.findById.mockResolvedValue(testUser);
+    addTestUser(null);
 
     await service.updateProfile(actorId, "NewName", null);
 
-    expect(userRepository.findPasswordHashById).not.toHaveBeenCalled();
-    expect(userRepository.updateProfile).toHaveBeenCalledWith(
-      actorId,
-      "NewName",
-      null,
-    );
+    const stored = userStore.get(actorId);
+    expect(stored?.name).toBe("NewName");
   });
 
   test("OAuthユーザー（パスワード未設定）がメール変更を試みた場合 BadRequest エラー", async () => {
-    userRepository.findById.mockResolvedValue(testUser);
-    userRepository.findPasswordHashById.mockResolvedValue(null);
+    addTestUser(null);
 
     await expect(
       service.updateProfile(actorId, "NewName", "new@example.com"),
     ).rejects.toThrow("OAuth users cannot change email");
 
-    expect(userRepository.updateProfile).not.toHaveBeenCalled();
+    // ストアが変更されていないことを検証
+    const stored = userStore.get(actorId);
+    expect(stored?.name).toBe("Taro");
+    expect(stored?.email).toBe("taro@example.com");
   });
 
   test("ユーザーが存在しない場合 Forbidden エラー", async () => {
-    userRepository.findById.mockResolvedValue(null);
-
     await expect(
       service.updateProfile(actorId, "Name", "email@example.com"),
     ).rejects.toThrow("Forbidden");
@@ -160,81 +165,88 @@ describe("updateProfile", () => {
 
 describe("changePassword", () => {
   test("パスワードを変更する", async () => {
-    userRepository.findPasswordHashById.mockResolvedValue("hashed:oldpass");
+    addTestUser("hashed:oldpass");
 
     await service.changePassword(actorId, "oldpass", "newpass12");
 
-    expect(userRepository.updatePasswordHash).toHaveBeenCalledWith(
-      actorId,
-      "hashed:newpass12",
-      expect.any(Date),
-    );
+    const stored = userStore.get(actorId);
+    expect(stored?.passwordHash).toBe("hashed:newpass12");
+    expect(stored?.passwordChangedAt).toBeInstanceOf(Date);
   });
 
   test("現在のパスワードが不一致の場合 BadRequest エラー", async () => {
-    userRepository.findPasswordHashById.mockResolvedValue("hashed:correct");
+    addTestUser("hashed:correct");
 
     await expect(
       service.changePassword(actorId, "wrong", "newpass12"),
     ).rejects.toThrow("Current password is incorrect");
 
-    expect(userRepository.updatePasswordHash).not.toHaveBeenCalled();
+    // パスワードが変更されていないことを検証
+    const stored = userStore.get(actorId);
+    expect(stored?.passwordHash).toBe("hashed:correct");
   });
 
   test("新パスワードが短い場合 BadRequest エラー", async () => {
-    userRepository.findPasswordHashById.mockResolvedValue("hashed:oldpass");
+    addTestUser("hashed:oldpass");
 
     await expect(
       service.changePassword(actorId, "oldpass", "short"),
     ).rejects.toThrow("Password too short");
 
-    expect(userRepository.updatePasswordHash).not.toHaveBeenCalled();
+    const stored = userStore.get(actorId);
+    expect(stored?.passwordHash).toBe("hashed:oldpass");
   });
 
   test("新パスワードが128文字の場合は許可される", async () => {
-    userRepository.findPasswordHashById.mockResolvedValue("hashed:oldpass");
+    addTestUser("hashed:oldpass");
     const maxPassword = "a".repeat(128);
 
     await service.changePassword(actorId, "oldpass", maxPassword);
 
-    expect(userRepository.updatePasswordHash).toHaveBeenCalled();
+    const stored = userStore.get(actorId);
+    expect(stored?.passwordHash).toBe(`hashed:${maxPassword}`);
   });
 
   test("新パスワードが128文字を超える場合 BadRequest エラー", async () => {
-    userRepository.findPasswordHashById.mockResolvedValue("hashed:oldpass");
+    addTestUser("hashed:oldpass");
     const longPassword = "a".repeat(129);
 
     await expect(
       service.changePassword(actorId, "oldpass", longPassword),
     ).rejects.toThrow("Password too long");
 
-    expect(userRepository.updatePasswordHash).not.toHaveBeenCalled();
+    const stored = userStore.get(actorId);
+    expect(stored?.passwordHash).toBe("hashed:oldpass");
   });
 
   test("OAuthユーザー（パスワード未設定）の場合 BadRequest エラー", async () => {
-    userRepository.findPasswordHashById.mockResolvedValue(null);
+    addTestUser(null);
 
     await expect(
       service.changePassword(actorId, "any", "newpass12"),
     ).rejects.toThrow("Password login is not enabled");
 
-    expect(userRepository.updatePasswordHash).not.toHaveBeenCalled();
+    const stored = userStore.get(actorId);
+    expect(stored?.passwordHash).toBeNull();
   });
 
   test("レート制限超過時に TooManyRequestsError", async () => {
     vi.mocked(changePasswordRateLimiter.check).mockImplementationOnce(() => {
       throw new TooManyRequestsError(50_000);
     });
+    addTestUser("hashed:oldpass");
 
     await expect(
       service.changePassword(actorId, "oldpass", "newpass12"),
     ).rejects.toThrow(TooManyRequestsError);
 
-    expect(userRepository.findPasswordHashById).not.toHaveBeenCalled();
+    // パスワードが変更されていないことを検証
+    const stored = userStore.get(actorId);
+    expect(stored?.passwordHash).toBe("hashed:oldpass");
   });
 
   test("パスワード不一致時に recordFailure が呼ばれる", async () => {
-    userRepository.findPasswordHashById.mockResolvedValue("hashed:correct");
+    addTestUser("hashed:correct");
 
     await expect(
       service.changePassword(actorId, "wrong", "newpass12"),
@@ -246,7 +258,7 @@ describe("changePassword", () => {
   });
 
   test("パスワード変更成功時に reset が呼ばれる", async () => {
-    userRepository.findPasswordHashById.mockResolvedValue("hashed:oldpass");
+    addTestUser("hashed:oldpass");
 
     await service.changePassword(actorId, "oldpass", "newpass12");
 
@@ -256,19 +268,15 @@ describe("changePassword", () => {
 
 describe("updateProfileVisibility", () => {
   test("プロフィール公開設定を更新する", async () => {
-    userRepository.findById.mockResolvedValue(testUser);
+    addTestUser();
 
     await service.updateProfileVisibility(actorId, ProfileVisibility.PRIVATE);
 
-    expect(userRepository.updateProfileVisibility).toHaveBeenCalledWith(
-      actorId,
-      ProfileVisibility.PRIVATE,
-    );
+    const stored = userStore.get(actorId);
+    expect(stored?.profileVisibility).toBe(ProfileVisibility.PRIVATE);
   });
 
   test("ユーザーが存在しない場合 Forbidden エラー", async () => {
-    userRepository.findById.mockResolvedValue(null);
-
     await expect(
       service.updateProfileVisibility(actorId, ProfileVisibility.PRIVATE),
     ).rejects.toThrow("Forbidden");

@@ -1,21 +1,31 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
 import {
-  createMockMatchRepository,
-  createMockUserRepository,
-} from "@/server/application/test-helpers/mock-repositories";
+  createInMemoryMatchRepository,
+  createInMemoryUserRepository,
+} from "@/server/infrastructure/repository/in-memory";
+import type { UserStore } from "@/server/infrastructure/repository/in-memory/in-memory-user-repository";
+import type { MatchStore } from "@/server/infrastructure/repository/in-memory/in-memory-match-repository";
+import type { CircleStore } from "@/server/infrastructure/repository/in-memory/in-memory-circle-repository";
+import type { CircleSessionStore } from "@/server/infrastructure/repository/in-memory/in-memory-circle-session-repository";
 import {
   circleId,
   circleSessionId,
   matchId,
   userId,
 } from "@/server/domain/common/ids";
-import type { MatchOutcome, Match } from "@/server/domain/models/match/match";
-import type { MatchWithCircle } from "@/server/domain/models/match/match-read-models";
+import type { MatchOutcome } from "@/server/domain/models/match/match";
 
-const matchRepository = createMockMatchRepository();
+const matchStore: MatchStore = new Map();
+const circleSessionStore: CircleSessionStore = new Map();
+const circleStore: CircleStore = new Map();
+const userStore: UserStore = new Map();
 
-const userRepository = createMockUserRepository();
+const matchRepository = createInMemoryMatchRepository(matchStore, {
+  circleSessionStore,
+  circleStore,
+});
+const userRepository = createInMemoryUserRepository(userStore);
 
 const service = createUserStatisticsService({
   matchRepository,
@@ -30,23 +40,28 @@ const CIRCLE_B = circleId("circle-b");
 
 const OPPONENT_B = userId("opponent-b");
 
-const createTestMatch = (
-  overrides: Partial<{
-    player1Id: ReturnType<typeof userId>;
-    player2Id: ReturnType<typeof userId>;
-    outcome: MatchOutcome;
-  }> = {},
-): Match => ({
-  id: matchId(`match-${Math.random()}`),
-  circleSessionId: circleSessionId("session-1"),
-  createdAt: new Date(),
-  player1Id: overrides.player1Id ?? TARGET_USER,
-  player2Id: overrides.player2Id ?? OPPONENT,
-  outcome: overrides.outcome ?? "UNKNOWN",
-  deletedAt: null,
-});
+let matchCounter = 0;
 
-const createTestMatchWithCircle = (
+const ensureCircle = (cId: ReturnType<typeof circleId>, name: string) => {
+  if (!circleStore.has(cId)) {
+    circleStore.set(cId, { id: cId, name, createdAt: new Date() });
+  }
+  const csId = circleSessionId(`session-for-${cId}`);
+  if (!circleSessionStore.has(csId)) {
+    circleSessionStore.set(csId, {
+      id: csId,
+      circleId: cId,
+      title: "Session",
+      startsAt: new Date(),
+      endsAt: new Date(),
+      location: null,
+      note: "",
+      createdAt: new Date(),
+    });
+  }
+};
+
+const addMatchWithCircle = (
   overrides: Partial<{
     player1Id: ReturnType<typeof userId>;
     player2Id: ReturnType<typeof userId>;
@@ -54,43 +69,82 @@ const createTestMatchWithCircle = (
     circleId: ReturnType<typeof circleId>;
     circleName: string;
   }> = {},
-): MatchWithCircle => ({
-  id: matchId(`match-${Math.random()}`),
-  circleSessionId: circleSessionId("session-1"),
-  createdAt: new Date(),
-  player1Id: overrides.player1Id ?? TARGET_USER,
-  player2Id: overrides.player2Id ?? OPPONENT,
-  outcome: overrides.outcome ?? "UNKNOWN",
-  deletedAt: null,
-  circleId: overrides.circleId ?? CIRCLE_A,
-  circleName: overrides.circleName ?? "研究会A",
-});
+) => {
+  const cId = overrides.circleId ?? CIRCLE_A;
+  const cName = overrides.circleName ?? "研究会A";
+  ensureCircle(cId, cName);
+
+  const csId = circleSessionId(`session-for-${cId}`);
+  const mId = matchId(`match-${matchCounter++}`);
+  matchStore.set(mId, {
+    id: mId,
+    circleSessionId: csId,
+    createdAt: new Date(),
+    player1Id: overrides.player1Id ?? TARGET_USER,
+    player2Id: overrides.player2Id ?? OPPONENT,
+    outcome: overrides.outcome ?? "UNKNOWN",
+    deletedAt: null,
+  });
+};
+
+const addMatch = (
+  overrides: Partial<{
+    player1Id: ReturnType<typeof userId>;
+    player2Id: ReturnType<typeof userId>;
+    outcome: MatchOutcome;
+  }> = {},
+) => {
+  const csId = circleSessionId("session-1");
+  if (!circleSessionStore.has(csId)) {
+    const cId = circleId("default-circle");
+    if (!circleStore.has(cId)) {
+      circleStore.set(cId, { id: cId, name: "Default", createdAt: new Date() });
+    }
+    circleSessionStore.set(csId, {
+      id: csId,
+      circleId: cId,
+      title: "Session",
+      startsAt: new Date(),
+      endsAt: new Date(),
+      location: null,
+      note: "",
+      createdAt: new Date(),
+    });
+  }
+  const mId = matchId(`match-${matchCounter++}`);
+  matchStore.set(mId, {
+    id: mId,
+    circleSessionId: csId,
+    createdAt: new Date(),
+    player1Id: overrides.player1Id ?? TARGET_USER,
+    player2Id: overrides.player2Id ?? OPPONENT,
+    outcome: overrides.outcome ?? "UNKNOWN",
+    deletedAt: null,
+  });
+};
 
 describe("UserStatisticsService", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    matchStore.clear();
+    circleSessionStore.clear();
+    circleStore.clear();
+    userStore.clear();
+    matchCounter = 0;
   });
 
   describe("getMatchStatisticsAll - total", () => {
     test("対局なしの場合、全て0を返す", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([]);
-
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
       expect(result.total).toEqual({ wins: 0, losses: 0, draws: 0 });
-      expect(matchRepository.listByPlayerIdWithCircle).toHaveBeenCalledWith(
-        TARGET_USER,
-      );
     });
 
     test("player1として勝った場合、winsが1増える", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "P1_WIN",
-        }),
-      ]);
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P1_WIN",
+      });
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -98,13 +152,11 @@ describe("UserStatisticsService", () => {
     });
 
     test("player1として負けた場合、lossesが1増える", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "P2_WIN",
-        }),
-      ]);
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P2_WIN",
+      });
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -112,13 +164,11 @@ describe("UserStatisticsService", () => {
     });
 
     test("player2として勝った場合、winsが1増える", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
-        createTestMatchWithCircle({
-          player1Id: OPPONENT,
-          player2Id: TARGET_USER,
-          outcome: "P2_WIN",
-        }),
-      ]);
+      addMatchWithCircle({
+        player1Id: OPPONENT,
+        player2Id: TARGET_USER,
+        outcome: "P2_WIN",
+      });
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -126,13 +176,11 @@ describe("UserStatisticsService", () => {
     });
 
     test("player2として負けた場合、lossesが1増える", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
-        createTestMatchWithCircle({
-          player1Id: OPPONENT,
-          player2Id: TARGET_USER,
-          outcome: "P1_WIN",
-        }),
-      ]);
+      addMatchWithCircle({
+        player1Id: OPPONENT,
+        player2Id: TARGET_USER,
+        outcome: "P1_WIN",
+      });
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -140,9 +188,7 @@ describe("UserStatisticsService", () => {
     });
 
     test("引き分けの場合、drawsが1増える", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
-        createTestMatchWithCircle({ outcome: "DRAW" }),
-      ]);
+      addMatchWithCircle({ outcome: "DRAW" });
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -150,9 +196,7 @@ describe("UserStatisticsService", () => {
     });
 
     test("UNKNOWNの対局は集計から除外される", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
-        createTestMatchWithCircle({ outcome: "UNKNOWN" }),
-      ]);
+      addMatchWithCircle({ outcome: "UNKNOWN" });
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -162,30 +206,26 @@ describe("UserStatisticsService", () => {
 
   describe("getMatchStatisticsAll - byCircle", () => {
     test("対局なしの場合、空配列を返す", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([]);
-
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
       expect(result.byCircle).toEqual([]);
     });
 
     test("1つの研究会のみの場合、その研究会の統計を返す", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "P1_WIN",
-          circleId: CIRCLE_A,
-          circleName: "研究会A",
-        }),
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "P2_WIN",
-          circleId: CIRCLE_A,
-          circleName: "研究会A",
-        }),
-      ]);
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P1_WIN",
+        circleId: CIRCLE_A,
+        circleName: "研究会A",
+      });
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P2_WIN",
+        circleId: CIRCLE_A,
+        circleName: "研究会A",
+      });
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -201,48 +241,46 @@ describe("UserStatisticsService", () => {
     });
 
     test("複数の研究会にまたがる対局データで正しく集計される", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
-        // 研究会A: 勝ち
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "P1_WIN",
-          circleId: CIRCLE_A,
-          circleName: "研究会A",
-        }),
-        // 研究会A: 引き分け
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "DRAW",
-          circleId: CIRCLE_A,
-          circleName: "研究会A",
-        }),
-        // 研究会B: 負け
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "P2_WIN",
-          circleId: CIRCLE_B,
-          circleName: "研究会B",
-        }),
-        // 研究会B: 勝ち
-        createTestMatchWithCircle({
-          player1Id: OPPONENT,
-          player2Id: TARGET_USER,
-          outcome: "P2_WIN",
-          circleId: CIRCLE_B,
-          circleName: "研究会B",
-        }),
-        // 研究会A: UNKNOWN（除外）
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "UNKNOWN",
-          circleId: CIRCLE_A,
-          circleName: "研究会A",
-        }),
-      ]);
+      // 研究会A: 勝ち
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P1_WIN",
+        circleId: CIRCLE_A,
+        circleName: "研究会A",
+      });
+      // 研究会A: 引き分け
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "DRAW",
+        circleId: CIRCLE_A,
+        circleName: "研究会A",
+      });
+      // 研究会B: 負け
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P2_WIN",
+        circleId: CIRCLE_B,
+        circleName: "研究会B",
+      });
+      // 研究会B: 勝ち
+      addMatchWithCircle({
+        player1Id: OPPONENT,
+        player2Id: TARGET_USER,
+        outcome: "P2_WIN",
+        circleId: CIRCLE_B,
+        circleName: "研究会B",
+      });
+      // 研究会A: UNKNOWN（除外）
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "UNKNOWN",
+        circleId: CIRCLE_A,
+        circleName: "研究会A",
+      });
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -269,24 +307,22 @@ describe("UserStatisticsService", () => {
     test("byCircleはcircleName昇順でソートされる", async () => {
       const CIRCLE_C = circleId("circle-c");
 
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
-        // データは逆順（C → B → A）で登場
-        createTestMatchWithCircle({
-          outcome: "P1_WIN",
-          circleId: CIRCLE_C,
-          circleName: "研究会C",
-        }),
-        createTestMatchWithCircle({
-          outcome: "P1_WIN",
-          circleId: CIRCLE_B,
-          circleName: "研究会B",
-        }),
-        createTestMatchWithCircle({
-          outcome: "P1_WIN",
-          circleId: CIRCLE_A,
-          circleName: "研究会A",
-        }),
-      ]);
+      // データは逆順（C → B → A）で登場
+      addMatchWithCircle({
+        outcome: "P1_WIN",
+        circleId: CIRCLE_C,
+        circleName: "研究会C",
+      });
+      addMatchWithCircle({
+        outcome: "P1_WIN",
+        circleId: CIRCLE_B,
+        circleName: "研究会B",
+      });
+      addMatchWithCircle({
+        outcome: "P1_WIN",
+        circleId: CIRCLE_A,
+        circleName: "研究会A",
+      });
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -301,40 +337,38 @@ describe("UserStatisticsService", () => {
 
   describe("getMatchStatisticsAll - 統合テスト", () => {
     test("トータルと研究会別が同時に正しく計算される", async () => {
-      matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
-        // 研究会A: 勝ち
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "P1_WIN",
-          circleId: CIRCLE_A,
-          circleName: "研究会A",
-        }),
-        // 研究会B: 負け
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "P2_WIN",
-          circleId: CIRCLE_B,
-          circleName: "研究会B",
-        }),
-        // 研究会A: 引き分け
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "DRAW",
-          circleId: CIRCLE_A,
-          circleName: "研究会A",
-        }),
-        // UNKNOWN（除外）
-        createTestMatchWithCircle({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "UNKNOWN",
-          circleId: CIRCLE_A,
-          circleName: "研究会A",
-        }),
-      ]);
+      // 研究会A: 勝ち
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P1_WIN",
+        circleId: CIRCLE_A,
+        circleName: "研究会A",
+      });
+      // 研究会B: 負け
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P2_WIN",
+        circleId: CIRCLE_B,
+        circleName: "研究会B",
+      });
+      // 研究会A: 引き分け
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "DRAW",
+        circleId: CIRCLE_A,
+        circleName: "研究会A",
+      });
+      // UNKNOWN（除外）
+      addMatchWithCircle({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "UNKNOWN",
+        circleId: CIRCLE_A,
+        circleName: "研究会A",
+      });
 
       const result = await service.getMatchStatisticsAll(TARGET_USER);
 
@@ -358,43 +392,47 @@ describe("UserStatisticsService", () => {
           draws: 0,
         },
       ]);
-
-      // DBクエリは1回のみ
-      expect(matchRepository.listByPlayerIdWithCircle).toHaveBeenCalledTimes(1);
     });
   });
 
   describe("getOpponents", () => {
     test("対局なしの場合、空配列を返す", async () => {
-      matchRepository.listDistinctOpponentIds.mockResolvedValue([]);
-
       const result = await service.getOpponents(TARGET_USER);
 
       expect(result).toEqual([]);
-      expect(userRepository.findByIds).not.toHaveBeenCalled();
     });
 
     test("対戦相手を名前付きで返す", async () => {
-      matchRepository.listDistinctOpponentIds.mockResolvedValue([
-        OPPONENT,
-        OPPONENT_B,
-      ]);
-      userRepository.findByIds.mockResolvedValue([
-        {
-          id: OPPONENT,
-          name: "対戦相手A",
-          email: null,
-          image: null,
-          createdAt: new Date(),
-        },
-        {
-          id: OPPONENT_B,
-          name: "対戦相手B",
-          email: null,
-          image: null,
-          createdAt: new Date(),
-        },
-      ]);
+      addMatch({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P1_WIN",
+      });
+      addMatch({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT_B,
+        outcome: "P1_WIN",
+      });
+      userStore.set(OPPONENT, {
+        id: OPPONENT,
+        name: "対戦相手A",
+        email: null,
+        image: null,
+        profileVisibility: "PUBLIC",
+        createdAt: new Date(),
+        passwordHash: null,
+        passwordChangedAt: null,
+      });
+      userStore.set(OPPONENT_B, {
+        id: OPPONENT_B,
+        name: "対戦相手B",
+        email: null,
+        image: null,
+        profileVisibility: "PUBLIC",
+        createdAt: new Date(),
+        passwordHash: null,
+        passwordChangedAt: null,
+      });
 
       const result = await service.getOpponents(TARGET_USER);
 
@@ -405,16 +443,21 @@ describe("UserStatisticsService", () => {
     });
 
     test("名前がnullのユーザーは「名前未設定」として返す", async () => {
-      matchRepository.listDistinctOpponentIds.mockResolvedValue([OPPONENT]);
-      userRepository.findByIds.mockResolvedValue([
-        {
-          id: OPPONENT,
-          name: null,
-          email: null,
-          image: null,
-          createdAt: new Date(),
-        },
-      ]);
+      addMatch({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P1_WIN",
+      });
+      userStore.set(OPPONENT, {
+        id: OPPONENT,
+        name: null,
+        email: null,
+        image: null,
+        profileVisibility: "PUBLIC",
+        createdAt: new Date(),
+        passwordHash: null,
+        passwordChangedAt: null,
+      });
 
       const result = await service.getOpponents(TARGET_USER);
 
@@ -424,45 +467,37 @@ describe("UserStatisticsService", () => {
 
   describe("getOpponentRecord", () => {
     test("対局なしの場合、全て0を返す", async () => {
-      matchRepository.listByBothPlayerIds.mockResolvedValue([]);
-
       const result = await service.getOpponentRecord(TARGET_USER, OPPONENT);
 
       expect(result).toEqual({ wins: 0, losses: 0, draws: 0 });
-      expect(matchRepository.listByBothPlayerIds).toHaveBeenCalledWith(
-        TARGET_USER,
-        OPPONENT,
-      );
     });
 
     test("勝敗引き分けを正しく集計する", async () => {
-      matchRepository.listByBothPlayerIds.mockResolvedValue([
-        createTestMatch({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "P1_WIN",
-        }),
-        createTestMatch({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "P2_WIN",
-        }),
-        createTestMatch({
-          player1Id: OPPONENT,
-          player2Id: TARGET_USER,
-          outcome: "P1_WIN",
-        }),
-        createTestMatch({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "DRAW",
-        }),
-        createTestMatch({
-          player1Id: TARGET_USER,
-          player2Id: OPPONENT,
-          outcome: "UNKNOWN",
-        }),
-      ]);
+      addMatch({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P1_WIN",
+      });
+      addMatch({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "P2_WIN",
+      });
+      addMatch({
+        player1Id: OPPONENT,
+        player2Id: TARGET_USER,
+        outcome: "P1_WIN",
+      });
+      addMatch({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "DRAW",
+      });
+      addMatch({
+        player1Id: TARGET_USER,
+        player2Id: OPPONENT,
+        outcome: "UNKNOWN",
+      });
 
       const result = await service.getOpponentRecord(TARGET_USER, OPPONENT);
 

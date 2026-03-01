@@ -1,8 +1,11 @@
 import { createAccessService } from "@/server/application/authz/access-service";
 import {
-  createMockAuthzRepository,
-  createMockUserRepository,
-} from "@/server/application/test-helpers/mock-repositories";
+  createInMemoryAuthzRepository,
+  createInMemoryUserRepository,
+} from "@/server/infrastructure/repository/in-memory";
+import type { UserStore } from "@/server/infrastructure/repository/in-memory/in-memory-user-repository";
+import type { CircleMembershipStore } from "@/server/infrastructure/repository/in-memory/in-memory-circle-repository";
+import type { CircleSessionMembershipStore } from "@/server/infrastructure/repository/in-memory/in-memory-circle-session-repository";
 import type {
   CircleMembershipStatus,
   CircleSessionMembershipStatus,
@@ -15,31 +18,84 @@ import {
 } from "@/server/domain/services/authz/memberships";
 import type { CircleRole } from "@/server/domain/models/circle/circle-role";
 import type { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
-import { beforeEach, describe, expect, test, vi } from "vitest";
-import { userId as userIdBrand } from "@/server/domain/common/ids";
+import { beforeEach, describe, expect, test } from "vitest";
 import {
-  createUser,
-  ProfileVisibility,
-} from "@/server/domain/models/user/user";
+  userId as toUserId,
+  circleId as toCircleId,
+  circleSessionId as toCircleSessionId,
+} from "@/server/domain/common/ids";
+import { ProfileVisibility } from "@/server/domain/models/user/user";
 
 const userId = "user-1";
 const targetUserId = "user-2";
 const circleId = "circle-1";
 const circleSessionId = "circle-session-1";
 
-const repository = createMockAuthzRepository();
-const userRepository = createMockUserRepository();
+const userStore: UserStore = new Map();
+const circleMembershipStore: CircleMembershipStore = new Map();
+const circleSessionMembershipStore: CircleSessionMembershipStore = new Map();
+
+const repository = createInMemoryAuthzRepository({
+  userStore,
+  circleMembershipStore,
+  circleSessionMembershipStore,
+});
+
+const userRepository = createInMemoryUserRepository(userStore);
 
 const access = createAccessService({
   authzRepository: repository,
   userRepository,
 });
 
-const mockedIsRegisteredUser = vi.mocked(repository.isRegisteredUser);
-const mockedFindCircleMembership = vi.mocked(repository.findCircleMembership);
-const mockedFindCircleSessionMembership = vi.mocked(
-  repository.findCircleSessionMembership,
-);
+const addUser = (id: string) => {
+  userStore.set(id, {
+    id: toUserId(id),
+    name: "test",
+    email: `${id}@test.com`,
+    image: null,
+    profileVisibility: "PUBLIC",
+    createdAt: new Date(),
+    passwordHash: null,
+    passwordChangedAt: null,
+  });
+};
+
+const addCircleMembership = (
+  memberUserId: string,
+  role: CircleRole,
+  cId: string = circleId,
+) => {
+  const existing = circleMembershipStore.get(cId) ?? [];
+  circleMembershipStore.set(cId, [
+    ...existing,
+    {
+      circleId: toCircleId(cId),
+      userId: toUserId(memberUserId),
+      role,
+      createdAt: new Date(),
+      deletedAt: null,
+    },
+  ]);
+};
+
+const addCircleSessionMembership = (
+  memberUserId: string,
+  role: CircleSessionRole,
+  csId: string = circleSessionId,
+) => {
+  const existing = circleSessionMembershipStore.get(csId) ?? [];
+  circleSessionMembershipStore.set(csId, [
+    ...existing,
+    {
+      circleSessionId: toCircleSessionId(csId),
+      userId: toUserId(memberUserId),
+      role,
+      createdAt: new Date(),
+      deletedAt: null,
+    },
+  ]);
+};
 
 const member = (role: CircleRole): CircleMembershipStatus =>
   circleMembershipStatus(role);
@@ -51,42 +107,47 @@ const noSessionMember = (): CircleSessionMembershipStatus =>
   noCircleSessionMembershipStatus();
 
 const setCircleMembership = (membership: CircleMembershipStatus) => {
-  mockedFindCircleMembership.mockResolvedValue(membership);
+  if (membership.kind === "member") {
+    addCircleMembership(userId, membership.role);
+  }
 };
 
 const setCircleMemberships = (
   actorMembership: CircleMembershipStatus,
   targetMembership: CircleMembershipStatus,
 ) => {
-  mockedFindCircleMembership.mockImplementation(
-    async (requestedUserId: string) =>
-      requestedUserId === userId ? actorMembership : targetMembership,
-  );
+  if (actorMembership.kind === "member") {
+    addCircleMembership(userId, actorMembership.role);
+  }
+  if (targetMembership.kind === "member") {
+    addCircleMembership(targetUserId, targetMembership.role);
+  }
 };
 
 const setCircleSessionMembership = (
   membership: CircleSessionMembershipStatus,
 ) => {
-  mockedFindCircleSessionMembership.mockResolvedValue(membership);
+  if (membership.kind === "member") {
+    addCircleSessionMembership(userId, membership.role);
+  }
 };
 
 const setCircleSessionMemberships = (
   actorMembership: CircleSessionMembershipStatus,
   targetMembership: CircleSessionMembershipStatus,
 ) => {
-  mockedFindCircleSessionMembership.mockImplementation(
-    async (requestedUserId: string) =>
-      requestedUserId === userId ? actorMembership : targetMembership,
-  );
+  if (actorMembership.kind === "member") {
+    addCircleSessionMembership(userId, actorMembership.role);
+  }
+  if (targetMembership.kind === "member") {
+    addCircleSessionMembership(targetUserId, targetMembership.role);
+  }
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
-  mockedIsRegisteredUser.mockResolvedValue(false);
-  mockedFindCircleMembership.mockResolvedValue(noCircleMembershipStatus());
-  mockedFindCircleSessionMembership.mockResolvedValue(
-    noCircleSessionMembershipStatus(),
-  );
+  userStore.clear();
+  circleMembershipStore.clear();
+  circleSessionMembershipStore.clear();
 });
 
 describe("認可ポリシー", () => {
@@ -96,7 +157,9 @@ describe("認可ポリシー", () => {
         { isRegisteredUser: true, expected: true },
         { isRegisteredUser: false, expected: false },
       ])("登録済み=$isRegisteredUser", async (item) => {
-        mockedIsRegisteredUser.mockResolvedValueOnce(item.isRegisteredUser);
+        if (item.isRegisteredUser) {
+          addUser(userId);
+        }
         await expect(access.canCreateCircle(userId)).resolves.toBe(
           item.expected,
         );
@@ -108,7 +171,9 @@ describe("認可ポリシー", () => {
         { isRegisteredUser: true, expected: true },
         { isRegisteredUser: false, expected: false },
       ])("登録済み=$isRegisteredUser", async (item) => {
-        mockedIsRegisteredUser.mockResolvedValueOnce(item.isRegisteredUser);
+        if (item.isRegisteredUser) {
+          addUser(userId);
+        }
         await expect(access.canListOwnCircles(userId)).resolves.toBe(
           item.expected,
         );
@@ -120,7 +185,9 @@ describe("認可ポリシー", () => {
         { isRegisteredUser: true, expected: true },
         { isRegisteredUser: false, expected: false },
       ])("登録済み=$isRegisteredUser", async (item) => {
-        mockedIsRegisteredUser.mockResolvedValueOnce(item.isRegisteredUser);
+        if (item.isRegisteredUser) {
+          addUser(userId);
+        }
         await expect(access.canViewUser(userId)).resolves.toBe(item.expected);
       });
     });
@@ -546,13 +613,12 @@ describe("認可ポリシー", () => {
         ).resolves.toBe(item.expected);
       });
     });
-
   });
 
   describe("プロフィール公開設定", () => {
     describe("canViewUserProfile（プロフィール統計閲覧）", () => {
-      const actorId = userIdBrand("user-1");
-      const targetId = userIdBrand("user-2");
+      const actorId = toUserId("user-1");
+      const targetId = toUserId("user-2");
 
       test("自分自身のプロフィールは常に閲覧可能", async () => {
         await expect(access.canViewUserProfile(actorId, actorId)).resolves.toBe(
@@ -561,31 +627,38 @@ describe("認可ポリシー", () => {
       });
 
       test("他者のPUBLICプロフィールは閲覧可能", async () => {
-        userRepository.findById.mockResolvedValue(
-          createUser({
-            id: targetId,
-            profileVisibility: ProfileVisibility.PUBLIC,
-          }),
-        );
+        userStore.set(targetId, {
+          id: targetId,
+          name: null,
+          email: null,
+          image: null,
+          profileVisibility: ProfileVisibility.PUBLIC,
+          createdAt: new Date(),
+          passwordHash: null,
+          passwordChangedAt: null,
+        });
         await expect(
           access.canViewUserProfile(actorId, targetId),
         ).resolves.toBe(true);
       });
 
       test("他者のPRIVATEプロフィールは閲覧不可", async () => {
-        userRepository.findById.mockResolvedValue(
-          createUser({
-            id: targetId,
-            profileVisibility: ProfileVisibility.PRIVATE,
-          }),
-        );
+        userStore.set(targetId, {
+          id: targetId,
+          name: null,
+          email: null,
+          image: null,
+          profileVisibility: ProfileVisibility.PRIVATE,
+          createdAt: new Date(),
+          passwordHash: null,
+          passwordChangedAt: null,
+        });
         await expect(
           access.canViewUserProfile(actorId, targetId),
         ).resolves.toBe(false);
       });
 
       test("対象ユーザーが存在しない場合は閲覧不可", async () => {
-        userRepository.findById.mockResolvedValue(null);
         await expect(
           access.canViewUserProfile(actorId, targetId),
         ).resolves.toBe(false);
