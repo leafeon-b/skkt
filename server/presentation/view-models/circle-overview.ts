@@ -11,6 +11,7 @@ export type CircleOverviewMember = {
   userId: string;
   name: string;
   role: CircleRoleKey;
+  canChangeRole: boolean;
 };
 
 export type CircleOverviewViewModel = {

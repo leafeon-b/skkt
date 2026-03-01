@@ -2,6 +2,7 @@ import { CircleDeleteButton } from "@/app/(authenticated)/circles/components/cir
 import { CircleOverviewCalendar } from "@/app/(authenticated)/circles/components/circle-overview-calendar";
 import { CircleRenameDialog } from "@/app/(authenticated)/circles/components/circle-rename-dialog";
 import { CircleWithdrawButton } from "@/app/(authenticated)/circles/components/circle-withdraw-button";
+import { MemberRoleDropdown } from "@/app/(authenticated)/circles/components/member-role-dropdown";
 import type {
   CircleOverviewMember,
   CircleOverviewViewModel,
@@ -178,25 +179,36 @@ export function CircleOverviewView({
                     : null;
                   const memberRoleLabel = roleLabels[member.role] ?? "メンバー";
                   return (
-                    <LinkCard
+                    <div
                       key={member.userId}
-                      href={memberHref}
-                      className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-white/70 p-4 transition hover:border-border hover:bg-white hover:shadow-sm"
+                      className="flex items-center gap-1"
                     >
-                      <div>
-                        <p className="text-sm font-semibold text-(--brand-ink)">
-                          {member.name}
-                        </p>
-                      </div>
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-xs ${
-                          roleClasses[member.role] ??
-                          "bg-(--brand-ink)/10 text-(--brand-ink)"
-                        }`}
+                      <LinkCard
+                        href={memberHref}
+                        className="flex flex-1 items-center justify-between gap-4 rounded-xl border border-border/60 bg-white/70 p-4 transition hover:border-border hover:bg-white hover:shadow-sm"
                       >
-                        {memberRoleLabel}
-                      </span>
-                    </LinkCard>
+                        <div>
+                          <p className="text-sm font-semibold text-(--brand-ink)">
+                            {member.name}
+                          </p>
+                        </div>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs ${
+                            roleClasses[member.role] ??
+                            "bg-(--brand-ink)/10 text-(--brand-ink)"
+                          }`}
+                        >
+                          {memberRoleLabel}
+                        </span>
+                      </LinkCard>
+                      {member.canChangeRole ? (
+                        <MemberRoleDropdown
+                          circleId={overview.circleId}
+                          userId={member.userId}
+                          currentRole={member.role}
+                        />
+                      ) : null}
+                    </div>
                   );
                 })
               )}
