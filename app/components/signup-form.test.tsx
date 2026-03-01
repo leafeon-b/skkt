@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import SignupForm from "./signup-form";
@@ -59,10 +59,10 @@ describe("SignupForm 利用規約チェックボックス", () => {
     );
   });
 
-  it("チェックボックスにチェック後、送信するとfetchが呼ばれる", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue(new Response(JSON.stringify({}), { status: 200 }));
+  it("チェックボックスにチェック後、送信するとリダイレクトする", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({}), { status: 200 }),
+    );
     signInMock.mockResolvedValue({ error: null, url: "/home" });
 
     const user = userEvent.setup();
@@ -76,14 +76,9 @@ describe("SignupForm 利用規約チェックボックス", () => {
     });
     await user.click(submitButton);
 
-    expect(screen.queryByText("利用規約に同意してください。")).toBeNull();
-    expect(fetchSpy).toHaveBeenCalledWith(
-      "/api/auth/signup",
-      expect.objectContaining({
-        method: "POST",
-        body: expect.stringContaining('"agreedToTerms":true'),
-      }),
-    );
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith("/home");
+    });
   });
 
   it("表示名超過 + パスワード短すぎのとき、表示名超過エラーが優先表示される", async () => {
