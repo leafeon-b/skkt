@@ -100,12 +100,16 @@ export async function getCircleSessionDetailViewModel(
   const [
     users,
     canCreateCircleSession,
+    canEditCircleSession,
     canDeleteCircleSession,
     canWithdrawFromCircleSession,
   ] = await Promise.all([
     caller.users.list({ userIds: Array.from(userIds) }),
     viewerId
       ? ctx.accessService.canCreateCircleSession(viewerId, session.circleId)
+      : Promise.resolve(false),
+    viewerId
+      ? ctx.accessService.canEditCircleSession(viewerId, session.id)
       : Promise.resolve(false),
     viewerId
       ? ctx.accessService.canDeleteCircleSession(viewerId, session.id)
@@ -147,6 +151,7 @@ export async function getCircleSessionDetailViewModel(
     endsAtInput: formatDateTimeForInput(session.endsAt),
     viewerRole,
     canCreateCircleSession,
+    canEditCircleSession,
     canDeleteCircleSession,
     canWithdrawFromCircleSession,
     memberships: membershipViewModels,
