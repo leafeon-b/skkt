@@ -46,6 +46,15 @@ vi.mock("@/lib/trpc/client", () => ({
           error: null,
         }),
       },
+      update: {
+        useMutation: () => ({
+          mutate: vi.fn(),
+          isPending: false,
+          data: null,
+          error: null,
+          reset: vi.fn(),
+        }),
+      },
     },
     matches: {
       create: {
@@ -102,6 +111,7 @@ function buildDetail(
     endsAtInput: "2025-04-01T18:00",
     viewerRole: "owner",
     canCreateCircleSession: false,
+    canEditCircleSession: false,
     canDeleteCircleSession: false,
     canWithdrawFromCircleSession: false,
     memberships: [],
@@ -403,6 +413,32 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       expect(toastModule.toast.success).toHaveBeenCalledOnce();
       expect(refreshMock).toHaveBeenCalled();
     });
+  });
+});
+
+describe("CircleSessionDetailView 編集ボタン", () => {
+  it("canEditCircleSession: true の場合、編集ボタンが表示される", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({ canEditCircleSession: true })}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "セッションを編集" }),
+    ).toBeInTheDocument();
+  });
+
+  it("canEditCircleSession: false の場合、編集ボタンが表示されない", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({ canEditCircleSession: false })}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "セッションを編集" }),
+    ).not.toBeInTheDocument();
   });
 });
 

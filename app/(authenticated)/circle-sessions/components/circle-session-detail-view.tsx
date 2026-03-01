@@ -16,8 +16,9 @@ import type {
   CircleSessionDetailViewModel,
   CircleSessionRoleKey,
 } from "@/server/presentation/view-models/circle-session-detail";
+import { CircleSessionEditDialog } from "@/app/(authenticated)/circle-sessions/components/circle-session-edit-dialog";
 import { CircleSessionWithdrawButton } from "@/app/(authenticated)/circle-sessions/components/circle-session-withdraw-button";
-import { Copy, Pencil, Trash2 } from "lucide-react";
+import { Copy, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -132,8 +133,6 @@ export function CircleSessionDetailView({
     ? (roleClasses[detail.viewerRole] ??
       "bg-(--brand-ink)/10 text-(--brand-ink)")
     : "bg-(--brand-ink)/10 text-(--brand-ink)";
-  const showMemoEdit =
-    detail.viewerRole === "owner" || detail.viewerRole === "manager";
   const memoText = detail.memoText?.trim() ? detail.memoText : "未設定";
 
   const triggerCellIdRef = useRef<string | null>(null);
@@ -385,23 +384,22 @@ export function CircleSessionDetailView({
               {detail.dateTimeLabel}
               {detail.locationLabel ? ` / ${detail.locationLabel}` : ""}
             </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-(--brand-ink-muted)">
-              <p>連絡メモ: {memoText}</p>
-              {showMemoEdit ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-(--brand-ink-muted) hover:text-(--brand-ink)"
-                  aria-label="メモを編集"
-                >
-                  <Pencil aria-hidden="true" />
-                </Button>
-              ) : null}
-            </div>
+            <p className="mt-3 text-xs text-(--brand-ink-muted)">
+              連絡メモ: {memoText}
+            </p>
           </div>
           <div className="flex w-full flex-col gap-4 sm:w-auto sm:min-w-60 sm:max-w-[320px]">
             <div className="flex flex-col gap-3">
+              {detail.canEditCircleSession ? (
+                <CircleSessionEditDialog
+                  circleSessionId={detail.circleSessionId}
+                  title={detail.title}
+                  startsAtInput={detail.startsAtInput}
+                  endsAtInput={detail.endsAtInput}
+                  locationLabel={detail.locationLabel}
+                  memoText={detail.memoText}
+                />
+              ) : null}
               {canDuplicate ? (
                 <Button
                   variant="outline"
