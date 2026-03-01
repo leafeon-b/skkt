@@ -18,6 +18,7 @@ import type {
 } from "@/server/presentation/view-models/circle-session-detail";
 import { CircleSessionEditDialog } from "@/app/(authenticated)/circle-sessions/components/circle-session-edit-dialog";
 import { CircleSessionWithdrawButton } from "@/app/(authenticated)/circle-sessions/components/circle-session-withdraw-button";
+import { SessionMemberRoleDropdown } from "@/app/(authenticated)/circle-sessions/components/session-member-role-dropdown";
 import { Copy, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
@@ -468,6 +469,49 @@ export function CircleSessionDetailView({
               ) : null}
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
+        <p className="text-sm font-semibold text-(--brand-ink)">参加メンバー</p>
+        <div className="mt-4 space-y-3">
+          {memberships.length === 0 ? (
+            <p className="text-xs text-(--brand-ink-muted)">
+              まだ参加メンバーがいません
+            </p>
+          ) : (
+            memberships.map((membership) => {
+              const memberRoleLabel = membership.role
+                ? (roleLabels[membership.role] ?? "メンバー")
+                : null;
+              return (
+                <div key={membership.id} className="flex items-center gap-1">
+                  <div className="flex flex-1 items-center justify-between gap-4 rounded-xl border border-border/60 bg-white/70 p-4">
+                    <p className="text-sm font-semibold text-(--brand-ink)">
+                      {membership.name}
+                    </p>
+                    {membership.role && memberRoleLabel ? (
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs ${
+                          roleClasses[membership.role] ??
+                          "bg-(--brand-ink)/10 text-(--brand-ink)"
+                        }`}
+                      >
+                        {memberRoleLabel}
+                      </span>
+                    ) : null}
+                  </div>
+                  {membership.canChangeRole && membership.role ? (
+                    <SessionMemberRoleDropdown
+                      circleSessionId={detail.circleSessionId}
+                      userId={membership.id}
+                      currentRole={membership.role}
+                    />
+                  ) : null}
+                </div>
+              );
+            })
+          )}
         </div>
       </section>
 

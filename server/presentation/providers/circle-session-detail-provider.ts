@@ -34,12 +34,15 @@ const getViewerRole = (
 };
 
 const mapMemberships = (
-  memberships: Array<{ userId: string }>,
+  memberships: Array<{ userId: string; role: CircleSessionRole }>,
   nameById: Map<string, string | null>,
+  canChangeRoleById: Map<string, boolean>,
 ): CircleSessionMembership[] =>
   memberships.map((membership) => ({
     id: membership.userId,
     name: nameById.get(membership.userId) ?? membership.userId,
+    role: roleKeyByDto[membership.role] ?? null,
+    canChangeRole: canChangeRoleById.get(membership.userId) ?? false,
   }));
 
 const mergeMembershipIds = (
@@ -56,6 +59,8 @@ const mergeMembershipIds = (
       extras.push({
         id: match.player1Id,
         name: nameById.get(match.player1Id) ?? match.player1Id,
+        role: null,
+        canChangeRole: false,
       });
     }
     if (!ids.has(match.player2Id)) {
@@ -63,6 +68,8 @@ const mergeMembershipIds = (
       extras.push({
         id: match.player2Id,
         name: nameById.get(match.player2Id) ?? match.player2Id,
+        role: null,
+        canChangeRole: false,
       });
     }
   }
@@ -132,8 +139,26 @@ export async function getCircleSessionDetailViewModel(
       createdAtInput: formatDateForInput(match.createdAt),
     }));
 
+  const canChangeRoleById = new Map<string, boolean>();
+  if (viewerId) {
+    const canChangeResults = await Promise.all(
+      memberships.map(async (membership) => {
+        const can =
+          await ctx.accessService.canChangeCircleSessionMemberRole(
+            viewerId,
+            membership.userId,
+            session.id,
+          );
+        return [membership.userId, can] as const;
+      }),
+    );
+    for (const [userId, can] of canChangeResults) {
+      canChangeRoleById.set(userId, can);
+    }
+  }
+
   const membershipViewModels = mergeMembershipIds(
-    mapMemberships(memberships, userNameById),
+    mapMemberships(memberships, userNameById, canChangeRoleById),
     matchViewModels,
     userNameById,
   );
