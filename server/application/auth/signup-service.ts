@@ -1,6 +1,6 @@
 import type { UserId } from "@/server/domain/common/ids";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
-import type { PasswordUtils } from "@/server/application/user/user-service";
+import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import { ConflictError } from "@/server/domain/common/errors";
 import {
   USER_NAME_MAX_LENGTH,
@@ -11,7 +11,7 @@ const MIN_PASSWORD_LENGTH = 8;
 
 export type SignupServiceDeps = {
   userRepository: UserRepository;
-  passwordUtils: PasswordUtils;
+  passwordHasher: PasswordHasher;
 };
 
 export type SignupInput = {
@@ -65,7 +65,7 @@ export const createSignupService = (deps: SignupServiceDeps) => ({
       return { success: false, error: "email_exists" };
     }
 
-    const passwordHash = deps.passwordUtils.hash(password);
+    const passwordHash = deps.passwordHasher.hash(password);
 
     try {
       const userId = await deps.userRepository.createUser({

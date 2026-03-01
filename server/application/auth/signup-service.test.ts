@@ -31,7 +31,7 @@ const createDeps = (
     updateProfileVisibility: vi.fn(),
     ...repoOverrides,
   },
-  passwordUtils: {
+  passwordHasher: {
     hash: vi.fn().mockReturnValue("hashed-password"),
     verify: vi.fn(),
   },

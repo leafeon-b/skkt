@@ -2,6 +2,7 @@ import type { User, ProfileVisibility } from "@/server/domain/models/user/user";
 import type { UserId } from "@/server/domain/common/ids";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
+import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
 import { USER_PASSWORD_MAX_LENGTH } from "@/server/domain/models/user/user";
@@ -10,15 +11,10 @@ const MIN_PASSWORD_LENGTH = 8;
 
 type AccessService = ReturnType<typeof createAccessService>;
 
-export type PasswordUtils = {
-  hash(password: string): string;
-  verify(password: string, hashedValue: string): boolean;
-};
-
 export type UserServiceDeps = {
   userRepository: UserRepository;
   accessService: AccessService;
-  passwordUtils: PasswordUtils;
+  passwordHasher: PasswordHasher;
   changePasswordRateLimiter: RateLimiter;
 };
 
@@ -88,7 +84,7 @@ export const createUserService = (deps: UserServiceDeps) => ({
       throw new BadRequestError("Password login is not enabled");
     }
 
-    const valid = deps.passwordUtils.verify(currentPassword, passwordHash);
+    const valid = deps.passwordHasher.verify(currentPassword, passwordHash);
     if (!valid) {
       await deps.changePasswordRateLimiter.recordFailure(actorId);
       throw new BadRequestError("Current password is incorrect");
@@ -103,7 +99,7 @@ export const createUserService = (deps: UserServiceDeps) => ({
     }
 
     await deps.changePasswordRateLimiter.reset(actorId);
-    const newHash = deps.passwordUtils.hash(newPassword);
+    const newHash = deps.passwordHasher.hash(newPassword);
     const passwordChangedAt = new Date();
     await deps.userRepository.updatePasswordHash(
       actorId,

@@ -25,7 +25,7 @@ describe("Service container", () => {
       userRepository,
       authzRepository,
       circleInviteLinkRepository,
-      passwordUtils: { hash: vi.fn(), verify: vi.fn() },
+      passwordHasher: { hash: vi.fn(), verify: vi.fn() },
       changePasswordRateLimiter: {
         check: vi.fn(),
         recordFailure: vi.fn(),
