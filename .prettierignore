@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# build
+build/
+
+# generated
+generated/prisma/
+next-env.d.ts
+
+# prisma migrations (auto-generated SQL)
+prisma/migrations/
+
+# misc
+.vercel/
+coverage/
+test-results/
+playwright-report/
+
+# claude
+.claude/
+
+# lock files
+package-lock.json
+pnpm-lock.yaml
+
+# markdown
+*.md
