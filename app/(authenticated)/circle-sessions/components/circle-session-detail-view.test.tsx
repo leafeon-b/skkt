@@ -56,6 +56,15 @@ vi.mock("@/lib/trpc/client", () => ({
         }),
       },
       memberships: {
+        add: {
+          useMutation: () => ({
+            mutate: vi.fn(),
+            isPending: false,
+            data: null,
+            error: null,
+            reset: vi.fn(),
+          }),
+        },
         updateRole: {
           useMutation: () => ({
             mutate: vi.fn(),
@@ -124,6 +133,8 @@ function buildDetail(
     canEditCircleSession: false,
     canDeleteCircleSession: false,
     canWithdrawFromCircleSession: false,
+    canAddCircleSessionMember: false,
+    addableMemberCandidates: [],
     memberships: [],
     matches: [],
     ...overrides,

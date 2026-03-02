@@ -16,6 +16,7 @@ import type {
   CircleSessionDetailViewModel,
   CircleSessionRoleKey,
 } from "@/server/presentation/view-models/circle-session-detail";
+import { AddSessionMemberDialog } from "@/app/(authenticated)/circle-sessions/components/add-session-member-dialog";
 import { CircleSessionEditDialog } from "@/app/(authenticated)/circle-sessions/components/circle-session-edit-dialog";
 import { CircleSessionWithdrawButton } from "@/app/(authenticated)/circle-sessions/components/circle-session-withdraw-button";
 import { SessionMemberRoleDropdown } from "@/app/(authenticated)/circle-sessions/components/session-member-role-dropdown";
@@ -473,7 +474,18 @@ export function CircleSessionDetailView({
       </section>
 
       <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
-        <p className="text-sm font-semibold text-(--brand-ink)">参加メンバー</p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-(--brand-ink)">
+            参加メンバー
+          </p>
+          {detail.canAddCircleSessionMember &&
+          detail.addableMemberCandidates.length > 0 ? (
+            <AddSessionMemberDialog
+              circleSessionId={detail.circleSessionId}
+              candidates={detail.addableMemberCandidates}
+            />
+          ) : null}
+        </div>
         <div className="mt-4 space-y-3">
           {memberships.length === 0 ? (
             <p className="text-xs text-(--brand-ink-muted)">

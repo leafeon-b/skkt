@@ -7,6 +7,7 @@ import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-
 import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
 import type {
+  AddableMemberCandidate,
   CircleSessionMatch,
   CircleSessionMembership,
   CircleSessionRoleKey,
@@ -110,6 +111,7 @@ export async function getCircleSessionDetailViewModel(
     canEditCircleSession,
     canDeleteCircleSession,
     canWithdrawFromCircleSession,
+    canAddCircleSessionMember,
   ] = await Promise.all([
     caller.users.list({ userIds: Array.from(userIds) }),
     viewerId
@@ -124,10 +126,42 @@ export async function getCircleSessionDetailViewModel(
     viewerId
       ? ctx.accessService.canWithdrawFromCircleSession(viewerId, session.id)
       : Promise.resolve(false),
+    viewerId
+      ? ctx.accessService.canAddCircleSessionMember(viewerId, session.id)
+      : Promise.resolve(false),
   ]);
 
   const userNameById = new Map(users.map((user) => [user.id, user.name]));
   const viewerRole = getViewerRole(memberships, viewerId);
+
+  let addableMemberCandidates: AddableMemberCandidate[] = [];
+  if (canAddCircleSessionMember) {
+    const circleMembers = await caller.circles.memberships.list({
+      circleId: session.circleId,
+    });
+    const sessionMemberIds = new Set(memberships.map((m) => m.userId));
+    const candidateUserIds = circleMembers
+      .filter((cm) => !sessionMemberIds.has(cm.userId))
+      .map((cm) => cm.userId);
+
+    if (candidateUserIds.length > 0) {
+      const candidateUserIdsToResolve = candidateUserIds.filter(
+        (id) => !userNameById.has(id),
+      );
+      if (candidateUserIdsToResolve.length > 0) {
+        const extraUsers = await caller.users.list({
+          userIds: candidateUserIdsToResolve,
+        });
+        for (const user of extraUsers) {
+          userNameById.set(user.id, user.name);
+        }
+      }
+      addableMemberCandidates = candidateUserIds.map((id) => ({
+        id,
+        name: userNameById.get(id) ?? id,
+      }));
+    }
+  }
 
   const matchViewModels: CircleSessionMatch[] = matches
     .filter((match) => match.deletedAt == null)
@@ -179,6 +213,8 @@ export async function getCircleSessionDetailViewModel(
     canEditCircleSession,
     canDeleteCircleSession,
     canWithdrawFromCircleSession,
+    canAddCircleSessionMember,
+    addableMemberCandidates,
     memberships: membershipViewModels,
     matches: matchViewModels,
   };
