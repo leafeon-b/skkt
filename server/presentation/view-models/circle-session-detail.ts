@@ -21,6 +21,11 @@ export type CircleSessionMatch = {
   createdAtInput: string;
 };
 
+export type AddableMemberCandidate = {
+  id: string;
+  name: string;
+};
+
 export type CircleSessionDetailViewModel = {
   circleSessionId: string;
   circleId: string;
@@ -37,6 +42,8 @@ export type CircleSessionDetailViewModel = {
   canEditCircleSession: boolean;
   canDeleteCircleSession: boolean;
   canWithdrawFromCircleSession: boolean;
+  canAddCircleSessionMember: boolean;
+  addableMemberCandidates: AddableMemberCandidate[];
   memberships: CircleSessionMembership[];
   matches: CircleSessionMatch[];
 };
