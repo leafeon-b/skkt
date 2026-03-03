@@ -58,17 +58,21 @@ export async function getCircleOverviewViewModel(
 
   const viewerId = ctx.actorId ?? null;
 
-  const [users, canDeleteCircle, canRenameCircle] = await Promise.all([
-    caller.users.list({
-      userIds: memberships.map((m) => m.userId),
-    }),
-    viewerId
-      ? ctx.accessService.canDeleteCircle(viewerId, circleId)
-      : Promise.resolve(false),
-    viewerId
-      ? ctx.accessService.canEditCircle(viewerId, circleId)
-      : Promise.resolve(false),
-  ]);
+  const [users, canDeleteCircle, canRenameCircle, canRemoveCircleMember] =
+    await Promise.all([
+      caller.users.list({
+        userIds: memberships.map((m) => m.userId),
+      }),
+      viewerId
+        ? ctx.accessService.canDeleteCircle(viewerId, circleId)
+        : Promise.resolve(false),
+      viewerId
+        ? ctx.accessService.canEditCircle(viewerId, circleId)
+        : Promise.resolve(false),
+      viewerId
+        ? ctx.accessService.canRemoveCircleMember(viewerId, circleId)
+        : Promise.resolve(false),
+    ]);
   const userNameById = new Map(users.map((user) => [user.id, user.name]));
 
   const canChangeRoleByUserId = new Map<string, boolean>();
@@ -122,6 +126,10 @@ export async function getCircleOverviewViewModel(
       name: userNameById.get(membership.userId) ?? membership.userId,
       role: roleKeyByDto[membership.role] ?? "member",
       canChangeRole: canChangeRoleByUserId.get(membership.userId) ?? false,
+      canRemoveMember:
+        canRemoveCircleMember &&
+        roleKeyByDto[membership.role] !== "owner" &&
+        membership.userId !== viewerId,
     })),
     holidayDates: ctx.holidayProvider.getHolidayDateStringsForRange(),
     canDeleteCircle,

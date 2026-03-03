@@ -58,6 +58,15 @@ vi.mock(
   }),
 );
 
+vi.mock(
+  "@/app/(authenticated)/circles/components/remove-circle-member-button",
+  () => ({
+    RemoveCircleMemberButton: ({ userId }: { userId: string }) => (
+      <button data-testid={`remove-member-${userId}`}>除外</button>
+    ),
+  }),
+);
+
 afterEach(() => {
   cleanup();
 });
@@ -200,6 +209,7 @@ describe("CircleOverviewView ロールベース表示制御", () => {
               name: "テストユーザー",
               role: "manager",
               canChangeRole: true,
+              canRemoveMember: false,
             },
           ],
         })}
@@ -208,6 +218,48 @@ describe("CircleOverviewView ロールベース表示制御", () => {
 
     expect(screen.getByText("マネージャー")).toBeInTheDocument();
     expect(screen.getByTestId("role-edit-user-1")).toBeInTheDocument();
+  });
+
+  it("canRemoveMember が true のメンバーには除外ボタンが表示される", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({
+          members: [
+            {
+              userId: "user-3",
+              name: "除外対象ユーザー",
+              role: "member",
+              canChangeRole: false,
+              canRemoveMember: true,
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId("remove-member-user-3")).toBeInTheDocument();
+  });
+
+  it("canRemoveMember が false のメンバーには除外ボタンが表示されない", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({
+          members: [
+            {
+              userId: "user-4",
+              name: "除外不可ユーザー",
+              role: "member",
+              canChangeRole: false,
+              canRemoveMember: false,
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId("remove-member-user-4"),
+    ).not.toBeInTheDocument();
   });
 
   it("canChangeRole が false のメンバーにはロールバッジのみ表示される", () => {
@@ -220,6 +272,7 @@ describe("CircleOverviewView ロールベース表示制御", () => {
               name: "オーナーユーザー",
               role: "owner",
               canChangeRole: false,
+              canRemoveMember: false,
             },
           ],
         })}
