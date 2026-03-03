@@ -263,8 +263,20 @@ describe("CircleSessionDetailView 複製ボタン", () => {
 });
 
 const twoMemberships = [
-  { id: "p1", name: "藤井太郎", role: "member" as const, canChangeRole: false },
-  { id: "p2", name: "羽生次郎", role: "member" as const, canChangeRole: false },
+  {
+    id: "p1",
+    name: "藤井太郎",
+    role: "member" as const,
+    canChangeRole: false,
+    canRemoveMember: false,
+  },
+  {
+    id: "p2",
+    name: "羽生次郎",
+    role: "member" as const,
+    canChangeRole: false,
+    canRemoveMember: false,
+  },
 ];
 
 const oneMatch = [

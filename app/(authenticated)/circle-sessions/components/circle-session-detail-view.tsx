@@ -19,6 +19,7 @@ import type {
 import { AddSessionMemberDialog } from "@/app/(authenticated)/circle-sessions/components/add-session-member-dialog";
 import { CircleSessionEditDialog } from "@/app/(authenticated)/circle-sessions/components/circle-session-edit-dialog";
 import { CircleSessionWithdrawButton } from "@/app/(authenticated)/circle-sessions/components/circle-session-withdraw-button";
+import { RemoveSessionMemberButton } from "@/app/(authenticated)/circle-sessions/components/remove-session-member-button";
 import { SessionMemberRoleDropdown } from "@/app/(authenticated)/circle-sessions/components/session-member-role-dropdown";
 import { Copy, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -326,9 +327,7 @@ export function CircleSessionDetailView({
   const activePairMatches = activeDialog
     ? getPairMatches(matches, activeDialog.rowId, activeDialog.columnId)
     : [];
-  const dialogRowName = activeDialog
-    ? getMemberName(activeDialog.rowId)
-    : "";
+  const dialogRowName = activeDialog ? getMemberName(activeDialog.rowId) : "";
   const dialogColumnName = activeDialog
     ? getMemberName(activeDialog.columnId)
     : "";
@@ -524,6 +523,13 @@ export function CircleSessionDetailView({
                       circleSessionId={detail.circleSessionId}
                       userId={membership.id}
                       currentRole={membership.role}
+                    />
+                  ) : null}
+                  {membership.canRemoveMember ? (
+                    <RemoveSessionMemberButton
+                      circleSessionId={detail.circleSessionId}
+                      userId={membership.id}
+                      memberName={membership.name}
                     />
                   ) : null}
                 </div>
