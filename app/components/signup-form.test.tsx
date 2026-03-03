@@ -144,6 +144,74 @@ describe("SignupForm 利用規約チェックボックス", () => {
     );
   });
 
+  it("パスワードが128文字超の場合にエラーメッセージが表示される", async () => {
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    const passwordInputs = screen.getAllByPlaceholderText("••••••••");
+    fireEvent.change(passwordInputs[0], {
+      target: { value: "a".repeat(129) },
+    });
+    await user.type(screen.getByPlaceholderText("demo1@example.com"), "test@example.com");
+    await user.type(passwordInputs[1], "password123");
+
+    const submitButton = screen.getByRole("button", {
+      name: "アカウントを作成",
+    });
+    await user.click(submitButton);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      SIGNUP_ERROR_MESSAGES.passwordTooLong,
+    );
+  });
+
+  it("サインアップAPIがエラーを返した場合にフォールバックエラーメッセージが表示される", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({}), { status: 400 }),
+    );
+
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    await fillRequiredFields(user);
+    await user.click(screen.getByRole("checkbox"));
+
+    const submitButton = screen.getByRole("button", {
+      name: "アカウントを作成",
+    });
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        SIGNUP_ERROR_MESSAGES.signupFailed,
+      );
+    });
+  });
+
+  it("サインアップ成功後にsignInが失敗した場合にエラーメッセージが表示される", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({}), { status: 200 }),
+    );
+    signInMock.mockResolvedValue({ error: "some error" });
+
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    await fillRequiredFields(user);
+    await user.click(screen.getByRole("checkbox"));
+
+    const submitButton = screen.getByRole("button", {
+      name: "アカウントを作成",
+    });
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        SIGNUP_ERROR_MESSAGES.loginAfterSignupFailed,
+      );
+    });
+  });
+
   it("利用規約リンクが新しいタブで開くように設定されている", () => {
     render(<SignupForm />);
 
