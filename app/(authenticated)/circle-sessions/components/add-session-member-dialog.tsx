@@ -22,6 +22,7 @@ import { toast } from "sonner";
 type AddSessionMemberDialogProps = {
   circleSessionId: string;
   candidates: AddableMemberCandidate[];
+  disabled?: boolean;
 };
 
 type RoleValue = "CircleSessionManager" | "CircleSessionMember";
@@ -45,6 +46,7 @@ function toUserFacingMessage(error: unknown): string {
 export function AddSessionMemberDialog({
   circleSessionId,
   candidates,
+  disabled,
 }: AddSessionMemberDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(
@@ -141,7 +143,8 @@ export function AddSessionMemberDialog({
       <DialogTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-(--brand-moss) transition hover:bg-(--brand-moss)/10"
+          disabled={disabled}
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-(--brand-moss) transition hover:bg-(--brand-moss)/10 disabled:opacity-50 disabled:pointer-events-none"
         >
           <UserPlus className="size-3.5" aria-hidden="true" />
           追加

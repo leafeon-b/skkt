@@ -483,11 +483,11 @@ export function CircleSessionDetailView({
           <p className="text-sm font-semibold text-(--brand-ink)">
             参加メンバー
           </p>
-          {detail.canAddCircleSessionMember &&
-          detail.addableMemberCandidates.length > 0 ? (
+          {detail.canAddCircleSessionMember ? (
             <AddSessionMemberDialog
               circleSessionId={detail.circleSessionId}
               candidates={detail.addableMemberCandidates}
+              disabled={detail.addableMemberCandidates.length === 0}
             />
           ) : null}
         </div>
