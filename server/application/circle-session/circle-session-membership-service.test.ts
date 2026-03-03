@@ -5,7 +5,7 @@ import {
   createInMemoryCircleRepository,
   createInMemoryCircleSessionRepository,
 } from "@/server/infrastructure/repository/in-memory";
-import { ConflictError } from "@/server/domain/common/errors";
+import { ConflictError, ForbiddenError } from "@/server/domain/common/errors";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
 
@@ -106,6 +106,16 @@ describe("CircleSession セッションメンバーシップサービス", () =>
   });
 
   test("addMembership は論理削除済みユーザーをセッションに再参加できる", async () => {
+    await circleRepository.addMembership(
+      circleId("circle-1"),
+      userId("user-owner"),
+      "CircleOwner",
+    );
+    await circleRepository.addMembership(
+      circleId("circle-1"),
+      userId("user-rejoining"),
+      "CircleMember",
+    );
     await circleSessionRepository.addMembership(
       circleSessionId("session-1"),
       userId("user-owner"),
@@ -138,6 +148,11 @@ describe("CircleSession セッションメンバーシップサービス", () =>
   });
 
   test("addMembership は既存メンバーの重複追加で ConflictError", async () => {
+    await circleRepository.addMembership(
+      circleId("circle-1"),
+      userId("user-1"),
+      "CircleMember",
+    );
     await circleSessionRepository.addMembership(
       circleSessionId("session-1"),
       userId("user-1"),
@@ -160,6 +175,12 @@ describe("CircleSession セッションメンバーシップサービス", () =>
   });
 
   test("addMembership は Owner がいない状態で Member を拒否する", async () => {
+    await circleRepository.addMembership(
+      circleId("circle-1"),
+      userId("user-1"),
+      "CircleMember",
+    );
+
     await expect(
       service.addMembership({
         actorId: "user-actor",
@@ -226,7 +247,34 @@ describe("CircleSession セッションメンバーシップサービス", () =>
     expect(result[0]?.title).toBe("第2回 研究会");
   });
 
+  test("addMembership は研究会メンバーでないユーザーの追加を拒否する", async () => {
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-1"),
+      "CircleSessionOwner",
+    );
+
+    await expect(
+      service.addMembership({
+        actorId: "user-actor",
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("non-circle-member"),
+        role: "CircleSessionMember",
+      }),
+    ).rejects.toThrow("User is not an active member of the circle");
+
+    const memberships = await circleSessionRepository.listMemberships(
+      circleSessionId("session-1"),
+    );
+    expect(memberships).toHaveLength(1);
+  });
+
   test("addMembership は Owner がいる場合に Member を追加できる", async () => {
+    await circleRepository.addMembership(
+      circleId("circle-1"),
+      userId("user-2"),
+      "CircleMember",
+    );
     await circleSessionRepository.addMembership(
       circleSessionId("session-1"),
       userId("user-1"),

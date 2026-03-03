@@ -170,6 +170,15 @@ export const createCircleSessionMembershipService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
+
+    const circleMembers =
+      await deps.circleRepository.listMembershipsByCircleId(session.circleId);
+    if (!circleMembers.some((m) => m.userId === params.userId)) {
+      throw new ForbiddenError(
+        "User is not an active member of the circle",
+      );
+    }
+
     const memberships =
       await deps.circleSessionRepository.listMemberships(
         params.circleSessionId,
