@@ -104,6 +104,14 @@ const canCreate = await ctx.accessService.canCreateCircleSession(
 
 認可ルールは `server/domain/services/authz/ownership.ts`（オーナーシップルール）と `memberships.ts`（メンバーシップステータス）で定義、`AccessService` で適用。
 
+### エラーハンドリング
+
+カスタムエラー型は `server/domain/common/errors.ts` に定義。分類規約の詳細は `docs/design/09_error_types.md` を参照。
+
+- **ForbiddenError**: 認可失敗（権限不足）。`AccessService` のチェック失敗時に使用
+- **BadRequestError**: バリデーション失敗・ビジネス制約違反。入力不正や状態不正時に使用
+- ForbiddenError（「誰が」の問題）と BadRequestError（「何を」の問題）の使い分けに注意
+
 ### フロントエンド
 
 - App Routerのルートグループ: `(authenticated)/` は認証必須、`(public)/` は認証ページ
