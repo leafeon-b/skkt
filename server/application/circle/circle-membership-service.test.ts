@@ -12,6 +12,21 @@ import {
 } from "@/server/domain/common/errors";
 import { circleId, userId } from "@/server/domain/common/ids";
 
+async function expectReject<T extends Error>(
+  promise: Promise<unknown>,
+  errorClass: new (...args: never[]) => T,
+  message: string,
+) {
+  let caught: unknown;
+  try {
+    await promise;
+  } catch (e) {
+    caught = e;
+  }
+  expect(caught).toBeInstanceOf(errorClass);
+  expect(caught).toHaveProperty("message", message);
+}
+
 const circleRepository = createInMemoryCircleRepository();
 
 const accessService = createAccessServiceStub();
@@ -192,22 +207,16 @@ describe("Circle メンバーシップサービス", () => {
   });
 
   test("addMembership は Owner がいない状態で Member を拒否する", async () => {
-    await expect(
+    await expectReject(
       service.addMembership({
         actorId: "user-actor",
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
         role: "CircleMember",
       }),
-    ).rejects.toThrow(BadRequestError);
-    await expect(
-      service.addMembership({
-        actorId: "user-actor",
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
-        role: "CircleMember",
-      }),
-    ).rejects.toThrow("Circle must have exactly one owner");
+      BadRequestError,
+      "Circle must have exactly one owner",
+    );
 
     const memberships = await circleRepository.listMembershipsByCircleId(
       circleId("circle-1"),
@@ -360,20 +369,15 @@ describe("Circle メンバーシップサービス", () => {
       "CircleOwner",
     );
 
-    await expect(
+    await expectReject(
       service.removeMembership({
         actorId: "user-actor",
         circleId: circleId("circle-1"),
         userId: userId("user-1"),
       }),
-    ).rejects.toThrow(ForbiddenError);
-    await expect(
-      service.removeMembership({
-        actorId: "user-actor",
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
-      }),
-    ).rejects.toThrow("Use transferOwnership to remove owner");
+      ForbiddenError,
+      "Use transferOwnership to remove owner",
+    );
 
     const memberships = await circleRepository.listMembershipsByCircleId(
       circleId("circle-1"),

@@ -18,6 +18,21 @@ import { userId } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
+function expectThrow<T extends Error>(
+  fn: () => void,
+  errorClass: new (...args: never[]) => T,
+  message: string,
+) {
+  let caught: unknown;
+  try {
+    fn();
+  } catch (e) {
+    caught = e;
+  }
+  expect(caught).toBeInstanceOf(errorClass);
+  expect(caught).toHaveProperty("message", message);
+}
+
 describe("Owner の不変条件", () => {
   test("assertSingleCircleOwner は Owner がいない場合に失敗する", () => {
     expect(() =>
@@ -215,43 +230,32 @@ describe("Owner の不変条件", () => {
 
 describe("assertCanAddSessionMemberWithRole", () => {
   test("Owner がいない状態で Owner 以外を追加しようとするとエラー", () => {
-    expect(() =>
-      assertCanAddSessionMemberWithRole(
-        [],
-        CircleSessionRole.CircleSessionMember,
-      ),
-    ).toThrow(BadRequestError);
-    expect(() =>
-      assertCanAddSessionMemberWithRole(
-        [],
-        CircleSessionRole.CircleSessionMember,
-      ),
-    ).toThrow("CircleSession must have exactly one owner");
+    expectThrow(
+      () =>
+        assertCanAddSessionMemberWithRole(
+          [],
+          CircleSessionRole.CircleSessionMember,
+        ),
+      BadRequestError,
+      "CircleSession must have exactly one owner",
+    );
   });
 
   test("Owner がいる状態で Owner を追加しようとするとエラー", () => {
-    expect(() =>
-      assertCanAddSessionMemberWithRole(
-        [
-          {
-            userId: userId("user-1"),
-            role: CircleSessionRole.CircleSessionOwner,
-          },
-        ],
-        CircleSessionRole.CircleSessionOwner,
-      ),
-    ).toThrow(BadRequestError);
-    expect(() =>
-      assertCanAddSessionMemberWithRole(
-        [
-          {
-            userId: userId("user-1"),
-            role: CircleSessionRole.CircleSessionOwner,
-          },
-        ],
-        CircleSessionRole.CircleSessionOwner,
-      ),
-    ).toThrow("CircleSession must have exactly one owner");
+    expectThrow(
+      () =>
+        assertCanAddSessionMemberWithRole(
+          [
+            {
+              userId: userId("user-1"),
+              role: CircleSessionRole.CircleSessionOwner,
+            },
+          ],
+          CircleSessionRole.CircleSessionOwner,
+        ),
+      BadRequestError,
+      "CircleSession must have exactly one owner",
+    );
   });
 
   test("Owner がいない状態で Owner を追加できる", () => {
@@ -291,10 +295,9 @@ describe("assertCanAddSessionMemberWithRole", () => {
 
 describe("assertCanWithdraw", () => {
   test("Owner は退会できない", () => {
-    expect(() => assertCanWithdraw(CircleRole.CircleOwner)).toThrow(
+    expectThrow(
+      () => assertCanWithdraw(CircleRole.CircleOwner),
       ForbiddenError,
-    );
-    expect(() => assertCanWithdraw(CircleRole.CircleOwner)).toThrow(
       "Owner cannot withdraw from circle. Use transferOwnership instead",
     );
   });
@@ -310,12 +313,10 @@ describe("assertCanWithdraw", () => {
 
 describe("assertCanWithdrawFromSession", () => {
   test("Owner は退会できない", () => {
-    expect(() =>
-      assertCanWithdrawFromSession(CircleSessionRole.CircleSessionOwner),
-    ).toThrow(ForbiddenError);
-    expect(() =>
-      assertCanWithdrawFromSession(CircleSessionRole.CircleSessionOwner),
-    ).toThrow(
+    expectThrow(
+      () =>
+        assertCanWithdrawFromSession(CircleSessionRole.CircleSessionOwner),
+      ForbiddenError,
       "Owner cannot withdraw from session. Use transferOwnership instead",
     );
   });
@@ -335,10 +336,9 @@ describe("assertCanWithdrawFromSession", () => {
 
 describe("assertCanRemoveCircleMember", () => {
   test("Owner を削除しようとすると ForbiddenError", () => {
-    expect(() => assertCanRemoveCircleMember(CircleRole.CircleOwner)).toThrow(
+    expectThrow(
+      () => assertCanRemoveCircleMember(CircleRole.CircleOwner),
       ForbiddenError,
-    );
-    expect(() => assertCanRemoveCircleMember(CircleRole.CircleOwner)).toThrow(
       "Use transferOwnership to remove owner",
     );
   });
@@ -358,33 +358,27 @@ describe("assertCanRemoveCircleMember", () => {
 
 describe("assertCanChangeCircleMemberRole", () => {
   test("Owner への変更は ForbiddenError", () => {
-    expect(() =>
-      assertCanChangeCircleMemberRole(
-        CircleRole.CircleMember,
-        CircleRole.CircleOwner,
-      ),
-    ).toThrow(ForbiddenError);
-    expect(() =>
-      assertCanChangeCircleMemberRole(
-        CircleRole.CircleMember,
-        CircleRole.CircleOwner,
-      ),
-    ).toThrow("Use transferOwnership to assign owner");
+    expectThrow(
+      () =>
+        assertCanChangeCircleMemberRole(
+          CircleRole.CircleMember,
+          CircleRole.CircleOwner,
+        ),
+      ForbiddenError,
+      "Use transferOwnership to assign owner",
+    );
   });
 
   test("Owner からの変更は ForbiddenError", () => {
-    expect(() =>
-      assertCanChangeCircleMemberRole(
-        CircleRole.CircleOwner,
-        CircleRole.CircleManager,
-      ),
-    ).toThrow(ForbiddenError);
-    expect(() =>
-      assertCanChangeCircleMemberRole(
-        CircleRole.CircleOwner,
-        CircleRole.CircleManager,
-      ),
-    ).toThrow("Use transferOwnership to change owner");
+    expectThrow(
+      () =>
+        assertCanChangeCircleMemberRole(
+          CircleRole.CircleOwner,
+          CircleRole.CircleManager,
+        ),
+      ForbiddenError,
+      "Use transferOwnership to change owner",
+    );
   });
 
   test("Member から Manager への変更は可能", () => {
@@ -408,12 +402,14 @@ describe("assertCanChangeCircleMemberRole", () => {
 
 describe("assertCanRemoveCircleSessionMember", () => {
   test("Owner を削除しようとすると ForbiddenError", () => {
-    expect(() =>
-      assertCanRemoveCircleSessionMember(CircleSessionRole.CircleSessionOwner),
-    ).toThrow(ForbiddenError);
-    expect(() =>
-      assertCanRemoveCircleSessionMember(CircleSessionRole.CircleSessionOwner),
-    ).toThrow("Use transferOwnership to remove owner");
+    expectThrow(
+      () =>
+        assertCanRemoveCircleSessionMember(
+          CircleSessionRole.CircleSessionOwner,
+        ),
+      ForbiddenError,
+      "Use transferOwnership to remove owner",
+    );
   });
 
   test("Manager を削除できる", () => {
@@ -433,33 +429,27 @@ describe("assertCanRemoveCircleSessionMember", () => {
 
 describe("assertCanChangeCircleSessionMemberRole", () => {
   test("Owner への変更は ForbiddenError", () => {
-    expect(() =>
-      assertCanChangeCircleSessionMemberRole(
-        CircleSessionRole.CircleSessionMember,
-        CircleSessionRole.CircleSessionOwner,
-      ),
-    ).toThrow(ForbiddenError);
-    expect(() =>
-      assertCanChangeCircleSessionMemberRole(
-        CircleSessionRole.CircleSessionMember,
-        CircleSessionRole.CircleSessionOwner,
-      ),
-    ).toThrow("Use transferOwnership to assign owner");
+    expectThrow(
+      () =>
+        assertCanChangeCircleSessionMemberRole(
+          CircleSessionRole.CircleSessionMember,
+          CircleSessionRole.CircleSessionOwner,
+        ),
+      ForbiddenError,
+      "Use transferOwnership to assign owner",
+    );
   });
 
   test("Owner からの変更は ForbiddenError", () => {
-    expect(() =>
-      assertCanChangeCircleSessionMemberRole(
-        CircleSessionRole.CircleSessionOwner,
-        CircleSessionRole.CircleSessionManager,
-      ),
-    ).toThrow(ForbiddenError);
-    expect(() =>
-      assertCanChangeCircleSessionMemberRole(
-        CircleSessionRole.CircleSessionOwner,
-        CircleSessionRole.CircleSessionManager,
-      ),
-    ).toThrow("Use transferOwnership to change owner");
+    expectThrow(
+      () =>
+        assertCanChangeCircleSessionMemberRole(
+          CircleSessionRole.CircleSessionOwner,
+          CircleSessionRole.CircleSessionManager,
+        ),
+      ForbiddenError,
+      "Use transferOwnership to change owner",
+    );
   });
 
   test("Member から Manager への変更は可能", () => {
@@ -483,27 +473,23 @@ describe("assertCanChangeCircleSessionMemberRole", () => {
 
 describe("assertCanAddCircleMemberWithRole", () => {
   test("Owner がいない状態で Owner 以外を追加しようとするとエラー", () => {
-    expect(() =>
-      assertCanAddCircleMemberWithRole([], CircleRole.CircleMember),
-    ).toThrow(BadRequestError);
-    expect(() =>
-      assertCanAddCircleMemberWithRole([], CircleRole.CircleMember),
-    ).toThrow("Circle must have exactly one owner");
+    expectThrow(
+      () => assertCanAddCircleMemberWithRole([], CircleRole.CircleMember),
+      BadRequestError,
+      "Circle must have exactly one owner",
+    );
   });
 
   test("Owner がいる状態で Owner を追加しようとするとエラー", () => {
-    expect(() =>
-      assertCanAddCircleMemberWithRole(
-        [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
-        CircleRole.CircleOwner,
-      ),
-    ).toThrow(BadRequestError);
-    expect(() =>
-      assertCanAddCircleMemberWithRole(
-        [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
-        CircleRole.CircleOwner,
-      ),
-    ).toThrow("Circle must have exactly one owner");
+    expectThrow(
+      () =>
+        assertCanAddCircleMemberWithRole(
+          [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
+          CircleRole.CircleOwner,
+        ),
+      BadRequestError,
+      "Circle must have exactly one owner",
+    );
   });
 
   test("Owner がいない状態で Owner を追加できる", () => {

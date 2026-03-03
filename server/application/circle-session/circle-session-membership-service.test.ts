@@ -8,9 +8,23 @@ import {
 import {
   BadRequestError,
   ConflictError,
-  ForbiddenError,
 } from "@/server/domain/common/errors";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
+
+async function expectReject<T extends Error>(
+  promise: Promise<unknown>,
+  errorClass: new (...args: never[]) => T,
+  message: string,
+) {
+  let caught: unknown;
+  try {
+    await promise;
+  } catch (e) {
+    caught = e;
+  }
+  expect(caught).toBeInstanceOf(errorClass);
+  expect(caught).toHaveProperty("message", message);
+}
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
 
 const circleSessionRepository = createInMemoryCircleSessionRepository();
@@ -185,22 +199,16 @@ describe("CircleSession セッションメンバーシップサービス", () =>
       "CircleMember",
     );
 
-    await expect(
+    await expectReject(
       service.addMembership({
         actorId: "user-actor",
         circleSessionId: circleSessionId("session-1"),
         userId: userId("user-1"),
         role: "CircleSessionMember",
       }),
-    ).rejects.toThrow(BadRequestError);
-    await expect(
-      service.addMembership({
-        actorId: "user-actor",
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
-        role: "CircleSessionMember",
-      }),
-    ).rejects.toThrow("CircleSession must have exactly one owner");
+      BadRequestError,
+      "CircleSession must have exactly one owner",
+    );
 
     const memberships = await circleSessionRepository.listMemberships(
       circleSessionId("session-1"),
@@ -266,22 +274,16 @@ describe("CircleSession セッションメンバーシップサービス", () =>
       "CircleSessionOwner",
     );
 
-    await expect(
+    await expectReject(
       service.addMembership({
         actorId: "user-actor",
         circleSessionId: circleSessionId("session-1"),
         userId: userId("non-circle-member"),
         role: "CircleSessionMember",
       }),
-    ).rejects.toThrow(BadRequestError);
-    await expect(
-      service.addMembership({
-        actorId: "user-actor",
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("non-circle-member"),
-        role: "CircleSessionMember",
-      }),
-    ).rejects.toThrow("User is not an active member of the circle");
+      BadRequestError,
+      "User is not an active member of the circle",
+    );
 
     const memberships = await circleSessionRepository.listMemberships(
       circleSessionId("session-1"),
