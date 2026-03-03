@@ -178,7 +178,7 @@ export const createPrismaCircleSessionRepository = (
     }
   },
 
-  async areUsersParticipating(
+  async areUsersSessionMembers(
     circleSessionId: CircleSessionId,
     userIds: readonly UserId[],
   ): Promise<boolean> {

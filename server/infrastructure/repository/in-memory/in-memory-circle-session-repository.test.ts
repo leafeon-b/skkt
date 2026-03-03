@@ -198,7 +198,7 @@ describe("InMemoryCircleSessionRepository", () => {
       expect(memberships).toHaveLength(0);
     });
 
-    test("areUsersParticipating は全員参加なら true を返す", async () => {
+    test("areUsersSessionMembers は全員参加なら true を返す", async () => {
       const repo = makeRepo();
       await repo.addMembership(
         circleSessionId("s1"),
@@ -211,14 +211,14 @@ describe("InMemoryCircleSessionRepository", () => {
         CircleSessionRole.CircleSessionMember,
       );
 
-      const result = await repo.areUsersParticipating(
+      const result = await repo.areUsersSessionMembers(
         circleSessionId("s1"),
         [userId("u1"), userId("u2")],
       );
       expect(result).toBe(true);
     });
 
-    test("areUsersParticipating は一人でも不参加なら false を返す", async () => {
+    test("areUsersSessionMembers は一人でも不参加なら false を返す", async () => {
       const repo = makeRepo();
       await repo.addMembership(
         circleSessionId("s1"),
@@ -226,23 +226,23 @@ describe("InMemoryCircleSessionRepository", () => {
         CircleSessionRole.CircleSessionMember,
       );
 
-      const result = await repo.areUsersParticipating(
+      const result = await repo.areUsersSessionMembers(
         circleSessionId("s1"),
         [userId("u1"), userId("u2")],
       );
       expect(result).toBe(false);
     });
 
-    test("areUsersParticipating は空配列なら false を返す", async () => {
+    test("areUsersSessionMembers は空配列なら false を返す", async () => {
       const repo = makeRepo();
-      const result = await repo.areUsersParticipating(
+      const result = await repo.areUsersSessionMembers(
         circleSessionId("s1"),
         [],
       );
       expect(result).toBe(false);
     });
 
-    test("areUsersParticipating は論理削除済みメンバーを除外する", async () => {
+    test("areUsersSessionMembers は論理削除済みメンバーを除外する", async () => {
       const repo = makeRepo();
       await repo.addMembership(
         circleSessionId("s1"),
@@ -255,7 +255,7 @@ describe("InMemoryCircleSessionRepository", () => {
         new Date(),
       );
 
-      const result = await repo.areUsersParticipating(
+      const result = await repo.areUsersSessionMembers(
         circleSessionId("s1"),
         [userId("u1")],
       );

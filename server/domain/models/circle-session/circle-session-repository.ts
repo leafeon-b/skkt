@@ -29,7 +29,7 @@ export type CircleSessionRepository = {
     userId: UserId,
     role: CircleSessionRole,
   ): Promise<void>;
-  areUsersParticipating(
+  areUsersSessionMembers(
     circleSessionId: CircleSessionId,
     userIds: readonly UserId[],
   ): Promise<boolean>;
