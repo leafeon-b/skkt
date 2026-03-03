@@ -25,7 +25,7 @@ export type CircleMembershipListInput = z.infer<
 export const circleMembershipCreateInputSchema = z.object({
   circleId: circleIdSchema,
   userId: userIdSchema,
-  role: circleRoleSchema,
+  role: assignableCircleRoleSchema,
 });
 
 export type CircleMembershipCreateInput = z.infer<
