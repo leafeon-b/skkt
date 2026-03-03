@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { circleIdSchema, userIdSchema } from "@/server/presentation/dto/ids";
-import { circleRoleSchema } from "@/server/presentation/dto/roles";
+import {
+  assignableCircleRoleSchema,
+  circleRoleSchema,
+} from "@/server/presentation/dto/roles";
 
 export const circleMembershipDtoSchema = z.object({
   userId: userIdSchema,
@@ -32,7 +35,7 @@ export type CircleMembershipCreateInput = z.infer<
 export const circleMembershipRoleUpdateInputSchema = z.object({
   circleId: circleIdSchema,
   userId: userIdSchema,
-  role: circleRoleSchema,
+  role: assignableCircleRoleSchema,
 });
 
 export type CircleMembershipRoleUpdateInput = z.infer<
