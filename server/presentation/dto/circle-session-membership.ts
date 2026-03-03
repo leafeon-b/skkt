@@ -3,7 +3,10 @@ import {
   circleSessionIdSchema,
   userIdSchema,
 } from "@/server/presentation/dto/ids";
-import { circleSessionRoleSchema } from "@/server/presentation/dto/roles";
+import {
+  assignableCircleSessionRoleSchema,
+  circleSessionRoleSchema,
+} from "@/server/presentation/dto/roles";
 
 export const circleSessionMembershipDtoSchema = z.object({
   userId: userIdSchema,
@@ -25,7 +28,7 @@ export type CircleSessionMembershipListInput = z.infer<
 export const circleSessionMembershipCreateInputSchema = z.object({
   circleSessionId: circleSessionIdSchema,
   userId: userIdSchema,
-  role: circleSessionRoleSchema,
+  role: assignableCircleSessionRoleSchema,
 });
 
 export type CircleSessionMembershipCreateInput = z.infer<
@@ -35,7 +38,7 @@ export type CircleSessionMembershipCreateInput = z.infer<
 export const circleSessionMembershipRoleUpdateInputSchema = z.object({
   circleSessionId: circleSessionIdSchema,
   userId: userIdSchema,
-  role: circleSessionRoleSchema,
+  role: assignableCircleSessionRoleSchema,
 });
 
 export type CircleSessionMembershipRoleUpdateInput = z.infer<

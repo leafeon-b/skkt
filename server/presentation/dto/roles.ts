@@ -18,6 +18,15 @@ const assignableCircleRoleValues = [
 
 export const assignableCircleRoleSchema = z.enum(assignableCircleRoleValues);
 
+const assignableCircleSessionRoleValues = [
+  CircleSessionRole.CircleSessionManager,
+  CircleSessionRole.CircleSessionMember,
+] as const;
+
+export const assignableCircleSessionRoleSchema = z.enum(
+  assignableCircleSessionRoleValues,
+);
+
 const circleSessionRoleValues = [
   CircleSessionRole.CircleSessionOwner,
   CircleSessionRole.CircleSessionManager,
