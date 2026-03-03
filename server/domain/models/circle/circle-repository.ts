@@ -8,6 +8,10 @@ export type CircleRepository = {
   findByIds(ids: readonly CircleId[]): Promise<Circle[]>;
   save(circle: Circle): Promise<void>;
   delete(id: CircleId): Promise<void>;
+  findMembershipByCircleAndUser(
+    circleId: CircleId,
+    userId: UserId,
+  ): Promise<CircleMembership | null>;
   listMembershipsByCircleId(circleId: CircleId): Promise<CircleMembership[]>;
   listMembershipsByUserId(userId: UserId): Promise<CircleMembership[]>;
   addMembership(

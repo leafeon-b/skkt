@@ -38,6 +38,14 @@ export const createInMemoryCircleRepository = (
     circleStore.delete(id);
   },
 
+  async findMembershipByCircleAndUser(
+    circleId: CircleId,
+    userId: UserId,
+  ): Promise<CircleMembership | null> {
+    const all = membershipStore.get(circleId) ?? [];
+    return all.find((m) => m.userId === userId && m.deletedAt === null) ?? null;
+  },
+
   async listMembershipsByCircleId(
     circleId: CircleId,
   ): Promise<CircleMembership[]> {

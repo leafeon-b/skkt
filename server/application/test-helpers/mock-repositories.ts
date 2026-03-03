@@ -42,6 +42,7 @@ export const createMockCircleRepository = () =>
     findByIds: vi.fn(),
     save: vi.fn(),
     delete: vi.fn(),
+    findMembershipByCircleAndUser: vi.fn(),
     listMembershipsByCircleId: vi.fn(),
     listMembershipsByUserId: vi.fn(),
     addMembership: vi.fn(),
