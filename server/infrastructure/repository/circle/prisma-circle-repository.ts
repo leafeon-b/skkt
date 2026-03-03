@@ -62,6 +62,28 @@ export const createPrismaCircleRepository = (
     await client.circle.delete({ where: { id: toPersistenceId(id) } });
   },
 
+  async findMembershipByCircleAndUser(
+    circleId: CircleId,
+    userId: UserId,
+  ): Promise<CircleMembership | null> {
+    const found = await client.circleMembership.findFirst({
+      where: {
+        circleId: toPersistenceId(circleId),
+        userId: toPersistenceId(userId),
+        deletedAt: null,
+      },
+      select: {
+        circleId: true,
+        userId: true,
+        role: true,
+        createdAt: true,
+        deletedAt: true,
+      },
+    });
+
+    return found ? mapCircleMembershipFromPersistence(found) : null;
+  },
+
   async listMembershipsByCircleId(
     circleId: CircleId,
   ): Promise<CircleMembership[]> {
