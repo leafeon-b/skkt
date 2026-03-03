@@ -128,7 +128,7 @@ export const createInMemoryCircleSessionRepository = (
     membershipStore.set(circleSessionId, updated);
   },
 
-  async areUsersParticipating(
+  async areUsersSessionMembers(
     circleSessionId: CircleSessionId,
     userIds: readonly UserId[],
   ): Promise<boolean> {

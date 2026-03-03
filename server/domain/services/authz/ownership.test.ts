@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
   assertCanAddCircleMemberWithRole,
-  assertCanAddParticipantWithRole,
+  assertCanAddSessionMemberWithRole,
   assertCanChangeCircleMemberRole,
   assertCanChangeCircleSessionMemberRole,
   assertCanRemoveCircleMember,
@@ -213,10 +213,10 @@ describe("Owner の不変条件", () => {
   });
 });
 
-describe("assertCanAddParticipantWithRole", () => {
+describe("assertCanAddSessionMemberWithRole", () => {
   test("Owner がいない状態で Owner 以外を追加しようとするとエラー", () => {
     expect(() =>
-      assertCanAddParticipantWithRole(
+      assertCanAddSessionMemberWithRole(
         [],
         CircleSessionRole.CircleSessionMember,
       ),
@@ -225,7 +225,7 @@ describe("assertCanAddParticipantWithRole", () => {
 
   test("Owner がいる状態で Owner を追加しようとするとエラー", () => {
     expect(() =>
-      assertCanAddParticipantWithRole(
+      assertCanAddSessionMemberWithRole(
         [
           {
             userId: userId("user-1"),
@@ -239,13 +239,13 @@ describe("assertCanAddParticipantWithRole", () => {
 
   test("Owner がいない状態で Owner を追加できる", () => {
     expect(() =>
-      assertCanAddParticipantWithRole([], CircleSessionRole.CircleSessionOwner),
+      assertCanAddSessionMemberWithRole([], CircleSessionRole.CircleSessionOwner),
     ).not.toThrow();
   });
 
   test("Owner がいる状態で Member を追加できる", () => {
     expect(() =>
-      assertCanAddParticipantWithRole(
+      assertCanAddSessionMemberWithRole(
         [
           {
             userId: userId("user-1"),
@@ -259,7 +259,7 @@ describe("assertCanAddParticipantWithRole", () => {
 
   test("Owner がいる状態で Manager を追加できる", () => {
     expect(() =>
-      assertCanAddParticipantWithRole(
+      assertCanAddSessionMemberWithRole(
         [
           {
             userId: userId("user-1"),

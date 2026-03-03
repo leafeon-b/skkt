@@ -227,11 +227,11 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
     vi.clearAllMocks();
   });
 
-  test("areUsersParticipating は全員参加なら true", async () => {
+  test("areUsersSessionMembers は全員参加なら true", async () => {
     mockedPrisma.circleSessionMembership.count.mockResolvedValueOnce(2);
 
     const result =
-      await prismaCircleSessionRepository.areUsersParticipating(
+      await prismaCircleSessionRepository.areUsersSessionMembers(
         circleSessionId("session-1"),
         [userId("user-1"), userId("user-2")],
       );
@@ -246,11 +246,11 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
     expect(result).toBe(true);
   });
 
-  test("areUsersParticipating は一部不参加なら false", async () => {
+  test("areUsersSessionMembers は一部不参加なら false", async () => {
     mockedPrisma.circleSessionMembership.count.mockResolvedValueOnce(1);
 
     const result =
-      await prismaCircleSessionRepository.areUsersParticipating(
+      await prismaCircleSessionRepository.areUsersSessionMembers(
         circleSessionId("session-1"),
         [userId("user-1"), userId("user-2")],
       );
@@ -258,9 +258,9 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
     expect(result).toBe(false);
   });
 
-  test("areUsersParticipating は空配列で false", async () => {
+  test("areUsersSessionMembers は空配列で false", async () => {
     const result =
-      await prismaCircleSessionRepository.areUsersParticipating(
+      await prismaCircleSessionRepository.areUsersSessionMembers(
         circleSessionId("session-1"),
         [],
       );
@@ -269,11 +269,11 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
     expect(mockedPrisma.circleSessionMembership.count).not.toHaveBeenCalled();
   });
 
-  test("areUsersParticipating は重複したユーザーを排除する", async () => {
+  test("areUsersSessionMembers は重複したユーザーを排除する", async () => {
     mockedPrisma.circleSessionMembership.count.mockResolvedValueOnce(1);
 
     const result =
-      await prismaCircleSessionRepository.areUsersParticipating(
+      await prismaCircleSessionRepository.areUsersSessionMembers(
         circleSessionId("session-1"),
         [userId("user-1"), userId("user-1")],
       );

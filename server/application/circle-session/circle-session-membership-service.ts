@@ -7,7 +7,7 @@ import {
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import {
-  assertCanAddParticipantWithRole,
+  assertCanAddSessionMemberWithRole,
   assertCanChangeCircleSessionMemberRole,
   assertCanRemoveCircleSessionMember,
   assertCanWithdrawFromSession,
@@ -188,7 +188,7 @@ export const createCircleSessionMembershipService = (
       throw new ConflictError("Membership already exists");
     }
 
-    assertCanAddParticipantWithRole(memberships, params.role);
+    assertCanAddSessionMemberWithRole(memberships, params.role);
 
     await deps.circleSessionRepository.addMembership(
       params.circleSessionId,

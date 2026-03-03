@@ -36,13 +36,13 @@ export const createMatchService = (deps: MatchServiceDeps) => {
   const uow: UnitOfWork =
     deps.unitOfWork ?? (async (op) => op(deps as unknown as Repositories));
 
-  const ensurePlayersParticipating = async (
+  const ensurePlayersAreSessionMembers = async (
     circleSessionRepository: CircleSessionRepository,
     circleSessionId: CircleSessionId,
     player1Id: UserId,
     player2Id: UserId,
   ) => {
-    const ok = await circleSessionRepository.areUsersParticipating(
+    const ok = await circleSessionRepository.areUsersSessionMembers(
       circleSessionId,
       [player1Id, player2Id],
     );
@@ -75,7 +75,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
         if (!allowed) {
           throw new ForbiddenError();
         }
-        await ensurePlayersParticipating(
+        await ensurePlayersAreSessionMembers(
           repos.circleSessionRepository,
           params.circleSessionId,
           params.player1Id,
@@ -132,7 +132,7 @@ export const createMatchService = (deps: MatchServiceDeps) => {
               "player1Id and player2Id must both be provided",
             );
           }
-          await ensurePlayersParticipating(
+          await ensurePlayersAreSessionMembers(
             repos.circleSessionRepository,
             match.circleSessionId,
             params.player1Id,

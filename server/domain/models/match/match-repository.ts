@@ -12,7 +12,7 @@ export type MatchRepository = {
   listByCircleSessionId(circleSessionId: CircleSessionId): Promise<Match[]>;
   /** Returns non-deleted matches where the player is player1 or player2. */
   listByPlayerId(playerId: UserId): Promise<Match[]>;
-  /** Returns non-deleted matches where both players participated. */
+  /** Returns non-deleted matches where both players are matched. */
   listByBothPlayerIds(playerId: UserId, opponentId: UserId): Promise<Match[]>;
   /** Returns non-deleted matches with circle info via CircleSession. */
   listByPlayerIdWithCircle(playerId: UserId): Promise<MatchWithCircle[]>;
