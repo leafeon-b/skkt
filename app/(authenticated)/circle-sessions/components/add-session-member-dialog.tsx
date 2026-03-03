@@ -64,25 +64,45 @@ export function AddSessionMemberDialog({
     setIsPending(true);
     setError(null);
 
+    const succeededUserIds: string[] = [];
+    const failedUserIds: string[] = [];
+
     try {
       for (const userId of selectedUserIds) {
-        await addMember.mutateAsync({
-          circleSessionId,
-          userId,
-          role: selectedRole,
-        });
+        try {
+          await addMember.mutateAsync({
+            circleSessionId,
+            userId,
+            role: selectedRole,
+          });
+          succeededUserIds.push(userId);
+        } catch {
+          failedUserIds.push(userId);
+        }
       }
+    } finally {
+      setIsPending(false);
+    }
+
+    if (failedUserIds.length === 0) {
+      // 全件成功
       setOpen(false);
       router.refresh();
       toast.success(
-        selectedUserIds.size === 1
+        succeededUserIds.length === 1
           ? "メンバーを追加しました"
-          : `${selectedUserIds.size}人のメンバーを追加しました`,
+          : `${succeededUserIds.length}人のメンバーを追加しました`,
       );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "追加に失敗しました");
-    } finally {
-      setIsPending(false);
+    } else if (succeededUserIds.length > 0) {
+      // 部分成功
+      router.refresh();
+      setSelectedUserIds(new Set(failedUserIds));
+      setError(
+        `${succeededUserIds.length}人の追加に成功、${failedUserIds.length}人の追加に失敗しました`,
+      );
+    } else {
+      // 全件失敗
+      setError("追加に失敗しました");
     }
   };
 
