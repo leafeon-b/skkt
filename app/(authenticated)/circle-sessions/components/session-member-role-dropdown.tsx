@@ -7,7 +7,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { trpc } from "@/lib/trpc/client";
-import type { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import type { CircleSessionRoleKey } from "@/server/presentation/view-models/circle-session-detail";
 import { Check, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -19,10 +18,12 @@ type SessionMemberRoleDropdownProps = {
   currentRole: CircleSessionRoleKey;
 };
 
+type AssignableSessionRole = "CircleSessionManager" | "CircleSessionMember";
+
 const assignableRoles: ReadonlyArray<{
   key: CircleSessionRoleKey;
   label: string;
-  apiValue: CircleSessionRole;
+  apiValue: AssignableSessionRole;
 }> = [
   {
     key: "manager",
@@ -48,7 +49,7 @@ export function SessionMemberRoleDropdown({
     },
   });
 
-  const handleRoleChange = (apiValue: CircleSessionRole) => {
+  const handleRoleChange = (apiValue: AssignableSessionRole) => {
     updateRole.mutate({ circleSessionId, userId, role: apiValue });
   };
 
