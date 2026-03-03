@@ -26,6 +26,22 @@ type AddSessionMemberDialogProps = {
 
 type RoleValue = "CircleSessionManager" | "CircleSessionMember";
 
+function toUserFacingMessage(error: unknown): string {
+  if (!(error instanceof Error)) return "不明なエラー";
+  switch (error.message) {
+    case "Membership already exists":
+      return "すでに参加しています";
+    case "User is not an active member of the circle":
+      return "研究会のメンバーではありません";
+    case "Forbidden":
+      return "権限がありません";
+    case "CircleSession not found":
+      return "セッションが見つかりません";
+    default:
+      return "不明なエラー";
+  }
+}
+
 export function AddSessionMemberDialog({
   circleSessionId,
   candidates,
@@ -66,6 +82,7 @@ export function AddSessionMemberDialog({
 
     const succeededUserIds: string[] = [];
     const failedUserIds: string[] = [];
+    const errorMessages = new Set<string>();
 
     try {
       for (const userId of selectedUserIds) {
@@ -76,8 +93,9 @@ export function AddSessionMemberDialog({
             role: selectedRole,
           });
           succeededUserIds.push(userId);
-        } catch {
+        } catch (error) {
           failedUserIds.push(userId);
+          errorMessages.add(toUserFacingMessage(error));
         }
       }
     } finally {
@@ -97,12 +115,14 @@ export function AddSessionMemberDialog({
       // 部分成功
       router.refresh();
       setSelectedUserIds(new Set(failedUserIds));
+      const reasons = [...errorMessages].join("、");
       setError(
-        `${succeededUserIds.length}人の追加に成功、${failedUserIds.length}人の追加に失敗しました`,
+        `${succeededUserIds.length}人の追加に成功、${failedUserIds.length}人の追加に失敗しました（${reasons}）`,
       );
     } else {
       // 全件失敗
-      setError("追加に失敗しました");
+      const reasons = [...errorMessages].join("、");
+      setError(`追加に失敗しました（${reasons}）`);
     }
   };
 
