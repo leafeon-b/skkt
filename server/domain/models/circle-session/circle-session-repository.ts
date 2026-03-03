@@ -36,4 +36,7 @@ export type CircleSessionRepository = {
     userId: UserId,
     deletedAt: Date,
   ): Promise<void>;
+  listDeletedMemberships(
+    circleSessionId: CircleSessionId,
+  ): Promise<CircleSessionMembership[]>;
 };

@@ -34,6 +34,7 @@ export const createMockCircleSessionRepository = () =>
     updateMembershipRole: vi.fn(),
     areUsersSessionMembers: vi.fn(),
     removeMembership: vi.fn(),
+    listDeletedMemberships: vi.fn(),
   }) satisfies CircleSessionRepository;
 
 export const createMockCircleRepository = () =>

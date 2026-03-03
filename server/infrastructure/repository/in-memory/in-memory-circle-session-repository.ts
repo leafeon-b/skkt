@@ -141,6 +141,13 @@ export const createInMemoryCircleSessionRepository = (
     return uniqueIds.every((id) => activeUserIds.has(id));
   },
 
+  async listDeletedMemberships(
+    circleSessionId: CircleSessionId,
+  ): Promise<CircleSessionMembership[]> {
+    const all = membershipStore.get(circleSessionId) ?? [];
+    return all.filter((m) => m.deletedAt !== null);
+  },
+
   async removeMembership(
     circleSessionId: CircleSessionId,
     userId: UserId,

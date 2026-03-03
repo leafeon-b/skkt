@@ -199,6 +199,28 @@ export const createPrismaCircleSessionRepository = (
     return count === uniqueIds.length;
   },
 
+  async listDeletedMemberships(
+    circleSessionId: CircleSessionId,
+  ): Promise<CircleSessionMembership[]> {
+    const persistedCircleSessionId = toPersistenceId(circleSessionId);
+
+    const memberships = await client.circleSessionMembership.findMany({
+      where: {
+        circleSessionId: persistedCircleSessionId,
+        deletedAt: { not: null },
+      },
+      select: {
+        circleSessionId: true,
+        userId: true,
+        role: true,
+        createdAt: true,
+        deletedAt: true,
+      },
+    });
+
+    return memberships.map(mapCircleSessionMembershipFromPersistence);
+  },
+
   async removeMembership(
     circleSessionId: CircleSessionId,
     userId: UserId,
