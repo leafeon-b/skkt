@@ -11,6 +11,7 @@ export type CircleSessionMembership = {
   name: string;
   role: CircleSessionRoleKey | null;
   canChangeRole: boolean;
+  canRemoveMember: boolean;
 };
 
 export type CircleSessionMatch = {
