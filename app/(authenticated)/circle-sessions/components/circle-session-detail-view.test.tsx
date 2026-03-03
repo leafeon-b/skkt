@@ -475,6 +475,54 @@ describe("CircleSessionDetailView 編集ボタン", () => {
   });
 });
 
+describe("CircleSessionDetailView 追加ボタン", () => {
+  it("canAddCircleSessionMember: true かつ候補者がいる場合、ボタンが有効状態で表示される", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({
+          canAddCircleSessionMember: true,
+          addableMemberCandidates: [{ id: "u1", name: "候補者A" }],
+        })}
+      />,
+    );
+
+    const button = screen.getByRole("button", { name: /追加/ });
+    expect(button).toBeInTheDocument();
+    expect(button).not.toBeDisabled();
+  });
+
+  it("canAddCircleSessionMember: true かつ候補者が0名の場合、ボタンがdisabled状態で表示される", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({
+          canAddCircleSessionMember: true,
+          addableMemberCandidates: [],
+        })}
+      />,
+    );
+
+    const button = screen.getByRole("button", { name: /追加/ });
+    expect(button).toBeInTheDocument();
+    expect(button).toBeDisabled();
+  });
+
+  it("canAddCircleSessionMember: false の場合、追加ボタンが表示されない", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({
+          canAddCircleSessionMember: false,
+          addableMemberCandidates: [{ id: "u1", name: "候補者A" }],
+        })}
+      />,
+    );
+
+    const section = screen.getByText("参加メンバー").closest("section")!;
+    expect(
+      within(section).queryByRole("button", { name: /追加/ }),
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("編集ダイアログの日付プリフィル", () => {
   it("編集ダイアログを開くと対局日にcreatedAtInputの値がプリフィルされる", async () => {
     await openEditDialogViaDropdown();
