@@ -18,6 +18,7 @@ import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-
 import type { CircleSessionMembership } from "@/server/domain/models/circle-session/circle-session-membership";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import {
+  BadRequestError,
   ConflictError,
   ForbiddenError,
   NotFoundError,
@@ -174,7 +175,7 @@ export const createCircleSessionMembershipService = (
     const circleMembers =
       await deps.circleRepository.listMembershipsByCircleId(session.circleId);
     if (!circleMembers.some((m) => m.userId === params.userId)) {
-      throw new ForbiddenError(
+      throw new BadRequestError(
         "User is not an active member of the circle",
       );
     }

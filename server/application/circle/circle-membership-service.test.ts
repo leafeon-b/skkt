@@ -5,7 +5,11 @@ import {
   createInMemoryCircleRepository,
   createInMemoryRepositories,
 } from "@/server/infrastructure/repository/in-memory";
-import { ConflictError, ForbiddenError } from "@/server/domain/common/errors";
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+} from "@/server/domain/common/errors";
 import { circleId, userId } from "@/server/domain/common/ids";
 
 const circleRepository = createInMemoryCircleRepository();
@@ -188,6 +192,14 @@ describe("Circle メンバーシップサービス", () => {
   });
 
   test("addMembership は Owner がいない状態で Member を拒否する", async () => {
+    await expect(
+      service.addMembership({
+        actorId: "user-actor",
+        circleId: circleId("circle-1"),
+        userId: userId("user-1"),
+        role: "CircleMember",
+      }),
+    ).rejects.toThrow(BadRequestError);
     await expect(
       service.addMembership({
         actorId: "user-actor",

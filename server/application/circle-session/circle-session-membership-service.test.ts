@@ -5,7 +5,11 @@ import {
   createInMemoryCircleRepository,
   createInMemoryCircleSessionRepository,
 } from "@/server/infrastructure/repository/in-memory";
-import { ConflictError, ForbiddenError } from "@/server/domain/common/errors";
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+} from "@/server/domain/common/errors";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
 
@@ -188,6 +192,14 @@ describe("CircleSession セッションメンバーシップサービス", () =>
         userId: userId("user-1"),
         role: "CircleSessionMember",
       }),
+    ).rejects.toThrow(BadRequestError);
+    await expect(
+      service.addMembership({
+        actorId: "user-actor",
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("user-1"),
+        role: "CircleSessionMember",
+      }),
     ).rejects.toThrow("CircleSession must have exactly one owner");
 
     const memberships = await circleSessionRepository.listMemberships(
@@ -254,6 +266,14 @@ describe("CircleSession セッションメンバーシップサービス", () =>
       "CircleSessionOwner",
     );
 
+    await expect(
+      service.addMembership({
+        actorId: "user-actor",
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("non-circle-member"),
+        role: "CircleSessionMember",
+      }),
+    ).rejects.toThrow(BadRequestError);
     await expect(
       service.addMembership({
         actorId: "user-actor",

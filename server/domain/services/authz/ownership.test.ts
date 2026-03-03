@@ -13,7 +13,7 @@ import {
   transferCircleOwnership,
   transferCircleSessionOwnership,
 } from "@/server/domain/services/authz/ownership";
-import { ForbiddenError } from "@/server/domain/common/errors";
+import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
 import { userId } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
@@ -220,10 +220,27 @@ describe("assertCanAddSessionMemberWithRole", () => {
         [],
         CircleSessionRole.CircleSessionMember,
       ),
+    ).toThrow(BadRequestError);
+    expect(() =>
+      assertCanAddSessionMemberWithRole(
+        [],
+        CircleSessionRole.CircleSessionMember,
+      ),
     ).toThrow("CircleSession must have exactly one owner");
   });
 
   test("Owner がいる状態で Owner を追加しようとするとエラー", () => {
+    expect(() =>
+      assertCanAddSessionMemberWithRole(
+        [
+          {
+            userId: userId("user-1"),
+            role: CircleSessionRole.CircleSessionOwner,
+          },
+        ],
+        CircleSessionRole.CircleSessionOwner,
+      ),
+    ).toThrow(BadRequestError);
     expect(() =>
       assertCanAddSessionMemberWithRole(
         [
@@ -468,10 +485,19 @@ describe("assertCanAddCircleMemberWithRole", () => {
   test("Owner がいない状態で Owner 以外を追加しようとするとエラー", () => {
     expect(() =>
       assertCanAddCircleMemberWithRole([], CircleRole.CircleMember),
+    ).toThrow(BadRequestError);
+    expect(() =>
+      assertCanAddCircleMemberWithRole([], CircleRole.CircleMember),
     ).toThrow("Circle must have exactly one owner");
   });
 
   test("Owner がいる状態で Owner を追加しようとするとエラー", () => {
+    expect(() =>
+      assertCanAddCircleMemberWithRole(
+        [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
+        CircleRole.CircleOwner,
+      ),
+    ).toThrow(BadRequestError);
     expect(() =>
       assertCanAddCircleMemberWithRole(
         [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
