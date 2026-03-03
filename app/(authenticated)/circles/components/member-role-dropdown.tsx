@@ -7,8 +7,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { trpc } from "@/lib/trpc/client";
-import type { CircleRole } from "@/server/domain/models/circle/circle-role";
+import type { CircleMembershipRoleUpdateInput } from "@/server/presentation/dto/circle-membership";
 import type { CircleRoleKey } from "@/server/presentation/view-models/circle-overview";
+
+type AssignableCircleRole = CircleMembershipRoleUpdateInput["role"];
 import { Check, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -22,7 +24,7 @@ type MemberRoleDropdownProps = {
 const assignableRoles: ReadonlyArray<{
   key: CircleRoleKey;
   label: string;
-  apiValue: CircleRole;
+  apiValue: AssignableCircleRole;
 }> = [
   { key: "manager", label: "マネージャー", apiValue: "CircleManager" },
   { key: "member", label: "メンバー", apiValue: "CircleMember" },
@@ -44,7 +46,7 @@ export function MemberRoleDropdown({
     },
   });
 
-  const handleRoleChange = (apiValue: CircleRole) => {
+  const handleRoleChange = (apiValue: AssignableCircleRole) => {
     updateRole.mutate({ circleId, userId, role: apiValue });
   };
 

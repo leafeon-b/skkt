@@ -11,6 +11,13 @@ const circleRoleValues = [
 export const circleRoleSchema = z.enum(circleRoleValues);
 export type CircleRoleDto = z.infer<typeof circleRoleSchema>;
 
+const assignableCircleRoleValues = [
+  CircleRole.CircleManager,
+  CircleRole.CircleMember,
+] as const;
+
+export const assignableCircleRoleSchema = z.enum(assignableCircleRoleValues);
+
 const circleSessionRoleValues = [
   CircleSessionRole.CircleSessionOwner,
   CircleSessionRole.CircleSessionManager,
