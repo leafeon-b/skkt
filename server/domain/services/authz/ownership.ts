@@ -1,4 +1,8 @@
-import { ForbiddenError, NotFoundError } from "@/server/domain/common/errors";
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "@/server/domain/common/errors";
 import type { UserId } from "@/server/domain/common/ids";
 import { assertDifferentIds } from "@/server/domain/common/validation";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
@@ -33,10 +37,10 @@ export const assertCanAddCircleMemberWithRole = (
 ): void => {
   const hasOwner = members.some((m) => m.role === CircleRole.CircleOwner);
   if (!hasOwner && newRole !== CircleRole.CircleOwner) {
-    throw new Error("Circle must have exactly one owner");
+    throw new BadRequestError("Circle must have exactly one owner");
   }
   if (hasOwner && newRole === CircleRole.CircleOwner) {
-    throw new Error("Circle must have exactly one owner");
+    throw new BadRequestError("Circle must have exactly one owner");
   }
 };
 
@@ -57,10 +61,10 @@ export const assertCanAddSessionMemberWithRole = (
     (m) => m.role === CircleSessionRole.CircleSessionOwner,
   );
   if (!hasOwner && newRole !== CircleSessionRole.CircleSessionOwner) {
-    throw new Error("CircleSession must have exactly one owner");
+    throw new BadRequestError("CircleSession must have exactly one owner");
   }
   if (hasOwner && newRole === CircleSessionRole.CircleSessionOwner) {
-    throw new Error("CircleSession must have exactly one owner");
+    throw new BadRequestError("CircleSession must have exactly one owner");
   }
 };
 
