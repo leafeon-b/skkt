@@ -473,6 +473,12 @@ export function CircleSessionDetailView({
         </div>
       </section>
 
+      <MatchMatrixTable
+        memberships={memberships}
+        matches={matches}
+        openDialog={openDialog}
+      />
+
       <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold text-(--brand-ink)">
@@ -526,12 +532,6 @@ export function CircleSessionDetailView({
           )}
         </div>
       </section>
-
-      <MatchMatrixTable
-        memberships={memberships}
-        matches={matches}
-        openDialog={openDialog}
-      />
 
       <MatchDeleteDialog
         activeDialog={activeDialog}
