@@ -1,11 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { createInMemoryCircleSessionRepository } from "./in-memory-circle-session-repository";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
-import {
-  circleId,
-  circleSessionId,
-  userId,
-} from "@/server/domain/common/ids";
+import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { ConflictError, NotFoundError } from "@/server/domain/common/errors";
 
@@ -165,9 +161,7 @@ describe("InMemoryCircleSessionRepository", () => {
       );
 
       const memberships = await repo.listMemberships(circleSessionId("s1"));
-      expect(memberships[0].role).toBe(
-        CircleSessionRole.CircleSessionManager,
-      );
+      expect(memberships[0].role).toBe(CircleSessionRole.CircleSessionManager);
     });
 
     test("存在しないメンバーのロール変更は NotFoundError になる", async () => {
@@ -211,10 +205,10 @@ describe("InMemoryCircleSessionRepository", () => {
         CircleSessionRole.CircleSessionMember,
       );
 
-      const result = await repo.areUsersSessionMembers(
-        circleSessionId("s1"),
-        [userId("u1"), userId("u2")],
-      );
+      const result = await repo.areUsersSessionMembers(circleSessionId("s1"), [
+        userId("u1"),
+        userId("u2"),
+      ]);
       expect(result).toBe(true);
     });
 
@@ -226,10 +220,10 @@ describe("InMemoryCircleSessionRepository", () => {
         CircleSessionRole.CircleSessionMember,
       );
 
-      const result = await repo.areUsersSessionMembers(
-        circleSessionId("s1"),
-        [userId("u1"), userId("u2")],
-      );
+      const result = await repo.areUsersSessionMembers(circleSessionId("s1"), [
+        userId("u1"),
+        userId("u2"),
+      ]);
       expect(result).toBe(false);
     });
 
@@ -255,10 +249,9 @@ describe("InMemoryCircleSessionRepository", () => {
         new Date(),
       );
 
-      const result = await repo.areUsersSessionMembers(
-        circleSessionId("s1"),
-        [userId("u1")],
-      );
+      const result = await repo.areUsersSessionMembers(circleSessionId("s1"), [
+        userId("u1"),
+      ]);
       expect(result).toBe(false);
     });
 
@@ -282,11 +275,7 @@ describe("InMemoryCircleSessionRepository", () => {
     test("存在しないメンバーの removeMembership は NotFoundError になる", async () => {
       const repo = makeRepo();
       await expect(
-        repo.removeMembership(
-          circleSessionId("s1"),
-          userId("u1"),
-          new Date(),
-        ),
+        repo.removeMembership(circleSessionId("s1"), userId("u1"), new Date()),
       ).rejects.toThrow(NotFoundError);
     });
   });

@@ -10,9 +10,7 @@ export const circleMembershipDtoSchema = z.object({
   role: circleRoleSchema,
 });
 
-export type CircleMembershipDto = z.infer<
-  typeof circleMembershipDtoSchema
->;
+export type CircleMembershipDto = z.infer<typeof circleMembershipDtoSchema>;
 
 export const circleMembershipListInputSchema = z.object({
   circleId: circleIdSchema,

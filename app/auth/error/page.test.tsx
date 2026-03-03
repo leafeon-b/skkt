@@ -38,9 +38,7 @@ describe("AuthErrorPage", () => {
 
   it("AccessDenied エラーでアクセス拒否メッセージを表示する", async () => {
     await renderPage({ error: "AccessDenied" });
-    expect(
-      screen.getByText("アクセスが拒否されました。"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("アクセスが拒否されました。")).toBeInTheDocument();
   });
 
   it("Verification エラーで認証リンク期限切れメッセージを表示する", async () => {

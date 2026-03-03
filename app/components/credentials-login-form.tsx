@@ -55,9 +55,7 @@ export default function CredentialsLoginForm({
         } catch {
           // ネットワークエラー等は無視してデフォルトメッセージにフォールバック
         }
-        setErrorMessage(
-          "メールアドレスまたはパスワードが正しくありません。",
-        );
+        setErrorMessage("メールアドレスまたはパスワードが正しくありません。");
         return;
       }
       if (result.url) {

@@ -103,9 +103,7 @@ export const createPrismaCircleRepository = (
     return memberships.map(mapCircleMembershipFromPersistence);
   },
 
-  async listMembershipsByUserId(
-    userId: UserId,
-  ): Promise<CircleMembership[]> {
+  async listMembershipsByUserId(userId: UserId): Promise<CircleMembership[]> {
     const memberships = await client.circleMembership.findMany({
       where: { userId: toPersistenceId(userId), deletedAt: null },
       orderBy: { createdAt: "desc" },

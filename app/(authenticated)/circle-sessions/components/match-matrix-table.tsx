@@ -129,8 +129,7 @@ const getRowTotals = (matches: CircleSessionMatch[], rowId: string) => {
   let draws = 0;
 
   for (const match of matches) {
-    const isRowMember =
-      match.player1Id === rowId || match.player2Id === rowId;
+    const isRowMember = match.player1Id === rowId || match.player2Id === rowId;
 
     if (!isRowMember) {
       continue;
@@ -198,9 +197,7 @@ export function MatchMatrixTable({
                     <span className="block sm:hidden">
                       {getNameInitial(member.name)}
                     </span>
-                    <span className="hidden sm:block">
-                      {member.name}
-                    </span>
+                    <span className="hidden sm:block">{member.name}</span>
                   </TableHead>
                 ))}
                 <TableHead className="whitespace-nowrap border-l border-border/60 bg-(--brand-ink)/5 px-3 py-3 text-center text-xs font-semibold text-(--brand-ink)">
@@ -230,8 +227,7 @@ export function MatchMatrixTable({
                         columnMember.id,
                       );
                       const hasMatches = pairMatchEntries.length > 0;
-                      const isSelf =
-                        rowMember.id === columnMember.id;
+                      const isSelf = rowMember.id === columnMember.id;
                       const cellDisplay = getCellDisplay(
                         matches,
                         rowMember.id,
@@ -318,11 +314,7 @@ export function MatchMatrixTable({
                               title={cellDisplay.title}
                               data-cell-id={cellKey}
                               onClick={() =>
-                                openDialog(
-                                  "add",
-                                  rowMember.id,
-                                  columnMember.id,
-                                )
+                                openDialog("add", rowMember.id, columnMember.id)
                               }
                             >
                               {cellDisplay.text}

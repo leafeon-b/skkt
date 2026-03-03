@@ -61,11 +61,9 @@ describe("error formatter", () => {
   test("Zodバリデーションエラー時にメッセージがサニタイズされ isValidationError が付与される", async () => {
     const { context } = createMockContext();
 
-    const result = await callMutation(
-      context,
-      "users.changePassword",
-      { json: { currentPassword: "old", newPassword: "short" } },
-    );
+    const result = await callMutation(context, "users.changePassword", {
+      json: { currentPassword: "old", newPassword: "short" },
+    });
 
     expect(result.data.code).toBe("BAD_REQUEST");
     expect(result.message).toBe("Validation failed");
@@ -78,11 +76,9 @@ describe("error formatter", () => {
       new BadRequestError("Current password is incorrect"),
     );
 
-    const result = await callMutation(
-      context,
-      "users.changePassword",
-      { json: { currentPassword: "oldpass12", newPassword: "newpass12" } },
-    );
+    const result = await callMutation(context, "users.changePassword", {
+      json: { currentPassword: "oldpass12", newPassword: "newpass12" },
+    });
 
     expect(result.data.code).toBe("BAD_REQUEST");
     expect(result.message).toBe("Current password is incorrect");
@@ -95,11 +91,9 @@ describe("error formatter", () => {
       new TooManyRequestsError(50_000),
     );
 
-    const result = await callMutation(
-      context,
-      "users.changePassword",
-      { json: { currentPassword: "oldpass12", newPassword: "newpass12" } },
-    );
+    const result = await callMutation(context, "users.changePassword", {
+      json: { currentPassword: "oldpass12", newPassword: "newpass12" },
+    });
 
     expect(result.data.code).toBe("TOO_MANY_REQUESTS");
     expect(result.data.retryAfterMs).toBe(50_000);

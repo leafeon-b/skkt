@@ -198,7 +198,10 @@ export default function HelpPage() {
               </tbody>
             </table>
           </div>
-          <p id={table.noteId} className="mt-2 text-xs text-(--brand-ink-muted)">
+          <p
+            id={table.noteId}
+            className="mt-2 text-xs text-(--brand-ink-muted)"
+          >
             ※ マネージャーは自分より上位のロールの変更不可
           </p>
         </section>

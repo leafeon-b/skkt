@@ -82,9 +82,7 @@ describe("SignOutPage", () => {
       await screen.findByText(
         "トークンの取得に失敗しました。ページを再読み込みしてください。",
       );
-      expect(
-        screen.getByRole("button", { name: "ログアウト" }),
-      ).toBeDisabled();
+      expect(screen.getByRole("button", { name: "ログアウト" })).toBeDisabled();
     });
   });
 

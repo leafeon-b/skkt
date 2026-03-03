@@ -94,9 +94,9 @@ describe("userCircleSessionMembership tRPC ルーター", () => {
   describe("list", () => {
     test("ユーザーのセッション参加一覧を取得できる（limit 指定あり）", async () => {
       const { context, mocks } = createTestContext();
-      mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce(
-        [baseSummary()],
-      );
+      mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce([
+        baseSummary(),
+      ]);
 
       const caller = appRouter.createCaller(context);
       const result = await caller.users.circleSessions.memberships.list({
@@ -113,9 +113,9 @@ describe("userCircleSessionMembership tRPC ルーター", () => {
 
     test("ユーザーのセッション参加一覧を取得できる（limit 省略）", async () => {
       const { context, mocks } = createTestContext();
-      mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce(
-        [baseSummary()],
-      );
+      mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce([
+        baseSummary(),
+      ]);
 
       const caller = appRouter.createCaller(context);
       const result = await caller.users.circleSessions.memberships.list({});
@@ -137,9 +137,9 @@ describe("userCircleSessionMembership tRPC ルーター", () => {
 
     test("location が null の場合も正しく返す", async () => {
       const { context, mocks } = createTestContext();
-      mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce(
-        [baseSummary({ location: null })],
-      );
+      mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce([
+        baseSummary({ location: null }),
+      ]);
 
       const caller = appRouter.createCaller(context);
       const result = await caller.users.circleSessions.memberships.list({});

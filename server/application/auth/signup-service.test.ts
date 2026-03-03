@@ -48,7 +48,10 @@ describe("SignupService", () => {
     const { deps, userStore } = createDeps();
     const service = createSignupService(deps);
 
-    const result = await service.signup({ ...validInput, agreedToTerms: false });
+    const result = await service.signup({
+      ...validInput,
+      agreedToTerms: false,
+    });
 
     expect(result).toEqual({ success: false, error: "terms_not_agreed" });
     expect(userStore.size).toBe(0);

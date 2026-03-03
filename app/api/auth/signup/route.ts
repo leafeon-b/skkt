@@ -43,7 +43,8 @@ export async function POST(request: Request) {
 
   if (!result.success) {
     const errorMessages = {
-      terms_not_agreed: "利用規約およびプライバシーポリシーに同意してください。",
+      terms_not_agreed:
+        "利用規約およびプライバシーポリシーに同意してください。",
       invalid_email: "メールアドレスを入力してください。",
       password_too_short: "パスワードは8文字以上で入力してください。",
       password_too_long: "パスワードは128文字以内で入力してください。",

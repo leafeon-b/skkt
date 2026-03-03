@@ -17,10 +17,9 @@ const useMutationHolder = vi.hoisted(() => {
   return { current: noop as (...args: unknown[]) => unknown };
 });
 
-const { useMutation, mutateSpyRef } = makeMutationMock(
-  () => removeBehavior,
-  { hasReset: false },
-);
+const { useMutation, mutateSpyRef } = makeMutationMock(() => removeBehavior, {
+  hasReset: false,
+});
 useMutationHolder.current =
   useMutation as unknown as typeof useMutationHolder.current;
 
@@ -150,17 +149,13 @@ describe("RemoveCircleMemberButton", () => {
     });
     await user.click(removeButton);
 
-    expect(toastModule.toast.error).toHaveBeenCalledWith(
-      "除外に失敗しました",
-    );
+    expect(toastModule.toast.error).toHaveBeenCalledWith("除外に失敗しました");
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
   it("mutation pending 中はボタンが disabled になり、テキストが「除外中…」に変わる", async () => {
     const user = userEvent.setup();
-    const { rerender } = render(
-      <RemoveCircleMemberButton {...defaultProps} />,
-    );
+    const { rerender } = render(<RemoveCircleMemberButton {...defaultProps} />);
 
     const trigger = screen.getByRole("button", {
       name: `${defaultProps.memberName}を除外`,
@@ -180,9 +175,7 @@ describe("RemoveCircleMemberButton", () => {
 
   it("mutation pending 中はダイアログを閉じられない", async () => {
     const user = userEvent.setup();
-    const { rerender } = render(
-      <RemoveCircleMemberButton {...defaultProps} />,
-    );
+    const { rerender } = render(<RemoveCircleMemberButton {...defaultProps} />);
 
     const trigger = screen.getByRole("button", {
       name: `${defaultProps.memberName}を除外`,

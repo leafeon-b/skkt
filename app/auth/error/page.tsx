@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 const errorMessages: Record<string, string> = {
-  Configuration: "サーバーの設定に問題があります。管理者にお問い合わせください。",
+  Configuration:
+    "サーバーの設定に問題があります。管理者にお問い合わせください。",
   AccessDenied: "アクセスが拒否されました。",
   Verification: "認証リンクの有効期限が切れたか、既に使用されています。",
   OAuthAccountNotLinked:

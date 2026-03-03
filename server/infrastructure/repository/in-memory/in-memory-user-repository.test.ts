@@ -118,12 +118,12 @@ describe("InMemoryUserRepository", () => {
       });
       await repo.save(user);
 
-      expect(
-        await repo.emailExists("alice@example.com", userId("u1")),
-      ).toBe(false);
-      expect(
-        await repo.emailExists("alice@example.com", userId("u2")),
-      ).toBe(true);
+      expect(await repo.emailExists("alice@example.com", userId("u1"))).toBe(
+        false,
+      );
+      expect(await repo.emailExists("alice@example.com", userId("u2"))).toBe(
+        true,
+      );
     });
   });
 

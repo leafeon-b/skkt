@@ -18,7 +18,9 @@ export default function LoginButton({
   return (
     <Button
       className={className}
-      onClick={() => signIn("google", { callbackUrl: sanitizeCallbackUrl(callbackUrl) })}
+      onClick={() =>
+        signIn("google", { callbackUrl: sanitizeCallbackUrl(callbackUrl) })
+      }
     >
       {label ?? "Googleでログイン"}
     </Button>

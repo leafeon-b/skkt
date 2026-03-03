@@ -16,9 +16,7 @@ export type CircleSessionRepository = {
   listMemberships(
     circleSessionId: CircleSessionId,
   ): Promise<CircleSessionMembership[]>;
-  listMembershipsByUserId(
-    userId: UserId,
-  ): Promise<CircleSessionMembership[]>;
+  listMembershipsByUserId(userId: UserId): Promise<CircleSessionMembership[]>;
   addMembership(
     circleSessionId: CircleSessionId,
     userId: UserId,

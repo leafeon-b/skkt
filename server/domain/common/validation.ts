@@ -20,7 +20,9 @@ export const assertMaxLength = (
   field: string,
 ): string => {
   if (value.length > maxLength) {
-    throw new BadRequestError(`${field} must be at most ${maxLength} characters`);
+    throw new BadRequestError(
+      `${field} must be at most ${maxLength} characters`,
+    );
   }
   return value;
 };

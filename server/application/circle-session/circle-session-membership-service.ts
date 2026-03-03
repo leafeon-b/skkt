@@ -47,9 +47,7 @@ export const createCircleSessionMembershipService = (
 ) => ({
   async countPastSessionsByUserId(targetUserId: UserId): Promise<number> {
     const memberships =
-      await deps.circleSessionRepository.listMembershipsByUserId(
-        targetUserId,
-      );
+      await deps.circleSessionRepository.listMembershipsByUserId(targetUserId);
     if (memberships.length === 0) {
       return 0;
     }
@@ -79,9 +77,7 @@ export const createCircleSessionMembershipService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    return deps.circleSessionRepository.listMemberships(
-      params.circleSessionId,
-    );
+    return deps.circleSessionRepository.listMemberships(params.circleSessionId);
   },
 
   async listByUserId(params: {
@@ -98,17 +94,13 @@ export const createCircleSessionMembershipService = (
     }
 
     const memberships =
-      await deps.circleSessionRepository.listMembershipsByUserId(
-        params.userId,
-      );
+      await deps.circleSessionRepository.listMembershipsByUserId(params.userId);
     if (memberships.length === 0) {
       return [];
     }
 
     const uniqueSessionIds = Array.from(
-      new Set(
-        memberships.map((membership) => membership.circleSessionId),
-      ),
+      new Set(memberships.map((membership) => membership.circleSessionId)),
     );
     const sessions =
       await deps.circleSessionRepository.findByIds(uniqueSessionIds);
@@ -178,15 +170,12 @@ export const createCircleSessionMembershipService = (
         params.userId,
       );
     if (!circleMembership) {
-      throw new BadRequestError(
-        "User is not an active member of the circle",
-      );
+      throw new BadRequestError("User is not an active member of the circle");
     }
 
-    const memberships =
-      await deps.circleSessionRepository.listMemberships(
-        params.circleSessionId,
-      );
+    const memberships = await deps.circleSessionRepository.listMemberships(
+      params.circleSessionId,
+    );
 
     if (memberships.some((member) => member.userId === params.userId)) {
       throw new ConflictError("Membership already exists");
@@ -221,10 +210,9 @@ export const createCircleSessionMembershipService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    const memberships =
-      await deps.circleSessionRepository.listMemberships(
-        params.circleSessionId,
-      );
+    const memberships = await deps.circleSessionRepository.listMemberships(
+      params.circleSessionId,
+    );
     const target = memberships.find(
       (member) => member.userId === params.userId,
     );
@@ -261,10 +249,9 @@ export const createCircleSessionMembershipService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    const memberships =
-      await deps.circleSessionRepository.listMemberships(
-        params.circleSessionId,
-      );
+    const memberships = await deps.circleSessionRepository.listMemberships(
+      params.circleSessionId,
+    );
 
     const updated = transferCircleSessionOwnership(
       memberships,
@@ -306,10 +293,9 @@ export const createCircleSessionMembershipService = (
     if (!allowed) {
       throw new ForbiddenError();
     }
-    const memberships =
-      await deps.circleSessionRepository.listMemberships(
-        params.circleSessionId,
-      );
+    const memberships = await deps.circleSessionRepository.listMemberships(
+      params.circleSessionId,
+    );
     const target = memberships.find(
       (member) => member.userId === params.userId,
     );
@@ -347,10 +333,9 @@ export const createCircleSessionMembershipService = (
       throw new ForbiddenError();
     }
 
-    const memberships =
-      await deps.circleSessionRepository.listMemberships(
-        params.circleSessionId,
-      );
+    const memberships = await deps.circleSessionRepository.listMemberships(
+      params.circleSessionId,
+    );
     const actor = memberships.find(
       (member) => member.userId === userId(params.actorId),
     );

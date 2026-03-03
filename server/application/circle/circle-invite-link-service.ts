@@ -133,8 +133,9 @@ export const createCircleInviteLinkService = (
       throw new NotFoundError("Circle");
     }
 
-    const memberships =
-      await deps.circleRepository.listMembershipsByCircleId(link.circleId);
+    const memberships = await deps.circleRepository.listMembershipsByCircleId(
+      link.circleId,
+    );
     const alreadyMember = memberships.some(
       (p) => p.userId === userId(params.actorId),
     );

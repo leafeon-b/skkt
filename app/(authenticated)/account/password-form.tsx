@@ -20,16 +20,17 @@ export function PasswordForm() {
       setConfirmPassword("");
     },
     onError: (error) => {
-      if (
-        error.data?.code === "TOO_MANY_REQUESTS" &&
-        error.data.retryAfterMs
-      ) {
+      if (error.data?.code === "TOO_MANY_REQUESTS" && error.data.retryAfterMs) {
         const minutes = Math.ceil(error.data.retryAfterMs / 60_000);
-        toast.error(`リクエスト回数が上限に達しました。${minutes}分後に再試行してください`);
+        toast.error(
+          `リクエスト回数が上限に達しました。${minutes}分後に再試行してください`,
+        );
         return;
       }
       if (error.data?.isValidationError) {
-        toast.error("パスワードの変更に失敗しました。入力内容を確認してください。");
+        toast.error(
+          "パスワードの変更に失敗しました。入力内容を確認してください。",
+        );
         return;
       }
       toast.error(error.message);

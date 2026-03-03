@@ -163,17 +163,17 @@ describe("CircleRenameDialog", () => {
     const { user, dialog } = await openDialog();
 
     // 初期状態は circleName の文字数
-    expect(
-      within(dialog).getByLabelText("研究会名の文字数"),
-    ).toHaveTextContent(`${CIRCLE_NAME.length} / 50`);
+    expect(within(dialog).getByLabelText("研究会名の文字数")).toHaveTextContent(
+      `${CIRCLE_NAME.length} / 50`,
+    );
 
     const input = within(dialog).getByPlaceholderText("研究会名");
     await user.clear(input);
     await user.type(input, "テスト");
 
-    expect(
-      within(dialog).getByLabelText("研究会名の文字数"),
-    ).toHaveTextContent("3 / 50");
+    expect(within(dialog).getByLabelText("研究会名の文字数")).toHaveTextContent(
+      "3 / 50",
+    );
   });
 
   it("空白のみの入力では送信ボタンクリックしても mutate が呼ばれない", async () => {

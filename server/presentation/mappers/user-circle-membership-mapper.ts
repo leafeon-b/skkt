@@ -6,10 +6,8 @@ import {
 
 export const toUserCircleMembershipDto = (
   membership: UserCircleMembership,
-): UserCircleMembershipDto =>
-  userCircleMembershipDtoSchema.parse(membership);
+): UserCircleMembershipDto => userCircleMembershipDtoSchema.parse(membership);
 
 export const toUserCircleMembershipDtos = (
   memberships: UserCircleMembership[],
-): UserCircleMembershipDto[] =>
-  memberships.map(toUserCircleMembershipDto);
+): UserCircleMembershipDto[] => memberships.map(toUserCircleMembershipDto);

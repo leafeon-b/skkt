@@ -63,8 +63,6 @@ describe("CharacterCounter", () => {
 
   it("aria-label が設定される", () => {
     render(<CharacterCounter count={0} max={50} label="研究会名の文字数" />);
-    expect(
-      screen.getByLabelText("研究会名の文字数"),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("研究会名の文字数")).toBeInTheDocument();
   });
 });

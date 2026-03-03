@@ -84,8 +84,8 @@ describe("メンバーシップステータス", () => {
   });
 
   test("isCircleSessionMemberStatus は none で false", () => {
-    expect(
-      isCircleSessionMemberStatus(noCircleSessionMembershipStatus()),
-    ).toBe(false);
+    expect(isCircleSessionMemberStatus(noCircleSessionMembershipStatus())).toBe(
+      false,
+    );
   });
 });

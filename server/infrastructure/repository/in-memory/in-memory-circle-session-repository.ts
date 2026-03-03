@@ -29,9 +29,7 @@ export const createInMemoryCircleSessionRepository = (
     return sessionStore.get(id) ?? null;
   },
 
-  async findByIds(
-    ids: readonly CircleSessionId[],
-  ): Promise<CircleSession[]> {
+  async findByIds(ids: readonly CircleSessionId[]): Promise<CircleSession[]> {
     if (ids.length === 0) return [];
     const uniqueIds = Array.from(new Set(ids));
     return uniqueIds

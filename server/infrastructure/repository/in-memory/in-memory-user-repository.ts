@@ -63,10 +63,7 @@ export const createInMemoryUserRepository = (
     }
   },
 
-  async emailExists(
-    email: string,
-    excludeUserId?: UserId,
-  ): Promise<boolean> {
+  async emailExists(email: string, excludeUserId?: UserId): Promise<boolean> {
     for (const record of store.values()) {
       if (record.email === email) {
         if (excludeUserId != null && record.id === excludeUserId) continue;

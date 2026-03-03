@@ -2,10 +2,7 @@ import { describe, expect, test } from "vitest";
 import { createInMemoryMatchRepository } from "./in-memory-match-repository";
 import { createInMemoryCircleRepository } from "./in-memory-circle-repository";
 import { createInMemoryCircleSessionRepository } from "./in-memory-circle-session-repository";
-import {
-  createMatch,
-  deleteMatch,
-} from "@/server/domain/models/match/match";
+import { createMatch, deleteMatch } from "@/server/domain/models/match/match";
 import { createCircle } from "@/server/domain/models/circle/circle";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
 import {
@@ -131,10 +128,7 @@ describe("InMemoryMatchRepository", () => {
       await repo.save(m2);
       await repo.save(unrelated);
 
-      const result = await repo.listByBothPlayerIds(
-        userId("u1"),
-        userId("u2"),
-      );
+      const result = await repo.listByBothPlayerIds(userId("u1"), userId("u2"));
       expect(result).toHaveLength(2);
     });
   });
@@ -233,9 +227,7 @@ describe("InMemoryMatchRepository", () => {
 
       const result = await repo.listDistinctOpponentIds(userId("u1"));
       expect(result).toHaveLength(2);
-      expect(new Set(result)).toEqual(
-        new Set([userId("u2"), userId("u3")]),
-      );
+      expect(new Set(result)).toEqual(new Set([userId("u2"), userId("u3")]));
     });
 
     test("論理削除された Match は除外される", async () => {

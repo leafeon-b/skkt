@@ -79,14 +79,10 @@ const defaultProps: {
   memoText: "持ち物: 将棋盤",
 };
 
-async function openEditDialog(
-  overrides: Partial<typeof defaultProps> = {},
-) {
+async function openEditDialog(overrides: Partial<typeof defaultProps> = {}) {
   const user = userEvent.setup();
   render(<CircleSessionEditDialog {...defaultProps} {...overrides} />);
-  await user.click(
-    screen.getByRole("button", { name: "セッションを編集" }),
-  );
+  await user.click(screen.getByRole("button", { name: "セッションを編集" }));
   return user;
 }
 

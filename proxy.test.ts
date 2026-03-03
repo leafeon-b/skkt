@@ -54,9 +54,7 @@ describe("proxy", () => {
     const response = proxy(request);
 
     const csp = response.headers.get("Content-Security-Policy")!;
-    const scriptSrc = csp
-      .split("; ")
-      .find((d) => d.startsWith("script-src"));
+    const scriptSrc = csp.split("; ").find((d) => d.startsWith("script-src"));
 
     expect(scriptSrc).toBeDefined();
     expect(scriptSrc).not.toContain("'unsafe-inline'");

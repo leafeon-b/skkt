@@ -260,7 +260,10 @@ describe("assertCanAddSessionMemberWithRole", () => {
 
   test("Owner がいない状態で Owner を追加できる", () => {
     expect(() =>
-      assertCanAddSessionMemberWithRole([], CircleSessionRole.CircleSessionOwner),
+      assertCanAddSessionMemberWithRole(
+        [],
+        CircleSessionRole.CircleSessionOwner,
+      ),
     ).not.toThrow();
   });
 
@@ -314,8 +317,7 @@ describe("assertCanWithdraw", () => {
 describe("assertCanWithdrawFromSession", () => {
   test("Owner は退会できない", () => {
     expectThrow(
-      () =>
-        assertCanWithdrawFromSession(CircleSessionRole.CircleSessionOwner),
+      () => assertCanWithdrawFromSession(CircleSessionRole.CircleSessionOwner),
       ForbiddenError,
       "Owner cannot withdraw from session. Use transferOwnership instead",
     );

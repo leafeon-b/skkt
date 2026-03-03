@@ -41,9 +41,7 @@ export async function getUserProfileViewModel(
   }
 
   const [sessionMembershipCount, { total, byCircle }] = await Promise.all([
-    ctx.circleSessionMembershipService.countPastSessionsByUserId(
-      brandedUserId,
-    ),
+    ctx.circleSessionMembershipService.countPastSessionsByUserId(brandedUserId),
     ctx.userStatisticsService.getMatchStatisticsAll(brandedUserId),
   ]);
 

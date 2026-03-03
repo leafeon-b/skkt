@@ -33,9 +33,7 @@ export default async function NewCircleSessionPage({
 
   const { startsAt, title, endsAt, location, note } = await searchParams;
   const dateFormat = /^\d{4}-\d{2}-\d{2}$/;
-  const validStartsAt = dateFormat.test(startsAt ?? "")
-    ? startsAt
-    : undefined;
+  const validStartsAt = dateFormat.test(startsAt ?? "") ? startsAt : undefined;
   const validEndsAt = dateFormat.test(endsAt ?? "") ? endsAt : undefined;
   const validTitle = title && title.length <= 100 ? title : undefined;
   const validLocation =

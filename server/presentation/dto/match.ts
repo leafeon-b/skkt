@@ -63,13 +63,10 @@ export const matchUpdateInputSchema = z
       path: ["player1Id"],
     },
   )
-  .refine(
-    (v) => !v.player1Id || !v.player2Id || v.player1Id !== v.player2Id,
-    {
-      message: "player1Id and player2Id must be different",
-      path: ["player2Id"],
-    },
-  );
+  .refine((v) => !v.player1Id || !v.player2Id || v.player1Id !== v.player2Id, {
+    message: "player1Id and player2Id must be different",
+    path: ["player2Id"],
+  });
 
 export type MatchUpdateInput = z.infer<typeof matchUpdateInputSchema>;
 

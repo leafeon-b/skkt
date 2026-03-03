@@ -66,8 +66,9 @@ export const createInMemoryRepositories = (): InMemoryRepositories => {
     circleSessionStore,
     circleStore,
   });
-  const circleInviteLinkRepository =
-    createInMemoryCircleInviteLinkRepository(circleInviteLinkStore);
+  const circleInviteLinkRepository = createInMemoryCircleInviteLinkRepository(
+    circleInviteLinkStore,
+  );
   const authzRepository = createInMemoryAuthzRepository({
     userStore,
     circleMembershipStore,

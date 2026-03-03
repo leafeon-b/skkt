@@ -135,10 +135,9 @@ describe("UnitOfWork 経路", () => {
 
     const saved = await repos.circleRepository.findById(circleId("circle-1"));
     expect(saved?.name).toBe("Home");
-    const memberships =
-      await repos.circleRepository.listMembershipsByCircleId(
-        circleId("circle-1"),
-      );
+    const memberships = await repos.circleRepository.listMembershipsByCircleId(
+      circleId("circle-1"),
+    );
     expect(memberships).toHaveLength(1);
     expect(memberships[0].userId).toBe("user-1");
     expect(memberships[0].role).toBe("CircleOwner");

@@ -12,11 +12,10 @@ export const userCircleMembershipRouter = router({
     .output(userCircleMembershipDtoSchema.array())
     .query(({ ctx }) =>
       handleTrpcError(async () => {
-        const memberships =
-          await ctx.circleMembershipService.listByUserId({
-            actorId: ctx.actorId,
-            userId: ctx.actorId,
-          });
+        const memberships = await ctx.circleMembershipService.listByUserId({
+          actorId: ctx.actorId,
+          userId: ctx.actorId,
+        });
         return toUserCircleMembershipDtos(memberships);
       }),
     ),

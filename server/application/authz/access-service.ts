@@ -73,7 +73,9 @@ export function createAccessService(deps: AccessServiceDeps) {
 
     async canDeleteCircle(userId: string, circleId: string): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return isCircleMemberStatus(membership) && membership.role === CircleOwner;
+      return (
+        isCircleMemberStatus(membership) && membership.role === CircleOwner
+      );
     },
 
     async canAddCircleMember(
@@ -124,7 +126,9 @@ export function createAccessService(deps: AccessServiceDeps) {
       circleId: string,
     ): Promise<boolean> {
       const membership = await findCircleMembership(userId, circleId);
-      return isCircleMemberStatus(membership) && membership.role === CircleOwner;
+      return (
+        isCircleMemberStatus(membership) && membership.role === CircleOwner
+      );
     },
 
     async canCreateCircleSession(

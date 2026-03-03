@@ -29,11 +29,7 @@ describe("InMemoryCircleInviteLinkRepository", () => {
 
   test("save した Link を findByToken で取得できる", async () => {
     const repo = makeRepo();
-    const link = makeLink(
-      "link1",
-      "c1",
-      new Date(Date.now() + 86400000),
-    );
+    const link = makeLink("link1", "c1", new Date(Date.now() + 86400000));
     await repo.save(link);
 
     const found = await repo.findByToken(link.token);
@@ -95,11 +91,7 @@ describe("InMemoryCircleInviteLinkRepository", () => {
 
   test("findActiveByCircleId は別の Circle のリンクを返さない", async () => {
     const repo = makeRepo();
-    const link = makeLink(
-      "link1",
-      "c1",
-      new Date(Date.now() + 86400000),
-    );
+    const link = makeLink("link1", "c1", new Date(Date.now() + 86400000));
     await repo.save(link);
 
     const found = await repo.findActiveByCircleId(circleId("c2"));
@@ -108,11 +100,7 @@ describe("InMemoryCircleInviteLinkRepository", () => {
 
   test("save は既存のリンクを上書きする", async () => {
     const repo = makeRepo();
-    const link = makeLink(
-      "link1",
-      "c1",
-      new Date(Date.now() + 86400000),
-    );
+    const link = makeLink("link1", "c1", new Date(Date.now() + 86400000));
     await repo.save(link);
 
     const newExpiry = new Date(Date.now() + 172800000);

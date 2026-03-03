@@ -1,5 +1,11 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import SignupForm from "./signup-form";
@@ -37,7 +43,10 @@ afterEach(() => {
 });
 
 async function fillRequiredFields(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByPlaceholderText("demo1@example.com"), "test@example.com");
+  await user.type(
+    screen.getByPlaceholderText("demo1@example.com"),
+    "test@example.com",
+  );
   const passwordInputs = screen.getAllByPlaceholderText("••••••••");
   await user.type(passwordInputs[0], "password123");
   await user.type(passwordInputs[1], "password123");
@@ -89,7 +98,10 @@ describe("SignupForm 利用規約チェックボックス", () => {
     fireEvent.change(screen.getByPlaceholderText("例: 佐藤 太郎"), {
       target: { value: "あ".repeat(51) },
     });
-    await user.type(screen.getByPlaceholderText("demo1@example.com"), "test@example.com");
+    await user.type(
+      screen.getByPlaceholderText("demo1@example.com"),
+      "test@example.com",
+    );
     const passwordInputs = screen.getAllByPlaceholderText("••••••••");
     await user.type(passwordInputs[0], "short12");
     await user.type(passwordInputs[1], "short12");
@@ -109,7 +121,10 @@ describe("SignupForm 利用規約チェックボックス", () => {
     const user = userEvent.setup();
     render(<SignupForm />);
 
-    await user.type(screen.getByPlaceholderText("demo1@example.com"), "test@example.com");
+    await user.type(
+      screen.getByPlaceholderText("demo1@example.com"),
+      "test@example.com",
+    );
     const passwordInputs = screen.getAllByPlaceholderText("••••••••");
     await user.type(passwordInputs[0], "short12");
     await user.type(passwordInputs[1], "differ1");
@@ -129,7 +144,10 @@ describe("SignupForm 利用規約チェックボックス", () => {
     const user = userEvent.setup();
     render(<SignupForm />);
 
-    await user.type(screen.getByPlaceholderText("demo1@example.com"), "test@example.com");
+    await user.type(
+      screen.getByPlaceholderText("demo1@example.com"),
+      "test@example.com",
+    );
     const passwordInputs = screen.getAllByPlaceholderText("••••••••");
     await user.type(passwordInputs[0], "password123");
     await user.type(passwordInputs[1], "different456");
@@ -152,7 +170,10 @@ describe("SignupForm 利用規約チェックボックス", () => {
     fireEvent.change(passwordInputs[0], {
       target: { value: "a".repeat(129) },
     });
-    await user.type(screen.getByPlaceholderText("demo1@example.com"), "test@example.com");
+    await user.type(
+      screen.getByPlaceholderText("demo1@example.com"),
+      "test@example.com",
+    );
     await user.type(passwordInputs[1], "password123");
 
     const submitButton = screen.getByRole("button", {

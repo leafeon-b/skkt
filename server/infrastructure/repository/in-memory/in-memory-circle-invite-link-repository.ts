@@ -11,9 +11,7 @@ export const createInMemoryCircleInviteLinkRepository = (
 } => ({
   _store: store,
 
-  async findByToken(
-    token: InviteLinkToken,
-  ): Promise<CircleInviteLink | null> {
+  async findByToken(token: InviteLinkToken): Promise<CircleInviteLink | null> {
     for (const link of store.values()) {
       if (link.token === token) {
         return link;

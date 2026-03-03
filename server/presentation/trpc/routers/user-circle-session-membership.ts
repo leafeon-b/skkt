@@ -12,12 +12,13 @@ export const userCircleSessionMembershipRouter = router({
     .output(userCircleSessionMembershipSummaryDtoSchema.array())
     .query(({ ctx, input }) =>
       handleTrpcError(async () => {
-        const summaries =
-          await ctx.circleSessionMembershipService.listByUserId({
+        const summaries = await ctx.circleSessionMembershipService.listByUserId(
+          {
             actorId: ctx.actorId,
             userId: ctx.actorId,
             limit: input.limit,
-          });
+          },
+        );
         return toUserCircleSessionMembershipSummaryDtos(summaries);
       }),
     ),

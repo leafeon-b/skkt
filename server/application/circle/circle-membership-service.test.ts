@@ -451,10 +451,9 @@ describe("UnitOfWork 経路", () => {
       circleId: circleId("circle-1"),
     });
 
-    const memberships =
-      await repos.circleRepository.listMembershipsByCircleId(
-        circleId("circle-1"),
-      );
+    const memberships = await repos.circleRepository.listMembershipsByCircleId(
+      circleId("circle-1"),
+    );
     expect(memberships).toHaveLength(1);
     expect(memberships[0].userId).toBe("user-owner");
   });
@@ -466,10 +465,9 @@ describe("UnitOfWork 経路", () => {
       userId: userId("user-member"),
     });
 
-    const memberships =
-      await repos.circleRepository.listMembershipsByCircleId(
-        circleId("circle-1"),
-      );
+    const memberships = await repos.circleRepository.listMembershipsByCircleId(
+      circleId("circle-1"),
+    );
     expect(memberships).toHaveLength(1);
     expect(memberships[0].userId).toBe("user-owner");
   });

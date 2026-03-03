@@ -230,11 +230,10 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
   test("areUsersSessionMembers は全員参加なら true", async () => {
     mockedPrisma.circleSessionMembership.count.mockResolvedValueOnce(2);
 
-    const result =
-      await prismaCircleSessionRepository.areUsersSessionMembers(
-        circleSessionId("session-1"),
-        [userId("user-1"), userId("user-2")],
-      );
+    const result = await prismaCircleSessionRepository.areUsersSessionMembers(
+      circleSessionId("session-1"),
+      [userId("user-1"), userId("user-2")],
+    );
 
     expect(mockedPrisma.circleSessionMembership.count).toHaveBeenCalledWith({
       where: {
@@ -249,21 +248,19 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
   test("areUsersSessionMembers は一部不参加なら false", async () => {
     mockedPrisma.circleSessionMembership.count.mockResolvedValueOnce(1);
 
-    const result =
-      await prismaCircleSessionRepository.areUsersSessionMembers(
-        circleSessionId("session-1"),
-        [userId("user-1"), userId("user-2")],
-      );
+    const result = await prismaCircleSessionRepository.areUsersSessionMembers(
+      circleSessionId("session-1"),
+      [userId("user-1"), userId("user-2")],
+    );
 
     expect(result).toBe(false);
   });
 
   test("areUsersSessionMembers は空配列で false", async () => {
-    const result =
-      await prismaCircleSessionRepository.areUsersSessionMembers(
-        circleSessionId("session-1"),
-        [],
-      );
+    const result = await prismaCircleSessionRepository.areUsersSessionMembers(
+      circleSessionId("session-1"),
+      [],
+    );
 
     expect(result).toBe(false);
     expect(mockedPrisma.circleSessionMembership.count).not.toHaveBeenCalled();
@@ -272,11 +269,10 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
   test("areUsersSessionMembers は重複したユーザーを排除する", async () => {
     mockedPrisma.circleSessionMembership.count.mockResolvedValueOnce(1);
 
-    const result =
-      await prismaCircleSessionRepository.areUsersSessionMembers(
-        circleSessionId("session-1"),
-        [userId("user-1"), userId("user-1")],
-      );
+    const result = await prismaCircleSessionRepository.areUsersSessionMembers(
+      circleSessionId("session-1"),
+      [userId("user-1"), userId("user-1")],
+    );
 
     expect(mockedPrisma.circleSessionMembership.count).toHaveBeenCalledWith({
       where: {
@@ -310,10 +306,9 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
       },
     ]);
 
-    const result =
-      await prismaCircleSessionRepository.listMemberships(
-        circleSessionId("session-1"),
-      );
+    const result = await prismaCircleSessionRepository.listMemberships(
+      circleSessionId("session-1"),
+    );
 
     expect(mockedPrisma.circleSessionMembership.findMany).toHaveBeenCalledWith({
       where: { circleSessionId: "session-1", deletedAt: null },
@@ -365,10 +360,9 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
       },
     ]);
 
-    const result =
-      await prismaCircleSessionRepository.listMembershipsByUserId(
-        userId("user-1"),
-      );
+    const result = await prismaCircleSessionRepository.listMembershipsByUserId(
+      userId("user-1"),
+    );
 
     expect(mockedPrisma.circleSessionMembership.findMany).toHaveBeenCalledWith({
       where: { userId: "user-1", deletedAt: null },
@@ -558,10 +552,9 @@ describe("Prisma CircleSession メンバーシップリポジトリ", () => {
       },
     ]);
 
-    const result =
-      await prismaCircleSessionRepository.listMemberships(
-        circleSessionId("session-1"),
-      );
+    const result = await prismaCircleSessionRepository.listMemberships(
+      circleSessionId("session-1"),
+    );
 
     expect(mockedPrisma.circleSessionMembership.findMany).toHaveBeenCalledWith({
       where: { circleSessionId: "session-1", deletedAt: null },

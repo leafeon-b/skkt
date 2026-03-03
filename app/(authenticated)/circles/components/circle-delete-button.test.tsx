@@ -17,10 +17,9 @@ const useMutationHolder = vi.hoisted(() => {
   return { current: noop as (...args: unknown[]) => unknown };
 });
 
-const { useMutation, mutateSpyRef } = makeMutationMock(
-  () => deleteBehavior,
-  { hasReset: false },
-);
+const { useMutation, mutateSpyRef } = makeMutationMock(() => deleteBehavior, {
+  hasReset: false,
+});
 useMutationHolder.current =
   useMutation as unknown as typeof useMutationHolder.current;
 
@@ -105,9 +104,7 @@ describe("CircleDeleteButton", () => {
 
   it("ダイアログ再開時に確認入力がリセット", async () => {
     const user = userEvent.setup();
-    render(
-      <CircleDeleteButton circleId="circle-1" circleName={CIRCLE_NAME} />,
-    );
+    render(<CircleDeleteButton circleId="circle-1" circleName={CIRCLE_NAME} />);
 
     // ダイアログを開いてテキストを入力
     const trigger = screen.getByRole("button", {

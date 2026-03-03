@@ -21,9 +21,7 @@ import type { HolidayProvider } from "@/server/domain/common/holiday-provider";
 
 export type ServiceContainer = {
   circleService: ReturnType<typeof createCircleService>;
-  circleMembershipService: ReturnType<
-    typeof createCircleMembershipService
-  >;
+  circleMembershipService: ReturnType<typeof createCircleMembershipService>;
   circleSessionService: ReturnType<typeof createCircleSessionService>;
   circleSessionMembershipService: ReturnType<
     typeof createCircleSessionMembershipService

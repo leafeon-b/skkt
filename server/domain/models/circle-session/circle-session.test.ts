@@ -137,7 +137,9 @@ describe("CircleSession ドメイン", () => {
         endsAt: new Date("2024-01-01T12:00:00Z"),
         note: "a".repeat(CIRCLE_SESSION_NOTE_MAX_LENGTH + 1),
       }),
-    ).toThrow(`CircleSession note must be at most ${CIRCLE_SESSION_NOTE_MAX_LENGTH} characters`);
+    ).toThrow(
+      `CircleSession note must be at most ${CIRCLE_SESSION_NOTE_MAX_LENGTH} characters`,
+    );
   });
 
   test("createCircleSession は note 未指定時に空文字を設定する", () => {
@@ -185,7 +187,10 @@ describe("CircleSession ドメイン", () => {
 
     test("最大文字数超過を拒否する", () => {
       expect(() =>
-        renameCircleSession(base, "a".repeat(CIRCLE_SESSION_TITLE_MAX_LENGTH + 1)),
+        renameCircleSession(
+          base,
+          "a".repeat(CIRCLE_SESSION_TITLE_MAX_LENGTH + 1),
+        ),
       ).toThrow(
         `CircleSession title must be at most ${CIRCLE_SESSION_TITLE_MAX_LENGTH} characters`,
       );

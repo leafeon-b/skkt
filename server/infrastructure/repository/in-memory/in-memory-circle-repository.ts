@@ -62,9 +62,7 @@ export const createInMemoryCircleRepository = (
         }
       }
     }
-    return result.sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-    );
+    return result.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   },
 
   async addMembership(

@@ -227,9 +227,7 @@ export function CircleOverviewView({
 
       {overview.canDeleteCircle ? (
         <section className="rounded-2xl border border-red-200 bg-white/90 p-6 shadow-sm">
-          <p className="mb-1 text-sm font-semibold text-red-700">
-            危険な操作
-          </p>
+          <p className="mb-1 text-sm font-semibold text-red-700">危険な操作</p>
           <p className="mb-4 text-xs text-(--brand-ink-muted)">
             研究会を削除すると、すべてのデータが完全に削除されます。この操作は取り消せません。
           </p>

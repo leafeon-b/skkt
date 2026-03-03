@@ -140,16 +140,16 @@ describe("CircleCreateDialog", () => {
   it("文字数カウンターが {current} / 50 形式で表示される", async () => {
     const { user, dialog } = await openDialog();
 
-    expect(
-      within(dialog).getByLabelText("研究会名の文字数"),
-    ).toHaveTextContent("0 / 50");
+    expect(within(dialog).getByLabelText("研究会名の文字数")).toHaveTextContent(
+      "0 / 50",
+    );
 
     const input = within(dialog).getByPlaceholderText("研究会名");
     await user.type(input, "テスト");
 
-    expect(
-      within(dialog).getByLabelText("研究会名の文字数"),
-    ).toHaveTextContent("3 / 50");
+    expect(within(dialog).getByLabelText("研究会名の文字数")).toHaveTextContent(
+      "3 / 50",
+    );
   });
 
   it("空白のみの入力では送信ボタンクリックしても mutate が呼ばれない", async () => {

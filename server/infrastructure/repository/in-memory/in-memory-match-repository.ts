@@ -72,9 +72,7 @@ export const createInMemoryMatchRepository = (
     );
   },
 
-  async listByPlayerIdWithCircle(
-    playerId: UserId,
-  ): Promise<MatchWithCircle[]> {
+  async listByPlayerIdWithCircle(playerId: UserId): Promise<MatchWithCircle[]> {
     if (!deps) {
       throw new Error(
         "InMemoryMatchRepository requires circleSessionStore and circleStore for listByPlayerIdWithCircle",
