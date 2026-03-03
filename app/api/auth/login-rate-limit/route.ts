@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     if (e instanceof TooManyRequestsError) {
       return NextResponse.json({ retryAfterMs: e.retryAfterMs });
     }
+    console.error("[login-rate-limit] unexpected error", e);
     return NextResponse.json(
       { error: "internal server error" },
       { status: 500 },
