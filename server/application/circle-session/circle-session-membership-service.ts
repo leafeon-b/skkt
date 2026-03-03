@@ -144,6 +144,12 @@ export const createCircleSessionMembershipService = (
     return summaries;
   },
 
+  async listDeletedMemberships(
+    circleSessionId: CircleSessionId,
+  ): Promise<CircleSessionMembership[]> {
+    return deps.circleSessionRepository.listDeletedMemberships(circleSessionId);
+  },
+
   async addMembership(params: {
     actorId: string;
     circleSessionId: CircleSessionId;
@@ -170,7 +176,18 @@ export const createCircleSessionMembershipService = (
         params.userId,
       );
     if (!circleMembership) {
-      throw new BadRequestError("User is not an active member of the circle");
+      const deletedMemberships =
+        await deps.circleSessionRepository.listDeletedMemberships(
+          params.circleSessionId,
+        );
+      const hasPastMembership = deletedMemberships.some(
+        (m) => m.userId === params.userId,
+      );
+      if (!hasPastMembership) {
+        throw new BadRequestError(
+          "User is not an active member of the circle",
+        );
+      }
     }
 
     const memberships = await deps.circleSessionRepository.listMemberships(

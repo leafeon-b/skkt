@@ -43,6 +43,7 @@ const createTestContext = (
       removeMembership: vi.fn(),
       transferOwnership: vi.fn(),
       withdrawMembership: vi.fn(),
+      listDeletedMemberships: vi.fn(),
     },
     matchService: {
       listByCircleSessionId: vi.fn(),

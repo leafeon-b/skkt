@@ -264,6 +264,64 @@ describe("CircleSession セッションメンバーシップサービス", () =>
     expect(result[0]?.title).toBe("第2回 研究会");
   });
 
+  test("addMembership は研究会非メンバーかつ過去セッション参加者の再追加が成功する", async () => {
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-owner"),
+      "CircleSessionOwner",
+    );
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("non-circle-member"),
+      "CircleSessionMember",
+    );
+    await circleSessionRepository.removeMembership(
+      circleSessionId("session-1"),
+      userId("non-circle-member"),
+      new Date(),
+    );
+
+    const result = await service.addMembership({
+      actorId: "user-actor",
+      circleSessionId: circleSessionId("session-1"),
+      userId: userId("non-circle-member"),
+      role: "CircleSessionMember",
+    });
+
+    expect(result).toBeUndefined();
+    const memberships = await circleSessionRepository.listMemberships(
+      circleSessionId("session-1"),
+    );
+    const rejoined = memberships.find(
+      (m) => m.userId === "non-circle-member",
+    );
+    expect(rejoined?.role).toBe("CircleSessionMember");
+  });
+
+  test("addMembership は研究会非メンバーかつ過去セッション参加歴なしの追加を拒否する", async () => {
+    await circleSessionRepository.addMembership(
+      circleSessionId("session-1"),
+      userId("user-owner"),
+      "CircleSessionOwner",
+    );
+
+    await expectReject(
+      service.addMembership({
+        actorId: "user-actor",
+        circleSessionId: circleSessionId("session-1"),
+        userId: userId("completely-new-user"),
+        role: "CircleSessionMember",
+      }),
+      BadRequestError,
+      "User is not an active member of the circle",
+    );
+
+    const memberships = await circleSessionRepository.listMemberships(
+      circleSessionId("session-1"),
+    );
+    expect(memberships).toHaveLength(1);
+  });
+
   test("addMembership は研究会メンバーでないユーザーの追加を拒否する", async () => {
     await circleSessionRepository.addMembership(
       circleSessionId("session-1"),

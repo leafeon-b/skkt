@@ -4,6 +4,7 @@ import {
   formatDateTimeRange,
 } from "@/lib/date-utils";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
+import { circleSessionId as toCircleSessionId } from "@/server/domain/common/ids";
 import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
 import type {
@@ -148,12 +149,25 @@ export async function getCircleSessionDetailViewModel(
       circleId: session.circleId,
     });
     const sessionMemberIds = new Set(memberships.map((m) => m.userId));
-    const candidateUserIds = circleMembers
-      .filter((cm) => !sessionMemberIds.has(cm.userId))
-      .map((cm) => cm.userId);
+    const candidateUserIds = new Set(
+      circleMembers
+        .filter((cm) => !sessionMemberIds.has(cm.userId))
+        .map((cm) => cm.userId),
+    );
 
-    if (candidateUserIds.length > 0) {
-      const candidateUserIdsToResolve = candidateUserIds.filter(
+    const deletedMemberships =
+      await ctx.circleSessionMembershipService.listDeletedMemberships(
+        toCircleSessionId(session.id),
+      );
+    for (const dm of deletedMemberships) {
+      if (!sessionMemberIds.has(dm.userId)) {
+        candidateUserIds.add(dm.userId);
+      }
+    }
+
+    const candidateUserIdArray = Array.from(candidateUserIds);
+    if (candidateUserIdArray.length > 0) {
+      const candidateUserIdsToResolve = candidateUserIdArray.filter(
         (id) => !userNameById.has(id),
       );
       if (candidateUserIdsToResolve.length > 0) {
@@ -164,7 +178,7 @@ export async function getCircleSessionDetailViewModel(
           userNameById.set(user.id, user.name);
         }
       }
-      addableMemberCandidates = candidateUserIds.map((id) => ({
+      addableMemberCandidates = candidateUserIdArray.map((id) => ({
         id,
         name: userNameById.get(id) ?? id,
       }));

@@ -16,6 +16,7 @@ const createTestContext = (
     removeMembership: vi.fn(),
     transferOwnership: vi.fn(),
     withdrawMembership: vi.fn(),
+    listDeletedMemberships: vi.fn(),
   };
 
   const context: Context = {
