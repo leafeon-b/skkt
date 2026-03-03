@@ -3,6 +3,7 @@ import { CircleOverviewCalendar } from "@/app/(authenticated)/circles/components
 import { CircleRenameDialog } from "@/app/(authenticated)/circles/components/circle-rename-dialog";
 import { CircleWithdrawButton } from "@/app/(authenticated)/circles/components/circle-withdraw-button";
 import { MemberRoleDropdown } from "@/app/(authenticated)/circles/components/member-role-dropdown";
+import { RemoveCircleMemberButton } from "@/app/(authenticated)/circles/components/remove-circle-member-button";
 import type {
   CircleOverviewMember,
   CircleOverviewViewModel,
@@ -206,6 +207,13 @@ export function CircleOverviewView({
                           circleId={overview.circleId}
                           userId={member.userId}
                           currentRole={member.role}
+                        />
+                      ) : null}
+                      {member.canRemoveMember ? (
+                        <RemoveCircleMemberButton
+                          circleId={overview.circleId}
+                          userId={member.userId}
+                          memberName={member.name}
                         />
                       ) : null}
                     </div>
