@@ -534,6 +534,50 @@ describe("CircleSessionDetailView 追加ボタン", () => {
   });
 });
 
+describe("CircleSessionDetailView オーナー移譲ボタン", () => {
+  it("canTransferOwnership: true かつ viewerUserId が存在する場合、移譲ボタンが表示される", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({
+          canTransferOwnership: true,
+          viewerUserId: "viewer-1",
+        })}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "オーナーを移譲" }),
+    ).toBeInTheDocument();
+  });
+
+  it("canTransferOwnership: false の場合、移譲ボタンが表示されない", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({ canTransferOwnership: false })}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "オーナーを移譲" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("canTransferOwnership: true かつ viewerUserId: null の場合、移譲ボタンが表示されない", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({
+          canTransferOwnership: true,
+          viewerUserId: null,
+        })}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "オーナーを移譲" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("編集ダイアログの日付プリフィル", () => {
   it("編集ダイアログを開くと対局日にcreatedAtInputの値がプリフィルされる", async () => {
     await openEditDialogViaDropdown();
