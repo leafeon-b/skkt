@@ -11,12 +11,48 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { trpc } from "@/lib/trpc/client";
-import type { RoundRobinScheduleViewModel } from "@/server/presentation/view-models/circle-session-detail";
+import type {
+  RoundRobinPairingPlayer,
+  RoundRobinScheduleViewModel,
+} from "@/server/presentation/view-models/circle-session-detail";
 import { Shuffle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+
+function buildMatrix(schedule: RoundRobinScheduleViewModel) {
+  const playerMap = new Map<string, RoundRobinPairingPlayer>();
+  for (const round of schedule.rounds) {
+    for (const pairing of round.pairings) {
+      playerMap.set(pairing.player1.id, pairing.player1);
+      playerMap.set(pairing.player2.id, pairing.player2);
+    }
+  }
+  const players = [...playerMap.values()].sort((a, b) =>
+    a.name.localeCompare(b.name, "ja"),
+  );
+
+  const pairToRound = new Map<string, number>();
+  for (const round of schedule.rounds) {
+    for (const pairing of round.pairings) {
+      const key1 = `${pairing.player1.id}:${pairing.player2.id}`;
+      const key2 = `${pairing.player2.id}:${pairing.player1.id}`;
+      pairToRound.set(key1, round.roundNumber);
+      pairToRound.set(key2, round.roundNumber);
+    }
+  }
+
+  return { players, pairToRound };
+}
 
 type RoundRobinScheduleSectionProps = {
   circleSessionId: string;
@@ -85,27 +121,13 @@ export function RoundRobinScheduleSection({
       </div>
 
       {schedule ? (
-        <div className="mt-4 space-y-4">
-          {schedule.rounds.map((round) => (
-            <div key={round.roundNumber}>
-              <p className="mb-2 text-xs font-semibold text-(--brand-ink)">
-                第{round.roundNumber}ラウンド
-              </p>
-              <div className="space-y-1.5">
-                {round.pairings.map((pairing) => (
-                  <div
-                    key={`${pairing.player1.id}-${pairing.player2.id}`}
-                    className="flex items-center gap-2 rounded-lg border border-border/60 bg-white/70 px-3 py-2 text-sm text-(--brand-ink)"
-                  >
-                    <span className="font-medium">{pairing.player1.name}</span>
-                    <span className="text-xs text-(--brand-ink-muted)">vs</span>
-                    <span className="font-medium">{pairing.player2.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        schedule.rounds.length > 0 ? (
+          <ScheduleMatrix schedule={schedule} />
+        ) : (
+          <p className="mt-4 text-xs text-(--brand-ink-muted)">
+            スケジュールにラウンドがありません
+          </p>
+        )
       ) : (
         <div className="mt-4">
           <p className="text-xs text-(--brand-ink-muted)">
@@ -157,5 +179,68 @@ export function RoundRobinScheduleSection({
         </AlertDialogContent>
       </AlertDialog>
     </section>
+  );
+}
+
+function ScheduleMatrix({
+  schedule,
+}: {
+  schedule: RoundRobinScheduleViewModel;
+}) {
+  const { players, pairToRound } = useMemo(
+    () => buildMatrix(schedule),
+    [schedule],
+  );
+
+  return (
+    <div className="mt-4 overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-xs font-semibold text-(--brand-ink)" />
+            {players.map((p) => (
+              <TableHead
+                key={p.id}
+                className="text-center text-xs font-semibold text-(--brand-ink)"
+              >
+                {p.name}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {players.map((rowPlayer) => (
+            <TableRow key={rowPlayer.id}>
+              <TableCell className="text-xs font-semibold text-(--brand-ink)">
+                {rowPlayer.name}
+              </TableCell>
+              {players.map((colPlayer) => {
+                if (rowPlayer.id === colPlayer.id) {
+                  return (
+                    <TableCell
+                      key={colPlayer.id}
+                      className="text-center text-xs text-(--brand-ink-muted)"
+                    >
+                      -
+                    </TableCell>
+                  );
+                }
+                const roundNumber = pairToRound.get(
+                  `${rowPlayer.id}:${colPlayer.id}`,
+                );
+                return (
+                  <TableCell
+                    key={colPlayer.id}
+                    className="text-center text-sm text-(--brand-ink)"
+                  >
+                    {roundNumber ?? ""}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
