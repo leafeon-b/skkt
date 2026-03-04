@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { TRPCError } from "@trpc/server";
 import {
   circleId,
   circleSessionId,
@@ -175,5 +176,26 @@ describe("getCircleSessionDetailViewModel", () => {
       "u-member-b",
       "u-member-a",
     ]);
+  });
+
+  describe("認可エラー", () => {
+    test("研究会メンバーでもセッションメンバーでもないユーザーがセッション詳細を取得するとFORBIDDENエラーになる", async () => {
+      // authzRepository.findCircleMembership はデフォルト { kind: "none" } のまま
+      // authzRepository.findCircleSessionMembership はデフォルト { kind: "none" } のまま
+      // circleSessionRepository.findById は正常値を返す（セッション自体は存在する）
+
+      // beforeEachで設定したfindCircleMembershipのmockを上書きしてデフォルトに戻す
+      mockDeps.authzRepository.findCircleMembership.mockResolvedValue({
+        kind: "none",
+      });
+
+      await expect(
+        getCircleSessionDetailViewModel("session-1"),
+      ).rejects.toThrow(TRPCError);
+
+      await expect(
+        getCircleSessionDetailViewModel("session-1"),
+      ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    });
   });
 });
