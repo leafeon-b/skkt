@@ -4,6 +4,7 @@ import { CircleRenameDialog } from "@/app/(authenticated)/circles/components/cir
 import { CircleWithdrawButton } from "@/app/(authenticated)/circles/components/circle-withdraw-button";
 import { MemberRoleDropdown } from "@/app/(authenticated)/circles/components/member-role-dropdown";
 import { RemoveCircleMemberButton } from "@/app/(authenticated)/circles/components/remove-circle-member-button";
+import { TransferCircleOwnershipDialog } from "@/app/(authenticated)/circles/components/transfer-circle-ownership-dialog";
 import type {
   CircleOverviewMember,
   CircleOverviewViewModel,
@@ -224,6 +225,22 @@ export function CircleOverviewView({
           </div>
         </div>
       </section>
+
+      {overview.canTransferOwnership && overview.viewerUserId ? (
+        <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
+          <p className="mb-1 text-sm font-semibold text-(--brand-ink)">
+            オーナー移譲
+          </p>
+          <p className="mb-4 text-xs text-(--brand-ink-muted)">
+            研究会のオーナー権限を他のメンバーに移譲します。移譲後、あなたのロールはマネージャーに変更されます。
+          </p>
+          <TransferCircleOwnershipDialog
+            circleId={overview.circleId}
+            viewerUserId={overview.viewerUserId}
+            members={overview.members}
+          />
+        </section>
+      ) : null}
 
       {overview.canDeleteCircle ? (
         <section className="rounded-2xl border border-red-200 bg-white/90 p-6 shadow-sm">

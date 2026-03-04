@@ -32,4 +32,6 @@ export type CircleOverviewViewModel = {
   holidayDates: string[];
   canDeleteCircle: boolean;
   canRenameCircle: boolean;
+  canTransferOwnership: boolean;
+  viewerUserId: string | null;
 };
