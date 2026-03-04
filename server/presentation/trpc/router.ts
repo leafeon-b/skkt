@@ -3,6 +3,7 @@ import { circleRouter } from "@/server/presentation/trpc/routers/circle";
 import { circleSessionRouter } from "@/server/presentation/trpc/routers/circle-session";
 import { holidayRouter } from "@/server/presentation/trpc/routers/holiday";
 import { matchRouter } from "@/server/presentation/trpc/routers/match";
+import { roundRobinScheduleRouter } from "@/server/presentation/trpc/routers/round-robin-schedule";
 import { userRouter } from "@/server/presentation/trpc/routers/user";
 
 export const appRouter = router({
@@ -10,6 +11,7 @@ export const appRouter = router({
   circleSessions: circleSessionRouter,
   holidays: holidayRouter,
   matches: matchRouter,
+  roundRobinSchedules: roundRobinScheduleRouter,
   users: userRouter,
 });
 

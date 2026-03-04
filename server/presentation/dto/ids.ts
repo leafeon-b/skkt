@@ -5,6 +5,7 @@ import type {
   CircleSessionId,
   InviteLinkToken,
   MatchId,
+  RoundRobinScheduleId,
   UserId,
 } from "@/server/domain/common/ids";
 import {
@@ -13,6 +14,7 @@ import {
   circleSessionId,
   inviteLinkToken,
   matchId,
+  roundRobinScheduleId,
   userId,
 } from "@/server/domain/common/ids";
 
@@ -29,6 +31,8 @@ export const circleSessionIdSchema =
 export const matchIdSchema = makeIdSchema<MatchId>(matchId);
 export const circleInviteLinkIdSchema =
   makeIdSchema<CircleInviteLinkId>(circleInviteLinkId);
+export const roundRobinScheduleIdSchema =
+  makeIdSchema<RoundRobinScheduleId>(roundRobinScheduleId);
 
 export const inviteLinkTokenSchema: z.ZodType<
   InviteLinkToken,
