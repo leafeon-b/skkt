@@ -38,6 +38,10 @@ export const createAccessServiceStub = (): AccessService => {
     canViewMatch: notConfigured("canViewMatch"),
     canEditMatch: notConfigured("canEditMatch"),
     canDeleteMatch: notConfigured("canDeleteMatch"),
+    canManageRoundRobinSchedule: notConfigured(
+      "canManageRoundRobinSchedule",
+    ),
+    canViewRoundRobinSchedule: notConfigured("canViewRoundRobinSchedule"),
     canViewUserProfile: notConfigured("canViewUserProfile"),
   } satisfies AccessService;
 
