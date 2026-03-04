@@ -74,6 +74,7 @@ const createTestContext = () => {
     circleInviteLinkService,
     accessService: {} as Context["accessService"],
     userStatisticsService: {} as Context["userStatisticsService"],
+    roundRobinScheduleService: {} as Context["roundRobinScheduleService"],
     holidayProvider: {} as Context["holidayProvider"],
   };
 
