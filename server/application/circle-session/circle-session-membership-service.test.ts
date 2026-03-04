@@ -292,9 +292,7 @@ describe("CircleSession セッションメンバーシップサービス", () =>
     const memberships = await circleSessionRepository.listMemberships(
       circleSessionId("session-1"),
     );
-    const rejoined = memberships.find(
-      (m) => m.userId === "non-circle-member",
-    );
+    const rejoined = memberships.find((m) => m.userId === "non-circle-member");
     expect(rejoined?.role).toBe("CircleSessionMember");
   });
 

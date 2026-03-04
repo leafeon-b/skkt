@@ -184,9 +184,7 @@ export const createCircleSessionMembershipService = (
         (m) => m.userId === params.userId,
       );
       if (!hasPastMembership) {
-        throw new BadRequestError(
-          "User is not an active member of the circle",
-        );
+        throw new BadRequestError("User is not an active member of the circle");
       }
     }
 
