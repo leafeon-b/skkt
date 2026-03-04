@@ -5,6 +5,7 @@ import {
 } from "@/lib/date-utils";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { circleSessionId as toCircleSessionId } from "@/server/domain/common/ids";
+import { UNKNOWN_USER_NAME } from "@/server/presentation/constants";
 import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
 import type {
@@ -44,7 +45,7 @@ const mapMemberships = (
 ): CircleSessionMembership[] =>
   memberships.map((membership) => ({
     id: membership.userId,
-    name: nameById.get(membership.userId) ?? "不明",
+    name: nameById.get(membership.userId) ?? UNKNOWN_USER_NAME,
     role: roleKeyByDto[membership.role] ?? null,
     canChangeRole: canChangeRoleById.get(membership.userId) ?? false,
     canRemoveMember: canRemoveById.get(membership.userId) ?? false,
@@ -63,7 +64,7 @@ const mergeMembershipIds = (
       ids.add(match.player1Id);
       extras.push({
         id: match.player1Id,
-        name: nameById.get(match.player1Id) ?? "不明",
+        name: nameById.get(match.player1Id) ?? UNKNOWN_USER_NAME,
         role: null,
         canChangeRole: false,
         canRemoveMember: false,
@@ -73,7 +74,7 @@ const mergeMembershipIds = (
       ids.add(match.player2Id);
       extras.push({
         id: match.player2Id,
-        name: nameById.get(match.player2Id) ?? "不明",
+        name: nameById.get(match.player2Id) ?? UNKNOWN_USER_NAME,
         role: null,
         canChangeRole: false,
         canRemoveMember: false,
@@ -197,7 +198,7 @@ export async function getCircleSessionDetailViewModel(
       }
       addableMemberCandidates = candidateUserIdArray.map((id) => ({
         id,
-        name: userNameById.get(id) ?? "不明",
+        name: userNameById.get(id) ?? UNKNOWN_USER_NAME,
       }));
     }
   }
@@ -261,11 +262,11 @@ export async function getCircleSessionDetailViewModel(
             pairings: round.pairings.map((pairing) => ({
               player1: {
                 id: pairing.player1.id,
-                name: pairing.player1.name ?? "不明",
+                name: pairing.player1.name ?? UNKNOWN_USER_NAME,
               },
               player2: {
                 id: pairing.player2.id,
-                name: pairing.player2.name ?? "不明",
+                name: pairing.player2.name ?? UNKNOWN_USER_NAME,
               },
             })),
           })),

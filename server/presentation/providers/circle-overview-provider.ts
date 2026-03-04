@@ -1,6 +1,7 @@
 import { formatDateTimeRange } from "@/lib/date-utils";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { NotFoundError } from "@/server/domain/common/errors";
+import { UNKNOWN_USER_NAME } from "@/server/presentation/constants";
 import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
 import type {
@@ -120,7 +121,7 @@ export async function getCircleOverviewViewModel(
   const members = memberships
     .map((membership) => ({
       userId: membership.userId,
-      name: userNameById.get(membership.userId) ?? "不明",
+      name: userNameById.get(membership.userId) ?? UNKNOWN_USER_NAME,
       role: roleKeyByDto[membership.role] ?? "member",
       canChangeRole: canChangeRoleByUserId.get(membership.userId) ?? false,
       canRemoveMember:
