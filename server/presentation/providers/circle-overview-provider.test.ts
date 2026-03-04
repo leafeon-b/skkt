@@ -1,43 +1,23 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { circleId, userId } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import { createServiceContainer } from "@/server/infrastructure/service-container";
+import {
+  createMockDeps,
+  toServiceContainerDeps,
+  type MockDeps,
+} from "./__tests__/helpers/create-mock-deps";
 
-const mockCirclesGet = vi.fn();
-const mockMembershipsList = vi.fn();
-const mockSessionsList = vi.fn();
-const mockUsersList = vi.fn();
-const mockCanDeleteCircle = vi.fn().mockResolvedValue(false);
-const mockCanEditCircle = vi.fn().mockResolvedValue(false);
-const mockCanRemoveCircleMember = vi.fn().mockResolvedValue(false);
-const mockCanTransferCircleOwnership = vi.fn().mockResolvedValue(false);
-const mockCanChangeCircleMemberRole = vi.fn().mockResolvedValue(false);
+const CIRCLE_ID = circleId("circle-1");
+const VIEWER_ID = userId("viewer-1");
+const NOW = new Date("2025-01-01T00:00:00Z");
+
+let mockDeps: MockDeps;
 
 vi.mock("@/server/presentation/trpc/context", () => ({
-  createContext: () =>
-    Promise.resolve({
-      actorId: "viewer-1",
-      accessService: {
-        canDeleteCircle: mockCanDeleteCircle,
-        canEditCircle: mockCanEditCircle,
-        canRemoveCircleMember: mockCanRemoveCircleMember,
-        canTransferCircleOwnership: mockCanTransferCircleOwnership,
-        canChangeCircleMemberRole: mockCanChangeCircleMemberRole,
-      },
-      holidayProvider: {
-        getHolidayDateStringsForRange: () => [],
-      },
-    }),
-}));
-
-vi.mock("@/server/presentation/trpc/router", () => ({
-  appRouter: {
-    createCaller: () => ({
-      circles: {
-        get: mockCirclesGet,
-        memberships: { list: mockMembershipsList },
-      },
-      circleSessions: { list: mockSessionsList },
-      users: { list: mockUsersList },
-    }),
+  createContext: () => {
+    const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+    return Promise.resolve({ actorId: VIEWER_ID, ...services });
   },
 }));
 
@@ -45,27 +25,73 @@ const { getCircleOverviewViewModel } = await import(
   "./circle-overview-provider"
 );
 
+const VALID_CIRCLE = {
+  id: CIRCLE_ID,
+  name: "テスト研究会",
+  createdAt: NOW,
+};
+
+const makeCircleMembership = (uid: string, role: CircleRole) => ({
+  circleId: CIRCLE_ID,
+  userId: userId(uid),
+  role,
+  createdAt: NOW,
+  deletedAt: null,
+});
+
+const makeUser = (uid: string, name: string) => ({
+  id: userId(uid),
+  name,
+  email: null,
+  image: null,
+  profileVisibility: "PUBLIC" as const,
+  createdAt: NOW,
+});
+
 describe("getCircleOverviewViewModel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCirclesGet.mockResolvedValue({
-      id: "circle-1",
-      name: "テスト研究会",
-    });
-    mockSessionsList.mockResolvedValue([]);
+    mockDeps = createMockDeps();
+
+    // Circle exists
+    mockDeps.circleRepository.findById.mockResolvedValue(VALID_CIRCLE);
+
+    // No sessions by default
+    mockDeps.circleSessionRepository.listByCircleId.mockResolvedValue([]);
+
+    // Viewer is a circle member (needed for canViewCircle and other access checks)
+    mockDeps.authzRepository.isRegisteredUser.mockResolvedValue(true);
   });
 
   test("メンバー一覧がロール順（owner → manager → member）でソートされる", async () => {
-    mockMembershipsList.mockResolvedValue([
-      { userId: "u-member", role: CircleRole.CircleMember },
-      { userId: "u-owner", role: CircleRole.CircleOwner },
-      { userId: "u-manager", role: CircleRole.CircleManager },
+    const memberships = [
+      makeCircleMembership("u-member", CircleRole.CircleMember),
+      makeCircleMembership("u-owner", CircleRole.CircleOwner),
+      makeCircleMembership("u-manager", CircleRole.CircleManager),
+    ];
+    mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue(
+      memberships,
+    );
+
+    mockDeps.userRepository.findByIds.mockResolvedValue([
+      makeUser("u-member", "メンバー"),
+      makeUser("u-owner", "オーナー"),
+      makeUser("u-manager", "マネージャー"),
     ]);
-    mockUsersList.mockResolvedValue([
-      { id: "u-member", name: "メンバー" },
-      { id: "u-owner", name: "オーナー" },
-      { id: "u-manager", name: "マネージャー" },
-    ]);
+
+    mockDeps.authzRepository.findCircleMembership.mockImplementation(
+      async (uid: string) => {
+        const roles: Record<string, CircleRole> = {
+          "viewer-1": CircleRole.CircleMember,
+          "u-owner": CircleRole.CircleOwner,
+          "u-manager": CircleRole.CircleManager,
+          "u-member": CircleRole.CircleMember,
+        };
+        const role = roles[uid];
+        if (role) return { kind: "member" as const, role };
+        return { kind: "none" as const };
+      },
+    );
 
     const result = await getCircleOverviewViewModel("circle-1");
 
@@ -77,16 +103,34 @@ describe("getCircleOverviewViewModel", () => {
   });
 
   test("同一ロール内では元の配列順序が維持される", async () => {
-    mockMembershipsList.mockResolvedValue([
-      { userId: "u-member-b", role: CircleRole.CircleMember },
-      { userId: "u-owner", role: CircleRole.CircleOwner },
-      { userId: "u-member-a", role: CircleRole.CircleMember },
+    const memberships = [
+      makeCircleMembership("u-member-b", CircleRole.CircleMember),
+      makeCircleMembership("u-owner", CircleRole.CircleOwner),
+      makeCircleMembership("u-member-a", CircleRole.CircleMember),
+    ];
+    mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue(
+      memberships,
+    );
+
+    mockDeps.userRepository.findByIds.mockResolvedValue([
+      makeUser("u-member-b", "メンバーB"),
+      makeUser("u-owner", "オーナー"),
+      makeUser("u-member-a", "メンバーA"),
     ]);
-    mockUsersList.mockResolvedValue([
-      { id: "u-member-b", name: "メンバーB" },
-      { id: "u-owner", name: "オーナー" },
-      { id: "u-member-a", name: "メンバーA" },
-    ]);
+
+    mockDeps.authzRepository.findCircleMembership.mockImplementation(
+      async (uid: string) => {
+        const roles: Record<string, CircleRole> = {
+          "viewer-1": CircleRole.CircleMember,
+          "u-owner": CircleRole.CircleOwner,
+          "u-member-b": CircleRole.CircleMember,
+          "u-member-a": CircleRole.CircleMember,
+        };
+        const role = roles[uid];
+        if (role) return { kind: "member" as const, role };
+        return { kind: "none" as const };
+      },
+    );
 
     const result = await getCircleOverviewViewModel("circle-1");
 
