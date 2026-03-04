@@ -111,6 +111,25 @@ export async function getCircleOverviewViewModel(
     .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
   const nextSession = upcomingSessions[0];
 
+  const rolePriority: Record<CircleRoleKey, number> = {
+    owner: 0,
+    manager: 1,
+    member: 2,
+  };
+
+  const members = memberships
+    .map((membership) => ({
+      userId: membership.userId,
+      name: userNameById.get(membership.userId) ?? membership.userId,
+      role: roleKeyByDto[membership.role] ?? "member",
+      canChangeRole: canChangeRoleByUserId.get(membership.userId) ?? false,
+      canRemoveMember:
+        canRemoveCircleMember &&
+        roleKeyByDto[membership.role] !== "owner" &&
+        membership.userId !== viewerId,
+    }))
+    .sort((a, b) => rolePriority[a.role] - rolePriority[b.role]);
+
   const overview: CircleOverviewViewModel = {
     circleId: circle.id,
     circleName: circle.name,
@@ -129,16 +148,7 @@ export async function getCircleOverviewViewModel(
       : null,
     viewerRole,
     sessions: allSessions,
-    members: memberships.map((membership) => ({
-      userId: membership.userId,
-      name: userNameById.get(membership.userId) ?? membership.userId,
-      role: roleKeyByDto[membership.role] ?? "member",
-      canChangeRole: canChangeRoleByUserId.get(membership.userId) ?? false,
-      canRemoveMember:
-        canRemoveCircleMember &&
-        roleKeyByDto[membership.role] !== "owner" &&
-        membership.userId !== viewerId,
-    })),
+    members,
     holidayDates: ctx.holidayProvider.getHolidayDateStringsForRange(),
     canDeleteCircle,
     canRenameCircle,

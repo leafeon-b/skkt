@@ -228,10 +228,18 @@ export async function getCircleSessionDetailViewModel(
     }
   }
 
+  const rolePriority: Record<string, number> = {
+    owner: 0,
+    manager: 1,
+    member: 2,
+  };
+
   const membershipViewModels = mergeMembershipIds(
     mapMemberships(memberships, userNameById, canChangeRoleById, canRemoveById),
     matchViewModels,
     userNameById,
+  ).sort(
+    (a, b) => (rolePriority[a.role ?? ""] ?? 3) - (rolePriority[b.role ?? ""] ?? 3),
   );
 
   const detail: CircleSessionDetailViewModel = {
