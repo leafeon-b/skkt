@@ -44,7 +44,7 @@ const mapMemberships = (
 ): CircleSessionMembership[] =>
   memberships.map((membership) => ({
     id: membership.userId,
-    name: nameById.get(membership.userId) ?? membership.userId,
+    name: nameById.get(membership.userId) ?? "不明",
     role: roleKeyByDto[membership.role] ?? null,
     canChangeRole: canChangeRoleById.get(membership.userId) ?? false,
     canRemoveMember: canRemoveById.get(membership.userId) ?? false,
@@ -63,7 +63,7 @@ const mergeMembershipIds = (
       ids.add(match.player1Id);
       extras.push({
         id: match.player1Id,
-        name: nameById.get(match.player1Id) ?? match.player1Id,
+        name: nameById.get(match.player1Id) ?? "不明",
         role: null,
         canChangeRole: false,
         canRemoveMember: false,
@@ -73,7 +73,7 @@ const mergeMembershipIds = (
       ids.add(match.player2Id);
       extras.push({
         id: match.player2Id,
-        name: nameById.get(match.player2Id) ?? match.player2Id,
+        name: nameById.get(match.player2Id) ?? "不明",
         role: null,
         canChangeRole: false,
         canRemoveMember: false,
@@ -197,7 +197,7 @@ export async function getCircleSessionDetailViewModel(
       }
       addableMemberCandidates = candidateUserIdArray.map((id) => ({
         id,
-        name: userNameById.get(id) ?? id,
+        name: userNameById.get(id) ?? "不明",
       }));
     }
   }
@@ -261,11 +261,11 @@ export async function getCircleSessionDetailViewModel(
             pairings: round.pairings.map((pairing) => ({
               player1: {
                 id: pairing.player1.id,
-                name: pairing.player1.name ?? pairing.player1.id,
+                name: pairing.player1.name ?? "不明",
               },
               player2: {
                 id: pairing.player2.id,
-                name: pairing.player2.name ?? pairing.player2.id,
+                name: pairing.player2.name ?? "不明",
               },
             })),
           })),
