@@ -7,6 +7,7 @@ import {
   createMockUserRepository,
   createMockAuthzRepository,
   createMockCircleInviteLinkRepository,
+  createMockRoundRobinScheduleRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 
 describe("Service container", () => {
@@ -17,6 +18,8 @@ describe("Service container", () => {
     const userRepository = createMockUserRepository();
     const authzRepository = createMockAuthzRepository();
     const circleInviteLinkRepository = createMockCircleInviteLinkRepository();
+    const roundRobinScheduleRepository =
+      createMockRoundRobinScheduleRepository();
 
     const container = createServiceContainer({
       circleRepository,
@@ -25,6 +28,7 @@ describe("Service container", () => {
       userRepository,
       authzRepository,
       circleInviteLinkRepository,
+      roundRobinScheduleRepository,
       passwordHasher: { hash: vi.fn(), verify: vi.fn() },
       changePasswordRateLimiter: {
         check: vi.fn(),

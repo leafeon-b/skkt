@@ -18,6 +18,7 @@ import type { UserRepository } from "@/server/domain/models/user/user-repository
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { HolidayProvider } from "@/server/domain/common/holiday-provider";
+import type { RoundRobinScheduleRepository } from "@/server/domain/models/round-robin-schedule/round-robin-schedule-repository";
 
 export type ServiceContainer = {
   circleService: ReturnType<typeof createCircleService>;
@@ -42,6 +43,7 @@ export type ServiceContainerDeps = {
   userRepository: UserRepository;
   authzRepository: AuthzRepository;
   circleInviteLinkRepository: CircleInviteLinkRepository;
+  roundRobinScheduleRepository: RoundRobinScheduleRepository;
   passwordHasher: PasswordHasher;
   changePasswordRateLimiter: RateLimiter;
   holidayProvider: HolidayProvider;
