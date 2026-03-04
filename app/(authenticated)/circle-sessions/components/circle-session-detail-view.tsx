@@ -26,6 +26,7 @@ import { Copy, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
 import { toast } from "sonner";
+import { RoundRobinScheduleSection } from "./round-robin-schedule-section";
 import { MatchDeleteDialog } from "./match-delete-dialog";
 import { MatchDialog } from "./match-dialog";
 import { MatchMatrixTable } from "./match-matrix-table";
@@ -484,6 +485,12 @@ export function CircleSessionDetailView({
         memberships={memberships}
         matches={matches}
         openDialog={openDialog}
+      />
+
+      <RoundRobinScheduleSection
+        circleSessionId={detail.circleSessionId}
+        canManage={detail.canManageRoundRobinSchedule}
+        schedule={detail.roundRobinSchedule}
       />
 
       <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">

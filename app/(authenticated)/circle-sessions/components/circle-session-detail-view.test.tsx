@@ -95,6 +95,24 @@ vi.mock("@/lib/trpc/client", () => ({
         useMutation: makeMutationMock(() => matchDeleteBehavior),
       },
     },
+    roundRobinSchedules: {
+      generate: {
+        useMutation: () => ({
+          mutate: vi.fn(),
+          isPending: false,
+          data: null,
+          error: null,
+        }),
+      },
+      delete: {
+        useMutation: () => ({
+          mutate: vi.fn(),
+          isPending: false,
+          data: null,
+          error: null,
+        }),
+      },
+    },
   },
 }));
 
@@ -145,9 +163,11 @@ function buildDetail(
     canWithdrawFromCircleSession: false,
     canAddCircleSessionMember: false,
     canTransferOwnership: false,
+    canManageRoundRobinSchedule: false,
     addableMemberCandidates: [],
     memberships: [],
     matches: [],
+    roundRobinSchedule: null,
     ...overrides,
   };
 }
