@@ -1,54 +1,68 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { TRPCError } from "@trpc/server";
-import { inviteLinkToken } from "@/server/domain/common/ids";
-
-const mockGetInfo = vi.fn();
-const mockActorId = vi.fn<() => string | null>();
+import {
+  circleId,
+  circleInviteLinkId,
+  inviteLinkToken,
+  userId,
+} from "@/server/domain/common/ids";
+import { createServiceContainer } from "@/server/infrastructure/service-container";
+import {
+  createMockDeps,
+  toServiceContainerDeps,
+  type MockDeps,
+} from "./__tests__/helpers/create-mock-deps";
 
 const VALID_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440000";
 const UNKNOWN_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440099";
 
-vi.mock("@/server/presentation/trpc/context", () => ({
-  createContext: () =>
-    Promise.resolve({
-      actorId: mockActorId(),
-    }),
-}));
+let mockDeps: MockDeps;
+let actorId: ReturnType<typeof userId> | null = null;
 
-vi.mock("@/server/presentation/trpc/router", () => ({
-  appRouter: {
-    createCaller: () => ({
-      circles: {
-        inviteLinks: {
-          getInfo: mockGetInfo,
-        },
-      },
-    }),
+vi.mock("@/server/presentation/trpc/context", () => ({
+  createContext: () => {
+    const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+    return Promise.resolve({ actorId, ...services });
   },
 }));
 
 // dynamic import after mocks are registered
 const { getInviteLinkPageData } = await import("./invite-link-provider");
 
+const CIRCLE_ID = circleId("circle-1");
+const LINK_TOKEN = inviteLinkToken(VALID_TOKEN_UUID);
+
+const VALID_INVITE_LINK = {
+  id: circleInviteLinkId("link-1"),
+  circleId: CIRCLE_ID,
+  token: LINK_TOKEN,
+  createdByUserId: userId("creator-1"),
+  expiresAt: new Date("2099-12-31T00:00:00Z"),
+  createdAt: new Date("2025-01-01T00:00:00Z"),
+};
+
+const VALID_CIRCLE = {
+  id: CIRCLE_ID,
+  name: "テスト研究会",
+  createdAt: new Date("2025-01-01T00:00:00Z"),
+};
+
 describe("getInviteLinkPageData", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDeps = createMockDeps();
+    actorId = null;
   });
 
   test("有効なトークンで InviteLinkPageData を返す", async () => {
-    mockGetInfo.mockResolvedValueOnce({
-      token: inviteLinkToken(VALID_TOKEN_UUID),
-      circleName: "テスト研究会",
-      circleId: "circle-1",
-      expired: false,
-    });
-    mockActorId.mockReturnValueOnce("user-1");
+    mockDeps.circleInviteLinkRepository.findByToken.mockResolvedValueOnce(
+      VALID_INVITE_LINK,
+    );
+    mockDeps.circleRepository.findById.mockResolvedValueOnce(VALID_CIRCLE);
+    actorId = userId("user-1");
 
     const result = await getInviteLinkPageData(VALID_TOKEN_UUID);
 
-    expect(mockGetInfo).toHaveBeenCalledWith({
-      token: inviteLinkToken(VALID_TOKEN_UUID),
-    });
     expect(result).toEqual({
       circleName: "テスト研究会",
       circleId: "circle-1",
@@ -58,10 +72,8 @@ describe("getInviteLinkPageData", () => {
   });
 
   test("NotFoundError の場合 null を返す", async () => {
-    mockGetInfo.mockRejectedValueOnce(
-      new TRPCError({ code: "NOT_FOUND", message: "Resource not found" }),
-    );
-    mockActorId.mockReturnValueOnce(null);
+    // findByToken returns null -> service throws NotFoundError -> tRPC converts to NOT_FOUND
+    mockDeps.circleInviteLinkRepository.findByToken.mockResolvedValueOnce(null);
 
     const result = await getInviteLinkPageData(UNKNOWN_TOKEN_UUID);
 
@@ -69,21 +81,21 @@ describe("getInviteLinkPageData", () => {
   });
 
   test("不正な形式のトークンは null を返す", async () => {
-    mockActorId.mockReturnValueOnce(null);
-
     const result = await getInviteLinkPageData("not-a-uuid");
 
     expect(result).toBeNull();
-    expect(mockGetInfo).not.toHaveBeenCalled();
+    expect(
+      mockDeps.circleInviteLinkRepository.findByToken,
+    ).not.toHaveBeenCalled();
   });
 
   test("予期しないエラーは re-throw される", async () => {
-    const unexpected = new Error("DB connection failed");
-    mockGetInfo.mockRejectedValueOnce(unexpected);
-    mockActorId.mockReturnValueOnce(null);
+    mockDeps.circleInviteLinkRepository.findByToken.mockRejectedValueOnce(
+      new Error("DB connection failed"),
+    );
 
     await expect(getInviteLinkPageData(VALID_TOKEN_UUID)).rejects.toThrow(
-      unexpected,
+      TRPCError,
     );
   });
 });

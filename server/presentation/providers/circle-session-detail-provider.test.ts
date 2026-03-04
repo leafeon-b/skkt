@@ -1,49 +1,30 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  circleId,
+  circleSessionId,
+  matchId,
+  userId,
+} from "@/server/domain/common/ids";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
+import { createServiceContainer } from "@/server/infrastructure/service-container";
+import {
+  createMockDeps,
+  toServiceContainerDeps,
+  type MockDeps,
+} from "./__tests__/helpers/create-mock-deps";
 
-const mockSessionGet = vi.fn();
-const mockCirclesGet = vi.fn();
-const mockSessionMembershipsList = vi.fn();
-const mockMatchesList = vi.fn();
-const mockUsersList = vi.fn();
-const mockCircleMembershipsList = vi.fn();
+const CIRCLE_ID = circleId("circle-1");
+const SESSION_ID = circleSessionId("session-1");
+const VIEWER_ID = userId("viewer-1");
+const NOW = new Date("2025-01-01T00:00:00Z");
 
-const stubAccessService = {
-  canCreateCircleSession: vi.fn().mockResolvedValue(false),
-  canEditCircleSession: vi.fn().mockResolvedValue(false),
-  canDeleteCircleSession: vi.fn().mockResolvedValue(false),
-  canWithdrawFromCircleSession: vi.fn().mockResolvedValue(false),
-  canAddCircleSessionMember: vi.fn().mockResolvedValue(false),
-  canRemoveCircleSessionMember: vi.fn().mockResolvedValue(false),
-  canTransferCircleSessionOwnership: vi.fn().mockResolvedValue(false),
-  canChangeCircleSessionMemberRole: vi.fn().mockResolvedValue(false),
-};
+let mockDeps: MockDeps;
 
 vi.mock("@/server/presentation/trpc/context", () => ({
-  createContext: () =>
-    Promise.resolve({
-      actorId: "viewer-1",
-      accessService: stubAccessService,
-      circleSessionMembershipService: {
-        listDeletedMemberships: vi.fn().mockResolvedValue([]),
-      },
-    }),
-}));
-
-vi.mock("@/server/presentation/trpc/router", () => ({
-  appRouter: {
-    createCaller: () => ({
-      circles: {
-        get: mockCirclesGet,
-        memberships: { list: mockCircleMembershipsList },
-      },
-      circleSessions: {
-        get: mockSessionGet,
-        memberships: { list: mockSessionMembershipsList },
-      },
-      matches: { list: mockMatchesList },
-      users: { list: mockUsersList },
-    }),
+  createContext: () => {
+    const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+    return Promise.resolve({ actorId: VIEWER_ID, ...services });
   },
 }));
 
@@ -52,33 +33,77 @@ const { getCircleSessionDetailViewModel } = await import(
 );
 
 const BASE_SESSION = {
-  id: "session-1",
-  circleId: "circle-1",
+  id: SESSION_ID,
+  circleId: CIRCLE_ID,
   title: "テストセッション",
   startsAt: new Date("2025-01-01T10:00:00Z"),
   endsAt: new Date("2025-01-01T12:00:00Z"),
   location: "会議室",
   note: "",
+  createdAt: NOW,
 };
+
+const VALID_CIRCLE = {
+  id: CIRCLE_ID,
+  name: "テスト研究会",
+  createdAt: NOW,
+};
+
+const makeSessionMembership = (uid: string, role: CircleSessionRole) => ({
+  circleSessionId: SESSION_ID,
+  userId: userId(uid),
+  role,
+  createdAt: NOW,
+  deletedAt: null,
+});
+
+const makeUser = (uid: string, name: string) => ({
+  id: userId(uid),
+  name,
+  email: null,
+  image: null,
+  profileVisibility: "PUBLIC" as const,
+  createdAt: NOW,
+});
 
 describe("getCircleSessionDetailViewModel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSessionGet.mockResolvedValue(BASE_SESSION);
-    mockCirclesGet.mockResolvedValue({ id: "circle-1", name: "テスト研究会" });
-    mockMatchesList.mockResolvedValue([]);
+    mockDeps = createMockDeps();
+
+    // Session exists
+    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+
+    // Circle exists
+    mockDeps.circleRepository.findById.mockResolvedValue(VALID_CIRCLE);
+
+    // No matches by default
+    mockDeps.matchRepository.listByCircleSessionId.mockResolvedValue([]);
+
+    // Viewer is a circle member (needed for canViewCircle, canViewCircleSession, canViewMatch)
+    mockDeps.authzRepository.findCircleMembership.mockResolvedValue({
+      kind: "member",
+      role: CircleRole.CircleMember,
+    });
+
+    // Viewer is a registered user (needed for users.list -> canViewUser)
+    mockDeps.authzRepository.isRegisteredUser.mockResolvedValue(true);
   });
 
   test("メンバー一覧がロール順（owner → manager → member）でソートされる", async () => {
-    mockSessionMembershipsList.mockResolvedValue([
-      { userId: "u-member", role: CircleSessionRole.CircleSessionMember },
-      { userId: "u-owner", role: CircleSessionRole.CircleSessionOwner },
-      { userId: "u-manager", role: CircleSessionRole.CircleSessionManager },
+    mockDeps.circleSessionRepository.listMemberships.mockResolvedValue([
+      makeSessionMembership("u-member", CircleSessionRole.CircleSessionMember),
+      makeSessionMembership("u-owner", CircleSessionRole.CircleSessionOwner),
+      makeSessionMembership(
+        "u-manager",
+        CircleSessionRole.CircleSessionManager,
+      ),
     ]);
-    mockUsersList.mockResolvedValue([
-      { id: "u-member", name: "メンバー" },
-      { id: "u-owner", name: "オーナー" },
-      { id: "u-manager", name: "マネージャー" },
+
+    mockDeps.userRepository.findByIds.mockResolvedValue([
+      makeUser("u-member", "メンバー"),
+      makeUser("u-owner", "オーナー"),
+      makeUser("u-manager", "マネージャー"),
     ]);
 
     const result = await getCircleSessionDetailViewModel("session-1");
@@ -91,24 +116,27 @@ describe("getCircleSessionDetailViewModel", () => {
   });
 
   test("対局記録のみの参加者（role=null）は最後尾に配置される", async () => {
-    mockSessionMembershipsList.mockResolvedValue([
-      { userId: "u-member", role: CircleSessionRole.CircleSessionMember },
-      { userId: "u-owner", role: CircleSessionRole.CircleSessionOwner },
+    mockDeps.circleSessionRepository.listMemberships.mockResolvedValue([
+      makeSessionMembership("u-member", CircleSessionRole.CircleSessionMember),
+      makeSessionMembership("u-owner", CircleSessionRole.CircleSessionOwner),
     ]);
-    mockMatchesList.mockResolvedValue([
+
+    mockDeps.matchRepository.listByCircleSessionId.mockResolvedValue([
       {
-        id: "match-1",
-        player1Id: "u-member",
-        player2Id: "u-guest",
-        outcome: "P1_WIN",
+        id: matchId("match-1"),
+        circleSessionId: SESSION_ID,
+        player1Id: userId("u-member"),
+        player2Id: userId("u-guest"),
+        outcome: "P1_WIN" as const,
         createdAt: new Date("2025-01-01T10:30:00Z"),
         deletedAt: null,
       },
     ]);
-    mockUsersList.mockResolvedValue([
-      { id: "u-member", name: "メンバー" },
-      { id: "u-owner", name: "オーナー" },
-      { id: "u-guest", name: "ゲスト" },
+
+    mockDeps.userRepository.findByIds.mockResolvedValue([
+      makeUser("u-member", "メンバー"),
+      makeUser("u-owner", "オーナー"),
+      makeUser("u-guest", "ゲスト"),
     ]);
 
     const result = await getCircleSessionDetailViewModel("session-1");
@@ -122,15 +150,22 @@ describe("getCircleSessionDetailViewModel", () => {
   });
 
   test("同一ロール内では元の配列順序が維持される", async () => {
-    mockSessionMembershipsList.mockResolvedValue([
-      { userId: "u-member-b", role: CircleSessionRole.CircleSessionMember },
-      { userId: "u-owner", role: CircleSessionRole.CircleSessionOwner },
-      { userId: "u-member-a", role: CircleSessionRole.CircleSessionMember },
+    mockDeps.circleSessionRepository.listMemberships.mockResolvedValue([
+      makeSessionMembership(
+        "u-member-b",
+        CircleSessionRole.CircleSessionMember,
+      ),
+      makeSessionMembership("u-owner", CircleSessionRole.CircleSessionOwner),
+      makeSessionMembership(
+        "u-member-a",
+        CircleSessionRole.CircleSessionMember,
+      ),
     ]);
-    mockUsersList.mockResolvedValue([
-      { id: "u-member-b", name: "メンバーB" },
-      { id: "u-owner", name: "オーナー" },
-      { id: "u-member-a", name: "メンバーA" },
+
+    mockDeps.userRepository.findByIds.mockResolvedValue([
+      makeUser("u-member-b", "メンバーB"),
+      makeUser("u-owner", "オーナー"),
+      makeUser("u-member-a", "メンバーA"),
     ]);
 
     const result = await getCircleSessionDetailViewModel("session-1");

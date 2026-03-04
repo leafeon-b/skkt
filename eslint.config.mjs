@@ -92,6 +92,16 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // presentation exceptions: test files (リポジトリモックのためinfrastructure層のServiceContainerDepsを参照)
+  {
+    files: [
+      "server/presentation/**/*.test.{ts,tsx}",
+      "server/presentation/**/__tests__/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": "off",
+    },
+  },
   // presentation exceptions: context.ts (DI composition root for tRPC)
   {
     files: ["server/presentation/trpc/context.ts"],
