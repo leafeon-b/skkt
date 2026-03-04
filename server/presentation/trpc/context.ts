@@ -9,6 +9,7 @@ import { prismaCircleSessionRepository } from "@/server/infrastructure/repositor
 import { prismaMatchRepository } from "@/server/infrastructure/repository/match/prisma-match-repository";
 import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
 import { prismaCircleInviteLinkRepository } from "@/server/infrastructure/repository/circle-invite-link/prisma-circle-invite-link-repository";
+import { prismaRoundRobinScheduleRepository } from "@/server/infrastructure/repository/round-robin-schedule/prisma-round-robin-schedule-repository";
 import { prismaUnitOfWork } from "@/server/infrastructure/transaction/prisma-unit-of-work";
 import {
   hashPassword,
@@ -33,6 +34,7 @@ const buildServiceContainer = (): ServiceContainer =>
     userRepository: prismaUserRepository,
     authzRepository: prismaAuthzRepository,
     circleInviteLinkRepository: prismaCircleInviteLinkRepository,
+    roundRobinScheduleRepository: prismaRoundRobinScheduleRepository,
     passwordHasher: { hash: hashPassword, verify: verifyPassword },
     changePasswordRateLimiter,
     holidayProvider: japaneseHolidayProvider,

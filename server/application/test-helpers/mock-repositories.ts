@@ -4,6 +4,7 @@ import type { CircleSessionRepository } from "@/server/domain/models/circle-sess
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
+import type { RoundRobinScheduleRepository } from "@/server/domain/models/round-robin-schedule/round-robin-schedule-repository";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type {
   Repositories,
@@ -72,6 +73,13 @@ export const createMockCircleInviteLinkRepository = () =>
     findActiveByCircleId: vi.fn(),
     save: vi.fn(),
   }) satisfies CircleInviteLinkRepository;
+
+export const createMockRoundRobinScheduleRepository = () =>
+  ({
+    findByCircleSessionId: vi.fn(),
+    save: vi.fn(),
+    deleteByCircleSessionId: vi.fn(),
+  }) satisfies RoundRobinScheduleRepository;
 
 export const createMockAuthzRepository = () =>
   ({

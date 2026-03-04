@@ -6,6 +6,7 @@ import type { MatchRepository } from "@/server/domain/models/match/match-reposit
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
+import type { RoundRobinScheduleRepository } from "@/server/domain/models/round-robin-schedule/round-robin-schedule-repository";
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import type { HolidayProvider } from "@/server/domain/common/holiday-provider";
@@ -25,6 +26,7 @@ export type MockDeps = {
   userRepository: Mocked<UserRepository>;
   authzRepository: Mocked<AuthzRepository>;
   circleInviteLinkRepository: Mocked<CircleInviteLinkRepository>;
+  roundRobinScheduleRepository: Mocked<RoundRobinScheduleRepository>;
   passwordHasher: Mocked<PasswordHasher>;
   changePasswordRateLimiter: Mocked<RateLimiter>;
   holidayProvider: Mocked<HolidayProvider>;
@@ -88,6 +90,11 @@ export const createMockDeps = (): MockDeps => ({
     findByToken: vi.fn().mockResolvedValue(null),
     findActiveByCircleId: vi.fn().mockResolvedValue(null),
     save: vi.fn().mockResolvedValue(undefined),
+  },
+  roundRobinScheduleRepository: {
+    findByCircleSessionId: vi.fn().mockResolvedValue(null),
+    save: vi.fn().mockResolvedValue(undefined),
+    deleteByCircleSessionId: vi.fn().mockResolvedValue(undefined),
   },
   passwordHasher: {
     hash: vi.fn().mockReturnValue("hashed"),
