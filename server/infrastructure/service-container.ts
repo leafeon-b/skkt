@@ -76,6 +76,7 @@ export const createServiceContainer = (
       circleRepository: deps.circleRepository,
       circleSessionRepository: deps.circleSessionRepository,
       accessService,
+      unitOfWork: deps.unitOfWork,
     }),
     matchService: createMatchService({
       matchRepository: deps.matchRepository,
