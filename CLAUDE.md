@@ -206,6 +206,25 @@ AIは実装完了後、関連ドキュメントの更新が必要か確認し、
 - **結合テスト**: サービス層を中心に、複数のクラスが協調して正しい振る舞いを実現するかを検証する
 - 1つの振る舞いにつき1テストを基本とし、テストケース名は検証する振る舞いを日本語で明記する
 
+### Provider層のテスト
+
+Provider（`server/presentation/providers/`）のテストでは、モック境界をリポジトリ層に置く。
+
+- **モック対象**: `createContext`（`getSession`の代わりにactorIdを直接設定し、`createServiceContainer(mockDeps)`で本物のサービスを構築）
+- **モックしない**: `appRouter`、tRPCルーター、サービス層、AccessService（すべて実コードを通す）
+- **テストヘルパー**: `server/presentation/providers/__tests__/helpers/create-mock-deps.ts` でリポジトリモックを生成
+
+```ts
+// Providerテストの基本パターン
+let mockDeps: MockDeps;
+vi.mock("@/server/presentation/trpc/context", () => ({
+  createContext: () => {
+    const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+    return Promise.resolve({ actorId, ...services });
+  },
+}));
+```
+
 ### アンチパターン
 
 - 実装の呼び出し順序や回数を検証する（例: `expect(mock).toHaveBeenCalledTimes(2)`）
