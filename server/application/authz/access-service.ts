@@ -321,6 +321,36 @@ export function createAccessService(deps: AccessServiceDeps) {
       );
     },
 
+    async canManageRoundRobinSchedule(
+      userId: string,
+      circleSessionId: string,
+    ): Promise<boolean> {
+      const membership = await findCircleSessionMembership(
+        userId,
+        circleSessionId,
+      );
+      return (
+        isCircleSessionMemberStatus(membership) &&
+        (membership.role === CircleSessionOwner ||
+          membership.role === CircleSessionManager)
+      );
+    },
+
+    async canViewRoundRobinSchedule(
+      userId: string,
+      circleId: string,
+      circleSessionId: string,
+    ): Promise<boolean> {
+      const [circleMembership, sessionMembership] = await Promise.all([
+        findCircleMembership(userId, circleId),
+        findCircleSessionMembership(userId, circleSessionId),
+      ]);
+      return (
+        isCircleMemberStatus(circleMembership) ||
+        isCircleSessionMemberStatus(sessionMembership)
+      );
+    },
+
     async canViewUserProfile(
       actorId: UserId,
       targetUserId: UserId,
