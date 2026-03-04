@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { TRPCError } from "@trpc/server";
 import { circleId, userId } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { createServiceContainer } from "@/server/infrastructure/service-container";
@@ -139,5 +140,20 @@ describe("getCircleOverviewViewModel", () => {
       "u-member-b",
       "u-member-a",
     ]);
+  });
+
+  describe("認可エラー", () => {
+    test("研究会メンバーでないユーザーが研究会詳細を取得するとFORBIDDENエラーになる", async () => {
+      // authzRepository.findCircleMembership はデフォルト { kind: "none" } のまま
+      // circleRepository.findById は正常値を返す（研究会自体は存在する）
+
+      await expect(
+        getCircleOverviewViewModel("circle-1"),
+      ).rejects.toThrow(TRPCError);
+
+      await expect(
+        getCircleOverviewViewModel("circle-1"),
+      ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    });
   });
 });
