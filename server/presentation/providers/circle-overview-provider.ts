@@ -120,7 +120,7 @@ export async function getCircleOverviewViewModel(
   const members = memberships
     .map((membership) => ({
       userId: membership.userId,
-      name: userNameById.get(membership.userId) ?? membership.userId,
+      name: userNameById.get(membership.userId) ?? "不明",
       role: roleKeyByDto[membership.role] ?? "member",
       canChangeRole: canChangeRoleByUserId.get(membership.userId) ?? false,
       canRemoveMember:
