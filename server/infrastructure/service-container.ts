@@ -8,6 +8,7 @@ import { createUserService } from "@/server/application/user/user-service";
 import { createSignupService } from "@/server/application/auth/signup-service";
 import { createCircleInviteLinkService } from "@/server/application/circle/circle-invite-link-service";
 import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
+import { createRoundRobinScheduleService } from "@/server/application/round-robin-schedule/round-robin-schedule-service";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
@@ -33,6 +34,9 @@ export type ServiceContainer = {
   signupService: ReturnType<typeof createSignupService>;
   circleInviteLinkService: ReturnType<typeof createCircleInviteLinkService>;
   userStatisticsService: ReturnType<typeof createUserStatisticsService>;
+  roundRobinScheduleService: ReturnType<
+    typeof createRoundRobinScheduleService
+  >;
   holidayProvider: HolidayProvider;
 };
 
@@ -105,6 +109,11 @@ export const createServiceContainer = (
     userStatisticsService: createUserStatisticsService({
       matchRepository: deps.matchRepository,
       userRepository: deps.userRepository,
+    }),
+    roundRobinScheduleService: createRoundRobinScheduleService({
+      roundRobinScheduleRepository: deps.roundRobinScheduleRepository,
+      circleSessionRepository: deps.circleSessionRepository,
+      accessService,
     }),
     holidayProvider: deps.holidayProvider,
   };
