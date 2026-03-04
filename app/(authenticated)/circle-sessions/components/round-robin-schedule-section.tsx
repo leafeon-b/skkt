@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc/client";
 import type { RoundRobinScheduleViewModel } from "@/server/presentation/view-models/circle-session-detail";
-import { RefreshCw, Shuffle, Trash2 } from "lucide-react";
+import { Shuffle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -30,7 +30,6 @@ export function RoundRobinScheduleSection({
   schedule,
 }: RoundRobinScheduleSectionProps) {
   const router = useRouter();
-  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const generate = trpc.roundRobinSchedules.generate.useMutation({
@@ -39,18 +38,6 @@ export function RoundRobinScheduleSection({
       toast.success("総当たりスケジュールを生成しました");
     },
     onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const regenerate = trpc.roundRobinSchedules.generate.useMutation({
-    onSuccess: () => {
-      setShowRegenerateDialog(false);
-      router.refresh();
-      toast.success("総当たりスケジュールを再生成しました");
-    },
-    onError: (error) => {
-      setShowRegenerateDialog(false);
       toast.error(error.message);
     },
   });
@@ -71,10 +58,6 @@ export function RoundRobinScheduleSection({
     generate.mutate({ circleSessionId });
   };
 
-  const handleRegenerate = () => {
-    regenerate.mutate({ circleSessionId });
-  };
-
   const handleDelete = () => {
     deleteSchedule.mutate({ circleSessionId });
   };
@@ -87,15 +70,6 @@ export function RoundRobinScheduleSection({
         </p>
         {canManage && schedule ? (
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowRegenerateDialog(true)}
-              disabled={regenerate.isPending}
-            >
-              <RefreshCw className="size-3.5" aria-hidden="true" />
-              再生成
-            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -112,9 +86,6 @@ export function RoundRobinScheduleSection({
 
       {schedule ? (
         <div className="mt-4 space-y-4">
-          <p className="text-xs text-(--brand-ink-muted)">
-            合計 {schedule.totalMatchCount} 対局
-          </p>
           {schedule.rounds.map((round) => (
             <div key={round.roundNumber}>
               <p className="mb-2 text-xs font-semibold text-(--brand-ink)">
@@ -154,36 +125,6 @@ export function RoundRobinScheduleSection({
           ) : null}
         </div>
       )}
-
-      <AlertDialog
-        open={showRegenerateDialog}
-        onOpenChange={(open) => {
-          if (!regenerate.isPending) setShowRegenerateDialog(open);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>スケジュールを再生成</AlertDialogTitle>
-            <AlertDialogDescription>
-              現在のスケジュールを破棄し、新しいスケジュールを生成します。この操作は取り消せません。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={regenerate.isPending}>
-              キャンセル
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleRegenerate();
-              }}
-              disabled={regenerate.isPending}
-            >
-              {regenerate.isPending ? "再生成中…" : "再生成する"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <AlertDialog
         open={showDeleteDialog}
