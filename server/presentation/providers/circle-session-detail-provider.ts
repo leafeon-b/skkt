@@ -13,6 +13,7 @@ import type {
   CircleSessionMembership,
   CircleSessionRoleKey,
   CircleSessionDetailViewModel,
+  RoundRobinScheduleViewModel,
 } from "@/server/presentation/view-models/circle-session-detail";
 
 const roleKeyByDto: Record<CircleSessionRole, CircleSessionRoleKey> = {
@@ -91,13 +92,18 @@ export async function getCircleSessionDetailViewModel(
 
   const session = await caller.circleSessions.get({ circleSessionId });
 
-  const [circle, memberships, matches] = await Promise.all([
-    caller.circles.get({ circleId: session.circleId }),
-    caller.circleSessions.memberships.list({
-      circleSessionId: session.id,
-    }),
-    caller.matches.list({ circleSessionId: session.id }),
-  ]);
+  const [circle, memberships, matches, roundRobinScheduleDto] =
+    await Promise.all([
+      caller.circles.get({ circleId: session.circleId }),
+      caller.circleSessions.memberships.list({
+        circleSessionId: session.id,
+      }),
+      caller.matches.list({ circleSessionId: session.id }),
+      caller.roundRobinSchedules.get({
+        circleId: session.circleId,
+        circleSessionId: session.id,
+      }),
+    ]);
 
   const userIds = new Set<string>();
   for (const membership of memberships) {
@@ -119,6 +125,7 @@ export async function getCircleSessionDetailViewModel(
     canAddCircleSessionMember,
     canRemoveCircleSessionMember,
     canTransferOwnership,
+    canManageRoundRobinSchedule,
   ] = await Promise.all([
     caller.users.list({ userIds: Array.from(userIds) }),
     viewerId
@@ -144,6 +151,9 @@ export async function getCircleSessionDetailViewModel(
           viewerId,
           session.id,
         )
+      : Promise.resolve(false),
+    viewerId
+      ? ctx.accessService.canManageRoundRobinSchedule(viewerId, session.id)
       : Promise.resolve(false),
   ]);
 
@@ -242,6 +252,27 @@ export async function getCircleSessionDetailViewModel(
     (a, b) => (rolePriority[a.role ?? ""] ?? 3) - (rolePriority[b.role ?? ""] ?? 3),
   );
 
+  const roundRobinSchedule: RoundRobinScheduleViewModel | null =
+    roundRobinScheduleDto
+      ? {
+          id: roundRobinScheduleDto.id,
+          rounds: roundRobinScheduleDto.rounds.map((round) => ({
+            roundNumber: round.roundNumber,
+            pairings: round.pairings.map((pairing) => ({
+              player1: {
+                id: pairing.player1.id,
+                name: pairing.player1.name ?? pairing.player1.id,
+              },
+              player2: {
+                id: pairing.player2.id,
+                name: pairing.player2.name ?? pairing.player2.id,
+              },
+            })),
+          })),
+          totalMatchCount: roundRobinScheduleDto.totalMatchCount,
+        }
+      : null;
+
   const detail: CircleSessionDetailViewModel = {
     circleSessionId: session.id,
     circleId: circle.id,
@@ -261,9 +292,11 @@ export async function getCircleSessionDetailViewModel(
     canWithdrawFromCircleSession,
     canAddCircleSessionMember,
     canTransferOwnership,
+    canManageRoundRobinSchedule,
     addableMemberCandidates,
     memberships: membershipViewModels,
     matches: matchViewModels,
+    roundRobinSchedule,
   };
 
   return detail;

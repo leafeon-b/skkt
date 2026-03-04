@@ -27,6 +27,27 @@ export type AddableMemberCandidate = {
   name: string;
 };
 
+export type RoundRobinPairingPlayer = {
+  id: string;
+  name: string;
+};
+
+export type RoundRobinPairingViewModel = {
+  player1: RoundRobinPairingPlayer;
+  player2: RoundRobinPairingPlayer;
+};
+
+export type RoundRobinRoundViewModel = {
+  roundNumber: number;
+  pairings: RoundRobinPairingViewModel[];
+};
+
+export type RoundRobinScheduleViewModel = {
+  id: string;
+  rounds: RoundRobinRoundViewModel[];
+  totalMatchCount: number;
+};
+
 export type CircleSessionDetailViewModel = {
   circleSessionId: string;
   circleId: string;
@@ -46,7 +67,9 @@ export type CircleSessionDetailViewModel = {
   canWithdrawFromCircleSession: boolean;
   canAddCircleSessionMember: boolean;
   canTransferOwnership: boolean;
+  canManageRoundRobinSchedule: boolean;
   addableMemberCandidates: AddableMemberCandidate[];
   memberships: CircleSessionMembership[];
   matches: CircleSessionMatch[];
+  roundRobinSchedule: RoundRobinScheduleViewModel | null;
 };
