@@ -21,6 +21,7 @@ import { CircleSessionEditDialog } from "@/app/(authenticated)/circle-sessions/c
 import { CircleSessionWithdrawButton } from "@/app/(authenticated)/circle-sessions/components/circle-session-withdraw-button";
 import { RemoveSessionMemberButton } from "@/app/(authenticated)/circle-sessions/components/remove-session-member-button";
 import { SessionMemberRoleDropdown } from "@/app/(authenticated)/circle-sessions/components/session-member-role-dropdown";
+import { TransferSessionOwnershipDialog } from "@/app/(authenticated)/circle-sessions/components/transfer-session-ownership-dialog";
 import { Copy, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
@@ -465,6 +466,13 @@ export function CircleSessionDetailView({
                   circleSessionId={detail.circleSessionId}
                   circleId={detail.circleId}
                   sessionTitle={detail.title}
+                />
+              ) : null}
+              {detail.canTransferOwnership && detail.viewerUserId ? (
+                <TransferSessionOwnershipDialog
+                  circleSessionId={detail.circleSessionId}
+                  viewerUserId={detail.viewerUserId}
+                  memberships={detail.memberships}
                 />
               ) : null}
             </div>

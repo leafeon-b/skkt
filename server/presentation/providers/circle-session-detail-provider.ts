@@ -118,6 +118,7 @@ export async function getCircleSessionDetailViewModel(
     canWithdrawFromCircleSession,
     canAddCircleSessionMember,
     canRemoveCircleSessionMember,
+    canTransferOwnership,
   ] = await Promise.all([
     caller.users.list({ userIds: Array.from(userIds) }),
     viewerId
@@ -137,6 +138,12 @@ export async function getCircleSessionDetailViewModel(
       : Promise.resolve(false),
     viewerId
       ? ctx.accessService.canRemoveCircleSessionMember(viewerId, session.id)
+      : Promise.resolve(false),
+    viewerId
+      ? ctx.accessService.canTransferCircleSessionOwnership(
+          viewerId,
+          session.id,
+        )
       : Promise.resolve(false),
   ]);
 
@@ -239,11 +246,13 @@ export async function getCircleSessionDetailViewModel(
     startsAtInput: formatDateTimeForInput(session.startsAt),
     endsAtInput: formatDateTimeForInput(session.endsAt),
     viewerRole,
+    viewerUserId: viewerId,
     canCreateCircleSession,
     canEditCircleSession,
     canDeleteCircleSession,
     canWithdrawFromCircleSession,
     canAddCircleSessionMember,
+    canTransferOwnership,
     addableMemberCandidates,
     memberships: membershipViewModels,
     matches: matchViewModels,
