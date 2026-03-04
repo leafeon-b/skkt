@@ -211,15 +211,17 @@ export const createCircleMembershipService = (
         memberships.map((member) => [member.userId, member.role]),
       );
 
-      for (const member of updated) {
-        if (before.get(member.userId) !== member.role) {
-          await deps.circleRepository.updateMembershipRole(
-            params.circleId,
-            member.userId,
-            member.role,
-          );
+      await uow(async (repos) => {
+        for (const member of updated) {
+          if (before.get(member.userId) !== member.role) {
+            await repos.circleRepository.updateMembershipRole(
+              params.circleId,
+              member.userId,
+              member.role,
+            );
+          }
         }
-      }
+      });
     },
 
     async withdrawMembership(params: {

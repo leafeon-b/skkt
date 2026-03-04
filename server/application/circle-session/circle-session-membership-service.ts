@@ -6,6 +6,10 @@ import {
 } from "@/server/domain/common/ids";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
+import type {
+  Repositories,
+  UnitOfWork,
+} from "@/server/domain/common/unit-of-work";
 import {
   assertCanAddSessionMemberWithRole,
   assertCanChangeCircleSessionMemberRole,
@@ -30,6 +34,7 @@ export type CircleSessionMembershipServiceDeps = {
   circleRepository: CircleRepository;
   circleSessionRepository: CircleSessionRepository;
   accessService: AccessService;
+  unitOfWork?: UnitOfWork;
 };
 
 export type UserCircleSessionMembershipSummary = {
@@ -44,328 +49,348 @@ export type UserCircleSessionMembershipSummary = {
 
 export const createCircleSessionMembershipService = (
   deps: CircleSessionMembershipServiceDeps,
-) => ({
-  async countPastSessionsByUserId(targetUserId: UserId): Promise<number> {
-    const memberships =
-      await deps.circleSessionRepository.listMembershipsByUserId(targetUserId);
-    if (memberships.length === 0) {
-      return 0;
-    }
+) => {
+  const uow: UnitOfWork =
+    deps.unitOfWork ?? (async (op) => op(deps as unknown as Repositories));
 
-    const sessionIds = memberships.map((p) => p.circleSessionId);
-    const sessions = await deps.circleSessionRepository.findByIds(sessionIds);
+  return {
+    async countPastSessionsByUserId(targetUserId: UserId): Promise<number> {
+      const memberships =
+        await deps.circleSessionRepository.listMembershipsByUserId(
+          targetUserId,
+        );
+      if (memberships.length === 0) {
+        return 0;
+      }
 
-    const now = new Date();
-    return sessions.filter((s) => s.endsAt <= now).length;
-  },
+      const sessionIds = memberships.map((p) => p.circleSessionId);
+      const sessions = await deps.circleSessionRepository.findByIds(sessionIds);
 
-  async listMemberships(params: {
-    actorId: string;
-    circleSessionId: CircleSessionId;
-  }): Promise<CircleSessionMembership[]> {
-    const session = await deps.circleSessionRepository.findById(
-      params.circleSessionId,
-    );
-    if (!session) {
-      throw new NotFoundError("CircleSession");
-    }
-    const allowed = await deps.accessService.canViewCircleSession(
-      params.actorId,
-      session.circleId as string,
-      params.circleSessionId as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
-    return deps.circleSessionRepository.listMemberships(params.circleSessionId);
-  },
+      const now = new Date();
+      return sessions.filter((s) => s.endsAt <= now).length;
+    },
 
-  async listByUserId(params: {
-    actorId: string;
-    userId: UserId;
-    limit?: number;
-  }): Promise<UserCircleSessionMembershipSummary[]> {
-    if (params.userId !== userId(params.actorId)) {
-      throw new ForbiddenError();
-    }
-    const allowed = await deps.accessService.canListOwnCircles(params.actorId);
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
+    async listMemberships(params: {
+      actorId: string;
+      circleSessionId: CircleSessionId;
+    }): Promise<CircleSessionMembership[]> {
+      const session = await deps.circleSessionRepository.findById(
+        params.circleSessionId,
+      );
+      if (!session) {
+        throw new NotFoundError("CircleSession");
+      }
+      const allowed = await deps.accessService.canViewCircleSession(
+        params.actorId,
+        session.circleId as string,
+        params.circleSessionId as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
+      return deps.circleSessionRepository.listMemberships(
+        params.circleSessionId,
+      );
+    },
 
-    const memberships =
-      await deps.circleSessionRepository.listMembershipsByUserId(params.userId);
-    if (memberships.length === 0) {
-      return [];
-    }
+    async listByUserId(params: {
+      actorId: string;
+      userId: UserId;
+      limit?: number;
+    }): Promise<UserCircleSessionMembershipSummary[]> {
+      if (params.userId !== userId(params.actorId)) {
+        throw new ForbiddenError();
+      }
+      const allowed = await deps.accessService.canListOwnCircles(
+        params.actorId,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
 
-    const uniqueSessionIds = Array.from(
-      new Set(memberships.map((membership) => membership.circleSessionId)),
-    );
-    const sessions =
-      await deps.circleSessionRepository.findByIds(uniqueSessionIds);
-    if (sessions.length !== uniqueSessionIds.length) {
-      throw new NotFoundError("CircleSession");
-    }
+      const memberships =
+        await deps.circleSessionRepository.listMembershipsByUserId(
+          params.userId,
+        );
+      if (memberships.length === 0) {
+        return [];
+      }
 
-    const uniqueCircleIds = Array.from(
-      new Set(sessions.map((session) => session.circleId)),
-    );
-    const circles = await deps.circleRepository.findByIds(uniqueCircleIds);
-    if (circles.length !== uniqueCircleIds.length) {
-      throw new NotFoundError("Circle");
-    }
-    const circleNameById = new Map(
-      circles.map((circle) => [circle.id as string, circle.name]),
-    );
+      const uniqueSessionIds = Array.from(
+        new Set(memberships.map((membership) => membership.circleSessionId)),
+      );
+      const sessions =
+        await deps.circleSessionRepository.findByIds(uniqueSessionIds);
+      if (sessions.length !== uniqueSessionIds.length) {
+        throw new NotFoundError("CircleSession");
+      }
 
-    const summaries = sessions.map((session) => {
-      const circleName = circleNameById.get(session.circleId as string);
-      if (!circleName) {
+      const uniqueCircleIds = Array.from(
+        new Set(sessions.map((session) => session.circleId)),
+      );
+      const circles = await deps.circleRepository.findByIds(uniqueCircleIds);
+      if (circles.length !== uniqueCircleIds.length) {
         throw new NotFoundError("Circle");
       }
-      return {
-        circleSessionId: session.id,
-        circleId: session.circleId,
-        circleName,
-        title: session.title,
-        startsAt: session.startsAt,
-        endsAt: session.endsAt,
-        location: session.location ?? null,
-      };
-    });
+      const circleNameById = new Map(
+        circles.map((circle) => [circle.id as string, circle.name]),
+      );
 
-    summaries.sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime());
+      const summaries = sessions.map((session) => {
+        const circleName = circleNameById.get(session.circleId as string);
+        if (!circleName) {
+          throw new NotFoundError("Circle");
+        }
+        return {
+          circleSessionId: session.id,
+          circleId: session.circleId,
+          circleName,
+          title: session.title,
+          startsAt: session.startsAt,
+          endsAt: session.endsAt,
+          location: session.location ?? null,
+        };
+      });
 
-    if (params.limit != null) {
-      return summaries.slice(0, params.limit);
-    }
+      summaries.sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime());
 
-    return summaries;
-  },
+      if (params.limit != null) {
+        return summaries.slice(0, params.limit);
+      }
 
-  async listDeletedMemberships(
-    circleSessionId: CircleSessionId,
-  ): Promise<CircleSessionMembership[]> {
-    return deps.circleSessionRepository.listDeletedMemberships(circleSessionId);
-  },
+      return summaries;
+    },
 
-  async addMembership(params: {
-    actorId: string;
-    circleSessionId: CircleSessionId;
-    userId: UserId;
-    role: CircleSessionRole;
-  }): Promise<void> {
-    const session = await deps.circleSessionRepository.findById(
-      params.circleSessionId,
-    );
-    if (!session) {
-      throw new NotFoundError("CircleSession");
-    }
-    const allowed = await deps.accessService.canAddCircleSessionMember(
-      params.actorId,
-      params.circleSessionId as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
+    async listDeletedMemberships(
+      circleSessionId: CircleSessionId,
+    ): Promise<CircleSessionMembership[]> {
+      return deps.circleSessionRepository.listDeletedMemberships(
+        circleSessionId,
+      );
+    },
 
-    const circleMembership =
-      await deps.circleRepository.findMembershipByCircleAndUser(
-        session.circleId,
+    async addMembership(params: {
+      actorId: string;
+      circleSessionId: CircleSessionId;
+      userId: UserId;
+      role: CircleSessionRole;
+    }): Promise<void> {
+      const session = await deps.circleSessionRepository.findById(
+        params.circleSessionId,
+      );
+      if (!session) {
+        throw new NotFoundError("CircleSession");
+      }
+      const allowed = await deps.accessService.canAddCircleSessionMember(
+        params.actorId,
+        params.circleSessionId as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
+
+      const circleMembership =
+        await deps.circleRepository.findMembershipByCircleAndUser(
+          session.circleId,
+          params.userId,
+        );
+      if (!circleMembership) {
+        const deletedMemberships =
+          await deps.circleSessionRepository.listDeletedMemberships(
+            params.circleSessionId,
+          );
+        const hasPastMembership = deletedMemberships.some(
+          (m) => m.userId === params.userId,
+        );
+        if (!hasPastMembership) {
+          throw new BadRequestError(
+            "User is not an active member of the circle",
+          );
+        }
+      }
+
+      const memberships = await deps.circleSessionRepository.listMemberships(
+        params.circleSessionId,
+      );
+
+      if (memberships.some((member) => member.userId === params.userId)) {
+        throw new ConflictError("Membership already exists");
+      }
+
+      assertCanAddSessionMemberWithRole(memberships, params.role);
+
+      await deps.circleSessionRepository.addMembership(
+        params.circleSessionId,
         params.userId,
+        params.role,
       );
-    if (!circleMembership) {
-      const deletedMemberships =
-        await deps.circleSessionRepository.listDeletedMemberships(
-          params.circleSessionId,
-        );
-      const hasPastMembership = deletedMemberships.some(
-        (m) => m.userId === params.userId,
+    },
+
+    async changeMembershipRole(params: {
+      actorId: string;
+      circleSessionId: CircleSessionId;
+      userId: UserId;
+      role: CircleSessionRole;
+    }): Promise<void> {
+      const session = await deps.circleSessionRepository.findById(
+        params.circleSessionId,
       );
-      if (!hasPastMembership) {
-        throw new BadRequestError("User is not an active member of the circle");
+      if (!session) {
+        throw new NotFoundError("CircleSession");
       }
-    }
+      const allowed = await deps.accessService.canChangeCircleSessionMemberRole(
+        params.actorId,
+        params.userId as string,
+        params.circleSessionId as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
+      const memberships = await deps.circleSessionRepository.listMemberships(
+        params.circleSessionId,
+      );
+      const target = memberships.find(
+        (member) => member.userId === params.userId,
+      );
 
-    const memberships = await deps.circleSessionRepository.listMemberships(
-      params.circleSessionId,
-    );
+      if (!target) {
+        throw new NotFoundError("Membership");
+      }
 
-    if (memberships.some((member) => member.userId === params.userId)) {
-      throw new ConflictError("Membership already exists");
-    }
+      assertCanChangeCircleSessionMemberRole(target.role, params.role);
 
-    assertCanAddSessionMemberWithRole(memberships, params.role);
+      await deps.circleSessionRepository.updateMembershipRole(
+        params.circleSessionId,
+        params.userId,
+        params.role,
+      );
+    },
 
-    await deps.circleSessionRepository.addMembership(
-      params.circleSessionId,
-      params.userId,
-      params.role,
-    );
-  },
-
-  async changeMembershipRole(params: {
-    actorId: string;
-    circleSessionId: CircleSessionId;
-    userId: UserId;
-    role: CircleSessionRole;
-  }): Promise<void> {
-    const session = await deps.circleSessionRepository.findById(
-      params.circleSessionId,
-    );
-    if (!session) {
-      throw new NotFoundError("CircleSession");
-    }
-    const allowed = await deps.accessService.canChangeCircleSessionMemberRole(
-      params.actorId,
-      params.userId as string,
-      params.circleSessionId as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
-    const memberships = await deps.circleSessionRepository.listMemberships(
-      params.circleSessionId,
-    );
-    const target = memberships.find(
-      (member) => member.userId === params.userId,
-    );
-
-    if (!target) {
-      throw new NotFoundError("Membership");
-    }
-
-    assertCanChangeCircleSessionMemberRole(target.role, params.role);
-
-    await deps.circleSessionRepository.updateMembershipRole(
-      params.circleSessionId,
-      params.userId,
-      params.role,
-    );
-  },
-
-  async transferOwnership(params: {
-    actorId: string;
-    circleSessionId: CircleSessionId;
-    fromUserId: UserId;
-    toUserId: UserId;
-  }): Promise<void> {
-    const session = await deps.circleSessionRepository.findById(
-      params.circleSessionId,
-    );
-    if (!session) {
-      throw new NotFoundError("CircleSession");
-    }
-    const allowed = await deps.accessService.canTransferCircleSessionOwnership(
-      params.actorId,
-      params.circleSessionId as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
-    const memberships = await deps.circleSessionRepository.listMemberships(
-      params.circleSessionId,
-    );
-
-    const updated = transferCircleSessionOwnership(
-      memberships,
-      params.fromUserId,
-      params.toUserId,
-    );
-    assertSingleCircleSessionOwner(updated);
-
-    const before = new Map(
-      memberships.map((member) => [member.userId, member.role]),
-    );
-
-    for (const member of updated) {
-      if (before.get(member.userId) !== member.role) {
-        await deps.circleSessionRepository.updateMembershipRole(
-          params.circleSessionId,
-          member.userId,
-          member.role,
+    async transferOwnership(params: {
+      actorId: string;
+      circleSessionId: CircleSessionId;
+      fromUserId: UserId;
+      toUserId: UserId;
+    }): Promise<void> {
+      const session = await deps.circleSessionRepository.findById(
+        params.circleSessionId,
+      );
+      if (!session) {
+        throw new NotFoundError("CircleSession");
+      }
+      const allowed =
+        await deps.accessService.canTransferCircleSessionOwnership(
+          params.actorId,
+          params.circleSessionId as string,
         );
+      if (!allowed) {
+        throw new ForbiddenError();
       }
-    }
-  },
+      const memberships = await deps.circleSessionRepository.listMemberships(
+        params.circleSessionId,
+      );
 
-  async removeMembership(params: {
-    actorId: string;
-    circleSessionId: CircleSessionId;
-    userId: UserId;
-  }): Promise<void> {
-    const session = await deps.circleSessionRepository.findById(
-      params.circleSessionId,
-    );
-    if (!session) {
-      throw new NotFoundError("CircleSession");
-    }
-    const allowed = await deps.accessService.canRemoveCircleSessionMember(
-      params.actorId,
-      params.circleSessionId as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
-    const memberships = await deps.circleSessionRepository.listMemberships(
-      params.circleSessionId,
-    );
-    const target = memberships.find(
-      (member) => member.userId === params.userId,
-    );
+      const updated = transferCircleSessionOwnership(
+        memberships,
+        params.fromUserId,
+        params.toUserId,
+      );
+      assertSingleCircleSessionOwner(updated);
 
-    if (!target) {
-      throw new NotFoundError("Membership");
-    }
+      const before = new Map(
+        memberships.map((member) => [member.userId, member.role]),
+      );
 
-    assertCanRemoveCircleSessionMember(target.role);
+      await uow(async (repos) => {
+        for (const member of updated) {
+          if (before.get(member.userId) !== member.role) {
+            await repos.circleSessionRepository.updateMembershipRole(
+              params.circleSessionId,
+              member.userId,
+              member.role,
+            );
+          }
+        }
+      });
+    },
 
-    const deletedAt = new Date();
-    await deps.circleSessionRepository.removeMembership(
-      params.circleSessionId,
-      params.userId,
-      deletedAt,
-    );
-  },
+    async removeMembership(params: {
+      actorId: string;
+      circleSessionId: CircleSessionId;
+      userId: UserId;
+    }): Promise<void> {
+      const session = await deps.circleSessionRepository.findById(
+        params.circleSessionId,
+      );
+      if (!session) {
+        throw new NotFoundError("CircleSession");
+      }
+      const allowed = await deps.accessService.canRemoveCircleSessionMember(
+        params.actorId,
+        params.circleSessionId as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
+      const memberships = await deps.circleSessionRepository.listMemberships(
+        params.circleSessionId,
+      );
+      const target = memberships.find(
+        (member) => member.userId === params.userId,
+      );
 
-  async withdrawMembership(params: {
-    actorId: string;
-    circleSessionId: CircleSessionId;
-  }): Promise<void> {
-    const session = await deps.circleSessionRepository.findById(
-      params.circleSessionId,
-    );
-    if (!session) {
-      throw new NotFoundError("CircleSession");
-    }
+      if (!target) {
+        throw new NotFoundError("Membership");
+      }
 
-    const allowed = await deps.accessService.canWithdrawFromCircleSession(
-      params.actorId,
-      params.circleSessionId as string,
-    );
-    if (!allowed) {
-      throw new ForbiddenError();
-    }
+      assertCanRemoveCircleSessionMember(target.role);
 
-    const memberships = await deps.circleSessionRepository.listMemberships(
-      params.circleSessionId,
-    );
-    const actor = memberships.find(
-      (member) => member.userId === userId(params.actorId),
-    );
+      const deletedAt = new Date();
+      await deps.circleSessionRepository.removeMembership(
+        params.circleSessionId,
+        params.userId,
+        deletedAt,
+      );
+    },
 
-    if (!actor) {
-      throw new NotFoundError("Membership");
-    }
+    async withdrawMembership(params: {
+      actorId: string;
+      circleSessionId: CircleSessionId;
+    }): Promise<void> {
+      const session = await deps.circleSessionRepository.findById(
+        params.circleSessionId,
+      );
+      if (!session) {
+        throw new NotFoundError("CircleSession");
+      }
 
-    assertCanWithdrawFromSession(actor.role);
+      const allowed = await deps.accessService.canWithdrawFromCircleSession(
+        params.actorId,
+        params.circleSessionId as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
 
-    const deletedAt = new Date();
-    await deps.circleSessionRepository.removeMembership(
-      params.circleSessionId,
-      userId(params.actorId),
-      deletedAt,
-    );
-  },
-});
+      const memberships = await deps.circleSessionRepository.listMemberships(
+        params.circleSessionId,
+      );
+      const actor = memberships.find(
+        (member) => member.userId === userId(params.actorId),
+      );
+
+      if (!actor) {
+        throw new NotFoundError("Membership");
+      }
+
+      assertCanWithdrawFromSession(actor.role);
+
+      const deletedAt = new Date();
+      await deps.circleSessionRepository.removeMembership(
+        params.circleSessionId,
+        userId(params.actorId),
+        deletedAt,
+      );
+    },
+  };
+};
