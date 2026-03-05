@@ -4,7 +4,11 @@ import {
   formatDateTimeRange,
 } from "@/lib/date-utils";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
-import { circleSessionId as toCircleSessionId } from "@/server/domain/common/ids";
+import {
+  circleSessionId as toCircleSessionId,
+  type CircleSessionId,
+  type UserId,
+} from "@/server/domain/common/ids";
 import { UNKNOWN_USER_NAME } from "@/server/presentation/constants";
 import { appRouter } from "@/server/presentation/trpc/router";
 import { createContext } from "@/server/presentation/trpc/context";
@@ -85,6 +89,165 @@ const mergeMembershipIds = (
   return memberships.concat(extras);
 };
 
+const mapMatches = (
+  matches: Array<{
+    id: string;
+    player1Id: string;
+    player2Id: string;
+    outcome: CircleSessionMatch["outcome"];
+    createdAt: Date;
+    deletedAt: Date | null;
+  }>,
+): CircleSessionMatch[] =>
+  matches
+    .filter((match) => match.deletedAt == null)
+    .map((match) => ({
+      id: match.id,
+      player1Id: match.player1Id,
+      player2Id: match.player2Id,
+      outcome: match.outcome,
+      createdAtInput: formatDateForInput(match.createdAt),
+    }));
+
+const buildCanChangeRoleMap = async (
+  viewerId: string | null,
+  memberships: Array<{ userId: string }>,
+  accessService: {
+    canChangeCircleSessionMemberRole: (
+      actorId: string,
+      targetUserId: string,
+      sessionId: string,
+    ) => Promise<boolean>;
+  },
+  sessionId: string,
+): Promise<Map<string, boolean>> => {
+  const canChangeRoleById = new Map<string, boolean>();
+  if (viewerId) {
+    const canChangeResults = await Promise.all(
+      memberships.map(async (membership) => {
+        const can = await accessService.canChangeCircleSessionMemberRole(
+          viewerId,
+          membership.userId,
+          sessionId,
+        );
+        return [membership.userId, can] as const;
+      }),
+    );
+    for (const [userId, can] of canChangeResults) {
+      canChangeRoleById.set(userId, can);
+    }
+  }
+  return canChangeRoleById;
+};
+
+const buildCanRemoveMap = (
+  canRemoveCircleSessionMember: boolean,
+  viewerId: string | null,
+  memberships: Array<{ userId: string; role: CircleSessionRole }>,
+): Map<string, boolean> => {
+  const canRemoveById = new Map<string, boolean>();
+  if (canRemoveCircleSessionMember && viewerId) {
+    for (const membership of memberships) {
+      const roleKey = roleKeyByDto[membership.role];
+      const isSelf = membership.userId === viewerId;
+      canRemoveById.set(membership.userId, roleKey !== "owner" && !isSelf);
+    }
+  }
+  return canRemoveById;
+};
+
+const mapRoundRobinSchedule = (
+  roundRobinScheduleDto: {
+    id: string;
+    rounds: Array<{
+      roundNumber: number;
+      pairings: Array<{
+        player1: { id: string; name: string | null };
+        player2: { id: string; name: string | null };
+      }>;
+    }>;
+    totalMatchCount: number;
+  } | null,
+): RoundRobinScheduleViewModel | null =>
+  roundRobinScheduleDto
+    ? {
+        id: roundRobinScheduleDto.id,
+        rounds: roundRobinScheduleDto.rounds.map((round) => ({
+          roundNumber: round.roundNumber,
+          pairings: round.pairings.map((pairing) => ({
+            player1: {
+              id: pairing.player1.id,
+              name: pairing.player1.name ?? UNKNOWN_USER_NAME,
+            },
+            player2: {
+              id: pairing.player2.id,
+              name: pairing.player2.name ?? UNKNOWN_USER_NAME,
+            },
+          })),
+        })),
+        totalMatchCount: roundRobinScheduleDto.totalMatchCount,
+      }
+    : null;
+
+const fetchAddableMemberCandidates = async (
+  canAddCircleSessionMember: boolean,
+  caller: ReturnType<typeof appRouter.createCaller>,
+  session: { id: string; circleId: string },
+  memberships: Array<{ userId: string }>,
+  userNameById: Map<string, string | null>,
+  circleSessionMembershipService: {
+    listDeletedMemberships: (
+      sessionId: CircleSessionId,
+    ) => Promise<Array<{ userId: UserId }>>;
+  },
+): Promise<AddableMemberCandidate[]> => {
+  if (!canAddCircleSessionMember) {
+    return [];
+  }
+
+  const circleMembers = await caller.circles.memberships.list({
+    circleId: session.circleId,
+  });
+  const sessionMemberIds = new Set(memberships.map((m) => m.userId));
+  const candidateUserIds = new Set(
+    circleMembers
+      .filter((cm) => !sessionMemberIds.has(cm.userId))
+      .map((cm) => cm.userId),
+  );
+
+  const deletedMemberships =
+    await circleSessionMembershipService.listDeletedMemberships(
+      toCircleSessionId(session.id),
+    );
+  for (const dm of deletedMemberships) {
+    if (!sessionMemberIds.has(dm.userId)) {
+      candidateUserIds.add(dm.userId);
+    }
+  }
+
+  const candidateUserIdArray = Array.from(candidateUserIds);
+  if (candidateUserIdArray.length === 0) {
+    return [];
+  }
+
+  const candidateUserIdsToResolve = candidateUserIdArray.filter(
+    (id) => !userNameById.has(id),
+  );
+  if (candidateUserIdsToResolve.length > 0) {
+    const extraUsers = await caller.users.list({
+      userIds: candidateUserIdsToResolve,
+    });
+    for (const user of extraUsers) {
+      userNameById.set(user.id, user.name);
+    }
+  }
+
+  return candidateUserIdArray.map((id) => ({
+    id,
+    name: userNameById.get(id) ?? UNKNOWN_USER_NAME,
+  }));
+};
+
 export async function getCircleSessionDetailViewModel(
   circleSessionId: string,
 ): Promise<CircleSessionDetailViewModel> {
@@ -161,83 +324,29 @@ export async function getCircleSessionDetailViewModel(
   const userNameById = new Map(users.map((user) => [user.id, user.name]));
   const viewerRole = getViewerRole(memberships, viewerId);
 
-  let addableMemberCandidates: AddableMemberCandidate[] = [];
-  if (canAddCircleSessionMember) {
-    const circleMembers = await caller.circles.memberships.list({
-      circleId: session.circleId,
-    });
-    const sessionMemberIds = new Set(memberships.map((m) => m.userId));
-    const candidateUserIds = new Set(
-      circleMembers
-        .filter((cm) => !sessionMemberIds.has(cm.userId))
-        .map((cm) => cm.userId),
-    );
+  const addableMemberCandidates = await fetchAddableMemberCandidates(
+    canAddCircleSessionMember,
+    caller,
+    session,
+    memberships,
+    userNameById,
+    ctx.circleSessionMembershipService,
+  );
 
-    const deletedMemberships =
-      await ctx.circleSessionMembershipService.listDeletedMemberships(
-        toCircleSessionId(session.id),
-      );
-    for (const dm of deletedMemberships) {
-      if (!sessionMemberIds.has(dm.userId)) {
-        candidateUserIds.add(dm.userId);
-      }
-    }
+  const matchViewModels = mapMatches(matches);
 
-    const candidateUserIdArray = Array.from(candidateUserIds);
-    if (candidateUserIdArray.length > 0) {
-      const candidateUserIdsToResolve = candidateUserIdArray.filter(
-        (id) => !userNameById.has(id),
-      );
-      if (candidateUserIdsToResolve.length > 0) {
-        const extraUsers = await caller.users.list({
-          userIds: candidateUserIdsToResolve,
-        });
-        for (const user of extraUsers) {
-          userNameById.set(user.id, user.name);
-        }
-      }
-      addableMemberCandidates = candidateUserIdArray.map((id) => ({
-        id,
-        name: userNameById.get(id) ?? UNKNOWN_USER_NAME,
-      }));
-    }
-  }
+  const canChangeRoleById = await buildCanChangeRoleMap(
+    viewerId,
+    memberships,
+    ctx.accessService,
+    session.id,
+  );
 
-  const matchViewModels: CircleSessionMatch[] = matches
-    .filter((match) => match.deletedAt == null)
-    .map((match) => ({
-      id: match.id,
-      player1Id: match.player1Id,
-      player2Id: match.player2Id,
-      outcome: match.outcome,
-      createdAtInput: formatDateForInput(match.createdAt),
-    }));
-
-  const canChangeRoleById = new Map<string, boolean>();
-  if (viewerId) {
-    const canChangeResults = await Promise.all(
-      memberships.map(async (membership) => {
-        const can = await ctx.accessService.canChangeCircleSessionMemberRole(
-          viewerId,
-          membership.userId,
-          session.id,
-        );
-        return [membership.userId, can] as const;
-      }),
-    );
-    for (const [userId, can] of canChangeResults) {
-      canChangeRoleById.set(userId, can);
-    }
-  }
-
-  const canRemoveById = new Map<string, boolean>();
-  if (canRemoveCircleSessionMember && viewerId) {
-    for (const membership of memberships) {
-      const roleKey = roleKeyByDto[membership.role];
-      const isSelf = membership.userId === viewerId;
-      canRemoveById.set(membership.userId, roleKey !== "owner" && !isSelf);
-    }
-  }
+  const canRemoveById = buildCanRemoveMap(
+    canRemoveCircleSessionMember,
+    viewerId,
+    memberships,
+  );
 
   const rolePriority: Record<string, number> = {
     owner: 0,
@@ -250,29 +359,12 @@ export async function getCircleSessionDetailViewModel(
     matchViewModels,
     userNameById,
   ).sort(
-    (a, b) => (rolePriority[a.role ?? ""] ?? 3) - (rolePriority[b.role ?? ""] ?? 3),
+    (a, b) =>
+      (rolePriority[a.role ?? ""] ?? 3) -
+      (rolePriority[b.role ?? ""] ?? 3),
   );
 
-  const roundRobinSchedule: RoundRobinScheduleViewModel | null =
-    roundRobinScheduleDto
-      ? {
-          id: roundRobinScheduleDto.id,
-          rounds: roundRobinScheduleDto.rounds.map((round) => ({
-            roundNumber: round.roundNumber,
-            pairings: round.pairings.map((pairing) => ({
-              player1: {
-                id: pairing.player1.id,
-                name: pairing.player1.name ?? UNKNOWN_USER_NAME,
-              },
-              player2: {
-                id: pairing.player2.id,
-                name: pairing.player2.name ?? UNKNOWN_USER_NAME,
-              },
-            })),
-          })),
-          totalMatchCount: roundRobinScheduleDto.totalMatchCount,
-        }
-      : null;
+  const roundRobinSchedule = mapRoundRobinSchedule(roundRobinScheduleDto);
 
   const detail: CircleSessionDetailViewModel = {
     circleSessionId: session.id,
