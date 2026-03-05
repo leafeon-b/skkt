@@ -32,7 +32,7 @@ describe("Service container", () => {
       passwordHasher: { hash: vi.fn(), verify: vi.fn() },
       changePasswordRateLimiter: {
         check: vi.fn(),
-        recordFailure: vi.fn(),
+        recordAttempt: vi.fn(),
         reset: vi.fn(),
       },
       holidayProvider: {

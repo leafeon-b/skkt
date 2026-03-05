@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     agreedToTerms,
   });
 
-  await signupRateLimiter.recordFailure(clientIp);
+  await signupRateLimiter.recordAttempt(clientIp);
 
   if (!result.success) {
     const errorMessages = {

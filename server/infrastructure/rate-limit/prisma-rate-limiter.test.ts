@@ -115,11 +115,11 @@ describe("PrismaRateLimiter", () => {
     vi.spyOn(Math, "random").mockRestore();
   });
 
-  test("recordFailureはレコードを作成する", async () => {
+  test("recordAttemptはレコードを作成する", async () => {
     mockedPrisma.rateLimitAttempt.create.mockResolvedValueOnce({} as never);
 
     const limiter = createPrismaRateLimiter(config);
-    await limiter.recordFailure("user-1");
+    await limiter.recordAttempt("user-1");
 
     expect(mockedPrisma.rateLimitAttempt.create).toHaveBeenCalledWith({
       data: {
@@ -166,7 +166,7 @@ describe("PrismaRateLimiter", () => {
       consoleErrorSpy.mockRestore();
     });
 
-    test("recordFailureはDBエラー時に例外をスローしない（fail-open）", async () => {
+    test("recordAttemptはDBエラー時に例外をスローしない（fail-open）", async () => {
       const consoleErrorSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => {});
@@ -175,10 +175,10 @@ describe("PrismaRateLimiter", () => {
       );
 
       const limiter = createPrismaRateLimiter(config);
-      await expect(limiter.recordFailure("user-1")).resolves.toBeUndefined();
+      await expect(limiter.recordAttempt("user-1")).resolves.toBeUndefined();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[rate-limit] DB error during recordFailure:",
+        "[rate-limit] DB error during recordAttempt:",
         expect.any(Error),
       );
       consoleErrorSpy.mockRestore();

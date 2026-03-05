@@ -27,7 +27,7 @@ const passwordHasher: PasswordHasher = {
 
 const changePasswordRateLimiter: RateLimiter = {
   check: vi.fn(),
-  recordFailure: vi.fn(),
+  recordAttempt: vi.fn(),
   reset: vi.fn(),
 };
 
@@ -263,14 +263,14 @@ describe("changePassword", () => {
     expect(stored?.passwordHash).toBe("hashed:oldpass");
   });
 
-  test("パスワード不一致時に recordFailure が呼ばれる", async () => {
+  test("パスワード不一致時に recordAttempt が呼ばれる", async () => {
     addTestUser("hashed:correct");
 
     await expect(
       service.changePassword(actorId, { currentPassword: "wrong", newPassword: "newpass12", clientIp: "1.2.3.4" }),
     ).rejects.toThrow("Current password is incorrect");
 
-    expect(changePasswordRateLimiter.recordFailure).toHaveBeenCalledWith(
+    expect(changePasswordRateLimiter.recordAttempt).toHaveBeenCalledWith(
       `${actorId}:1.2.3.4`,
     );
   });

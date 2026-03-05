@@ -70,7 +70,7 @@ export const createPrismaRateLimiter = (
       }
     },
 
-    async recordFailure(key) {
+    async recordAttempt(key) {
       try {
         await prisma.rateLimitAttempt.create({
           data: {
@@ -79,7 +79,7 @@ export const createPrismaRateLimiter = (
           },
         });
       } catch (error) {
-        console.error("[rate-limit] DB error during recordFailure:", error);
+        console.error("[rate-limit] DB error during recordAttempt:", error);
       }
     },
 

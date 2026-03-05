@@ -57,7 +57,7 @@ const createMockRateLimiter = (
   overrides: Partial<RateLimiter> = {},
 ): RateLimiter => ({
   check: vi.fn(),
-  recordFailure: vi.fn(),
+  recordAttempt: vi.fn(),
   reset: vi.fn(),
   ...overrides,
 });
@@ -424,7 +424,7 @@ describe("authorize コールバック（レート制限）", () => {
     expect(mockRepo.findByEmail).not.toHaveBeenCalled();
   });
 
-  test("ユーザーが見つからない場合は recordFailure を呼ぶ", async () => {
+  test("ユーザーが見つからない場合は recordAttempt を呼ぶ", async () => {
     const mockRepo = createMockUserRepository({
       findByEmail: vi.fn().mockResolvedValue(null),
     });
@@ -437,12 +437,12 @@ describe("authorize コールバック（レート制限）", () => {
     });
 
     expect(result).toBeNull();
-    expect(mockRateLimiter.recordFailure).toHaveBeenCalledWith(
+    expect(mockRateLimiter.recordAttempt).toHaveBeenCalledWith(
       "test@example.com:1.2.3.4",
     );
   });
 
-  test("パスワード不一致時は recordFailure を呼ぶ", async () => {
+  test("パスワード不一致時は recordAttempt を呼ぶ", async () => {
     const mockRepo = createMockUserRepository({
       findByEmail: vi
         .fn()
@@ -459,7 +459,7 @@ describe("authorize コールバック（レート制限）", () => {
     });
 
     expect(result).toBeNull();
-    expect(mockRateLimiter.recordFailure).toHaveBeenCalledWith(
+    expect(mockRateLimiter.recordAttempt).toHaveBeenCalledWith(
       "test@example.com:1.2.3.4",
     );
   });
@@ -490,7 +490,7 @@ describe("authorize コールバック（レート制限）", () => {
       image: undefined,
     });
     expect(mockRateLimiter.reset).toHaveBeenCalledWith("test@example.com:1.2.3.4");
-    expect(mockRateLimiter.recordFailure).not.toHaveBeenCalled();
+    expect(mockRateLimiter.recordAttempt).not.toHaveBeenCalled();
   });
 
   test("check() が TooManyRequestsError 以外をスローした場合はそのまま再スローする", async () => {
@@ -507,7 +507,7 @@ describe("authorize コールバック（レート制限）", () => {
     ).rejects.toThrow("unexpected failure");
   });
 
-  test("パスワードハッシュが無い場合は recordFailure を呼ぶ", async () => {
+  test("パスワードハッシュが無い場合は recordAttempt を呼ぶ", async () => {
     const mockRepo = createMockUserRepository({
       findByEmail: vi
         .fn()
@@ -523,7 +523,7 @@ describe("authorize コールバック（レート制限）", () => {
     });
 
     expect(result).toBeNull();
-    expect(mockRateLimiter.recordFailure).toHaveBeenCalledWith(
+    expect(mockRateLimiter.recordAttempt).toHaveBeenCalledWith(
       "test@example.com:1.2.3.4",
     );
   });
@@ -549,7 +549,7 @@ describe("authorize コールバック（レート制限）", () => {
     expect(mockRepo.findByEmail).not.toHaveBeenCalled();
   });
 
-  test("認証失敗時はIPのみのレート制限にも recordFailure を呼ぶ", async () => {
+  test("認証失敗時はIPのみのレート制限にも recordAttempt を呼ぶ", async () => {
     const mockRepo = createMockUserRepository({
       findByEmail: vi.fn().mockResolvedValue(null),
     });
@@ -562,8 +562,8 @@ describe("authorize コールバック（レート制限）", () => {
       password: "password",
     });
 
-    expect(mockIpRateLimiter.recordFailure).toHaveBeenCalledWith("1.2.3.4");
-    expect(mockRateLimiter.recordFailure).toHaveBeenCalledWith("test@example.com:1.2.3.4");
+    expect(mockIpRateLimiter.recordAttempt).toHaveBeenCalledWith("1.2.3.4");
+    expect(mockRateLimiter.recordAttempt).toHaveBeenCalledWith("test@example.com:1.2.3.4");
   });
 
   test("認証成功時はIPのみのレート制限にも reset を呼ぶ", async () => {

@@ -6,6 +6,6 @@ import type { RateLimiter } from "@/server/domain/common/rate-limiter";
  */
 export const noopRateLimiter: RateLimiter = {
   async check() {},
-  async recordFailure() {},
+  async recordAttempt() {},
   async reset() {},
 };

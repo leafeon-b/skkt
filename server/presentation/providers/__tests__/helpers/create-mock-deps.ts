@@ -102,7 +102,7 @@ export const createMockDeps = (): MockDeps => ({
   },
   changePasswordRateLimiter: {
     check: vi.fn().mockResolvedValue(undefined),
-    recordFailure: vi.fn().mockResolvedValue(undefined),
+    recordAttempt: vi.fn().mockResolvedValue(undefined),
     reset: vi.fn().mockResolvedValue(undefined),
   },
   holidayProvider: {

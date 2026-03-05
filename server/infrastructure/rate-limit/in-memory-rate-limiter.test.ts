@@ -15,24 +15,24 @@ describe("InMemoryRateLimiter", () => {
 
   test("制限内ならcheckはスローしない", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    await limiter.recordFailure("key");
-    await limiter.recordFailure("key");
+    await limiter.recordAttempt("key");
+    await limiter.recordAttempt("key");
     await expect(limiter.check("key")).resolves.toBeUndefined();
   });
 
   test("maxAttempts到達でTooManyRequestsErrorをスロー", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    await limiter.recordFailure("key");
-    await limiter.recordFailure("key");
-    await limiter.recordFailure("key");
+    await limiter.recordAttempt("key");
+    await limiter.recordAttempt("key");
+    await limiter.recordAttempt("key");
     await expect(limiter.check("key")).rejects.toThrow(TooManyRequestsError);
   });
 
   test("ウィンドウ経過後にカウンターがリセットされる", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    await limiter.recordFailure("key");
-    await limiter.recordFailure("key");
-    await limiter.recordFailure("key");
+    await limiter.recordAttempt("key");
+    await limiter.recordAttempt("key");
+    await limiter.recordAttempt("key");
 
     vi.advanceTimersByTime(60_000);
 
@@ -41,9 +41,9 @@ describe("InMemoryRateLimiter", () => {
 
   test("resetでカウンターがクリアされる", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    await limiter.recordFailure("key");
-    await limiter.recordFailure("key");
-    await limiter.recordFailure("key");
+    await limiter.recordAttempt("key");
+    await limiter.recordAttempt("key");
+    await limiter.recordAttempt("key");
 
     await limiter.reset("key");
 
@@ -52,11 +52,11 @@ describe("InMemoryRateLimiter", () => {
 
   test("TooManyRequestsErrorにretryAfterMsが含まれる", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    await limiter.recordFailure("key");
+    await limiter.recordAttempt("key");
 
     vi.advanceTimersByTime(5_000); // 5秒経過
-    await limiter.recordFailure("key");
-    await limiter.recordFailure("key");
+    await limiter.recordAttempt("key");
+    await limiter.recordAttempt("key");
 
     try {
       await limiter.check("key");
@@ -72,9 +72,9 @@ describe("InMemoryRateLimiter", () => {
 
   test("キーごとに独立してカウントする", async () => {
     const limiter = createInMemoryRateLimiter(config);
-    await limiter.recordFailure("key-a");
-    await limiter.recordFailure("key-a");
-    await limiter.recordFailure("key-a");
+    await limiter.recordAttempt("key-a");
+    await limiter.recordAttempt("key-a");
+    await limiter.recordAttempt("key-a");
 
     await expect(limiter.check("key-a")).rejects.toThrow(TooManyRequestsError);
     await expect(limiter.check("key-b")).resolves.toBeUndefined();
