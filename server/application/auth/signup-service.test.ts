@@ -141,6 +141,27 @@ describe("SignupService", () => {
     expect(userStore.size).toBe(1);
   });
 
+  test("メールアドレスが既に登録されている場合 signup_failed を返す", async () => {
+    const { deps, userStore } = createDeps();
+    // 既存ユーザーを登録
+    userStore.set("existing-user", {
+      id: userId("existing-user"),
+      email: validInput.email,
+      passwordHash: "existing-hash",
+      passwordChangedAt: null,
+      name: "Existing",
+      image: null,
+      profileVisibility: "PUBLIC",
+      createdAt: new Date(),
+    });
+    const service = createSignupService(deps);
+
+    const result = await service.signup(validInput);
+
+    expect(result).toEqual({ success: false, error: "signup_failed" });
+    expect(userStore.size).toBe(1);
+  });
+
   // タイミング特性は振る舞いとして観測困難なため、例外的にモック呼び出しを検証する
   test("重複メール時にもパスワードハッシュが実行される（タイミングサイドチャネル防止）", async () => {
     const { deps, userStore } = createDeps();
