@@ -31,7 +31,7 @@ export type SignupResult =
         | "password_too_short"
         | "password_too_long"
         | "name_too_long"
-        | "email_exists";
+        | "signup_failed";
     };
 
 export const createSignupService = (deps: SignupServiceDeps) => ({
@@ -62,7 +62,7 @@ export const createSignupService = (deps: SignupServiceDeps) => ({
 
     const exists = await deps.userRepository.emailExists(email);
     if (exists) {
-      return { success: false, error: "email_exists" };
+      return { success: false, error: "signup_failed" };
     }
 
     const passwordHash = deps.passwordHasher.hash(password);
@@ -77,7 +77,7 @@ export const createSignupService = (deps: SignupServiceDeps) => ({
       return { success: true, userId };
     } catch (error) {
       if (error instanceof ConflictError) {
-        return { success: false, error: "email_exists" };
+        return { success: false, error: "signup_failed" };
       }
       throw error;
     }

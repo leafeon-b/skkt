@@ -81,11 +81,11 @@ describe("POST /api/auth/signup", () => {
     expect(body.message).toContain("パスワード");
   });
 
-  test("既存メールで409が返る", async () => {
+  test("既存メールで400と汎用メッセージが返る", async () => {
     mockDeps.userRepository.emailExists.mockResolvedValue(true);
     const res = await postJson(validBody);
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.message).toContain("既に登録");
+    expect(body.message).toBe("アカウントの作成に失敗しました。");
   });
 });

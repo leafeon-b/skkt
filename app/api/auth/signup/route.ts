@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       password_too_short: "パスワードは8文字以上で入力してください。",
       password_too_long: "パスワードは128文字以内で入力してください。",
       name_too_long: "表示名は50文字以内で入力してください。",
-      email_exists: "このメールアドレスは既に登録されています。",
+      signup_failed: "アカウントの作成に失敗しました。",
     };
     const statusCodes = {
       terms_not_agreed: 400,
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       password_too_short: 400,
       password_too_long: 400,
       name_too_long: 400,
-      email_exists: 409,
+      signup_failed: 400,
     };
     return NextResponse.json(
       { message: errorMessages[result.error] },
