@@ -81,12 +81,11 @@ export const userRouter = router({
     .output(z.void())
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
-        await ctx.userService.changePassword(
-          ctx.actorId,
-          input.currentPassword,
-          input.newPassword,
-          ctx.clientIp,
-        );
+        await ctx.userService.changePassword(ctx.actorId, {
+          currentPassword: input.currentPassword,
+          newPassword: input.newPassword,
+          clientIp: ctx.clientIp,
+        });
       }),
     ),
 
