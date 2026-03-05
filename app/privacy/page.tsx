@@ -35,6 +35,9 @@ export default function PrivacyPage() {
         <ul className="mt-3 ml-5 list-disc space-y-1 text-sm leading-relaxed text-(--brand-ink-muted)">
           <li>メールアドレス</li>
           <li>表示名（ニックネーム）</li>
+          <li>プロフィール画像（Googleアカウント連携時）</li>
+          <li>アカウント作成日時</li>
+          <li>プロフィール公開範囲の設定</li>
         </ul>
         <p className="mt-4 text-sm leading-relaxed text-(--brand-ink-muted)">
           また、ユーザーが本サービスを利用する過程で、以下の情報が記録されます。
