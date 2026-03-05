@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/tooltip";
 import { formatTooltipDateTime } from "@/lib/date-utils";
 import { trpc } from "@/lib/trpc/client";
+import "./session-calendar.css";
 
 const FC_PLUGINS = [dayGridPlugin, interactionPlugin];
 
@@ -280,7 +281,7 @@ export function SessionCalendar({
       ref={containerRef}
       role="region"
       aria-label="開催カレンダー"
-      className="[&_.fc-daygrid-day:focus-visible]:ring-2 [&_.fc-daygrid-day:focus-visible]:ring-ring [&_.fc-daygrid-day:focus-visible]:ring-offset-1 [&_.fc-daygrid-day:focus-visible]:outline-none [&_.fc-day-clickable]:cursor-pointer [&_.fc-day-clickable:hover]:bg-(--brand-moss)/10 [&_.fc-day-sat_.fc-daygrid-day-number]:text-(--brand-sky) [&_.fc-day-sat.fc-col-header-cell]:text-(--brand-sky) [&_.fc-day-sun_.fc-daygrid-day-number]:text-(--brand-holiday) [&_.fc-day-sun.fc-col-header-cell]:text-(--brand-holiday) [&_.fc-day-holiday_.fc-daygrid-day-number]:text-(--brand-holiday)"
+      className="session-calendar"
     >
       <FullCalendar
         plugins={FC_PLUGINS}
