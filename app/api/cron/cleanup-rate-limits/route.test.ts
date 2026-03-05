@@ -1,17 +1,15 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-vi.mock("@/server/infrastructure/db", () => ({
-  prisma: {
-    rateLimitAttempt: {
-      deleteMany: vi.fn(),
-    },
+vi.mock("@/server/presentation/cron/rate-limit-cleanup", () => ({
+  rateLimitCleanupService: {
+    cleanupExpired: vi.fn(),
   },
 }));
 
-import { prisma } from "@/server/infrastructure/db";
+import { rateLimitCleanupService } from "@/server/presentation/cron/rate-limit-cleanup";
 import { GET } from "./route";
 
-const mockedPrisma = vi.mocked(prisma, { deep: true });
+const mockedCleanupService = vi.mocked(rateLimitCleanupService);
 
 describe("GET /api/cron/cleanup-rate-limits", () => {
   beforeEach(() => {
@@ -43,7 +41,7 @@ describe("GET /api/cron/cleanup-rate-limits", () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
-    mockedPrisma.rateLimitAttempt.deleteMany.mockRejectedValueOnce(
+    mockedCleanupService.cleanupExpired.mockRejectedValueOnce(
       new Error("DB connection failed"),
     );
 
@@ -61,9 +59,7 @@ describe("GET /api/cron/cleanup-rate-limits", () => {
   });
 
   test("認証成功時に期限切れレコードを削除して件数を返す", async () => {
-    mockedPrisma.rateLimitAttempt.deleteMany.mockResolvedValueOnce({
-      count: 5,
-    });
+    mockedCleanupService.cleanupExpired.mockResolvedValueOnce(5);
 
     const request = new Request("http://localhost/api/cron/cleanup-rate-limits", {
       headers: { authorization: "Bearer test-secret" },
@@ -74,11 +70,5 @@ describe("GET /api/cron/cleanup-rate-limits", () => {
 
     const body = await response.json();
     expect(body).toEqual({ deleted: 5 });
-
-    expect(mockedPrisma.rateLimitAttempt.deleteMany).toHaveBeenCalledWith({
-      where: {
-        attemptedAt: { lt: expect.any(Date) },
-      },
-    });
   });
 });

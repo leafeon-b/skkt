@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/server/infrastructure/db";
-
-const CLEANUP_THRESHOLD_MS = 24 * 60 * 60 * 1000; // 24時間
+import { rateLimitCleanupService } from "@/server/presentation/cron/rate-limit-cleanup";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -13,15 +11,9 @@ export async function GET(request: Request) {
   }
 
   try {
-    const threshold = new Date(Date.now() - CLEANUP_THRESHOLD_MS);
+    const deleted = await rateLimitCleanupService.cleanupExpired();
 
-    const result = await prisma.rateLimitAttempt.deleteMany({
-      where: {
-        attemptedAt: { lt: threshold },
-      },
-    });
-
-    return NextResponse.json({ deleted: result.count });
+    return NextResponse.json({ deleted });
   } catch (error) {
     console.error("[cron] cleanup-rate-limits failed:", error);
     return NextResponse.json(

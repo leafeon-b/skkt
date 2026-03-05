@@ -102,9 +102,12 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": "off",
     },
   },
-  // presentation exceptions: context.ts (DI composition root for tRPC)
+  // presentation exceptions: DI composition roots (tRPC context, cron wiring)
   {
-    files: ["server/presentation/trpc/context.ts"],
+    files: [
+      "server/presentation/trpc/context.ts",
+      "server/presentation/cron/*.ts",
+    ],
     rules: {
       "no-restricted-imports": "off",
     },
@@ -143,7 +146,7 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  // app exceptions: auth routes, layouts (direct auth handler access)
+  // app exceptions: auth routes, layouts (direct infrastructure access)
   {
     files: [
       "app/api/auth/**/route.ts",
