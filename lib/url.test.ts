@@ -108,6 +108,24 @@ describe("sanitizeCallbackUrl", () => {
     });
   });
 
+  describe("percent-encoded path traversal", () => {
+    it("rejects percent-encoded path traversal", () => {
+      expect(sanitizeCallbackUrl("/%2f..%2f..%2fetc%2fpasswd")).toBe("/home");
+    });
+
+    it("rejects percent-encoded path traversal with uppercase encoding", () => {
+      expect(sanitizeCallbackUrl("/%2F..")).toBe("/home");
+    });
+
+    it("rejects double-encoded path traversal", () => {
+      expect(sanitizeCallbackUrl("/%252f..")).toBe("/home");
+    });
+
+    it("rejects malformed percent-encoding", () => {
+      expect(sanitizeCallbackUrl("/%ZZ%invalid/..")).toBe("/home");
+    });
+  });
+
   describe("full URL handling on server (no window)", () => {
     it("falls back to /home for full URL when window is undefined", () => {
       expect(sanitizeCallbackUrl("http://localhost:3000/invite/abc")).toBe(
