@@ -138,30 +138,183 @@ const demoUsers: DemoUserSeed[] = [
   },
 ];
 
-const users = demoUsers.map(({ id, name, email, passwordHash }) => ({
-  id,
-  name,
-  email,
-  passwordHash,
-}));
+// --- 阪大将棋研究会（10人）---
+// パスワードはすべて demo-pass-1
+const demoPassHash =
+  "scrypt$5jteFLxOGwBIhQkuKyZq/w==$Cpp2UvzMDGI6A4nQsmMPTKberD9/ID/CA+0zNz3FJJ4QkrR36iQ6olMP/9YYaTtrNSzX6qn4qW+fRQ6kyRF6yQ==";
 
-const circle = {
-  id: "demo",
-  name: "京大将棋研究会",
+type OsakaUserSeed = {
+  id: string;
+  name: string;
+  email: string;
+  circleRole: CircleRole;
+  sessionRoles?: DemoSessionRoleSeed[];
 };
 
-const circleMemberships = demoUsers
-  .filter((user) => user.circleRole)
-  .map((user, index) => ({
+const osakaUsers: OsakaUserSeed[] = [
+  {
+    id: "user-9",
+    name: "中村 太地",
+    email: "nakamura@example.com",
+    circleRole: CircleRole.CircleOwner,
+    sessionRoles: [
+      {
+        circleSessionId: "osaka-session-1",
+        role: CircleSessionRole.CircleSessionOwner,
+      },
+      {
+        circleSessionId: "osaka-session-2",
+        role: CircleSessionRole.CircleSessionOwner,
+      },
+    ],
+  },
+  {
+    id: "user-10",
+    name: "斎藤 慎太郎",
+    email: "saito@example.com",
+    circleRole: CircleRole.CircleManager,
+    sessionRoles: [
+      {
+        circleSessionId: "osaka-session-1",
+        role: CircleSessionRole.CircleSessionManager,
+      },
+      {
+        circleSessionId: "osaka-session-2",
+        role: CircleSessionRole.CircleSessionManager,
+      },
+    ],
+  },
+  {
+    id: "user-11",
+    name: "広瀬 章人",
+    email: "hirose@example.com",
+    circleRole: CircleRole.CircleMember,
+    sessionRoles: [
+      {
+        circleSessionId: "osaka-session-1",
+        role: CircleSessionRole.CircleSessionMember,
+      },
+      {
+        circleSessionId: "osaka-session-2",
+        role: CircleSessionRole.CircleSessionMember,
+      },
+    ],
+  },
+  {
+    id: "user-12",
+    name: "木村 一基",
+    email: "kimura@example.com",
+    circleRole: CircleRole.CircleMember,
+    sessionRoles: [
+      {
+        circleSessionId: "osaka-session-2",
+        role: CircleSessionRole.CircleSessionMember,
+      },
+    ],
+  },
+  {
+    id: "user-13",
+    name: "糸谷 哲郎",
+    email: "itodani@example.com",
+    circleRole: CircleRole.CircleMember,
+    sessionRoles: [
+      {
+        circleSessionId: "osaka-session-2",
+        role: CircleSessionRole.CircleSessionMember,
+      },
+    ],
+  },
+  {
+    id: "user-14",
+    name: "稲葉 陽",
+    email: "inaba@example.com",
+    circleRole: CircleRole.CircleMember,
+    sessionRoles: [
+      {
+        circleSessionId: "osaka-session-2",
+        role: CircleSessionRole.CircleSessionMember,
+      },
+    ],
+  },
+  {
+    id: "user-15",
+    name: "佐藤 天彦",
+    email: "sato@example.com",
+    circleRole: CircleRole.CircleMember,
+    sessionRoles: [
+      {
+        circleSessionId: "osaka-session-2",
+        role: CircleSessionRole.CircleSessionMember,
+      },
+    ],
+  },
+  {
+    id: "user-16",
+    name: "三浦 弘行",
+    email: "miura@example.com",
+    circleRole: CircleRole.CircleMember,
+    sessionRoles: [
+      {
+        circleSessionId: "osaka-session-2",
+        role: CircleSessionRole.CircleSessionMember,
+      },
+    ],
+  },
+  {
+    id: "user-17",
+    name: "久保 利明",
+    email: "kubo@example.com",
+    circleRole: CircleRole.CircleMember,
+  },
+  {
+    id: "user-18",
+    name: "深浦 康市",
+    email: "fukaura@example.com",
+    circleRole: CircleRole.CircleMember,
+  },
+];
+
+const users = [
+  ...demoUsers.map(({ id, name, email, passwordHash }) => ({
+    id,
+    name,
+    email,
+    passwordHash,
+  })),
+  ...osakaUsers.map(({ id, name, email }) => ({
+    id,
+    name,
+    email,
+    passwordHash: demoPassHash,
+  })),
+];
+
+const circles = [
+  { id: "demo", name: "京大将棋研究会" },
+  { id: "demo-osaka", name: "阪大将棋研究会" },
+];
+
+const circleMemberships = [
+  ...demoUsers
+    .filter((user) => user.circleRole)
+    .map((user, index) => ({
+      circleId: "demo" as string,
+      userId: user.id,
+      role: user.circleRole!,
+      createdAt: new Date(Date.UTC(2024, 0, 1 + index)),
+    })),
+  ...osakaUsers.map((user, index) => ({
+    circleId: "demo-osaka" as string,
     userId: user.id,
-    role: user.circleRole!,
-    createdAt: new Date(Date.UTC(2024, 0, 1 + index)),
-  }));
+    role: user.circleRole,
+    createdAt: new Date(Date.UTC(2024, 3, 1 + index)),
+  })),
+];
 
 const sessions = [
   {
     id: "demo-session-40",
-
+    circleId: "demo",
     title: "冬季対局会",
     startsAt: new Date("2025-02-11T18:00:00+09:00"),
     endsAt: new Date("2025-02-11T21:00:00+09:00"),
@@ -170,7 +323,7 @@ const sessions = [
   },
   {
     id: "demo-session-41",
-
+    circleId: "demo",
     title: "第41回 週末研究会",
     startsAt: new Date("2025-02-26T18:00:00+09:00"),
     endsAt: new Date("2025-02-26T21:00:00+09:00"),
@@ -179,7 +332,7 @@ const sessions = [
   },
   {
     id: "demo-session-42",
-
+    circleId: "demo",
     title: "第42回 週末研究会",
     startsAt: new Date("2025-03-12T18:00:00+09:00"),
     endsAt: new Date("2025-03-12T21:00:00+09:00"),
@@ -188,22 +341,51 @@ const sessions = [
   },
   {
     id: "demo-session-43",
-
+    circleId: "demo",
     title: "第43回 週末研究会",
     startsAt: new Date("2026-03-26T18:00:00+09:00"),
     endsAt: new Date("2026-03-26T21:00:00+09:00"),
     location: "オンライン",
     note: "",
   },
+  // 阪大 セッション（3人参加）
+  {
+    id: "osaka-session-1",
+    circleId: "demo-osaka",
+    title: "第1回 練習会",
+    startsAt: new Date("2026-03-05T18:00:00+09:00"),
+    endsAt: new Date("2026-03-05T21:00:00+09:00"),
+    location: "豊中キャンパス B棟",
+    note: "少人数での練習会",
+  },
+  // 阪大 セッション（8人参加）
+  {
+    id: "osaka-session-2",
+    circleId: "demo-osaka",
+    title: "春季大会",
+    startsAt: new Date("2026-03-19T13:00:00+09:00"),
+    endsAt: new Date("2026-03-19T18:00:00+09:00"),
+    location: "豊中キャンパス 大会議室",
+    note: "総当たり戦を予定",
+  },
 ];
 
-const sessionMemberships = demoUsers.flatMap((user) =>
-  (user.sessionRoles ?? []).map((sessionRole) => ({
-    circleSessionId: sessionRole.circleSessionId,
-    userId: user.id,
-    role: sessionRole.role,
-  })),
-);
+const sessionMemberships = [
+  ...demoUsers.flatMap((user) =>
+    (user.sessionRoles ?? []).map((sessionRole) => ({
+      circleSessionId: sessionRole.circleSessionId,
+      userId: user.id,
+      role: sessionRole.role,
+    })),
+  ),
+  ...osakaUsers.flatMap((user) =>
+    (user.sessionRoles ?? []).map((sessionRole) => ({
+      circleSessionId: sessionRole.circleSessionId,
+      userId: user.id,
+      role: sessionRole.role,
+    })),
+  ),
+];
 
 const matchBaseTime = new Date("2026-01-15T10:00:00Z");
 const matches = [
@@ -311,6 +493,88 @@ const matches = [
     outcome: MatchOutcome.DRAW,
     createdAt: new Date(matchBaseTime.getTime() + 12 * 60_000),
   },
+  // 阪大 セッション1（3人）の対局
+  {
+    id: "osaka-match-1",
+    circleSessionId: "osaka-session-1",
+    player1Id: "user-9",
+    player2Id: "user-10",
+    outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 20 * 60_000),
+  },
+  {
+    id: "osaka-match-2",
+    circleSessionId: "osaka-session-1",
+    player1Id: "user-10",
+    player2Id: "user-11",
+    outcome: MatchOutcome.P2_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 21 * 60_000),
+  },
+  {
+    id: "osaka-match-3",
+    circleSessionId: "osaka-session-1",
+    player1Id: "user-9",
+    player2Id: "user-11",
+    outcome: MatchOutcome.DRAW,
+    createdAt: new Date(matchBaseTime.getTime() + 22 * 60_000),
+  },
+  // 阪大 セッション2（8人）の対局
+  {
+    id: "osaka-match-4",
+    circleSessionId: "osaka-session-2",
+    player1Id: "user-9",
+    player2Id: "user-12",
+    outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 30 * 60_000),
+  },
+  {
+    id: "osaka-match-5",
+    circleSessionId: "osaka-session-2",
+    player1Id: "user-10",
+    player2Id: "user-13",
+    outcome: MatchOutcome.P2_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 31 * 60_000),
+  },
+  {
+    id: "osaka-match-6",
+    circleSessionId: "osaka-session-2",
+    player1Id: "user-11",
+    player2Id: "user-14",
+    outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 32 * 60_000),
+  },
+  {
+    id: "osaka-match-7",
+    circleSessionId: "osaka-session-2",
+    player1Id: "user-15",
+    player2Id: "user-16",
+    outcome: MatchOutcome.P2_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 33 * 60_000),
+  },
+  {
+    id: "osaka-match-8",
+    circleSessionId: "osaka-session-2",
+    player1Id: "user-9",
+    player2Id: "user-15",
+    outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 34 * 60_000),
+  },
+  {
+    id: "osaka-match-9",
+    circleSessionId: "osaka-session-2",
+    player1Id: "user-12",
+    player2Id: "user-16",
+    outcome: MatchOutcome.DRAW,
+    createdAt: new Date(matchBaseTime.getTime() + 35 * 60_000),
+  },
+  {
+    id: "osaka-match-10",
+    circleSessionId: "osaka-session-2",
+    player1Id: "user-13",
+    player2Id: "user-14",
+    outcome: MatchOutcome.P1_WIN,
+    createdAt: new Date(matchBaseTime.getTime() + 36 * 60_000),
+  },
 ];
 
 async function main() {
@@ -326,17 +590,19 @@ async function main() {
     });
   }
 
-  await prisma.circle.upsert({
-    where: { id: circle.id },
-    update: { name: circle.name },
-    create: circle,
-  });
+  for (const circle of circles) {
+    await prisma.circle.upsert({
+      where: { id: circle.id },
+      update: { name: circle.name },
+      create: circle,
+    });
+  }
 
   for (const membership of circleMemberships) {
     const existing = await prisma.circleMembership.findFirst({
       where: {
         userId: membership.userId,
-        circleId: circle.id,
+        circleId: membership.circleId,
         deletedAt: null,
       },
     });
@@ -347,22 +613,23 @@ async function main() {
       });
     } else {
       await prisma.circleMembership.create({
-        data: { ...membership, circleId: circle.id },
+        data: membership,
       });
     }
   }
 
   for (const session of sessions) {
+    const { circleId, ...sessionData } = session;
     await prisma.circleSession.upsert({
       where: { id: session.id },
       update: {
-        title: session.title,
-        startsAt: session.startsAt,
-        endsAt: session.endsAt,
-        location: session.location,
-        note: session.note,
+        title: sessionData.title,
+        startsAt: sessionData.startsAt,
+        endsAt: sessionData.endsAt,
+        location: sessionData.location,
+        note: sessionData.note,
       },
-      create: { ...session, circleId: circle.id },
+      create: { ...sessionData, circleId },
     });
   }
 
