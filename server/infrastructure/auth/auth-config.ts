@@ -6,3 +6,10 @@ export const LOGIN_RATE_LIMIT_CONFIG: Readonly<PrismaRateLimiterConfig> =
     windowMs: 60_000,
     category: "login",
   });
+
+export const SIGNUP_RATE_LIMIT_CONFIG: Readonly<PrismaRateLimiterConfig> =
+  Object.freeze({
+    maxAttempts: 10,
+    windowMs: 60_000,
+    category: "signup",
+  });

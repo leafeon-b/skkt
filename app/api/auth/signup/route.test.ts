@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type UserId } from "@/server/domain/common/ids";
+import { TooManyRequestsError } from "@/server/domain/common/errors";
 import {
   createMockDeps,
   createServiceContainer,
@@ -8,9 +9,29 @@ import {
 
 const mockDeps = createMockDeps();
 
+const { mockCheck, mockRecordFailure } = vi.hoisted(() => ({
+  mockCheck: vi.fn(),
+  mockRecordFailure: vi.fn(),
+}));
+
 vi.mock("@/server/presentation/trpc/context", () => ({
   buildServiceContainer: () => {
     return createServiceContainer(toServiceContainerDeps(mockDeps));
+  },
+}));
+
+vi.mock("@/server/infrastructure/rate-limit/prisma-rate-limiter", () => ({
+  createPrismaRateLimiter: () => ({
+    check: mockCheck,
+    recordFailure: mockRecordFailure,
+  }),
+}));
+
+vi.mock("@/server/infrastructure/auth/auth-config", () => ({
+  SIGNUP_RATE_LIMIT_CONFIG: {
+    maxAttempts: 10,
+    windowMs: 60_000,
+    category: "signup",
   },
 }));
 
@@ -27,7 +48,10 @@ const postJson = (body: unknown) =>
   POST(
     new Request("http://localhost/api/auth/signup", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-forwarded-for": "1.2.3.4",
+      },
       body: JSON.stringify(body),
     }),
   );
@@ -41,6 +65,8 @@ describe("POST /api/auth/signup", () => {
       "new-user-id" as UserId,
     );
     mockDeps.passwordHasher.hash.mockReturnValue("hashed");
+    mockCheck.mockResolvedValue(undefined);
+    mockRecordFailure.mockResolvedValue(undefined);
   });
 
   test("有効な入力でユーザーが作成される（201）", async () => {
@@ -53,7 +79,10 @@ describe("POST /api/auth/signup", () => {
     const res = await POST(
       new Request("http://localhost/api/auth/signup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-forwarded-for": "1.2.3.4",
+        },
         body: "not json",
       }),
     );
@@ -87,5 +116,20 @@ describe("POST /api/auth/signup", () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.message).toBe("アカウントの作成に失敗しました。");
+  });
+
+  test("レート制限超過時に429が返る", async () => {
+    mockCheck.mockRejectedValueOnce(new TooManyRequestsError(45_000));
+
+    const res = await postJson(validBody);
+    expect(res.status).toBe(429);
+    const body = await res.json();
+    expect(body.message).toContain("リクエストが多すぎます");
+    expect(mockCheck).toHaveBeenCalledWith("1.2.3.4");
+  });
+
+  test("正常リクエスト後にrecordFailureが呼ばれる", async () => {
+    await postJson(validBody);
+    expect(mockRecordFailure).toHaveBeenCalledWith("1.2.3.4");
   });
 });
