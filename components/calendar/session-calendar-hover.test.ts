@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildSessionDates, getDayCellClassNames } from "./session-calendar";
+import {
+  buildSessionDates,
+  getDayCellClassNames,
+  toLocalDateString,
+} from "./session-calendar";
 
 describe("buildSessionDates", () => {
   it("events が undefined → 空 Set を返す", () => {
@@ -12,7 +16,7 @@ describe("buildSessionDates", () => {
     expect(result.size).toBe(0);
   });
 
-  it("start が Date オブジェクト → toISOString().slice(0, 10) で日付文字列を生成", () => {
+  it("start が Date オブジェクト → ローカル日付文字列を生成", () => {
     const result = buildSessionDates([{ start: new Date(2025, 0, 15, 14, 0) }]);
     expect(result.has("2025-01-15")).toBe(true);
     expect(result.size).toBe(1);
@@ -113,5 +117,18 @@ describe("getDayCellClassNames", () => {
       emptyHolidays,
     );
     expect(result).not.toContain("fc-day-holiday");
+  });
+});
+
+describe("toLocalDateString", () => {
+  it("Date オブジェクトからローカル日付の YYYY-MM-DD 文字列を返す", () => {
+    // 日中の時刻: タイムゾーンに依存しない
+    const date = new Date(2025, 0, 15, 14, 0);
+    expect(toLocalDateString(date)).toBe("2025-01-15");
+  });
+
+  it("月・日が1桁の場合もゼロ埋めされる", () => {
+    const date = new Date(2025, 2, 5, 10, 0);
+    expect(toLocalDateString(date)).toBe("2025-03-05");
   });
 });

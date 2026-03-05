@@ -20,6 +20,13 @@ import { trpc } from "@/lib/trpc/client";
 
 const FC_PLUGINS = [dayGridPlugin, interactionPlugin];
 
+export function toLocalDateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export type SessionExtendedProps = {
   startsAt: string | Date;
   endsAt: string | Date;
@@ -70,7 +77,7 @@ export function buildSessionDates(events?: EventInput[]): Set<string> {
   return new Set(
     events.map((e) => {
       const d = e.start;
-      if (d instanceof Date) return d.toISOString().slice(0, 10);
+      if (d instanceof Date) return toLocalDateString(d);
       return typeof d === "string" ? d.slice(0, 10) : "";
     }),
   );
@@ -284,7 +291,7 @@ export function SessionCalendar({
         dateClick={onDateClick}
         datesSet={handleDatesSet}
         dayCellClassNames={(arg) => {
-          const dateStr = arg.date.toISOString().slice(0, 10);
+          const dateStr = toLocalDateString(arg.date);
           return getDayCellClassNames(
             dateStr,
             sessionDates,
