@@ -60,12 +60,14 @@ export const createSignupService = (deps: SignupServiceDeps) => ({
       return { success: false, error: "name_too_long" };
     }
 
+    // タイミングサイドチャネル防止: emailExists チェックの前に hash を実行し、
+    // 重複メール時も同等の処理時間がかかるようにする
+    const passwordHash = deps.passwordHasher.hash(password);
+
     const exists = await deps.userRepository.emailExists(email);
     if (exists) {
       return { success: false, error: "signup_failed" };
     }
-
-    const passwordHash = deps.passwordHasher.hash(password);
 
     try {
       const userId = await deps.userRepository.createUser({
