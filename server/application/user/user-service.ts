@@ -4,7 +4,11 @@ import type { UserRepository } from "@/server/domain/models/user/user-repository
 import type { createAccessService } from "@/server/application/authz/access-service";
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
-import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+} from "@/server/domain/common/errors";
 import { USER_PASSWORD_MAX_LENGTH } from "@/server/domain/models/user/user";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -64,7 +68,7 @@ export const createUserService = (deps: UserServiceDeps) => ({
 
       const exists = await deps.userRepository.emailExists(email, actorId);
       if (exists) {
-        throw new BadRequestError("Email already in use");
+        throw new ConflictError("Email already in use");
       }
     }
 

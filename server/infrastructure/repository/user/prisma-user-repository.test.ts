@@ -6,6 +6,7 @@ vi.mock("@/server/infrastructure/db", () => ({
       findUnique: vi.fn(),
       findMany: vi.fn(),
       upsert: vi.fn(),
+      update: vi.fn(),
       create: vi.fn(),
     },
   },
@@ -107,6 +108,48 @@ describe("Prisma User リポジトリ", () => {
       },
       create: data,
     });
+  });
+
+  test("updateProfile は P2002（email 一意制約違反）で ConflictError をスローする", async () => {
+    mockedPrisma.user.update.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+        code: "P2002",
+        clientVersion: "0.0.0",
+        meta: { target: ["email"] },
+      }),
+    );
+
+    await expect(
+      prismaUserRepository.updateProfile(userId("user-1"), "Name", "dup@example.com"),
+    ).rejects.toThrow(ConflictError);
+  });
+
+  test("updateProfile は P2002 で target が期待と異なる場合そのまま再スローする", async () => {
+    const error = new Prisma.PrismaClientKnownRequestError(
+      "Unique constraint failed",
+      {
+        code: "P2002",
+        clientVersion: "0.0.0",
+        meta: { target: ["other_field"] },
+      },
+    );
+    mockedPrisma.user.update.mockRejectedValueOnce(error);
+
+    await expect(
+      prismaUserRepository.updateProfile(userId("user-1"), "Name", "dup@example.com"),
+    ).rejects.toThrow(error);
+  });
+
+  test("updateProfile は P2002 以外の Prisma エラーはそのまま伝播する", async () => {
+    const otherError = new Prisma.PrismaClientKnownRequestError(
+      "Foreign key constraint failed",
+      { code: "P2003", clientVersion: "0.0.0" },
+    );
+    mockedPrisma.user.update.mockRejectedValueOnce(otherError);
+
+    await expect(
+      prismaUserRepository.updateProfile(userId("user-1"), "Name", "dup@example.com"),
+    ).rejects.toThrow(otherError);
   });
 
   test("createUser は P2002（email 一意制約違反）で ConflictError をスローする", async () => {

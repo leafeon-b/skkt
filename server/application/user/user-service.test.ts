@@ -10,7 +10,10 @@ import {
   createUser,
   ProfileVisibility,
 } from "@/server/domain/models/user/user";
-import { TooManyRequestsError } from "@/server/domain/common/errors";
+import {
+  ConflictError,
+  TooManyRequestsError,
+} from "@/server/domain/common/errors";
 
 const userStore: UserStore = new Map();
 const userRepository = createInMemoryUserRepository(userStore);
@@ -100,7 +103,7 @@ describe("updateProfile", () => {
     expect(stored?.email).toBeNull();
   });
 
-  test("メール重複時に BadRequest エラー", async () => {
+  test("メール重複時に ConflictError", async () => {
     addTestUser("hashed:pass");
     // 別のユーザーが同じメールを使用中
     userStore.set("other-user", {
@@ -116,12 +119,27 @@ describe("updateProfile", () => {
 
     await expect(
       service.updateProfile(actorId, "NewName", "taken@example.com"),
-    ).rejects.toThrow("Email already in use");
+    ).rejects.toThrow(ConflictError);
 
     // ストアが変更されていないことを検証
     const stored = userStore.get(actorId);
     expect(stored?.name).toBe("Taro");
     expect(stored?.email).toBe("taro@example.com");
+  });
+
+  test("TOCTOU競合: リポジトリが ConflictError をスローした場合そのまま伝播する", async () => {
+    addTestUser("hashed:pass");
+
+    const originalUpdateProfile = userRepository.updateProfile;
+    vi.spyOn(userRepository, "updateProfile").mockRejectedValueOnce(
+      new ConflictError("Email already in use"),
+    );
+
+    await expect(
+      service.updateProfile(actorId, "NewName", "new@example.com"),
+    ).rejects.toThrow(ConflictError);
+
+    userRepository.updateProfile = originalUpdateProfile;
   });
 
   test("name=null, email=null の場合はメール重複チェックをスキップして更新する", async () => {
