@@ -3,6 +3,7 @@
 import {
   SessionCalendar,
   type SessionExtendedProps,
+  toLocalDateString,
 } from "@/components/calendar/session-calendar";
 import { Button } from "@/components/ui/button";
 import type { CircleOverviewSession } from "@/server/presentation/view-models/circle-overview";
@@ -51,7 +52,7 @@ export function CircleOverviewCalendar({
           typeof e.start === "string"
             ? e.start.slice(0, 10)
             : e.start instanceof Date
-              ? e.start.toISOString().slice(0, 10)
+              ? toLocalDateString(e.start)
               : String(e.start).slice(0, 10);
         return eventDate === clickedDate;
       });
