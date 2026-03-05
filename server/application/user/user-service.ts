@@ -95,7 +95,7 @@ export const createUserService = (deps: UserServiceDeps) => ({
 
     const valid = deps.passwordHasher.verify(currentPassword, passwordHash);
     if (!valid) {
-      await deps.changePasswordRateLimiter.recordFailure(rateLimitKey);
+      await deps.changePasswordRateLimiter.recordAttempt(rateLimitKey);
       throw new BadRequestError("Current password is incorrect");
     }
 

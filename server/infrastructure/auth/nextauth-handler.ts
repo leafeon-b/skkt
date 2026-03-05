@@ -64,8 +64,8 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
           if (isDebug) {
             console.warn("[auth] credentials user not found", { email });
           }
-          await deps.loginRateLimiter.recordFailure(rateLimitKey);
-          await deps.loginIpRateLimiter.recordFailure(clientIp);
+          await deps.loginRateLimiter.recordAttempt(rateLimitKey);
+          await deps.loginIpRateLimiter.recordAttempt(clientIp);
           return null;
         }
         const passwordHash = await deps.userRepository.findPasswordHashById(
@@ -78,16 +78,16 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
               email,
             });
           }
-          await deps.loginRateLimiter.recordFailure(rateLimitKey);
-          await deps.loginIpRateLimiter.recordFailure(clientIp);
+          await deps.loginRateLimiter.recordAttempt(rateLimitKey);
+          await deps.loginIpRateLimiter.recordAttempt(clientIp);
           return null;
         }
         if (!verifyPassword(password, passwordHash)) {
           if (isDebug) {
             console.warn("[auth] credentials password mismatch", { email });
           }
-          await deps.loginRateLimiter.recordFailure(rateLimitKey);
-          await deps.loginIpRateLimiter.recordFailure(clientIp);
+          await deps.loginRateLimiter.recordAttempt(rateLimitKey);
+          await deps.loginIpRateLimiter.recordAttempt(clientIp);
           return null;
         }
         await deps.loginRateLimiter.reset(rateLimitKey);

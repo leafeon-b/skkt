@@ -33,7 +33,7 @@ export const createInMemoryRateLimiter = (
       }
     },
 
-    async recordFailure(key) {
+    async recordAttempt(key) {
       const now = Date.now();
       const recent = prune(key, now);
       recent.push(now);

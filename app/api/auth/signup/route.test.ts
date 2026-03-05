@@ -23,7 +23,7 @@ vi.mock("@/server/presentation/trpc/context", () => ({
 vi.mock("@/server/infrastructure/rate-limit/prisma-rate-limiter", () => ({
   createPrismaRateLimiter: () => ({
     check: mockCheck,
-    recordFailure: mockRecordFailure,
+    recordAttempt: mockRecordFailure,
   }),
 }));
 
@@ -128,7 +128,7 @@ describe("POST /api/auth/signup", () => {
     expect(mockCheck).toHaveBeenCalledWith("1.2.3.4");
   });
 
-  test("正常リクエスト後にrecordFailureが呼ばれる", async () => {
+  test("正常リクエスト後にrecordAttemptが呼ばれる", async () => {
     await postJson(validBody);
     expect(mockRecordFailure).toHaveBeenCalledWith("1.2.3.4");
   });

@@ -56,7 +56,7 @@ vi.mock("@/server/infrastructure/holiday/japanese-holiday-provider", () => ({
 vi.mock("@/server/infrastructure/rate-limit/prisma-rate-limiter", () => ({
   createPrismaRateLimiter: vi.fn(() => ({
     check: vi.fn(),
-    recordFailure: vi.fn(),
+    recordAttempt: vi.fn(),
     reset: vi.fn(),
   })),
 }));
