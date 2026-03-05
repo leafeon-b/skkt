@@ -14,6 +14,8 @@ export const hashPassword = (password: string): string => {
   ].join("$");
 };
 
+export const DUMMY_HASH = hashPassword("dummy");
+
 export const verifyPassword = (
   password: string,
   hashedValue: string,
