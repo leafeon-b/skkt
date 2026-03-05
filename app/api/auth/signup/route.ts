@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { buildServiceContainer } from "@/server/presentation/trpc/context";
+import { SIGNUP_RATE_LIMIT_CONFIG } from "@/server/infrastructure/auth/auth-config";
+import { TooManyRequestsError } from "@/server/domain/common/errors";
+import { getClientIp } from "@/server/infrastructure/http/client-ip";
+import { createPrismaRateLimiter } from "@/server/infrastructure/rate-limit/prisma-rate-limiter";
 
 const { signupService } = buildServiceContainer();
+const signupRateLimiter = createPrismaRateLimiter(SIGNUP_RATE_LIMIT_CONFIG);
 
 type SignupPayload = {
   email?: string;
@@ -11,6 +16,20 @@ type SignupPayload = {
 };
 
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request);
+
+  try {
+    await signupRateLimiter.check(clientIp);
+  } catch (e) {
+    if (e instanceof TooManyRequestsError) {
+      return NextResponse.json(
+        { message: "リクエストが多すぎます。しばらくしてからお試しください。" },
+        { status: 429 },
+      );
+    }
+    throw e;
+  }
+
   const body = (await request.json().catch(() => null)) as SignupPayload | null;
   if (!body) {
     return NextResponse.json(
@@ -32,6 +51,8 @@ export async function POST(request: Request) {
     name,
     agreedToTerms,
   });
+
+  await signupRateLimiter.recordFailure(clientIp);
 
   if (!result.success) {
     const errorMessages = {
