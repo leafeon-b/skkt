@@ -114,3 +114,5 @@ export const createMockDeps = (): MockDeps => ({
 export const toServiceContainerDeps = (
   mockDeps: MockDeps,
 ): ServiceContainerDeps => mockDeps as unknown as ServiceContainerDeps;
+
+export { createServiceContainer } from "@/server/infrastructure/service-container";
