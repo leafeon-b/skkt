@@ -70,10 +70,24 @@ export const createPrismaUserRepository = (
     name: string | null,
     email: string | null,
   ): Promise<void> {
-    await client.user.update({
-      where: { id: toPersistenceId(id) },
-      data: { name, email },
-    });
+    try {
+      await client.user.update({
+        where: { id: toPersistenceId(id) },
+        data: { name, email },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        const target = error.meta?.target;
+        if (Array.isArray(target) && target.includes("email")) {
+          throw new ConflictError("Email already in use");
+        }
+        throw error;
+      }
+      throw error;
+    }
   },
 
   async emailExists(email: string, excludeUserId?: UserId): Promise<boolean> {
