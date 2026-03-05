@@ -61,6 +61,8 @@ const createMockRateLimiter = (
   ...overrides,
 });
 
+const mockGetClientIp = vi.fn(() => "1.2.3.4");
+
 const ORIGINAL_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const ORIGINAL_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -93,6 +95,7 @@ describe("NextAuth ハンドラ", () => {
     const handler = createNextAuthHandler({
       userRepository: mockRepo,
       loginRateLimiter: createMockRateLimiter(),
+      getClientIp: mockGetClientIp,
     });
 
     expect(handler).toBe("handler");
@@ -133,6 +136,7 @@ describe("Google プロバイダの profile コールバック", () => {
     createAuthOptions({
       userRepository: createMockUserRepository(),
       loginRateLimiter: createMockRateLimiter(),
+      getClientIp: mockGetClientIp,
     });
     return googleMock.mock.calls[0][0].profile as (profile: {
       sub: string;
@@ -249,6 +253,7 @@ describe("JWT コールバック", () => {
   const options = createAuthOptions({
     userRepository: mockRepo,
     loginRateLimiter: createMockRateLimiter(),
+    getClientIp: mockGetClientIp,
   });
   const jwtCallback = options.callbacks!.jwt! as (params: {
     token: JWT;
@@ -347,6 +352,7 @@ describe("session コールバック", () => {
   const options = createAuthOptions({
     userRepository: mockRepo,
     loginRateLimiter: createMockRateLimiter(),
+    getClientIp: mockGetClientIp,
   });
   const sessionCallback = options.callbacks!.session! as unknown as (params: {
     session: { user?: { id?: string } };
@@ -381,6 +387,7 @@ describe("authorize コールバック（レート制限）", () => {
     createAuthOptions({
       userRepository: mockRepo,
       loginRateLimiter: mockRateLimiter,
+      getClientIp: mockGetClientIp,
     });
     return credentialsMock.mock.calls[0][0].authorize as (
       credentials: { email: string; password: string } | undefined,
@@ -406,7 +413,7 @@ describe("authorize コールバック（レート制限）", () => {
     });
 
     expect(result).toBeNull();
-    expect(mockRateLimiter.check).toHaveBeenCalledWith("test@example.com");
+    expect(mockRateLimiter.check).toHaveBeenCalledWith("test@example.com:1.2.3.4");
     expect(mockRepo.findByEmail).not.toHaveBeenCalled();
   });
 
@@ -424,7 +431,7 @@ describe("authorize コールバック（レート制限）", () => {
 
     expect(result).toBeNull();
     expect(mockRateLimiter.recordFailure).toHaveBeenCalledWith(
-      "test@example.com",
+      "test@example.com:1.2.3.4",
     );
   });
 
@@ -446,7 +453,7 @@ describe("authorize コールバック（レート制限）", () => {
 
     expect(result).toBeNull();
     expect(mockRateLimiter.recordFailure).toHaveBeenCalledWith(
-      "test@example.com",
+      "test@example.com:1.2.3.4",
     );
   });
 
@@ -475,7 +482,7 @@ describe("authorize コールバック（レート制限）", () => {
       name: "Test User",
       image: undefined,
     });
-    expect(mockRateLimiter.reset).toHaveBeenCalledWith("test@example.com");
+    expect(mockRateLimiter.reset).toHaveBeenCalledWith("test@example.com:1.2.3.4");
     expect(mockRateLimiter.recordFailure).not.toHaveBeenCalled();
   });
 
@@ -510,7 +517,7 @@ describe("authorize コールバック（レート制限）", () => {
 
     expect(result).toBeNull();
     expect(mockRateLimiter.recordFailure).toHaveBeenCalledWith(
-      "test@example.com",
+      "test@example.com:1.2.3.4",
     );
   });
 });
@@ -525,6 +532,7 @@ describe("コールバックチェーン統合", () => {
     const options = createAuthOptions({
       userRepository: mockRepo,
       loginRateLimiter: createMockRateLimiter(),
+      getClientIp: mockGetClientIp,
     });
     const jwtCallback = options.callbacks!.jwt! as (params: {
       token: JWT;

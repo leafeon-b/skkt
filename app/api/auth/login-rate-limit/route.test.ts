@@ -20,7 +20,10 @@ import { POST } from "./route";
 function createRequest(body: unknown) {
   return new Request("http://localhost/api/auth/login-rate-limit", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-forwarded-for": "1.2.3.4",
+    },
     body: JSON.stringify(body),
   });
 }
@@ -38,7 +41,7 @@ describe("POST /api/auth/login-rate-limit", () => {
 
     expect(res.status).toBe(200);
     expect(json).toEqual({ retryAfterMs: 45_000 });
-    expect(mockCheck).toHaveBeenCalledWith("test@example.com");
+    expect(mockCheck).toHaveBeenCalledWith("test@example.com:1.2.3.4");
   });
 
   test("レート制限中でない場合、空オブジェクトを返す", async () => {

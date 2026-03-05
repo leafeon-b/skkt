@@ -72,6 +72,7 @@ const createContext = () => {
 
   const context: Context = {
     actorId: userId("user-1"),
+    clientIp: "1.2.3.4",
     circleService,
     circleMembershipService,
     circleSessionService,
