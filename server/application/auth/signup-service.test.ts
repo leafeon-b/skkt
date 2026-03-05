@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { createInMemoryUserRepository } from "@/server/infrastructure/repository/in-memory";
 import type { UserStore } from "@/server/infrastructure/repository/in-memory/in-memory-user-repository";
 import { ConflictError } from "@/server/domain/common/errors";
+import { userId } from "@/server/domain/common/ids";
 import {
   createSignupService,
   type SignupServiceDeps,
@@ -145,10 +146,14 @@ describe("SignupService", () => {
     const { deps, userStore } = createDeps();
     // 既存ユーザーを登録
     userStore.set("existing-user", {
-      id: "existing-user",
+      id: userId("existing-user"),
       email: validInput.email,
       passwordHash: "existing-hash",
+      passwordChangedAt: null,
       name: "Existing",
+      image: null,
+      profileVisibility: "PUBLIC",
+      createdAt: new Date(),
     });
     const service = createSignupService(deps);
 
