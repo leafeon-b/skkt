@@ -85,6 +85,7 @@ export const userRouter = router({
           ctx.actorId,
           input.currentPassword,
           input.newPassword,
+          ctx.clientIp,
         );
       }),
     ),

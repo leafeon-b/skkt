@@ -17,6 +17,7 @@ import {
 } from "@/server/infrastructure/auth/password";
 import { createJapaneseHolidayProvider } from "@/server/infrastructure/holiday/japanese-holiday-provider";
 import { createPrismaRateLimiter } from "@/server/infrastructure/rate-limit/prisma-rate-limiter";
+import { getClientIp } from "@/server/infrastructure/http/client-ip";
 
 const getSession = createGetSession(nextAuthSessionService);
 const japaneseHolidayProvider = createJapaneseHolidayProvider();
@@ -41,13 +42,15 @@ export const buildServiceContainer = (): ServiceContainer =>
     unitOfWork: prismaUnitOfWork,
   });
 
-export const createContext = async () => {
+export const createContext = async (request?: Request) => {
   const session = await getSession();
   const actorId = session?.user?.id ? userId(session.user.id) : null;
   const services = buildServiceContainer();
+  const clientIp = request ? getClientIp(request) : "unknown";
 
   return {
     actorId,
+    clientIp,
     ...services,
   };
 };

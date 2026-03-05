@@ -20,6 +20,7 @@ const createMockContext = () => {
 
   const context: Context = {
     actorId: userId("user-1"),
+    clientIp: "1.2.3.4",
     circleService: {} as Context["circleService"],
     circleMembershipService: {} as Context["circleMembershipService"],
     circleSessionService: {} as Context["circleSessionService"],

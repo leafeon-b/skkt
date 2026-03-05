@@ -17,6 +17,7 @@ const createTestContext = (
 
   const context: Context = {
     actorId: actorIdValue,
+    clientIp: "1.2.3.4",
     circleService: {
       getCircle: vi.fn(),
       createCircle: vi.fn(),
