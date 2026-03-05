@@ -7,6 +7,7 @@ import { prismaUserRepository } from "@/server/infrastructure/repository/user/pr
 const authOptions = createAuthOptions({
   userRepository: prismaUserRepository,
   loginRateLimiter: noopRateLimiter,
+  loginIpRateLimiter: noopRateLimiter,
   getClientIp: () => "unknown",
 });
 
