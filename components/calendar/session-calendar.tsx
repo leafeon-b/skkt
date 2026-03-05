@@ -115,6 +115,7 @@ export function SessionCalendar({
   holidayDates,
 }: SessionCalendarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<FullCalendar>(null);
   const onDateClickRef = useRef(onDateClick);
   useEffect(() => {
     onDateClickRef.current = onDateClick;
@@ -255,8 +256,9 @@ export function SessionCalendar({
                   dateStr,
                   allDay: true,
                   dayEl: cell,
-                  jsEvent: e as unknown as MouseEvent,
-                  view: {} as DateClickArg["view"],
+                  jsEvent: new MouseEvent("click"),
+                  view: calendarRef.current?.getApi().view ??
+                    ({} as DateClickArg["view"]),
                 });
               }
               break;
@@ -284,6 +286,7 @@ export function SessionCalendar({
       className="session-calendar"
     >
       <FullCalendar
+        ref={calendarRef}
         plugins={FC_PLUGINS}
         initialView="dayGridMonth"
         locale="ja"
