@@ -28,6 +28,13 @@ describe("GET /api/cron/cleanup-rate-limits", () => {
     expect(response.status).toBe(401);
   });
 
+  test("Authorizationヘッダーなしの場合は401を返す", async () => {
+    const request = new Request("http://localhost/api/cron/cleanup-rate-limits");
+
+    const response = await GET(request);
+    expect(response.status).toBe(401);
+  });
+
   test("Authorizationヘッダーが不正な場合は401を返す", async () => {
     const request = new Request("http://localhost/api/cron/cleanup-rate-limits", {
       headers: { authorization: "Bearer wrong-secret" },
