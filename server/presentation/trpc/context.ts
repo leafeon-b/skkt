@@ -26,7 +26,7 @@ const changePasswordRateLimiter = createPrismaRateLimiter({
   category: "changePassword",
 });
 
-const buildServiceContainer = (): ServiceContainer =>
+export const buildServiceContainer = (): ServiceContainer =>
   createServiceContainer({
     circleRepository: prismaCircleRepository,
     circleSessionRepository: prismaCircleSessionRepository,
