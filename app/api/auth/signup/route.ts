@@ -1,15 +1,7 @@
 import { NextResponse } from "next/server";
-import { createSignupService } from "@/server/application/auth/signup-service";
-import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
-import {
-  hashPassword,
-  verifyPassword,
-} from "@/server/infrastructure/auth/password";
+import { buildServiceContainer } from "@/server/presentation/trpc/context";
 
-const signupService = createSignupService({
-  userRepository: prismaUserRepository,
-  passwordHasher: { hash: hashPassword, verify: verifyPassword },
-});
+const { signupService } = buildServiceContainer();
 
 type SignupPayload = {
   email?: string;
