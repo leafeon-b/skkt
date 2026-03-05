@@ -149,4 +149,62 @@ describe("PrismaRateLimiter", () => {
       },
     });
   });
+
+  describe("DBエラー時の振る舞い", () => {
+    test("checkはDBエラー時にTooManyRequestsErrorをスローする（fail-closed）", async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      mockedPrisma.$transaction.mockRejectedValueOnce(
+        new Error("DB connection failed"),
+      );
+
+      const limiter = createPrismaRateLimiter(config);
+      await expect(limiter.check("user-1")).rejects.toThrow(
+        TooManyRequestsError,
+      );
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[rate-limit] DB error during check:",
+        expect.any(Error),
+      );
+      consoleErrorSpy.mockRestore();
+    });
+
+    test("recordFailureはDBエラー時に例外をスローしない（fail-open）", async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      mockedPrisma.rateLimitAttempt.create.mockRejectedValueOnce(
+        new Error("DB connection failed"),
+      );
+
+      const limiter = createPrismaRateLimiter(config);
+      await expect(limiter.recordFailure("user-1")).resolves.toBeUndefined();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[rate-limit] DB error during recordFailure:",
+        expect.any(Error),
+      );
+      consoleErrorSpy.mockRestore();
+    });
+
+    test("resetはDBエラー時に例外をスローしない（fail-open）", async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      mockedPrisma.rateLimitAttempt.deleteMany.mockRejectedValueOnce(
+        new Error("DB connection failed"),
+      );
+
+      const limiter = createPrismaRateLimiter(config);
+      await expect(limiter.reset("user-1")).resolves.toBeUndefined();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[rate-limit] DB error during reset:",
+        expect.any(Error),
+      );
+      consoleErrorSpy.mockRestore();
+    });
+  });
 });

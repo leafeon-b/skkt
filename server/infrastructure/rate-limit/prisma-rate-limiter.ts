@@ -13,61 +13,75 @@ export const createPrismaRateLimiter = (
 ): RateLimiter => {
   return {
     async check(key) {
-      const now = Date.now();
-      const windowStart = new Date(now - config.windowMs);
+      try {
+        const now = Date.now();
+        const windowStart = new Date(now - config.windowMs);
 
-      // pruning + count をトランザクションで実行（競合状態を防止）
-      const [, count] = await prisma.$transaction([
-        prisma.rateLimitAttempt.deleteMany({
-          where: {
-            category: config.category,
-            attemptedAt: { lt: windowStart },
-          },
-        }),
-        prisma.rateLimitAttempt.count({
-          where: {
-            key,
-            category: config.category,
-            attemptedAt: { gte: windowStart },
-          },
-        }),
-      ]);
+        // pruning + count をトランザクションで実行（競合状態を防止）
+        const [, count] = await prisma.$transaction([
+          prisma.rateLimitAttempt.deleteMany({
+            where: {
+              category: config.category,
+              attemptedAt: { lt: windowStart },
+            },
+          }),
+          prisma.rateLimitAttempt.count({
+            where: {
+              key,
+              category: config.category,
+              attemptedAt: { gte: windowStart },
+            },
+          }),
+        ]);
 
-      if (count >= config.maxAttempts) {
-        const oldest = await prisma.rateLimitAttempt.findFirst({
-          where: {
-            key,
-            category: config.category,
-            attemptedAt: { gte: windowStart },
-          },
-          orderBy: { attemptedAt: "asc" },
-          select: { attemptedAt: true },
-        });
+        if (count >= config.maxAttempts) {
+          const oldest = await prisma.rateLimitAttempt.findFirst({
+            where: {
+              key,
+              category: config.category,
+              attemptedAt: { gte: windowStart },
+            },
+            orderBy: { attemptedAt: "asc" },
+            select: { attemptedAt: true },
+          });
 
-        const retryAfterMs = oldest
-          ? oldest.attemptedAt.getTime() + config.windowMs - now
-          : config.windowMs;
+          const retryAfterMs = oldest
+            ? oldest.attemptedAt.getTime() + config.windowMs - now
+            : config.windowMs;
 
-        throw new TooManyRequestsError(retryAfterMs);
+          throw new TooManyRequestsError(retryAfterMs);
+        }
+      } catch (error) {
+        if (error instanceof TooManyRequestsError) throw error;
+        console.error("[rate-limit] DB error during check:", error);
+        throw new TooManyRequestsError(config.windowMs);
       }
     },
 
     async recordFailure(key) {
-      await prisma.rateLimitAttempt.create({
-        data: {
-          key,
-          category: config.category,
-        },
-      });
+      try {
+        await prisma.rateLimitAttempt.create({
+          data: {
+            key,
+            category: config.category,
+          },
+        });
+      } catch (error) {
+        console.error("[rate-limit] DB error during recordFailure:", error);
+      }
     },
 
     async reset(key) {
-      await prisma.rateLimitAttempt.deleteMany({
-        where: {
-          key,
-          category: config.category,
-        },
-      });
+      try {
+        await prisma.rateLimitAttempt.deleteMany({
+          where: {
+            key,
+            category: config.category,
+          },
+        });
+      } catch (error) {
+        console.error("[rate-limit] DB error during reset:", error);
+      }
     },
   };
 };
