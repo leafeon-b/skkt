@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { TooManyRequestsError } from "@/server/domain/common/errors";
 
-const { mockCheck } = vi.hoisted(() => ({ mockCheck: vi.fn() }));
+const { mockEmailIpCheck, mockIpCheck } = vi.hoisted(() => ({
+  mockEmailIpCheck: vi.fn(),
+  mockIpCheck: vi.fn(),
+}));
 
 vi.mock("@/server/infrastructure/rate-limit/prisma-rate-limiter", () => ({
-  createPrismaRateLimiter: () => ({ check: mockCheck }),
+  createPrismaRateLimiter: (config: { category: string }) => {
+    if (config.category === "login-ip") return { check: mockIpCheck };
+    return { check: mockEmailIpCheck };
+  },
 }));
 
 vi.mock("@/server/infrastructure/auth/auth-config", () => ({
@@ -12,6 +18,11 @@ vi.mock("@/server/infrastructure/auth/auth-config", () => ({
     maxAttempts: 5,
     windowMs: 60_000,
     category: "login",
+  },
+  LOGIN_IP_RATE_LIMIT_CONFIG: {
+    maxAttempts: 20,
+    windowMs: 60_000,
+    category: "login-ip",
   },
 }));
 
@@ -33,19 +44,42 @@ describe("POST /api/auth/login-rate-limit", () => {
     vi.clearAllMocks();
   });
 
-  test("レート制限中の場合、retryAfterMsを返す", async () => {
-    mockCheck.mockRejectedValueOnce(new TooManyRequestsError(45_000));
+  test("email:ipレート制限中の場合、retryAfterMsを返す", async () => {
+    mockEmailIpCheck.mockRejectedValueOnce(new TooManyRequestsError(45_000));
 
     const res = await POST(createRequest({ email: "test@example.com" }));
     const json = await res.json();
 
     expect(res.status).toBe(200);
     expect(json).toEqual({ retryAfterMs: 45_000 });
-    expect(mockCheck).toHaveBeenCalledWith("test@example.com:1.2.3.4");
+    expect(mockEmailIpCheck).toHaveBeenCalledWith("test@example.com:1.2.3.4");
+  });
+
+  test("IPのみのレート制限中の場合、retryAfterMsを返す", async () => {
+    mockIpCheck.mockRejectedValueOnce(new TooManyRequestsError(30_000));
+
+    const res = await POST(createRequest({ email: "test@example.com" }));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ retryAfterMs: 30_000 });
+    expect(mockIpCheck).toHaveBeenCalledWith("1.2.3.4");
+  });
+
+  test("両方のレート制限中の場合、大きい方のretryAfterMsを返す", async () => {
+    mockIpCheck.mockRejectedValueOnce(new TooManyRequestsError(20_000));
+    mockEmailIpCheck.mockRejectedValueOnce(new TooManyRequestsError(45_000));
+
+    const res = await POST(createRequest({ email: "test@example.com" }));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ retryAfterMs: 45_000 });
   });
 
   test("レート制限中でない場合、空オブジェクトを返す", async () => {
-    mockCheck.mockResolvedValueOnce(undefined);
+    mockEmailIpCheck.mockResolvedValueOnce(undefined);
+    mockIpCheck.mockResolvedValueOnce(undefined);
 
     const res = await POST(createRequest({ email: "test@example.com" }));
     const json = await res.json();
@@ -60,7 +94,8 @@ describe("POST /api/auth/login-rate-limit", () => {
 
     expect(res.status).toBe(400);
     expect(json).toEqual({ error: "email is required" });
-    expect(mockCheck).not.toHaveBeenCalled();
+    expect(mockEmailIpCheck).not.toHaveBeenCalled();
+    expect(mockIpCheck).not.toHaveBeenCalled();
   });
 
   test("emailが未指定の場合、400を返す", async () => {
@@ -69,11 +104,12 @@ describe("POST /api/auth/login-rate-limit", () => {
 
     expect(res.status).toBe(400);
     expect(json).toEqual({ error: "email is required" });
-    expect(mockCheck).not.toHaveBeenCalled();
+    expect(mockEmailIpCheck).not.toHaveBeenCalled();
+    expect(mockIpCheck).not.toHaveBeenCalled();
   });
 
   test("予期しないエラーの場合、500を返す", async () => {
-    mockCheck.mockRejectedValueOnce(new Error("unexpected"));
+    mockIpCheck.mockRejectedValueOnce(new Error("unexpected"));
 
     const res = await POST(createRequest({ email: "test@example.com" }));
     const json = await res.json();
@@ -94,7 +130,8 @@ describe("POST /api/auth/login-rate-limit", () => {
 
     expect(res.status).toBe(400);
     expect(json).toEqual({ error: "invalid request body" });
-    expect(mockCheck).not.toHaveBeenCalled();
+    expect(mockEmailIpCheck).not.toHaveBeenCalled();
+    expect(mockIpCheck).not.toHaveBeenCalled();
   });
 
   test("emailが文字列以外の場合、400を返す", async () => {
@@ -103,6 +140,7 @@ describe("POST /api/auth/login-rate-limit", () => {
 
     expect(res.status).toBe(400);
     expect(json).toEqual({ error: "email is required" });
-    expect(mockCheck).not.toHaveBeenCalled();
+    expect(mockEmailIpCheck).not.toHaveBeenCalled();
+    expect(mockIpCheck).not.toHaveBeenCalled();
   });
 });
