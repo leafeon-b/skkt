@@ -56,6 +56,14 @@ describe("sanitizeCallbackUrl", () => {
     expect(sanitizeCallbackUrl("/\r/evil.com")).toBe("/home");
   });
 
+  it("rejects path traversal", () => {
+    expect(sanitizeCallbackUrl("/../../../etc/passwd")).toBe("/home");
+  });
+
+  it("strips backslashes before validation", () => {
+    expect(sanitizeCallbackUrl("/\\evil.com")).toBe("/evil.com");
+  });
+
   describe("full URL handling", () => {
     const ORIGIN = "http://localhost:3000";
 
