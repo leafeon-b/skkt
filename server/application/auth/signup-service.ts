@@ -56,7 +56,7 @@ export const createSignupService = (deps: SignupServiceDeps) => ({
       return { success: false, error: "password_too_long" };
     }
 
-    if (name !== null && name.length > USER_NAME_MAX_LENGTH) {
+    if (name !== null && [...name].length > USER_NAME_MAX_LENGTH) {
       return { success: false, error: "name_too_long" };
     }
 
