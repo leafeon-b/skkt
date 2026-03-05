@@ -1,6 +1,9 @@
 // PrismaAdapter が NextAuth のアダプタ要件として prisma を直接必要とするため、この import のみリポジトリ抽象化の対象外
 import { prisma } from "@/server/infrastructure/db";
-import { verifyPassword } from "@/server/infrastructure/auth/password";
+import {
+  DUMMY_HASH,
+  verifyPassword,
+} from "@/server/infrastructure/auth/password";
 import { userId } from "@/server/domain/common/ids";
 import { USER_NAME_MAX_LENGTH } from "@/server/domain/models/user/user";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
@@ -54,6 +57,7 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
 
         const user = await deps.userRepository.findByEmail(email);
         if (!user) {
+          verifyPassword(password, DUMMY_HASH);
           if (isDebug) {
             console.warn("[auth] credentials user not found", { email });
           }
@@ -64,6 +68,7 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
           user.id,
         );
         if (!passwordHash) {
+          verifyPassword(password, DUMMY_HASH);
           if (isDebug) {
             console.warn("[auth] credentials user missing password hash", {
               email,

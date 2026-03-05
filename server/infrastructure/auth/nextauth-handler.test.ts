@@ -22,6 +22,7 @@ vi.mock("next-auth/providers/credentials", () => ({
 }));
 vi.mock("next-auth/providers/google", () => ({ default: googleMock }));
 vi.mock("@/server/infrastructure/auth/password", () => ({
+  DUMMY_HASH: "scrypt$dummysalt$dummykey",
   verifyPassword: verifyPasswordMock,
 }));
 
@@ -518,6 +519,60 @@ describe("authorize コールバック（レート制限）", () => {
     expect(result).toBeNull();
     expect(mockRateLimiter.recordFailure).toHaveBeenCalledWith(
       "test@example.com:1.2.3.4",
+    );
+  });
+});
+
+describe("authorize コールバック（タイミングサイドチャネル防止）", () => {
+  const extractAuthorize = (
+    mockRepo: UserRepository,
+    mockRateLimiter: RateLimiter,
+  ) => {
+    credentialsMock.mockClear();
+    createAuthOptions({
+      userRepository: mockRepo,
+      loginRateLimiter: mockRateLimiter,
+      getClientIp: mockGetClientIp,
+    });
+    return credentialsMock.mock.calls[0][0].authorize as (
+      credentials: { email: string; password: string } | undefined,
+    ) => Promise<{ id: string; email: string } | null>;
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("ユーザー不存在時にダミーハッシュで verifyPassword を実行する", async () => {
+    const mockRepo = createMockUserRepository({
+      findByEmail: vi.fn().mockResolvedValue(null),
+    });
+    const mockRateLimiter = createMockRateLimiter();
+    const authorize = extractAuthorize(mockRepo, mockRateLimiter);
+
+    await authorize({ email: "unknown@example.com", password: "password" });
+
+    expect(verifyPasswordMock).toHaveBeenCalledWith(
+      "password",
+      "scrypt$dummysalt$dummykey",
+    );
+  });
+
+  test("パスワードハッシュ不存在時にダミーハッシュで verifyPassword を実行する", async () => {
+    const mockRepo = createMockUserRepository({
+      findByEmail: vi
+        .fn()
+        .mockResolvedValue({ id: "user-1", email: "test@example.com" }),
+      findPasswordHashById: vi.fn().mockResolvedValue(null),
+    });
+    const mockRateLimiter = createMockRateLimiter();
+    const authorize = extractAuthorize(mockRepo, mockRateLimiter);
+
+    await authorize({ email: "test@example.com", password: "password" });
+
+    expect(verifyPasswordMock).toHaveBeenCalledWith(
+      "password",
+      "scrypt$dummysalt$dummykey",
     );
   });
 });
