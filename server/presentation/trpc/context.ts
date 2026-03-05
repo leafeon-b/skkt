@@ -27,7 +27,7 @@ const changePasswordRateLimiter = createPrismaRateLimiter({
   category: "changePassword",
 });
 
-/** @internal テスト用エクスポート。プロダクションコードでは createContext() を使用すること */
+/** @internal テスト・プロダクション共用。tRPC 外の Route Handler 等から利用可 */
 export const buildServiceContainer = (): ServiceContainer =>
   createServiceContainer({
     circleRepository: prismaCircleRepository,
