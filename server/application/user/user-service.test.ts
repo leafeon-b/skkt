@@ -167,7 +167,7 @@ describe("changePassword", () => {
   test("パスワードを変更する", async () => {
     addTestUser("hashed:oldpass");
 
-    await service.changePassword(actorId, "oldpass", "newpass12", "1.2.3.4");
+    await service.changePassword(actorId, { currentPassword: "oldpass", newPassword: "newpass12", clientIp: "1.2.3.4" });
 
     const stored = userStore.get(actorId);
     expect(stored?.passwordHash).toBe("hashed:newpass12");
@@ -178,7 +178,7 @@ describe("changePassword", () => {
     addTestUser("hashed:correct");
 
     await expect(
-      service.changePassword(actorId, "wrong", "newpass12", "1.2.3.4"),
+      service.changePassword(actorId, { currentPassword: "wrong", newPassword: "newpass12", clientIp: "1.2.3.4" }),
     ).rejects.toThrow("Current password is incorrect");
 
     // パスワードが変更されていないことを検証
@@ -190,7 +190,7 @@ describe("changePassword", () => {
     addTestUser("hashed:oldpass");
 
     await expect(
-      service.changePassword(actorId, "oldpass", "short", "1.2.3.4"),
+      service.changePassword(actorId, { currentPassword: "oldpass", newPassword: "short", clientIp: "1.2.3.4" }),
     ).rejects.toThrow("Password too short");
 
     const stored = userStore.get(actorId);
@@ -201,7 +201,7 @@ describe("changePassword", () => {
     addTestUser("hashed:oldpass");
     const maxPassword = "a".repeat(128);
 
-    await service.changePassword(actorId, "oldpass", maxPassword, "1.2.3.4");
+    await service.changePassword(actorId, { currentPassword: "oldpass", newPassword: maxPassword, clientIp: "1.2.3.4" });
 
     const stored = userStore.get(actorId);
     expect(stored?.passwordHash).toBe(`hashed:${maxPassword}`);
@@ -212,7 +212,7 @@ describe("changePassword", () => {
     const longPassword = "a".repeat(129);
 
     await expect(
-      service.changePassword(actorId, "oldpass", longPassword, "1.2.3.4"),
+      service.changePassword(actorId, { currentPassword: "oldpass", newPassword: longPassword, clientIp: "1.2.3.4" }),
     ).rejects.toThrow("Password too long");
 
     const stored = userStore.get(actorId);
@@ -223,7 +223,7 @@ describe("changePassword", () => {
     addTestUser(null);
 
     await expect(
-      service.changePassword(actorId, "any", "newpass12", "1.2.3.4"),
+      service.changePassword(actorId, { currentPassword: "any", newPassword: "newpass12", clientIp: "1.2.3.4" }),
     ).rejects.toThrow("Password login is not enabled");
 
     const stored = userStore.get(actorId);
@@ -237,7 +237,7 @@ describe("changePassword", () => {
     addTestUser("hashed:oldpass");
 
     await expect(
-      service.changePassword(actorId, "oldpass", "newpass12", "1.2.3.4"),
+      service.changePassword(actorId, { currentPassword: "oldpass", newPassword: "newpass12", clientIp: "1.2.3.4" }),
     ).rejects.toThrow(TooManyRequestsError);
 
     // パスワードが変更されていないことを検証
@@ -249,7 +249,7 @@ describe("changePassword", () => {
     addTestUser("hashed:correct");
 
     await expect(
-      service.changePassword(actorId, "wrong", "newpass12", "1.2.3.4"),
+      service.changePassword(actorId, { currentPassword: "wrong", newPassword: "newpass12", clientIp: "1.2.3.4" }),
     ).rejects.toThrow("Current password is incorrect");
 
     expect(changePasswordRateLimiter.recordFailure).toHaveBeenCalledWith(
@@ -260,7 +260,7 @@ describe("changePassword", () => {
   test("パスワード変更成功時に reset が呼ばれる", async () => {
     addTestUser("hashed:oldpass");
 
-    await service.changePassword(actorId, "oldpass", "newpass12", "1.2.3.4");
+    await service.changePassword(actorId, { currentPassword: "oldpass", newPassword: "newpass12", clientIp: "1.2.3.4" });
 
     expect(changePasswordRateLimiter.reset).toHaveBeenCalledWith(
       `${actorId}:1.2.3.4`,

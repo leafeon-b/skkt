@@ -73,10 +73,13 @@ export const createUserService = (deps: UserServiceDeps) => ({
 
   async changePassword(
     actorId: UserId,
-    currentPassword: string,
-    newPassword: string,
-    clientIp: string,
+    params: {
+      currentPassword: string;
+      newPassword: string;
+      clientIp: string;
+    },
   ): Promise<void> {
+    const { currentPassword, newPassword, clientIp } = params;
     const rateLimitKey = `${actorId}:${clientIp}`;
     await deps.changePasswordRateLimiter.check(rateLimitKey);
 
