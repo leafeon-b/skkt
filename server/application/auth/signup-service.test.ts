@@ -107,6 +107,29 @@ describe("SignupService", () => {
     expect(userStore.size).toBe(1);
   });
 
+  test("絵文字を含む名前が50コードポイント以内の場合は許可される", async () => {
+    const { deps, userStore } = createDeps();
+    const service = createSignupService(deps);
+    // 🎉 is 1 codepoint but 2 UTF-16 code units (String.length === 2)
+    const nameWithEmoji = "🎉".repeat(50);
+
+    const result = await service.signup({ ...validInput, name: nameWithEmoji });
+
+    expect(result).toEqual({ success: true, userId: expect.any(String) });
+    expect(userStore.size).toBe(1);
+  });
+
+  test("絵文字を含む名前が50コードポイントを超える場合 name_too_long を返す", async () => {
+    const { deps, userStore } = createDeps();
+    const service = createSignupService(deps);
+    const nameWithEmoji = "🎉".repeat(51);
+
+    const result = await service.signup({ ...validInput, name: nameWithEmoji });
+
+    expect(result).toEqual({ success: false, error: "name_too_long" });
+    expect(userStore.size).toBe(0);
+  });
+
   test("名前がnullの場合は name_too_long チェックをスキップする", async () => {
     const { deps, userStore } = createDeps();
     const service = createSignupService(deps);

@@ -42,7 +42,14 @@ export const meDtoSchema = userDtoSchema.extend({
 export type MeDto = z.infer<typeof meDtoSchema>;
 
 export const updateProfileInputSchema = z.object({
-  name: z.string().trim().min(1).max(USER_NAME_MAX_LENGTH).nullable(),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .refine((v) => [...v].length <= USER_NAME_MAX_LENGTH, {
+      message: `名前は${String(USER_NAME_MAX_LENGTH)}文字以内で入力してください`,
+    })
+    .nullable(),
   email: z.string().trim().min(1).max(USER_EMAIL_MAX_LENGTH).nullable(),
 });
 
