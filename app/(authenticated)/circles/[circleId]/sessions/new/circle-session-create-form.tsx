@@ -88,7 +88,7 @@ export function CircleSessionCreateForm({
       startsAt: new Date(startsAt),
       endsAt: new Date(endsAt),
       location: location.trim() || null,
-      note: note.trim() || undefined,
+      note: note.trim() || null,
     });
   };
 
