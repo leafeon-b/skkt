@@ -31,7 +31,7 @@ const createDeps = (
 };
 
 describe("SignupService", () => {
-  test("createUser が ConflictError をスローした場合 email_exists を返す", async () => {
+  test("createUser が ConflictError をスローした場合 signup_failed を返す", async () => {
     const { deps } = createDeps();
     // createUser を差し替えてレースコンディション（emailExists通過後のConflictError）を再現
     deps.userRepository.createUser = async () => {
@@ -41,7 +41,7 @@ describe("SignupService", () => {
 
     const result = await service.signup(validInput);
 
-    expect(result).toEqual({ success: false, error: "email_exists" });
+    expect(result).toEqual({ success: false, error: "signup_failed" });
   });
 
   test("agreedToTerms が false の場合 terms_not_agreed を返す", async () => {
