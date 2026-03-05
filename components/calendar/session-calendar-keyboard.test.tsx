@@ -6,14 +6,33 @@
  * mirrors the structure FullCalendar produces and re-import only the
  * component to exercise the keyboard-support effect.
  */
+import React from "react";
 import { cleanup, render } from "@testing-library/react";
 import type { DateClickArg } from "@fullcalendar/interaction";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Stub FullCalendar so the component can mount without the real library ──
 
+const mockView = {
+  type: "dayGridMonth",
+  title: "January 2025",
+  calendar: {},
+  currentStart: new Date("2025-01-01"),
+  currentEnd: new Date("2025-02-01"),
+  activeStart: new Date("2024-12-29"),
+  activeEnd: new Date("2025-02-02"),
+};
+
 vi.mock("@fullcalendar/react", () => ({
-  default: () => null,
+  default: React.forwardRef(function MockFullCalendar(
+    _props: Record<string, unknown>,
+    ref: React.Ref<unknown>,
+  ) {
+    React.useImperativeHandle(ref, () => ({
+      getApi: () => ({ view: mockView }),
+    }));
+    return null;
+  }),
 }));
 vi.mock("@fullcalendar/daygrid", () => ({ default: {} }));
 vi.mock("@fullcalendar/interaction", () => ({ default: {} }));
@@ -269,6 +288,7 @@ describe("SessionCalendar keyboard navigation", () => {
       expect(arg.jsEvent.type).toBe("click");
       expect(arg.jsEvent.clientX).toBe(0);
       expect(arg.jsEvent.button).toBe(0);
+      expect(arg.view).toHaveProperty("type", "dayGridMonth");
     });
   });
 
@@ -302,6 +322,7 @@ describe("SessionCalendar keyboard navigation", () => {
       const arg = onDateClick.mock.calls[0][0];
       expect(arg.jsEvent).toBeInstanceOf(MouseEvent);
       expect(arg.jsEvent.type).toBe("click");
+      expect(arg.view).toHaveProperty("type", "dayGridMonth");
     });
   });
 

@@ -250,15 +250,15 @@ export function SessionCalendar({
             case " ": {
               e.preventDefault();
               const dateStr = cell.getAttribute("data-date");
-              if (dateStr && onDateClickRef.current) {
+              const view = calendarRef.current?.getApi().view;
+              if (dateStr && view && onDateClickRef.current) {
                 onDateClickRef.current({
                   date: new Date(dateStr),
                   dateStr,
                   allDay: true,
                   dayEl: cell,
                   jsEvent: new MouseEvent("click"),
-                  view: calendarRef.current?.getApi().view ??
-                    ({} as DateClickArg["view"]),
+                  view,
                 });
               }
               break;
