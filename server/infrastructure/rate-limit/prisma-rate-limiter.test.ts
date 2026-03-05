@@ -28,9 +28,6 @@ describe("PrismaRateLimiter", () => {
   });
 
   test("制限内ならcheckはスローしない", async () => {
-    mockedPrisma.rateLimitAttempt.deleteMany.mockResolvedValueOnce({
-      count: 0,
-    });
     mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(2);
 
     const limiter = createPrismaRateLimiter(config);
@@ -38,9 +35,6 @@ describe("PrismaRateLimiter", () => {
   });
 
   test("maxAttempts到達でTooManyRequestsErrorをスロー", async () => {
-    mockedPrisma.rateLimitAttempt.deleteMany.mockResolvedValueOnce({
-      count: 0,
-    });
     mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(3);
     mockedPrisma.rateLimitAttempt.findFirst.mockResolvedValueOnce({
       attemptedAt: new Date(Date.now() - 10_000),
@@ -54,9 +48,6 @@ describe("PrismaRateLimiter", () => {
     const now = Date.now();
     const oldestAttemptedAt = new Date(now - 10_000); // 10秒前
 
-    mockedPrisma.rateLimitAttempt.deleteMany.mockResolvedValueOnce({
-      count: 0,
-    });
     mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(3);
     mockedPrisma.rateLimitAttempt.findFirst.mockResolvedValueOnce({
       attemptedAt: oldestAttemptedAt,
@@ -73,22 +64,7 @@ describe("PrismaRateLimiter", () => {
     );
   });
 
-  test("checkはトランザクション内で実行される", async () => {
-    mockedPrisma.rateLimitAttempt.deleteMany.mockResolvedValueOnce({
-      count: 0,
-    });
-    mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(0);
-
-    const limiter = createPrismaRateLimiter(config);
-    await limiter.check("user-1");
-
-    expect(mockedPrisma.$transaction).toHaveBeenCalledTimes(1);
-  });
-
   test("checkはkey, category, windowMsでフィルタする", async () => {
-    mockedPrisma.rateLimitAttempt.deleteMany.mockResolvedValueOnce({
-      count: 0,
-    });
     mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(0);
 
     const limiter = createPrismaRateLimiter(config);
@@ -103,7 +79,9 @@ describe("PrismaRateLimiter", () => {
     });
   });
 
-  test("checkは古いレコードをpruningする", async () => {
+  test("確率的pruningが発動した場合、トランザクション内でdeleteMany+countを実行する", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.05); // 0.1未満 → pruning発動
+
     mockedPrisma.rateLimitAttempt.deleteMany.mockResolvedValueOnce({
       count: 0,
     });
@@ -112,12 +90,29 @@ describe("PrismaRateLimiter", () => {
     const limiter = createPrismaRateLimiter(config);
     await limiter.check("user-1");
 
+    expect(mockedPrisma.$transaction).toHaveBeenCalledTimes(1);
     expect(mockedPrisma.rateLimitAttempt.deleteMany).toHaveBeenCalledWith({
       where: {
         category: "test",
         attemptedAt: { lt: expect.any(Date) },
       },
     });
+
+    vi.spyOn(Math, "random").mockRestore();
+  });
+
+  test("確率的pruningが発動しない場合、countのみ実行する", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.5); // 0.1以上 → pruningスキップ
+
+    mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(0);
+
+    const limiter = createPrismaRateLimiter(config);
+    await limiter.check("user-1");
+
+    expect(mockedPrisma.$transaction).not.toHaveBeenCalled();
+    expect(mockedPrisma.rateLimitAttempt.deleteMany).not.toHaveBeenCalled();
+
+    vi.spyOn(Math, "random").mockRestore();
   });
 
   test("recordFailureはレコードを作成する", async () => {
@@ -155,7 +150,7 @@ describe("PrismaRateLimiter", () => {
       const consoleErrorSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => {});
-      mockedPrisma.$transaction.mockRejectedValueOnce(
+      mockedPrisma.rateLimitAttempt.count.mockRejectedValueOnce(
         new Error("DB connection failed"),
       );
 

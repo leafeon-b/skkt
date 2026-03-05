@@ -17,22 +17,34 @@ export const createPrismaRateLimiter = (
         const now = Date.now();
         const windowStart = new Date(now - config.windowMs);
 
-        // pruning + count をトランザクションで実行（競合状態を防止）
-        const [, count] = await prisma.$transaction([
-          prisma.rateLimitAttempt.deleteMany({
-            where: {
-              category: config.category,
-              attemptedAt: { lt: windowStart },
-            },
-          }),
-          prisma.rateLimitAttempt.count({
-            where: {
-              key,
-              category: config.category,
-              attemptedAt: { gte: windowStart },
-            },
-          }),
-        ]);
+        // 確率的 pruning: 約10%の確率で期限切れレコードを削除（書き込み増幅の軽減）
+        const shouldPrune = Math.random() < 0.1;
+
+        const count = shouldPrune
+          ? (
+              await prisma.$transaction([
+                prisma.rateLimitAttempt.deleteMany({
+                  where: {
+                    category: config.category,
+                    attemptedAt: { lt: windowStart },
+                  },
+                }),
+                prisma.rateLimitAttempt.count({
+                  where: {
+                    key,
+                    category: config.category,
+                    attemptedAt: { gte: windowStart },
+                  },
+                }),
+              ])
+            )[1]
+          : await prisma.rateLimitAttempt.count({
+              where: {
+                key,
+                category: config.category,
+                attemptedAt: { gte: windowStart },
+              },
+            });
 
         if (count >= config.maxAttempts) {
           const oldest = await prisma.rateLimitAttempt.findFirst({
