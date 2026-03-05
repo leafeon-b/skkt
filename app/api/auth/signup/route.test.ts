@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { createServiceContainer } from "@/server/infrastructure/service-container";
 import { type UserId } from "@/server/domain/common/ids";
 import {
   createMockDeps,
+  createServiceContainer,
   toServiceContainerDeps,
 } from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 
