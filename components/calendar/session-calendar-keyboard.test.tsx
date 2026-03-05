@@ -262,16 +262,17 @@ describe("SessionCalendar keyboard navigation", () => {
       press(cells[10], "Enter");
 
       expect(onDateClick).toHaveBeenCalledOnce();
-      expect(onDateClick).toHaveBeenCalledWith(
-        expect.objectContaining({
-          dateStr: "2025-01-11",
-          allDay: true,
-        }),
-      );
+      const arg = onDateClick.mock.calls[0][0];
+      expect(arg.dateStr).toBe("2025-01-11");
+      expect(arg.allDay).toBe(true);
+      expect(arg.jsEvent).toBeInstanceOf(MouseEvent);
+      expect(arg.jsEvent.type).toBe("click");
+      expect(arg.jsEvent.clientX).toBe(0);
+      expect(arg.jsEvent.button).toBe(0);
     });
   });
 
-  it("Space triggers onDateClick", () => {
+  it("Space triggers onDateClick with valid jsEvent", () => {
     const onDateClick = vi.fn();
 
     document.body.innerHTML = "";
@@ -298,6 +299,9 @@ describe("SessionCalendar keyboard navigation", () => {
       press(cells[10], " ");
 
       expect(onDateClick).toHaveBeenCalledOnce();
+      const arg = onDateClick.mock.calls[0][0];
+      expect(arg.jsEvent).toBeInstanceOf(MouseEvent);
+      expect(arg.jsEvent.type).toBe("click");
     });
   });
 
