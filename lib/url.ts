@@ -54,3 +54,11 @@ export function sanitizeCallbackUrl(url: string | undefined): string {
 
   return DEFAULT_CALLBACK;
 }
+
+const GOOGLE_FORMS_URL_PATTERN = /^https:\/\/docs\.google\.com\/forms\//;
+
+export function validateContactFormUrl(
+  raw: string | undefined,
+): string | undefined {
+  return raw && GOOGLE_FORMS_URL_PATTERN.test(raw) ? raw : undefined;
+}

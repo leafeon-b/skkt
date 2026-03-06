@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { sanitizeCallbackUrl } from "./url";
+import { sanitizeCallbackUrl, validateContactFormUrl } from "./url";
 
 describe("sanitizeCallbackUrl", () => {
   it("returns /home for undefined", () => {
@@ -132,5 +132,49 @@ describe("sanitizeCallbackUrl", () => {
         "/home",
       );
     });
+  });
+});
+
+describe("validateContactFormUrl", () => {
+  it("正しい Google Forms URL はそのまま返す", () => {
+    expect(
+      validateContactFormUrl(
+        "https://docs.google.com/forms/d/e/xxx/viewform",
+      ),
+    ).toBe("https://docs.google.com/forms/d/e/xxx/viewform");
+  });
+
+  it("パスなしの Google Forms URL はそのまま返す", () => {
+    expect(
+      validateContactFormUrl("https://docs.google.com/forms/"),
+    ).toBe("https://docs.google.com/forms/");
+  });
+
+  it("サブパス付きの Google Forms URL はそのまま返す", () => {
+    expect(
+      validateContactFormUrl(
+        "https://docs.google.com/forms/d/e/1FAIpQLSfxxx/viewform?usp=sf_link",
+      ),
+    ).toBe(
+      "https://docs.google.com/forms/d/e/1FAIpQLSfxxx/viewform?usp=sf_link",
+    );
+  });
+
+  it("javascript: URI は undefined を返す", () => {
+    expect(validateContactFormUrl("javascript:alert(1)")).toBeUndefined();
+  });
+
+  it("異なるドメインの URL は undefined を返す", () => {
+    expect(
+      validateContactFormUrl("https://evil.com/forms/"),
+    ).toBeUndefined();
+  });
+
+  it("undefined は undefined を返す", () => {
+    expect(validateContactFormUrl(undefined)).toBeUndefined();
+  });
+
+  it("空文字は undefined を返す", () => {
+    expect(validateContactFormUrl("")).toBeUndefined();
   });
 });

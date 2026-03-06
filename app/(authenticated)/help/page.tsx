@@ -1,3 +1,4 @@
+import { validateContactFormUrl } from "@/lib/url";
 import { ExternalLink } from "lucide-react";
 
 type PermissionRow = {
@@ -99,13 +100,9 @@ function renderPermissionCell(value: string, noteId?: string) {
   }
 }
 
-const GOOGLE_FORMS_URL_PATTERN = /^https:\/\/docs\.google\.com\/forms\//;
-
-const rawContactFormUrl = process.env.NEXT_PUBLIC_CONTACT_FORM_URL;
-const contactFormUrl =
-  rawContactFormUrl && GOOGLE_FORMS_URL_PATTERN.test(rawContactFormUrl)
-    ? rawContactFormUrl
-    : undefined;
+const contactFormUrl = validateContactFormUrl(
+  process.env.NEXT_PUBLIC_CONTACT_FORM_URL,
+);
 
 export default function HelpPage() {
   return (
