@@ -167,8 +167,8 @@ vi.mock("@/server/presentation/trpc/context", () => ({
 
 ## テストアカウント（db:seed後）
 
-対象研究会: 「京大将棋研究会」（circleId: `demo`）
+対象研究会: 「さくら将棋研究会」（circleId: `demo`）
 
-- オーナー: sota@example.com / demo-pass-1
-- マネージャー: hanyu@example.com / demo-pass-2, watanabe@example.com / demo-pass-3
-- メンバー: ito@example.com / demo-pass-4
+- オーナー: taro@example.com / demo-pass-1
+- マネージャー: hanako@example.com / demo-pass-2, ichiro@example.com / demo-pass-3
+- メンバー: jiro@example.com / demo-pass-4

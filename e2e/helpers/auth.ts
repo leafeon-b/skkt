@@ -2,7 +2,7 @@ import { type Page, expect } from "@playwright/test";
 
 export async function login(
   page: Page,
-  email = "sota@example.com",
+  email = "taro@example.com",
   password = "demo-pass-1",
 ) {
   await page.goto("/");

@@ -296,14 +296,14 @@ describe("CircleSessionDetailView 複製ボタン", () => {
 const twoMemberships = [
   {
     id: "p1",
-    name: "藤井太郎",
+    name: "山田 太郎",
     role: "member" as const,
     canChangeRole: false,
     canRemoveMember: false,
   },
   {
     id: "p2",
-    name: "羽生次郎",
+    name: "鈴木 花子",
     role: "member" as const,
     canChangeRole: false,
     canRemoveMember: false,

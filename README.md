@@ -60,14 +60,14 @@ npx vitest
 - メール+パスワードでログインする場合は `http://localhost:3000/signup` からアカウントを作成する
 - 作成後はトップ画面のフォームからサインインできる
 - `npm run db:reset` でシードした場合のロール別確認用アカウント
-- 対象の研究会: 「京大将棋研究会」（circleId: `demo`）
+- 対象の研究会: 「さくら将棋研究会」（circleId: `demo`）
 - 対象のセッション: 「第42回 週末研究会」（circleSessionId: `demo-session-42`）
-- 研究会オーナー: sota@example.com / demo-pass-1
-- 研究会マネージャー: hanyu@example.com / demo-pass-2, watanabe@example.com / demo-pass-3
-- 研究会メンバー: ito@example.com / demo-pass-4
-- セッションオーナー（`demo-session-42`）: sota@example.com / demo-pass-1
-- セッションマネージャー（`demo-session-42`）: toyoshima@example.com / demo-pass-5, nagase@example.com / demo-pass-6
-- セッションメンバー（`demo-session-42`）: sasaki@example.com / demo-pass-7, sugai@example.com / demo-pass-8
+- 研究会オーナー: taro@example.com / demo-pass-1
+- 研究会マネージャー: hanako@example.com / demo-pass-2, ichiro@example.com / demo-pass-3
+- 研究会メンバー: jiro@example.com / demo-pass-4
+- セッションオーナー（`demo-session-42`）: taro@example.com / demo-pass-1
+- セッションマネージャー（`demo-session-42`）: misaki@example.com / demo-pass-5, kenta@example.com / demo-pass-6
+- セッションメンバー（`demo-session-42`）: sakura@example.com / demo-pass-7, daisuke@example.com / demo-pass-8
 - 変更時は `prisma/seed.ts` の `demoUsers` とあわせて更新する
 
 # 使用している技術・ライブラリ・フレームワーク

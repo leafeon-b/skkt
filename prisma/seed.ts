@@ -30,8 +30,8 @@ type DemoUserSeed = {
 const demoUsers: DemoUserSeed[] = [
   {
     id: "user-1",
-    name: "藤井 聡太",
-    email: "sota@example.com",
+    name: "山田 太郎",
+    email: "taro@example.com",
     passwordHash:
       "scrypt$5jteFLxOGwBIhQkuKyZq/w==$Cpp2UvzMDGI6A4nQsmMPTKberD9/ID/CA+0zNz3FJJ4QkrR36iQ6olMP/9YYaTtrNSzX6qn4qW+fRQ6kyRF6yQ==",
     circleRole: CircleRole.CircleOwner,
@@ -48,24 +48,24 @@ const demoUsers: DemoUserSeed[] = [
   },
   {
     id: "user-2",
-    name: "羽生 善治",
-    email: "hanyu@example.com",
+    name: "鈴木 花子",
+    email: "hanako@example.com",
     passwordHash:
       "scrypt$LB/WpSUVa4YAq/mw6ooWeQ==$psMSAlyc9B8JVAf/BUGzOo0gO709Ej73xiGjKIlzlRse5jEEK2i76FesK5Si/a0XRMxUZ7L3SB02oYK4V4PYnQ==",
     circleRole: CircleRole.CircleManager,
   },
   {
     id: "user-3",
-    name: "渡辺 明",
-    email: "watanabe@example.com",
+    name: "田中 一郎",
+    email: "ichiro@example.com",
     passwordHash:
       "scrypt$ghXg41bEALR5yYMcQ5UrPw==$5r70+5O1QPJYBlI0qHGqqaLHCAUoyahC29MBQhxDAHCdhq7N6j2DYh7FS1Sj8SWgZqCDPYnxEIVqY3K/HqrMRQ==",
     circleRole: CircleRole.CircleManager,
   },
   {
     id: "user-4",
-    name: "伊藤 匠",
-    email: "ito@example.com",
+    name: "高橋 次郎",
+    email: "jiro@example.com",
     passwordHash:
       "scrypt$+u68AJg5EEaLBgknMx+9JQ==$CFvEjebQhpCfSPe57BW5aPfV8L0YAduMmYbp5NT8d4a9c4v2/SmFkc/T7wfpemS6zzVmLAhQGIDP43W7SFB8Uw==",
     circleRole: CircleRole.CircleMember,
@@ -82,8 +82,8 @@ const demoUsers: DemoUserSeed[] = [
   },
   {
     id: "user-5",
-    name: "豊島 将之",
-    email: "toyoshima@example.com",
+    name: "中村 美咲",
+    email: "misaki@example.com",
     passwordHash:
       "scrypt$wlX3QQxWcvETK6Ym5ejDTQ==$JxuLdzMch3QF/vCia3D8qkSalj2cFzGYRELLUHW21eLrfRcjtJIHtTs5vVh7wC+oYX49mgxBXBaHPL6m7rSc2Q==",
     sessionRoles: [
@@ -99,8 +99,8 @@ const demoUsers: DemoUserSeed[] = [
   },
   {
     id: "user-6",
-    name: "永瀬 拓矢",
-    email: "nagase@example.com",
+    name: "小林 健太",
+    email: "kenta@example.com",
     passwordHash:
       "scrypt$dewvJFQLnkLZwe/p5NxpfA==$6idej0tvQyepO4xJDK+rrbPAM+B9UakP4D4/OeXDjenceUl89kurJjCl06Sb03Vd286D1DfGHU1b4CWqkw2BvQ==",
     sessionRoles: [
@@ -112,8 +112,8 @@ const demoUsers: DemoUserSeed[] = [
   },
   {
     id: "user-7",
-    name: "佐々木 勇気",
-    email: "sasaki@example.com",
+    name: "加藤 さくら",
+    email: "sakura@example.com",
     passwordHash:
       "scrypt$3gd5OcI1qlKw5iI6+UVTRQ==$R3pKeUNut2vV+yVS6pjmDvwqE3S0LjnflI1NcPdN8X8uIJo6KUB6ygVjz4/QD3IPBu+Mw+fnuGpDpr8UgRYWFQ==",
     sessionRoles: [
@@ -125,8 +125,8 @@ const demoUsers: DemoUserSeed[] = [
   },
   {
     id: "user-8",
-    name: "菅井 竜也",
-    email: "sugai@example.com",
+    name: "吉田 大輔",
+    email: "daisuke@example.com",
     passwordHash:
       "scrypt$lhDwOyRHnhI6aKEy91iRtg==$M+E+IOBx+PuxF7OHwYbAJ2ML77lGn3BdNWlBlOc5Urm2o/5M/bQOET3YtbHv7WZEM3Q31T6k7I15wH/8XHX0Xw==",
     sessionRoles: [
@@ -138,7 +138,7 @@ const demoUsers: DemoUserSeed[] = [
   },
 ];
 
-// --- 阪大将棋研究会（10人）---
+// --- あおば将棋研究会（10人）---
 // パスワードはすべて demo-pass-1
 const demoPassHash =
   "scrypt$5jteFLxOGwBIhQkuKyZq/w==$Cpp2UvzMDGI6A4nQsmMPTKberD9/ID/CA+0zNz3FJJ4QkrR36iQ6olMP/9YYaTtrNSzX6qn4qW+fRQ6kyRF6yQ==";
@@ -154,8 +154,8 @@ type OsakaUserSeed = {
 const osakaUsers: OsakaUserSeed[] = [
   {
     id: "user-9",
-    name: "中村 太地",
-    email: "nakamura@example.com",
+    name: "松本 陽子",
+    email: "yoko@example.com",
     circleRole: CircleRole.CircleOwner,
     sessionRoles: [
       {
@@ -170,8 +170,8 @@ const osakaUsers: OsakaUserSeed[] = [
   },
   {
     id: "user-10",
-    name: "斎藤 慎太郎",
-    email: "saito@example.com",
+    name: "井上 翔",
+    email: "sho@example.com",
     circleRole: CircleRole.CircleManager,
     sessionRoles: [
       {
@@ -186,8 +186,8 @@ const osakaUsers: OsakaUserSeed[] = [
   },
   {
     id: "user-11",
-    name: "広瀬 章人",
-    email: "hirose@example.com",
+    name: "木村 蓮",
+    email: "ren@example.com",
     circleRole: CircleRole.CircleMember,
     sessionRoles: [
       {
@@ -202,8 +202,8 @@ const osakaUsers: OsakaUserSeed[] = [
   },
   {
     id: "user-12",
-    name: "木村 一基",
-    email: "kimura@example.com",
+    name: "林 あかり",
+    email: "akari@example.com",
     circleRole: CircleRole.CircleMember,
     sessionRoles: [
       {
@@ -214,8 +214,8 @@ const osakaUsers: OsakaUserSeed[] = [
   },
   {
     id: "user-13",
-    name: "糸谷 哲郎",
-    email: "itodani@example.com",
+    name: "清水 悠人",
+    email: "yuto@example.com",
     circleRole: CircleRole.CircleMember,
     sessionRoles: [
       {
@@ -226,8 +226,8 @@ const osakaUsers: OsakaUserSeed[] = [
   },
   {
     id: "user-14",
-    name: "稲葉 陽",
-    email: "inaba@example.com",
+    name: "森 結衣",
+    email: "yui@example.com",
     circleRole: CircleRole.CircleMember,
     sessionRoles: [
       {
@@ -238,8 +238,8 @@ const osakaUsers: OsakaUserSeed[] = [
   },
   {
     id: "user-15",
-    name: "佐藤 天彦",
-    email: "sato@example.com",
+    name: "池田 拓海",
+    email: "takumi@example.com",
     circleRole: CircleRole.CircleMember,
     sessionRoles: [
       {
@@ -250,8 +250,8 @@ const osakaUsers: OsakaUserSeed[] = [
   },
   {
     id: "user-16",
-    name: "三浦 弘行",
-    email: "miura@example.com",
+    name: "山本 七海",
+    email: "nanami@example.com",
     circleRole: CircleRole.CircleMember,
     sessionRoles: [
       {
@@ -262,14 +262,14 @@ const osakaUsers: OsakaUserSeed[] = [
   },
   {
     id: "user-17",
-    name: "久保 利明",
-    email: "kubo@example.com",
+    name: "石田 颯太",
+    email: "sota-i@example.com",
     circleRole: CircleRole.CircleMember,
   },
   {
     id: "user-18",
-    name: "深浦 康市",
-    email: "fukaura@example.com",
+    name: "渡辺 彩花",
+    email: "ayaka@example.com",
     circleRole: CircleRole.CircleMember,
   },
 ];
@@ -290,8 +290,8 @@ const users = [
 ];
 
 const circles = [
-  { id: "demo", name: "京大将棋研究会" },
-  { id: "demo-osaka", name: "阪大将棋研究会" },
+  { id: "demo", name: "さくら将棋研究会" },
+  { id: "demo-osaka", name: "あおば将棋研究会" },
 ];
 
 const circleMemberships = [
@@ -318,7 +318,7 @@ const sessions = [
     title: "冬季対局会",
     startsAt: new Date("2025-02-11T18:00:00+09:00"),
     endsAt: new Date("2025-02-11T21:00:00+09:00"),
-    location: "京都キャンパス A",
+    location: "さくらホール A",
     note: "",
   },
   {
@@ -327,7 +327,7 @@ const sessions = [
     title: "第41回 週末研究会",
     startsAt: new Date("2025-02-26T18:00:00+09:00"),
     endsAt: new Date("2025-02-26T21:00:00+09:00"),
-    location: "京都キャンパス A",
+    location: "さくらホール A",
     note: "",
   },
   {
@@ -355,7 +355,7 @@ const sessions = [
     title: "第1回 練習会",
     startsAt: new Date("2026-03-05T18:00:00+09:00"),
     endsAt: new Date("2026-03-05T21:00:00+09:00"),
-    location: "豊中キャンパス B棟",
+    location: "あおばセンター B棟",
     note: "少人数での練習会",
   },
   // 阪大 セッション（8人参加）
@@ -365,7 +365,7 @@ const sessions = [
     title: "春季大会",
     startsAt: new Date("2026-03-19T13:00:00+09:00"),
     endsAt: new Date("2026-03-19T18:00:00+09:00"),
-    location: "豊中キャンパス 大会議室",
+    location: "あおばセンター 大会議室",
     note: "総当たり戦を予定",
   },
 ];

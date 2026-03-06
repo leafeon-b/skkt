@@ -216,7 +216,7 @@ describe("CircleSession セッションメンバーシップサービス", () =>
   test("listByUserId は参加回の要約を返す", async () => {
     await circleRepository.save({
       id: circleId("circle-1"),
-      name: "京大将棋研究会",
+      name: "さくら将棋研究会",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
     await circleSessionRepository.save(
@@ -226,7 +226,7 @@ describe("CircleSession セッションメンバーシップサービス", () =>
         title: "第1回 研究会",
         startsAt: new Date("2024-02-01T10:00:00Z"),
         endsAt: new Date("2024-02-01T12:00:00Z"),
-        location: "京都キャンパス A",
+        location: "さくらホール A",
         note: "",
         createdAt: new Date("2024-02-01T00:00:00Z"),
       }),
@@ -260,7 +260,7 @@ describe("CircleSession セッションメンバーシップサービス", () =>
     });
 
     expect(result).toHaveLength(2);
-    expect(result[0]?.circleName).toBe("京大将棋研究会");
+    expect(result[0]?.circleName).toBe("さくら将棋研究会");
     expect(result[0]?.title).toBe("第2回 研究会");
   });
 

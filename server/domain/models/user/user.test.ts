@@ -17,14 +17,14 @@ describe("User ドメイン", () => {
     const createdAt = new Date("2024-01-01T00:00:00Z");
     const user = createUser({
       id: userId("user-2"),
-      name: "Sota Fujii",
-      email: "sota@example.com",
+      name: "Taro Yamada",
+      email: "taro@example.com",
       image: "https://example.com/avatar.png",
       createdAt,
     });
 
-    expect(user.name).toBe("Sota Fujii");
-    expect(user.email).toBe("sota@example.com");
+    expect(user.name).toBe("Taro Yamada");
+    expect(user.email).toBe("taro@example.com");
     expect(user.image).toBe("https://example.com/avatar.png");
     expect(user.createdAt).toBe(createdAt);
   });

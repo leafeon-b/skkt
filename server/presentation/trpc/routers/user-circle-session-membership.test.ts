@@ -81,7 +81,7 @@ const createTestContext = (
 const baseSummary = (overrides?: Record<string, unknown>) => ({
   circleSessionId: circleSessionId("session-1"),
   circleId: circleId("circle-1"),
-  circleName: "京大将棋研究会",
+  circleName: "さくら将棋研究会",
   title: "第1回例会",
   startsAt: new Date("2024-06-01T13:00:00Z"),
   endsAt: new Date("2024-06-01T17:00:00Z"),
@@ -109,7 +109,7 @@ describe("userCircleSessionMembership tRPC ルーター", () => {
       expect(result).toHaveLength(1);
       expect(result[0].circleSessionId).toBe("session-1");
       expect(result[0].circleId).toBe("circle-1");
-      expect(result[0].circleName).toBe("京大将棋研究会");
+      expect(result[0].circleName).toBe("さくら将棋研究会");
       expect(result[0].title).toBe("第1回例会");
       expect(result[0].location).toBe("部室");
     });

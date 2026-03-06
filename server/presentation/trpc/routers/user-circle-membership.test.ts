@@ -89,7 +89,7 @@ describe("userCircleMembership tRPC ルーター", () => {
       mocks.circleMembershipService.listByUserId.mockResolvedValueOnce([
         {
           circleId: circleId("circle-1"),
-          circleName: "京大将棋研究会",
+          circleName: "さくら将棋研究会",
           role: "CircleMember",
         },
         {
@@ -104,7 +104,7 @@ describe("userCircleMembership tRPC ルーター", () => {
 
       expect(result).toHaveLength(2);
       expect(result[0].circleId).toBe("circle-1");
-      expect(result[0].circleName).toBe("京大将棋研究会");
+      expect(result[0].circleName).toBe("さくら将棋研究会");
       expect(result[0].role).toBe("CircleMember");
       expect(result[1].circleId).toBe("circle-2");
       expect(result[1].role).toBe("CircleOwner");

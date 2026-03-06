@@ -22,8 +22,8 @@ const defaultPairMatches: PairMatchEntry[] = [
 ];
 
 const outcomeOptions: Array<{ value: RowOutcome; label: string }> = [
-  { value: "ROW_WIN", label: "藤井太郎の勝ち" },
-  { value: "ROW_LOSS", label: "羽生次郎の勝ち" },
+  { value: "ROW_WIN", label: "山田 太郎の勝ち" },
+  { value: "ROW_LOSS", label: "鈴木 花子の勝ち" },
   { value: "DRAW", label: "引き分け" },
   { value: "UNKNOWN", label: "未記録" },
 ];
@@ -34,8 +34,8 @@ function buildDefaultProps(
   return {
     activeDialog: { mode: "add", rowId: "row-1", columnId: "col-1" },
     dialogTitle: "対局結果の入力",
-    dialogRowName: "藤井太郎",
-    dialogColumnName: "羽生次郎",
+    dialogRowName: "山田 太郎",
+    dialogColumnName: "鈴木 花子",
     activePairMatches: defaultPairMatches,
     selectedMatch: defaultPairMatches[0],
     selectedOutcome: "ROW_WIN",
@@ -227,13 +227,13 @@ describe("MatchDialog", () => {
       render(
         <MatchDialog
           {...buildDefaultProps({
-            dialogRowName: "藤井太郎",
-            dialogColumnName: "羽生次郎",
+            dialogRowName: "山田 太郎",
+            dialogColumnName: "鈴木 花子",
           })}
         />,
       );
 
-      expect(screen.getByText("藤井太郎 × 羽生次郎")).toBeInTheDocument();
+      expect(screen.getByText("山田 太郎 × 鈴木 花子")).toBeInTheDocument();
     });
 
     it("キャンセルボタンクリック時に closeDialog が呼ばれる", async () => {
