@@ -63,13 +63,11 @@ async function openDialog() {
 }
 
 describe("CircleCreateDialog", () => {
-  it("空入力で送信ボタンクリックしても mutate が呼ばれない", async () => {
-    const { user, dialog } = await openDialog();
+  it("研究会名の入力欄に required 属性が付与されている", async () => {
+    const { dialog } = await openDialog();
 
-    const submitButton = within(dialog).getByRole("button", { name: "作成" });
-    await user.click(submitButton);
-
-    expect(mutateSpyRef.current).not.toHaveBeenCalled();
+    const input = within(dialog).getByPlaceholderText("研究会名");
+    expect(input).toBeRequired();
   });
 
   it("有効な名前入力後に送信すると mutate が呼ばれる", async () => {
@@ -152,7 +150,7 @@ describe("CircleCreateDialog", () => {
     );
   });
 
-  it("空白のみの入力では送信ボタンクリックしても mutate が呼ばれない", async () => {
+  it("空白のみの入力では trim 後の空文字列で mutate が呼ばれる", async () => {
     const { user, dialog } = await openDialog();
 
     const input = within(dialog).getByPlaceholderText("研究会名");
@@ -161,7 +159,7 @@ describe("CircleCreateDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "作成" });
     await user.click(submitButton);
 
-    expect(mutateSpyRef.current).not.toHaveBeenCalled();
+    expect(mutateSpyRef.current).toHaveBeenCalledWith({ name: "" });
   });
 
   it("前後の空白を除去して mutate が呼ばれる", async () => {

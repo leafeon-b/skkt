@@ -34,9 +34,7 @@ export function CircleCreateDialog() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmed = name.trim();
-    if (!trimmed || createCircle.isPending) {
-      return;
-    }
+    if (createCircle.isPending) return;
     createCircle.mutate({ name: trimmed });
   };
 
@@ -91,7 +89,7 @@ export function CircleCreateDialog() {
             onChange={(event) => setName(event.target.value)}
             placeholder="研究会名"
             maxLength={CIRCLE_NAME_MAX_LENGTH}
-            aria-required="true"
+            required
             className="mt-2 bg-white"
           />
           <CharacterCounter
