@@ -49,10 +49,8 @@ const baseSession = () =>
   });
 
 beforeEach(async () => {
-  circleSessionRepository._sessionStore.clear();
-  circleSessionRepository._membershipStore.clear();
-  circleRepository._circleStore.clear();
-  circleRepository._membershipStore.clear();
+  circleSessionRepository._clear();
+  circleRepository._clear();
   vi.clearAllMocks();
   await circleSessionRepository.save(baseSession());
   vi.mocked(accessService.canListOwnCircles).mockResolvedValue(true);

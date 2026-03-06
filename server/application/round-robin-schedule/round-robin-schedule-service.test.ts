@@ -16,10 +16,14 @@ import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
 const createMockRoundRobinScheduleRepository =
   (): RoundRobinScheduleRepository & {
     _store: Map<string, RoundRobinSchedule>;
+    _clear: () => void;
   } => {
     const store = new Map<string, RoundRobinSchedule>();
     return {
       _store: store,
+      _clear() {
+        store.clear();
+      },
       async findByCircleSessionId(
         csId: CircleSessionId,
       ): Promise<RoundRobinSchedule | null> {
@@ -71,9 +75,8 @@ const addMembers = async (count: number) => {
 };
 
 beforeEach(async () => {
-  roundRobinScheduleRepository._store.clear();
-  circleSessionRepository._sessionStore.clear();
-  circleSessionRepository._membershipStore.clear();
+  roundRobinScheduleRepository._clear();
+  circleSessionRepository._clear();
   vi.clearAllMocks();
 
   await circleSessionRepository.save(baseSession());

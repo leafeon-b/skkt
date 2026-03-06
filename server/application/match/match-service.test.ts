@@ -61,9 +61,8 @@ const addSessionMemberships = async () => {
 };
 
 beforeEach(async () => {
-  matchRepository._store.clear();
-  circleSessionRepository._sessionStore.clear();
-  circleSessionRepository._membershipStore.clear();
+  matchRepository._clear();
+  circleSessionRepository._clear();
   vi.clearAllMocks();
   await circleSessionRepository.save(baseSession());
   await addSessionMemberships();

@@ -21,9 +21,15 @@ export const createInMemoryCircleSessionRepository = (
 ): CircleSessionRepository & {
   readonly _sessionStore: CircleSessionStore;
   readonly _membershipStore: CircleSessionMembershipStore;
+  _clear(): void;
 } => ({
   _sessionStore: sessionStore,
   _membershipStore: membershipStore,
+
+  _clear() {
+    sessionStore.clear();
+    membershipStore.clear();
+  },
 
   async findById(id: CircleSessionId): Promise<CircleSession | null> {
     return sessionStore.get(id) ?? null;

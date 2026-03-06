@@ -18,8 +18,7 @@ const service = createCircleService({
 });
 
 beforeEach(() => {
-  circleRepository._circleStore.clear();
-  circleRepository._membershipStore.clear();
+  circleRepository._clear();
   vi.clearAllMocks();
   vi.mocked(accessService.canCreateCircle).mockResolvedValue(true);
   vi.mocked(accessService.canEditCircle).mockResolvedValue(true);

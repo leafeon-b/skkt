@@ -43,8 +43,7 @@ const baseCircle = () => ({
 });
 
 beforeEach(async () => {
-  circleRepository._circleStore.clear();
-  circleRepository._membershipStore.clear();
+  circleRepository._clear();
   vi.clearAllMocks();
   await circleRepository.save(baseCircle());
   vi.mocked(accessService.canViewCircle).mockResolvedValue(true);
