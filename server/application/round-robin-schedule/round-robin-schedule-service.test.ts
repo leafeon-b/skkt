@@ -16,6 +16,7 @@ import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
 const createMockRoundRobinScheduleRepository =
   (): RoundRobinScheduleRepository & {
     _store: Map<string, RoundRobinSchedule>;
+    _clear: () => void;
   } => {
     const store = new Map<string, RoundRobinSchedule>();
     return {
