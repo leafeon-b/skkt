@@ -8,8 +8,13 @@ export const createInMemoryCircleInviteLinkRepository = (
   store: CircleInviteLinkStore = new Map(),
 ): CircleInviteLinkRepository & {
   readonly _store: CircleInviteLinkStore;
+  _clear(): void;
 } => ({
   _store: store,
+
+  _clear() {
+    store.clear();
+  },
 
   async findByToken(token: InviteLinkToken): Promise<CircleInviteLink | null> {
     for (const link of store.values()) {

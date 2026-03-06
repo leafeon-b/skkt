@@ -17,8 +17,12 @@ export const createInMemoryMatchRepository = (
     circleSessionStore: CircleSessionStore;
     circleStore: CircleStore;
   },
-): MatchRepository & { readonly _store: MatchStore } => ({
+): MatchRepository & { readonly _store: MatchStore; _clear(): void } => ({
   _store: matchStore,
+
+  _clear() {
+    matchStore.clear();
+  },
 
   async findById(id: MatchId): Promise<Match | null> {
     return matchStore.get(id) ?? null;
