@@ -125,4 +125,41 @@ describe("Prisma Authz リポジトリ", () => {
 
     expect(membership).toEqual({ kind: "none" });
   });
+
+  test("findCircleMembership は論理削除済みメンバーに none を返す", async () => {
+    // deletedAt: null 条件により論理削除済みレコードはヒットしない
+    mockedPrisma.circleMembership.findFirst.mockResolvedValueOnce(null);
+
+    const membership = await prismaAuthzRepository.findCircleMembership(
+      "user-1",
+      "circle-1",
+    );
+
+    expect(mockedPrisma.circleMembership.findFirst).toHaveBeenCalledWith({
+      where: { userId: "user-1", circleId: "circle-1", deletedAt: null },
+      select: { role: true },
+    });
+    expect(membership).toEqual({ kind: "none" });
+  });
+
+  test("findCircleSessionMembership は論理削除済みメンバーに none を返す", async () => {
+    mockedPrisma.circleSessionMembership.findFirst.mockResolvedValueOnce(null);
+
+    const membership = await prismaAuthzRepository.findCircleSessionMembership(
+      "user-1",
+      "session-1",
+    );
+
+    expect(mockedPrisma.circleSessionMembership.findFirst).toHaveBeenCalledWith(
+      {
+        where: {
+          userId: "user-1",
+          circleSessionId: "session-1",
+          deletedAt: null,
+        },
+        select: { role: true },
+      },
+    );
+    expect(membership).toEqual({ kind: "none" });
+  });
 });
