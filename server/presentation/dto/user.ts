@@ -50,7 +50,7 @@ export const updateProfileInputSchema = z.object({
       message: `名前は${String(USER_NAME_MAX_LENGTH)}文字以内で入力してください`,
     })
     .nullable(),
-  email: z.string().trim().min(1).max(USER_EMAIL_MAX_LENGTH).nullable(),
+  email: z.string().trim().min(1).email().max(USER_EMAIL_MAX_LENGTH).nullable(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
