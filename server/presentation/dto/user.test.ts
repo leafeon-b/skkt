@@ -38,4 +38,31 @@ describe("updateProfileInputSchema", () => {
 
     expect(result.success).toBe(false);
   });
+
+  test("不正な形式のメールアドレスはバリデーション失敗", () => {
+    const result = updateProfileInputSchema.safeParse({
+      name: "テスト",
+      email: "invalid-email",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  test("メールアドレスがnullの場合はバリデーション成功", () => {
+    const result = updateProfileInputSchema.safeParse({
+      name: "テスト",
+      email: null,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  test("空白のみのメールアドレスはバリデーション失敗", () => {
+    const result = updateProfileInputSchema.safeParse({
+      name: "テスト",
+      email: "   ",
+    });
+
+    expect(result.success).toBe(false);
+  });
 });
