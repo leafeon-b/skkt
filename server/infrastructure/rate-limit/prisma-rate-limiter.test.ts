@@ -145,6 +145,62 @@ describe("PrismaRateLimiter", () => {
     });
   });
 
+  test("異なるキー間で試行回数は独立している", async () => {
+    mockedPrisma.rateLimitAttempt.count
+      .mockResolvedValueOnce(3) // key-A: maxAttempts到達
+      .mockResolvedValueOnce(0); // key-B: 試行なし
+
+    mockedPrisma.rateLimitAttempt.findFirst.mockResolvedValueOnce({
+      attemptedAt: new Date(Date.now() - 10_000),
+    } as never);
+
+    const limiter = createPrismaRateLimiter(config);
+
+    await expect(limiter.check("key-A")).rejects.toThrow(TooManyRequestsError);
+    await expect(limiter.check("key-B")).resolves.toBeUndefined();
+  });
+
+  describe("境界値: maxAttempts前後のcheck", () => {
+    test("count === maxAttempts - 1 ならcheckは通る", async () => {
+      mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(2); // maxAttempts(3) - 1
+
+      const limiter = createPrismaRateLimiter(config);
+      await expect(limiter.check("key")).resolves.toBeUndefined();
+    });
+
+    test("count === maxAttempts ならTooManyRequestsErrorをスロー", async () => {
+      mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(3); // maxAttempts(3)
+      mockedPrisma.rateLimitAttempt.findFirst.mockResolvedValueOnce({
+        attemptedAt: new Date(Date.now() - 10_000),
+      } as never);
+
+      const limiter = createPrismaRateLimiter(config);
+      await expect(limiter.check("key")).rejects.toThrow(TooManyRequestsError);
+    });
+  });
+
+  test("pruning発動時のトランザクションにcount引数が正しく渡される", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.05); // pruning発動
+
+    mockedPrisma.rateLimitAttempt.deleteMany.mockResolvedValueOnce({
+      count: 0,
+    });
+    mockedPrisma.rateLimitAttempt.count.mockResolvedValueOnce(0);
+
+    const limiter = createPrismaRateLimiter(config);
+    await limiter.check("user-1");
+
+    expect(mockedPrisma.rateLimitAttempt.count).toHaveBeenCalledWith({
+      where: {
+        key: "user-1",
+        category: "test",
+        attemptedAt: { gte: expect.any(Date) },
+      },
+    });
+
+    vi.spyOn(Math, "random").mockRestore();
+  });
+
   describe("DBエラー時の振る舞い", () => {
     test("checkはDBエラー時にTooManyRequestsErrorをスローする（fail-closed）", async () => {
       const consoleErrorSpy = vi
