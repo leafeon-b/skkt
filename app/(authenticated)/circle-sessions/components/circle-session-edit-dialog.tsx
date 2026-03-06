@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { trimWithFullwidth } from "@/lib/string";
 import { trpc } from "@/lib/trpc/client";
 import {
   CIRCLE_SESSION_NOTE_MAX_LENGTH,
@@ -19,7 +20,7 @@ import {
 } from "@/server/domain/models/circle-session/circle-session";
 import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { useState } from "react";
 
 type CircleSessionEditDialogProps = {
@@ -54,15 +55,22 @@ export function CircleSessionEditDialog({
     },
   });
 
-  const trimmedTitle = title.trim();
-  const canSubmit = trimmedTitle.length > 0 && !updateSession.isPending;
+  const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setTitle(value);
+    e.target.setCustomValidity(
+      trimWithFullwidth(value) === ""
+        ? "タイトルを入力してください"
+        : "",
+    );
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (updateSession.isPending) return;
     updateSession.mutate({
       circleSessionId,
-      title: trimmedTitle,
+      title: trimWithFullwidth(title),
       startsAt: new Date(startsAt),
       endsAt: new Date(endsAt),
       location: location.trim() || null,
@@ -115,9 +123,9 @@ export function CircleSessionEditDialog({
             <Input
               id="edit-title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={handleTitleChange}
               maxLength={CIRCLE_SESSION_TITLE_MAX_LENGTH}
-              aria-required="true"
+              required
               className="bg-white"
             />
           </div>
@@ -135,7 +143,7 @@ export function CircleSessionEditDialog({
                 type="datetime-local"
                 value={startsAt}
                 onChange={(e) => setStartsAt(e.target.value)}
-                aria-required="true"
+                required
                 className="bg-white"
               />
             </div>
@@ -151,7 +159,7 @@ export function CircleSessionEditDialog({
                 type="datetime-local"
                 value={endsAt}
                 onChange={(e) => setEndsAt(e.target.value)}
-                aria-required="true"
+                required
                 className="bg-white"
               />
             </div>
@@ -208,7 +216,7 @@ export function CircleSessionEditDialog({
             <Button
               type="submit"
               className="bg-(--brand-moss) text-white hover:bg-(--brand-moss)/90"
-              disabled={!canSubmit}
+              disabled={updateSession.isPending}
             >
               {updateSession.isPending ? "保存中..." : "保存"}
             </Button>

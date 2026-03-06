@@ -159,7 +159,7 @@ describe("CircleSessionEditDialog", () => {
       expect(refreshMock).toHaveBeenCalled();
     });
 
-    it("タイトルが空白のみの場合、保存ボタンが無効になる", async () => {
+    it("タイトルが空白のみの場合、customValidity が設定される", async () => {
       const user = await openEditDialog();
 
       const dialog = await screen.findByRole("dialog");
@@ -167,10 +167,25 @@ describe("CircleSessionEditDialog", () => {
       await user.clear(titleInput);
       await user.type(titleInput, "   ");
 
-      const submitButton = within(dialog).getByRole("button", {
-        name: "保存",
-      });
-      expect(submitButton).toBeDisabled();
+      expect(
+        (titleInput as HTMLInputElement).validationMessage,
+      ).toBe("タイトルを入力してください");
+    });
+
+    it("空白のみから有効なタイトルに変更すると customValidity がクリアされる", async () => {
+      const user = await openEditDialog();
+
+      const dialog = await screen.findByRole("dialog");
+      const titleInput = within(dialog).getByLabelText("タイトル");
+      await user.clear(titleInput);
+      await user.type(titleInput, "   ");
+      expect(
+        (titleInput as HTMLInputElement).validationMessage,
+      ).toBe("タイトルを入力してください");
+
+      await user.clear(titleInput);
+      await user.type(titleInput, "テスト");
+      expect((titleInput as HTMLInputElement).validationMessage).toBe("");
     });
   });
 
