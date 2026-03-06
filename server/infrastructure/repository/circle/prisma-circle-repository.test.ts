@@ -17,7 +17,7 @@ vi.mock("@/server/infrastructure/db", () => ({
 }));
 
 import type { Circle as PrismaCircle } from "@/generated/prisma/client";
-import { ConflictError } from "@/server/domain/common/errors";
+import { ConflictError, NotFoundError } from "@/server/domain/common/errors";
 import { circleId, userId } from "@/server/domain/common/ids";
 import { createCircle } from "@/server/domain/models/circle/circle";
 import { prisma } from "@/server/infrastructure/db";
@@ -418,6 +418,112 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
         deletedAt,
       ),
     ).rejects.toThrow("CircleMembership not found");
+  });
+
+  test("再参加後に listMembershipsByUserId がアクティブなメンバーシップのみ返す", async () => {
+    mockedPrisma.circleMembership.findMany.mockResolvedValueOnce([
+      {
+        id: "membership-3",
+        userId: "user-1",
+        circleId: "circle-1",
+        role: "CircleMember",
+        createdAt: new Date("2025-06-02T00:00:00Z"),
+        deletedAt: null,
+      },
+    ]);
+
+    const result = await prismaCircleRepository.listMembershipsByUserId(
+      userId("user-1"),
+    );
+
+    expect(mockedPrisma.circleMembership.findMany).toHaveBeenCalledWith({
+      where: { userId: "user-1", deletedAt: null },
+      orderBy: { createdAt: "desc" },
+      select: {
+        circleId: true,
+        userId: true,
+        role: true,
+        createdAt: true,
+        deletedAt: true,
+      },
+    });
+    expect(result).toEqual([
+      {
+        circleId: circleId("circle-1"),
+        userId: userId("user-1"),
+        role: "CircleMember",
+        createdAt: new Date("2025-06-02T00:00:00Z"),
+        deletedAt: null,
+      },
+    ]);
+  });
+
+  test("再参加時のロールが正しく設定される", async () => {
+    // 論理削除後に CircleMember ロールで再参加
+    await prismaCircleRepository.addMembership(
+      circleId("circle-1"),
+      userId("user-1"),
+      "CircleMember",
+    );
+
+    expect(mockedPrisma.circleMembership.create).toHaveBeenCalledWith({
+      data: {
+        circleId: "circle-1",
+        userId: "user-1",
+        role: "CircleMember",
+      },
+    });
+  });
+
+  test("論理削除済みメンバーへの removeMembership が NotFoundError をスローする", async () => {
+    // deletedAt: null のレコードが存在しないため count: 0
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
+      count: 0,
+    });
+
+    await expect(
+      prismaCircleRepository.removeMembership(
+        circleId("circle-1"),
+        userId("user-1"),
+        new Date("2025-07-01T00:00:00Z"),
+      ),
+    ).rejects.toThrow(NotFoundError);
+  });
+
+  test("論理削除済みメンバーの deletedAt が後続の removeMembership で上書きされない", async () => {
+    const firstDeletedAt = new Date("2025-06-01T00:00:00Z");
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
+      count: 1,
+    });
+    await prismaCircleRepository.removeMembership(
+      circleId("circle-1"),
+      userId("user-1"),
+      firstDeletedAt,
+    );
+
+    // 2回目の削除は deletedAt: null のレコードが存在しないため count: 0
+    mockedPrisma.circleMembership.updateMany.mockResolvedValueOnce({
+      count: 0,
+    });
+
+    await expect(
+      prismaCircleRepository.removeMembership(
+        circleId("circle-1"),
+        userId("user-1"),
+        new Date("2025-07-01T00:00:00Z"),
+      ),
+    ).rejects.toThrow(NotFoundError);
+
+    // updateMany は where: { deletedAt: null } で呼ばれるため、
+    // 既に論理削除済みのレコードの deletedAt は上書きされない
+    expect(mockedPrisma.circleMembership.updateMany).toHaveBeenLastCalledWith({
+      where: {
+        circleId: "circle-1",
+        userId: "user-1",
+        deletedAt: null,
+      },
+      data: { deletedAt: new Date("2025-07-01T00:00:00Z") },
+    });
   });
 
   test("removeMembership は研究会メンバーシップを論理削除する", async () => {
