@@ -14,6 +14,7 @@
 /coverage
 /test-results/
 /playwright-report/
+/.playwright-mcp/
 /tmp/
 
 # next.js
