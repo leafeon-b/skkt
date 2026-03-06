@@ -181,6 +181,14 @@ describe("CircleSessionCreateForm", () => {
     expect(screen.getByLabelText("終了日時")).toHaveValue("2025-08-20T18:00");
   });
 
+  it("タイトル・開始日時・終了日時に required 属性が付与されている", () => {
+    render(<CircleSessionCreateForm circleId={circleId} />);
+
+    expect(screen.getByLabelText("タイトル")).toBeRequired();
+    expect(screen.getByLabelText("開始日時")).toBeRequired();
+    expect(screen.getByLabelText("終了日時")).toBeRequired();
+  });
+
   it("空白のみのタイトルを入力すると customValidity が設定される", async () => {
     const user = userEvent.setup();
     render(<CircleSessionCreateForm circleId={circleId} />);
