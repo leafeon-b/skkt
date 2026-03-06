@@ -133,6 +133,33 @@ describe("SessionCalendar keyboard navigation", () => {
     );
   }
 
+  /**
+   * Helper: render a fresh SessionCalendar with a custom onDateClick,
+   * inject grid, wait for MutationObserver, then return cells and wrapper.
+   */
+  async function setupWithSpy(onDateClick: (arg: DateClickArg) => void) {
+    document.body.innerHTML = "";
+    const newContainer = document.createElement("div");
+    document.body.appendChild(newContainer);
+    container = newContainer;
+
+    const mod = await import("./session-calendar");
+    const { container: rendered } = render(
+      <mod.SessionCalendar onDateClick={onDateClick} holidayDates={[]} />,
+      { container: newContainer },
+    );
+
+    const wrapper = rendered.querySelector("[role='region']")!;
+    const gridDom = buildGrid(5, { todayIndex: 10 });
+    while (gridDom.firstChild) {
+      wrapper.appendChild(gridDom.firstChild);
+    }
+
+    await new Promise((r) => setTimeout(r, 0));
+
+    return { wrapper, getCells: () => getCells() };
+  }
+
   it("sets roving tabindex: today cell has tabindex=0, others have -1", () => {
     const cells = getCells();
     cells.forEach((cell, i) => {
@@ -252,109 +279,41 @@ describe("SessionCalendar keyboard navigation", () => {
     expect(document.activeElement).toBe(cells[3]);
   });
 
-  it("Enter triggers onDateClick", () => {
+  it("Enter triggers onDateClick", async () => {
     const onDateClick = vi.fn();
+    const { getCells: getC } = await setupWithSpy(onDateClick);
 
-    // Re-render with the spy
-    document.body.innerHTML = "";
-    const newContainer = document.createElement("div");
-    document.body.appendChild(newContainer);
-    container = newContainer;
+    const cells = getC();
+    cells[10].focus();
+    press(cells[10], "Enter");
 
-    // We need to dynamically import again for the new render
-    return import("./session-calendar").then(async (mod) => {
-      const { container: rendered } = render(
-        <mod.SessionCalendar onDateClick={onDateClick} holidayDates={[]} />,
-        { container: newContainer },
-      );
-
-      const wrapper = rendered.querySelector("[role='region']")!;
-      const gridDom = buildGrid(5, { todayIndex: 10 });
-      while (gridDom.firstChild) {
-        wrapper.appendChild(gridDom.firstChild);
-      }
-
-      await new Promise((r) => setTimeout(r, 0));
-
-      const cells = getCells();
-      cells[10].focus();
-      press(cells[10], "Enter");
-
-      expect(onDateClick).toHaveBeenCalledOnce();
-      const arg = onDateClick.mock.calls[0][0];
-      expect(arg.dateStr).toBe("2025-01-11");
-      expect(arg.allDay).toBe(true);
-      expect(arg.jsEvent).toBeInstanceOf(MouseEvent);
-      expect(arg.jsEvent.type).toBe("click");
-      expect(arg.jsEvent.clientX).toBe(0);
-      expect(arg.jsEvent.button).toBe(0);
-      expect(arg.view).toHaveProperty("type", "dayGridMonth");
-    });
+    expect(onDateClick).toHaveBeenCalledOnce();
+    const arg = onDateClick.mock.calls[0][0];
+    expect(arg.dateStr).toBe("2025-01-11");
+    expect(arg.allDay).toBe(true);
+    expect(arg.jsEvent).toBeInstanceOf(MouseEvent);
+    expect(arg.jsEvent.type).toBe("click");
+    expect(arg.jsEvent.clientX).toBe(0);
+    expect(arg.jsEvent.button).toBe(0);
+    expect(arg.view).toHaveProperty("type", "dayGridMonth");
   });
 
-  it("Space triggers onDateClick with valid jsEvent", () => {
+  it("Space triggers onDateClick with valid jsEvent", async () => {
     const onDateClick = vi.fn();
+    const { getCells: getC } = await setupWithSpy(onDateClick);
 
-    document.body.innerHTML = "";
-    const newContainer = document.createElement("div");
-    document.body.appendChild(newContainer);
-    container = newContainer;
+    const cells = getC();
+    cells[10].focus();
+    press(cells[10], " ");
 
-    return import("./session-calendar").then(async (mod) => {
-      const { container: rendered } = render(
-        <mod.SessionCalendar onDateClick={onDateClick} holidayDates={[]} />,
-        { container: newContainer },
-      );
-
-      const wrapper = rendered.querySelector("[role='region']")!;
-      const gridDom = buildGrid(5, { todayIndex: 10 });
-      while (gridDom.firstChild) {
-        wrapper.appendChild(gridDom.firstChild);
-      }
-
-      await new Promise((r) => setTimeout(r, 0));
-
-      const cells = getCells();
-      cells[10].focus();
-      press(cells[10], " ");
-
-      expect(onDateClick).toHaveBeenCalledOnce();
-      const arg = onDateClick.mock.calls[0][0];
-      expect(arg.jsEvent).toBeInstanceOf(MouseEvent);
-      expect(arg.jsEvent.type).toBe("click");
-      expect(arg.view).toHaveProperty("type", "dayGridMonth");
-    });
+    expect(onDateClick).toHaveBeenCalledOnce();
+    const arg = onDateClick.mock.calls[0][0];
+    expect(arg.jsEvent).toBeInstanceOf(MouseEvent);
+    expect(arg.jsEvent.type).toBe("click");
+    expect(arg.view).toHaveProperty("type", "dayGridMonth");
   });
 
   describe("duplicate listener prevention (dataset.kbBound guard)", () => {
-    /**
-     * Helper: render a fresh SessionCalendar, inject grid, wait for
-     * MutationObserver, then return cells and container refs.
-     */
-    async function setupWithSpy(onDateClick: (arg: DateClickArg) => void) {
-      document.body.innerHTML = "";
-      const newContainer = document.createElement("div");
-      document.body.appendChild(newContainer);
-      container = newContainer;
-
-      const mod = await import("./session-calendar");
-      const { container: rendered } = render(
-        <mod.SessionCalendar onDateClick={onDateClick} holidayDates={[]} />,
-        { container: newContainer },
-      );
-
-      const wrapper = rendered.querySelector("[role='region']")!;
-      const gridDom = buildGrid(5, { todayIndex: 10 });
-      while (gridDom.firstChild) {
-        wrapper.appendChild(gridDom.firstChild);
-      }
-
-      // Wait for MutationObserver to fire applyKeyboardSupport
-      await new Promise((r) => setTimeout(r, 0));
-
-      return { wrapper, getCells: () => getCells() };
-    }
-
     it("Enter fires onDateClick only once even after multiple MutationObserver re-runs", async () => {
       const onDateClick = vi.fn();
       const { wrapper, getCells: getC } = await setupWithSpy(onDateClick);
