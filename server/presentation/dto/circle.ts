@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CIRCLE_NAME_MAX_LENGTH } from "@/server/domain/models/circle/circle";
+import { trimWithFullwidth } from "@/lib/string";
 import { circleIdSchema } from "@/server/presentation/dto/ids";
 
 export const circleDtoSchema = z.object({
@@ -17,14 +18,20 @@ export const circleGetInputSchema = z.object({
 export type CircleGetInput = z.infer<typeof circleGetInputSchema>;
 
 export const circleCreateInputSchema = z.object({
-  name: z.string().trim().min(1).max(CIRCLE_NAME_MAX_LENGTH),
+  name: z
+    .string()
+    .transform(trimWithFullwidth)
+    .pipe(z.string().min(1).max(CIRCLE_NAME_MAX_LENGTH)),
 });
 
 export type CircleCreateInput = z.infer<typeof circleCreateInputSchema>;
 
 export const circleRenameInputSchema = z.object({
   circleId: circleIdSchema,
-  name: z.string().trim().min(1).max(CIRCLE_NAME_MAX_LENGTH),
+  name: z
+    .string()
+    .transform(trimWithFullwidth)
+    .pipe(z.string().min(1).max(CIRCLE_NAME_MAX_LENGTH)),
 });
 
 export type CircleRenameInput = z.infer<typeof circleRenameInputSchema>;
