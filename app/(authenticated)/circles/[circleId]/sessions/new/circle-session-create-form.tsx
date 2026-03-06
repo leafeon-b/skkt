@@ -1,7 +1,7 @@
 "use client";
 
-import type { FormEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,9 +52,7 @@ export function CircleSessionCreateForm({
   defaultLocation,
   defaultNote,
 }: CircleSessionCreateFormProps) {
-  const titleRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(defaultTitle ?? "");
-  const [titleError, setTitleError] = useState("");
   const [startsAt, setStartsAt] = useState(() =>
     toDatetimeLocal(defaultStartsAt, DEFAULT_START_TIME),
   );
@@ -71,20 +69,24 @@ export function CircleSessionCreateForm({
   const createSession = trpc.circleSessions.create.useMutation();
   const router = useRouter();
 
+  const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setTitle(value);
+    e.target.setCustomValidity(
+      trimWithFullwidth(value) === ""
+        ? "タイトルを入力してください"
+        : "",
+    );
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const trimmedTitle = trimWithFullwidth(title);
-    if (!trimmedTitle) {
-      setTitleError("タイトルを入力してください");
-      titleRef.current?.focus();
-      return;
-    }
     if (!startsAt || !endsAt || createSession.isPending) {
       return;
     }
     createSession.mutate({
       circleId,
-      title: trimmedTitle,
+      title: trimWithFullwidth(title),
       startsAt: new Date(startsAt),
       endsAt: new Date(endsAt),
       location: location.trim() || null,
@@ -105,7 +107,6 @@ export function CircleSessionCreateForm({
     <div className="w-full">
       <form
         onSubmit={handleSubmit}
-        noValidate
         className="flex w-full flex-col gap-4"
       >
         <p className="text-xs text-(--brand-ink-muted)">
@@ -122,25 +123,14 @@ export function CircleSessionCreateForm({
             タイトル
           </label>
           <Input
-            ref={titleRef}
             id="title"
             value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              setTitleError("");
-            }}
+            onChange={handleTitleChange}
             placeholder="第1回 定例研究会"
             maxLength={CIRCLE_SESSION_TITLE_MAX_LENGTH}
-            aria-required="true"
-            aria-invalid={titleError ? "true" : undefined}
-            aria-describedby={titleError ? "title-error" : undefined}
+            required
             className="bg-white"
           />
-          {titleError && (
-            <p id="title-error" className="text-xs text-red-600" role="alert">
-              {titleError}
-            </p>
-          )}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -156,7 +146,7 @@ export function CircleSessionCreateForm({
               type="datetime-local"
               value={startsAt}
               onChange={(e) => setStartsAt(e.target.value)}
-              aria-required="true"
+              required
               className="bg-white"
             />
           </div>
@@ -172,7 +162,7 @@ export function CircleSessionCreateForm({
               type="datetime-local"
               value={endsAt}
               onChange={(e) => setEndsAt(e.target.value)}
-              aria-required="true"
+              required
               className="bg-white"
             />
           </div>

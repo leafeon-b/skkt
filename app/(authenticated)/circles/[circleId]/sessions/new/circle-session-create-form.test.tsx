@@ -181,44 +181,42 @@ describe("CircleSessionCreateForm", () => {
     expect(screen.getByLabelText("終了日時")).toHaveValue("2025-08-20T18:00");
   });
 
-  it("空白のみのタイトルで送信するとエラーメッセージが表示される", async () => {
+  it("空白のみのタイトルを入力すると customValidity が設定される", async () => {
     const user = userEvent.setup();
     render(<CircleSessionCreateForm circleId={circleId} />);
 
     const titleInput = screen.getByLabelText("タイトル");
     await user.type(titleInput, "   ");
 
-    await user.click(screen.getByRole("button", { name: /予定を作成/ }));
-
-    const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("タイトルを入力してください");
-    expect(mutateMock).not.toHaveBeenCalled();
+    expect(
+      (titleInput as HTMLInputElement).validationMessage,
+    ).toBe("タイトルを入力してください");
   });
 
-  it("全角スペースのみのタイトルで送信するとエラーメッセージが表示される", async () => {
+  it("全角スペースのみのタイトルを入力すると customValidity が設定される", async () => {
     const user = userEvent.setup();
     render(<CircleSessionCreateForm circleId={circleId} />);
 
     const titleInput = screen.getByLabelText("タイトル");
     await user.type(titleInput, "\u3000\u3000\u3000");
 
-    await user.click(screen.getByRole("button", { name: /予定を作成/ }));
-
-    const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("タイトルを入力してください");
-    expect(mutateMock).not.toHaveBeenCalled();
+    expect(
+      (titleInput as HTMLInputElement).validationMessage,
+    ).toBe("タイトルを入力してください");
   });
 
-  it("タイトル入力時にエラーメッセージがクリアされる", async () => {
+  it("空白のみから有効なタイトルに変更すると customValidity がクリアされる", async () => {
     const user = userEvent.setup();
     render(<CircleSessionCreateForm circleId={circleId} />);
 
     const titleInput = screen.getByLabelText("タイトル");
     await user.type(titleInput, "   ");
-    await user.click(screen.getByRole("button", { name: /予定を作成/ }));
-    expect(screen.getByRole("alert")).toBeTruthy();
+    expect(
+      (titleInput as HTMLInputElement).validationMessage,
+    ).toBe("タイトルを入力してください");
 
+    await user.clear(titleInput);
     await user.type(titleInput, "テスト");
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect((titleInput as HTMLInputElement).validationMessage).toBe("");
   });
 });
