@@ -75,11 +75,17 @@ npx vitest
 TypeScript
 React
 Next.js
+tRPC
+TanStack React Query
 Prisma
 NextAuth.js
 Tailwind CSS
-ESlint
-Zod
-Vitest
-Prettier
 shadcn/ui
+FullCalendar
+Lucide React
+Sonner
+Zod
+ESLint
+Prettier
+Vitest
+Playwright
