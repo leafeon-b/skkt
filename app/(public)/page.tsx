@@ -1,6 +1,7 @@
 import CredentialsLoginForm from "@/app/components/credentials-login-form";
 import LoginButton from "@/app/components/login-button";
 import { sanitizeCallbackUrl } from "@/lib/url";
+import Image from "next/image";
 import Link from "next/link";
 
 const valueProps = [
@@ -46,6 +47,17 @@ export default async function LandingPage({ searchParams }: LandingPageProps) {
                 研究会の記録と共有を、迷わず続けられる場所へ。SKKTは、
                 予定管理から振り返りまでをやさしく支える記録サービスです。
               </p>
+              <div className="overflow-hidden rounded-xl border border-border/60 shadow-md">
+                <Image
+                  src="/screenshots/session-results.png"
+                  alt="対局結果の画面例"
+                  width={896}
+                  height={440}
+                  className="w-full"
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  priority
+                />
+              </div>
             </div>
             <div className="space-y-4 rounded-2xl border border-border/60 bg-white/90 p-6">
               <LoginButton
