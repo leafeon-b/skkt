@@ -45,9 +45,8 @@ const baseLink = () => ({
 });
 
 beforeEach(async () => {
-  circleInviteLinkRepository._store.clear();
-  circleRepository._circleStore.clear();
-  circleRepository._membershipStore.clear();
+  circleInviteLinkRepository._clear();
+  circleRepository._clear();
   vi.clearAllMocks();
   await circleRepository.save(baseCircle());
   vi.mocked(accessService.canViewCircle).mockResolvedValue(true);
@@ -105,7 +104,10 @@ describe("招待リンクサービス", () => {
       });
 
       expect(result).toEqual(existing);
-      expect(circleInviteLinkRepository._store.size).toBe(1);
+      const stored = await circleInviteLinkRepository.findActiveByCircleId(
+        circleId("circle-1"),
+      );
+      expect(stored).not.toBeNull();
     });
 
     test("有効リンクがなければ新規作成する (BR-011)", async () => {
@@ -131,7 +133,10 @@ describe("招待リンクサービス", () => {
         }),
       ).rejects.toThrow("Forbidden");
 
-      expect(circleInviteLinkRepository._store.size).toBe(0);
+      const stored = await circleInviteLinkRepository.findActiveByCircleId(
+        circleId("circle-1"),
+      );
+      expect(stored).toBeNull();
     });
   });
 
@@ -212,7 +217,7 @@ describe("招待リンクサービス", () => {
     });
 
     test("期限切れリンクはエラー", async () => {
-      circleInviteLinkRepository._store.clear();
+      circleInviteLinkRepository._clear();
       const expiredLink = {
         ...baseLink(),
         expiresAt: new Date(Date.now() - 1000),
