@@ -1,5 +1,8 @@
 import { userId, type UserId } from "@/server/domain/common/ids";
-import type { NotificationPreference } from "@/server/domain/models/notification-preference/notification-preference";
+import {
+  createDefaultPreference,
+  type NotificationPreference,
+} from "@/server/domain/models/notification-preference/notification-preference";
 import type { NotificationPreferenceRepository } from "@/server/domain/models/notification-preference/notification-preference-repository";
 import type { UnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
 
@@ -15,7 +18,7 @@ export const createNotificationPreferenceService = (
     async getPreference(userId: UserId): Promise<NotificationPreference> {
       const pref =
         await deps.notificationPreferenceRepository.findByUserId(userId);
-      return pref ?? { userId, emailEnabled: true };
+      return pref ?? createDefaultPreference(userId);
     },
 
     async updatePreference(
