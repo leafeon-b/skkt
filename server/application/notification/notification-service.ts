@@ -87,7 +87,7 @@ export const createNotificationService = (deps: NotificationServiceDeps) => {
             String(user.id),
           );
           const unsubscribeUrl = baseUrl
-            ? `${baseUrl}/api/unsubscribe?token=${unsubscribeToken}`
+            ? `${baseUrl}/unsubscribe?token=${unsubscribeToken}`
             : null;
           const unsubscribeFooter = unsubscribeUrl
             ? `\n---\nメール配信を停止する: ${unsubscribeUrl}`

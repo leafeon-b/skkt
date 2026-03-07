@@ -228,7 +228,7 @@ describe("NotificationService", () => {
     expect(mockEmailSender.send).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.stringContaining(
-          "メール配信を停止する: https://example.com/api/unsubscribe?token=mock-token",
+          "メール配信を停止する: https://example.com/unsubscribe?token=mock-token",
         ),
       }),
     );
