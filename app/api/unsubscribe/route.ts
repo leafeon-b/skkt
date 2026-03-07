@@ -27,6 +27,13 @@ export async function GET(request: Request) {
     );
   }
 
+  if (!/^[A-Za-z0-9_-]+$/.test(token) || token.length < 20 || token.length > 256) {
+    return NextResponse.json(
+      { message: "無効なトークンです。" },
+      { status: 400 },
+    );
+  }
+
   try {
     const result = await notificationPreferenceService.disableByToken(token);
     if (!result) {
