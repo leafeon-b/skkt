@@ -30,9 +30,14 @@ const emailSender = process.env.RESEND_API_KEY
   ? createResendEmailSender(process.env.RESEND_API_KEY)
   : noopEmailSender;
 
-const unsubscribeTokenService = createUnsubscribeTokenService(
-  process.env.UNSUBSCRIBE_SECRET || "default-unsubscribe-secret",
-);
+const unsubscribeSecret = process.env.UNSUBSCRIBE_SECRET?.trim();
+if (!unsubscribeSecret || unsubscribeSecret.length < 32) {
+  throw new Error(
+    "UNSUBSCRIBE_SECRET must be set and at least 32 characters long",
+  );
+}
+const unsubscribeTokenService =
+  createUnsubscribeTokenService(unsubscribeSecret);
 
 const changePasswordRateLimiter = createPrismaRateLimiter({
   maxAttempts: 3,
