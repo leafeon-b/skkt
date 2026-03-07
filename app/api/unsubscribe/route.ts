@@ -4,6 +4,7 @@ import {
   DomainError,
   type DomainErrorCode,
 } from "@/server/domain/common/errors";
+import { isValidUnsubscribeToken } from "@/server/domain/common/token-validation";
 
 const { notificationPreferenceService } = buildServiceContainer();
 
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
     );
   }
 
-  if (!/^[A-Za-z0-9_-]+$/.test(token) || token.length < 20 || token.length > 256) {
+  if (!isValidUnsubscribeToken(token)) {
     return NextResponse.json(
       { message: "無効なトークンです。" },
       { status: 400 },
