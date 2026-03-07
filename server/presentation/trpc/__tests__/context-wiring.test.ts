@@ -1,5 +1,9 @@
-import { describe, expect, test, vi } from "vitest";
+import { beforeAll, describe, expect, test, vi } from "vitest";
 import type { ServiceContainerDeps } from "@/server/infrastructure/service-container";
+
+beforeAll(() => {
+  process.env.UNSUBSCRIBE_SECRET = "test-secret-that-is-at-least-32-characters-long";
+});
 
 vi.mock("@/server/infrastructure/service-container", () => ({
   createServiceContainer: vi.fn(() => ({})),
@@ -67,6 +71,17 @@ vi.mock("@/server/infrastructure/email/resend-email-sender", () => ({
 
 vi.mock("@/server/infrastructure/email/noop-email-sender", () => ({
   noopEmailSender: { send: vi.fn() },
+}));
+
+vi.mock("@/server/domain/services/unsubscribe-token", () => ({
+  createUnsubscribeTokenService: vi.fn(() => ({
+    generate: vi.fn(),
+    verify: vi.fn(),
+  })),
+}));
+
+vi.mock("@/server/infrastructure/repository/notification-preference/prisma-notification-preference-repository", () => ({
+  prismaNotificationPreferenceRepository: {},
 }));
 
 describe("buildServiceContainer ワイヤリング", () => {
