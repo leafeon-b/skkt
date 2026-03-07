@@ -61,6 +61,7 @@ describe("POST /api/unsubscribe", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
     expect(body.message).toBe("メール配信を停止しました。");
     expect(mockDisableByToken).toHaveBeenCalledWith(token);
   });
@@ -167,6 +168,7 @@ describe("POST /api/unsubscribe", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
     expect(body.message).toBe("メール配信を停止しました。");
     expect(mockDisableByToken).toHaveBeenCalledWith(token);
   });
@@ -190,6 +192,7 @@ describe("POST /api/unsubscribe", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
     expect(body.message).toBe("メール配信を停止しました。");
     expect(mockDisableByToken).toHaveBeenCalledWith(token);
   });
@@ -214,6 +217,7 @@ describe("POST /api/unsubscribe", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
     expect(body.message).toBe("メール配信を停止しました。");
     expect(mockDisableByToken).toHaveBeenCalledWith(bodyToken);
   });
