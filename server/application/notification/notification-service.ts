@@ -57,6 +57,15 @@ export const createNotificationService = (deps: NotificationServiceDeps) => {
         ? `場所: ${session.location}\n`
         : "";
 
+      const baseUrl = process.env.BASE_URL;
+      const sessionUrl = baseUrl
+        ? `${baseUrl}/circle-sessions/${session.id}`
+        : null;
+
+      const footer = sessionUrl
+        ? `詳細はこちら: ${sessionUrl}`
+        : "SKKT でご確認ください。";
+
       const body = [
         `${circleName} に新しいセッションが作成されました。`,
         "",
@@ -64,7 +73,7 @@ export const createNotificationService = (deps: NotificationServiceDeps) => {
         `日時: ${startDate} ${startTime} - ${endTime}`,
         locationLine.trimEnd(),
         "",
-        "SKKT でご確認ください。",
+        footer,
       ]
         .filter((line) => line !== undefined)
         .join("\n");
