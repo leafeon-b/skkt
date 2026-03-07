@@ -115,4 +115,44 @@ describe("NotificationService", () => {
 
     expect(mockEmailSender.send).not.toHaveBeenCalled();
   });
+
+  test("BASE_URL が設定されている場合、メール本文にセッション詳細リンクが含まれる", async () => {
+    vi.stubEnv("BASE_URL", "https://example.com");
+
+    vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
+      [makeMembership("user-1"), makeMembership("user-2")],
+    );
+    vi.mocked(mockUserRepository.findByIds).mockResolvedValue([
+      makeUser("user-2", "user2@example.com"),
+    ]);
+
+    await service.notifySessionCreated(session, circleName, actorId);
+
+    expect(mockEmailSender.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.stringContaining(
+          "詳細はこちら: https://example.com/circle-sessions/session-1",
+        ),
+      }),
+    );
+  });
+
+  test("BASE_URL が未設定の場合、メール本文にリンクが含まれない", async () => {
+    vi.stubEnv("BASE_URL", "");
+
+    vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
+      [makeMembership("user-1"), makeMembership("user-2")],
+    );
+    vi.mocked(mockUserRepository.findByIds).mockResolvedValue([
+      makeUser("user-2", "user2@example.com"),
+    ]);
+
+    await service.notifySessionCreated(session, circleName, actorId);
+
+    expect(mockEmailSender.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.stringContaining("SKKT でご確認ください。"),
+      }),
+    );
+  });
 });
