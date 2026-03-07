@@ -24,19 +24,21 @@ describe("GET /api/unsubscribe", () => {
       emailEnabled: false,
     });
 
-    const request = new Request("http://localhost/api/unsubscribe?token=valid-token");
+    const token = "dmFsaWQtdG9rZW4tZm9yLXRlc3Q";
+    const request = new Request(`http://localhost/api/unsubscribe?token=${token}`);
     const response = await GET(request);
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body.message).toBe("メール配信を停止しました。");
-    expect(mockDisableByToken).toHaveBeenCalledWith("valid-token");
+    expect(mockDisableByToken).toHaveBeenCalledWith(token);
   });
 
   test("無効なトークンで 400 エラー", async () => {
     mockDisableByToken.mockResolvedValue(null);
 
-    const request = new Request("http://localhost/api/unsubscribe?token=invalid-token");
+    const token = "aW52YWxpZC10b2tlbi1mb3ItdGVzdA";
+    const request = new Request(`http://localhost/api/unsubscribe?token=${token}`);
     const response = await GET(request);
     const body = await response.json();
 
@@ -51,6 +53,37 @@ describe("GET /api/unsubscribe", () => {
 
     expect(response.status).toBe(400);
     expect(body.message).toBe("トークンが指定されていません。");
+    expect(mockDisableByToken).not.toHaveBeenCalled();
+  });
+
+  test("不正な文字を含むトークンで 400 エラー", async () => {
+    const request = new Request("http://localhost/api/unsubscribe?token=invalid!%40%23%24%25token12345");
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.message).toBe("無効なトークンです。");
+    expect(mockDisableByToken).not.toHaveBeenCalled();
+  });
+
+  test("短すぎるトークンで 400 エラー", async () => {
+    const request = new Request("http://localhost/api/unsubscribe?token=abc123");
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.message).toBe("無効なトークンです。");
+    expect(mockDisableByToken).not.toHaveBeenCalled();
+  });
+
+  test("長すぎるトークンで 400 エラー", async () => {
+    const longToken = "a".repeat(257);
+    const request = new Request(`http://localhost/api/unsubscribe?token=${longToken}`);
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.message).toBe("無効なトークンです。");
     expect(mockDisableByToken).not.toHaveBeenCalled();
   });
 
@@ -70,7 +103,7 @@ describe("GET /api/unsubscribe", () => {
     );
 
     const request = new Request(
-      "http://localhost/api/unsubscribe?token=malformed-token",
+      "http://localhost/api/unsubscribe?token=bWFsZm9ybWVkLXRva2VuLXRlc3Q",
     );
     const response = await GET(request);
     const body = await response.json();
@@ -83,7 +116,7 @@ describe("GET /api/unsubscribe", () => {
     mockDisableByToken.mockRejectedValue(new Error("unexpected DB error"));
 
     const request = new Request(
-      "http://localhost/api/unsubscribe?token=some-token",
+      "http://localhost/api/unsubscribe?token=c29tZS10b2tlbi1mb3ItdGVzdA",
     );
     const response = await GET(request);
     const body = await response.json();
