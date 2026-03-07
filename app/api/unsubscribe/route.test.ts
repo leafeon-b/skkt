@@ -44,6 +44,16 @@ describe("GET /api/unsubscribe", () => {
     expect(body.message).toBe("無効なトークンです。");
   });
 
+  test("空白のみのトークンで 400 エラー", async () => {
+    const request = new Request("http://localhost/api/unsubscribe?token=%20%20");
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.message).toBe("トークンが指定されていません。");
+    expect(mockDisableByToken).not.toHaveBeenCalled();
+  });
+
   test("token パラメータ未指定で 400 エラー", async () => {
     const request = new Request("http://localhost/api/unsubscribe");
     const response = await GET(request);
