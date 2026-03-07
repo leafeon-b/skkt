@@ -40,7 +40,9 @@ export const createNotificationService = (deps: NotificationServiceDeps) => {
       const usersWithEmail = users.filter((u) => u.email !== null);
       if (usersWithEmail.length === 0) return;
 
-      // Check notification preferences — users without a record default to emailEnabled: true
+      // Check notification preferences — users without a record are not in this
+      // array, so they remain in the eligible list (default: enabled).
+      // See: createDefaultPreference() in notification-preference.ts
       const prefs =
         await deps.notificationPreferenceRepository.findByUserIds(
           usersWithEmail.map((u) => u.id),
