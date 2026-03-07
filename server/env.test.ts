@@ -12,7 +12,8 @@ describe("server/env", () => {
   };
 
   const setEnv = (overrides: Record<string, string> = {}) => {
-    process.env = { ...requiredEnv, ...overrides } as NodeJS.ProcessEnv;
+    const { VITEST: _, ...clean } = { ...requiredEnv, ...overrides };
+    process.env = clean as NodeJS.ProcessEnv;
   };
 
   beforeEach(() => {

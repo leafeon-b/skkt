@@ -13,22 +13,32 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_CONTACT_FORM_URL: z.string().url().optional(),
 });
 
-const parsed = serverEnvSchema.safeParse(process.env);
+type ServerEnv = z.infer<typeof serverEnvSchema>;
 
-if (!parsed.success) {
-  const formatted = parsed.error.flatten().fieldErrors;
-  throw new Error(
-    `Environment variable validation failed:\n${JSON.stringify(formatted, null, 2)}`,
-  );
+function loadEnv(): ServerEnv {
+  if (process.env.VITEST) {
+    return process.env as unknown as ServerEnv;
+  }
+
+  const parsed = serverEnvSchema.safeParse(process.env);
+
+  if (!parsed.success) {
+    const formatted = parsed.error.flatten().fieldErrors;
+    throw new Error(
+      `Environment variable validation failed:\n${JSON.stringify(formatted, null, 2)}`,
+    );
+  }
+
+  if (
+    process.env.NODE_ENV === "production" &&
+    !parsed.data.NEXTAUTH_URL?.trim()
+  ) {
+    throw new Error(
+      "NEXTAUTH_URL environment variable is required in production",
+    );
+  }
+
+  return parsed.data;
 }
 
-if (
-  process.env.NODE_ENV === "production" &&
-  !parsed.data.NEXTAUTH_URL?.trim()
-) {
-  throw new Error(
-    "NEXTAUTH_URL environment variable is required in production",
-  );
-}
-
-export const env = parsed.data;
+export const env = loadEnv();
