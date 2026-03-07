@@ -4,6 +4,8 @@ import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
+import type { NotificationPreferenceRepository } from "@/server/domain/models/notification-preference/notification-preference-repository";
+import type { UnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
 import type { EmailSender } from "@/server/domain/common/email-sender";
 import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
 import type { User } from "@/server/domain/models/user/user";
@@ -16,6 +18,15 @@ const mockUserRepository = {
   findByIds: vi.fn(),
 } as unknown as UserRepository;
 
+const mockNotificationPreferenceRepository = {
+  findByUserIds: vi.fn().mockResolvedValue([]),
+} as unknown as NotificationPreferenceRepository;
+
+const mockUnsubscribeTokenService: UnsubscribeTokenService = {
+  generate: vi.fn().mockReturnValue("mock-token"),
+  verify: vi.fn(),
+};
+
 const mockEmailSender: EmailSender = {
   send: vi.fn().mockResolvedValue(undefined),
 };
@@ -23,6 +34,8 @@ const mockEmailSender: EmailSender = {
 const service = createNotificationService({
   circleRepository: mockCircleRepository,
   userRepository: mockUserRepository,
+  notificationPreferenceRepository: mockNotificationPreferenceRepository,
+  unsubscribeTokenService: mockUnsubscribeTokenService,
   emailSender: mockEmailSender,
 });
 
@@ -60,6 +73,8 @@ const makeUser = (uid: string, email: string | null): User => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(mockNotificationPreferenceRepository.findByUserIds).mockResolvedValue([]);
+  vi.mocked(mockUnsubscribeTokenService.generate).mockReturnValue("mock-token");
 });
 
 describe("NotificationService", () => {
@@ -152,6 +167,69 @@ describe("NotificationService", () => {
     expect(mockEmailSender.send).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.stringContaining("SKKT でご確認ください。"),
+      }),
+    );
+  });
+
+  test("メール通知をオプトアウトしたユーザーにはメール送信されない", async () => {
+    vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
+      [makeMembership("user-1"), makeMembership("user-2")],
+    );
+    vi.mocked(mockUserRepository.findByIds).mockResolvedValue([
+      makeUser("user-2", "user2@example.com"),
+    ]);
+    vi.mocked(mockNotificationPreferenceRepository.findByUserIds).mockResolvedValue([
+      { userId: userId("user-2"), emailEnabled: false },
+    ]);
+
+    await service.notifySessionCreated(session, circleName, actorId);
+
+    expect(mockEmailSender.send).not.toHaveBeenCalled();
+  });
+
+  test("オプトアウトしていないユーザーにはメール送信される", async () => {
+    vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
+      [
+        makeMembership("user-1"),
+        makeMembership("user-2"),
+        makeMembership("user-3"),
+      ],
+    );
+    vi.mocked(mockUserRepository.findByIds).mockResolvedValue([
+      makeUser("user-2", "user2@example.com"),
+      makeUser("user-3", "user3@example.com"),
+    ]);
+    vi.mocked(mockNotificationPreferenceRepository.findByUserIds).mockResolvedValue([
+      { userId: userId("user-2"), emailEnabled: false },
+    ]);
+
+    await service.notifySessionCreated(session, circleName, actorId);
+
+    expect(mockEmailSender.send).toHaveBeenCalledOnce();
+    expect(mockEmailSender.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: ["user3@example.com"],
+      }),
+    );
+  });
+
+  test("BASE_URL が設定されている場合、メール本文に配信停止リンクが含まれる", async () => {
+    vi.stubEnv("BASE_URL", "https://example.com");
+
+    vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
+      [makeMembership("user-1"), makeMembership("user-2")],
+    );
+    vi.mocked(mockUserRepository.findByIds).mockResolvedValue([
+      makeUser("user-2", "user2@example.com"),
+    ]);
+
+    await service.notifySessionCreated(session, circleName, actorId);
+
+    expect(mockEmailSender.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.stringContaining(
+          "メール配信を停止する: https://example.com/api/unsubscribe?token=mock-token",
+        ),
       }),
     );
   });

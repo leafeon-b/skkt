@@ -1,5 +1,7 @@
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
+import type { NotificationPreferenceRepository } from "@/server/domain/models/notification-preference/notification-preference-repository";
+import type { UnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
 import type { EmailSender } from "@/server/domain/common/email-sender";
 import type { CircleSession } from "@/server/domain/models/circle-session/circle-session";
 import { userId } from "@/server/domain/common/ids";
@@ -7,6 +9,8 @@ import { userId } from "@/server/domain/common/ids";
 export type NotificationServiceDeps = {
   circleRepository: CircleRepository;
   userRepository: UserRepository;
+  notificationPreferenceRepository: NotificationPreferenceRepository;
+  unsubscribeTokenService: UnsubscribeTokenService;
   emailSender: EmailSender;
 };
 
@@ -32,11 +36,22 @@ export const createNotificationService = (deps: NotificationServiceDeps) => {
         otherMembers.map((m) => m.userId),
       );
 
-      const emails = users
-        .filter((u) => u.email !== null)
-        .map((u) => u.email!);
+      const usersWithEmail = users.filter((u) => u.email !== null);
+      if (usersWithEmail.length === 0) return;
 
-      if (emails.length === 0) return;
+      // Check notification preferences — users without a record default to emailEnabled: true
+      const prefs =
+        await deps.notificationPreferenceRepository.findByUserIds(
+          usersWithEmail.map((u) => u.id),
+        );
+      const disabledUserIds = new Set(
+        prefs.filter((p) => !p.emailEnabled).map((p) => String(p.userId)),
+      );
+
+      const eligibleUsers = usersWithEmail.filter(
+        (u) => !disabledUserIds.has(String(u.id)),
+      );
+      if (eligibleUsers.length === 0) return;
 
       const startDate = session.startsAt.toLocaleDateString("ja-JP", {
         year: "numeric",
@@ -62,30 +77,41 @@ export const createNotificationService = (deps: NotificationServiceDeps) => {
         ? `${baseUrl}/circle-sessions/${session.id}`
         : null;
 
-      const footer = sessionUrl
+      const sessionFooter = sessionUrl
         ? `詳細はこちら: ${sessionUrl}`
         : "SKKT でご確認ください。";
 
-      const body = [
-        `${circleName} に新しいセッションが作成されました。`,
-        "",
-        `タイトル: ${session.title}`,
-        `日時: ${startDate} ${startTime} - ${endTime}`,
-        locationLine.trimEnd(),
-        "",
-        footer,
-      ]
-        .filter((line) => line !== undefined)
-        .join("\n");
-
       await Promise.all(
-        emails.map((email) =>
-          deps.emailSender.send({
-            to: [email],
+        eligibleUsers.map((user) => {
+          const unsubscribeToken = deps.unsubscribeTokenService.generate(
+            String(user.id),
+          );
+          const unsubscribeUrl = baseUrl
+            ? `${baseUrl}/api/unsubscribe?token=${unsubscribeToken}`
+            : null;
+          const unsubscribeFooter = unsubscribeUrl
+            ? `\n---\nメール配信を停止する: ${unsubscribeUrl}`
+            : "";
+
+          const body = [
+            `${circleName} に新しいセッションが作成されました。`,
+            "",
+            `タイトル: ${session.title}`,
+            `日時: ${startDate} ${startTime} - ${endTime}`,
+            locationLine.trimEnd(),
+            "",
+            sessionFooter,
+            unsubscribeFooter,
+          ]
+            .filter((line) => line !== undefined)
+            .join("\n");
+
+          return deps.emailSender.send({
+            to: [user.email!],
             subject: `[${circleName}] ${session.title}`,
             body,
-          }),
-        ),
+          });
+        }),
       );
     },
   };
