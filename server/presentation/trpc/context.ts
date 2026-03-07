@@ -11,6 +11,7 @@ import { prismaMatchRepository } from "@/server/infrastructure/repository/match/
 import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
 import { prismaCircleInviteLinkRepository } from "@/server/infrastructure/repository/circle-invite-link/prisma-circle-invite-link-repository";
 import { prismaRoundRobinScheduleRepository } from "@/server/infrastructure/repository/round-robin-schedule/prisma-round-robin-schedule-repository";
+import { prismaNotificationPreferenceRepository } from "@/server/infrastructure/repository/notification-preference/prisma-notification-preference-repository";
 import { prismaUnitOfWork } from "@/server/infrastructure/transaction/prisma-unit-of-work";
 import {
   hashPassword,
@@ -21,12 +22,17 @@ import { createPrismaRateLimiter } from "@/server/infrastructure/rate-limit/pris
 import { getClientIp } from "@/server/infrastructure/http/client-ip";
 import { createResendEmailSender } from "@/server/infrastructure/email/resend-email-sender";
 import { noopEmailSender } from "@/server/infrastructure/email/noop-email-sender";
+import { createUnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
 
 const getSession = createGetSession(nextAuthSessionService);
 const japaneseHolidayProvider = createJapaneseHolidayProvider();
 const emailSender = process.env.RESEND_API_KEY
   ? createResendEmailSender(process.env.RESEND_API_KEY)
   : noopEmailSender;
+
+const unsubscribeTokenService = createUnsubscribeTokenService(
+  process.env.UNSUBSCRIBE_SECRET || "default-unsubscribe-secret",
+);
 
 const changePasswordRateLimiter = createPrismaRateLimiter({
   maxAttempts: 3,
@@ -44,6 +50,8 @@ export const buildServiceContainer = (): ServiceContainer =>
     authzRepository: prismaAuthzRepository,
     circleInviteLinkRepository: prismaCircleInviteLinkRepository,
     roundRobinScheduleRepository: prismaRoundRobinScheduleRepository,
+    notificationPreferenceRepository: prismaNotificationPreferenceRepository,
+    unsubscribeTokenService,
     passwordHasher: { hash: hashPassword, verify: verifyPassword },
     changePasswordRateLimiter,
     holidayProvider: japaneseHolidayProvider,

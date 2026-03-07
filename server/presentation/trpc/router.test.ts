@@ -85,6 +85,7 @@ const createContext = () => {
     userStatisticsService: {} as Context["userStatisticsService"],
     roundRobinScheduleService: {} as Context["roundRobinScheduleService"],
     holidayProvider: {} as Context["holidayProvider"],
+    notificationPreferenceService: {} as Context["notificationPreferenceService"],
   };
 
   return {
