@@ -18,7 +18,7 @@ const domainErrorToHttpStatus: Record<DomainErrorCode, number> = {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const token = searchParams.get("token");
+  const token = searchParams.get("token")?.trim() || null;
 
   if (!token) {
     return NextResponse.json(
