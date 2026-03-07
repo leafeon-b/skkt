@@ -10,6 +10,7 @@ import { userId } from "@/server/domain/common/ids";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
+import type { createNotificationService } from "@/server/application/notification/notification-service";
 import type {
   Repositories,
   UnitOfWork,
@@ -22,11 +23,13 @@ import {
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
 type AccessService = ReturnType<typeof createAccessService>;
+type NotificationService = ReturnType<typeof createNotificationService>;
 
 export type CircleSessionServiceDeps = {
   circleRepository: CircleRepository;
   circleSessionRepository: CircleSessionRepository;
   accessService: AccessService;
+  notificationService?: NotificationService;
   unitOfWork?: UnitOfWork;
 };
 
@@ -76,6 +79,17 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => {
           CircleSessionRole.CircleSessionOwner,
         );
       });
+
+      void deps.notificationService
+        ?.notifySessionCreated(session, circle.name, params.actorId)
+        .catch((err) =>
+          console.error("Failed to send session notification:", {
+            sessionId: session.id,
+            circleId: session.circleId,
+            message: err instanceof Error ? err.message : "Unknown error",
+          }),
+        );
+
       return session;
     },
 

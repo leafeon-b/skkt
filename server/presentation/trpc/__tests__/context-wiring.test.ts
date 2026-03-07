@@ -61,6 +61,14 @@ vi.mock("@/server/infrastructure/rate-limit/prisma-rate-limiter", () => ({
   })),
 }));
 
+vi.mock("@/server/infrastructure/email/resend-email-sender", () => ({
+  createResendEmailSender: vi.fn(() => ({ send: vi.fn() })),
+}));
+
+vi.mock("@/server/infrastructure/email/noop-email-sender", () => ({
+  noopEmailSender: { send: vi.fn() },
+}));
+
 describe("buildServiceContainer ワイヤリング", () => {
   test("buildServiceContainer() を複数回呼び出しても holidayProvider が同一インスタンスである", async () => {
     const { createServiceContainer } = await import(
