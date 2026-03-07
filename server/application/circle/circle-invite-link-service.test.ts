@@ -6,10 +6,10 @@ import {
   createInMemoryCircleRepository,
 } from "@/server/infrastructure/repository/in-memory";
 import {
-  circleId,
-  circleInviteLinkId,
-  inviteLinkToken,
-  userId,
+  toCircleId,
+  toCircleInviteLinkId,
+  toInviteLinkToken,
+  toUserId,
 } from "@/server/domain/common/ids";
 
 const circleInviteLinkRepository = createInMemoryCircleInviteLinkRepository();
@@ -30,17 +30,17 @@ const service = createCircleInviteLinkService({
 });
 
 const baseCircle = () => ({
-  id: circleId("circle-1"),
+  id: toCircleId("circle-1"),
   name: "テスト研究会",
   createdAt: new Date(),
   sessionEmailNotificationEnabled: true,
 });
 
 const baseLink = () => ({
-  id: circleInviteLinkId("link-1"),
-  circleId: circleId("circle-1"),
-  token: inviteLinkToken(TEST_TOKEN_UUID),
-  createdByUserId: userId("user-1"),
+  id: toCircleInviteLinkId("link-1"),
+  circleId: toCircleId("circle-1"),
+  token: toInviteLinkToken(TEST_TOKEN_UUID),
+  createdByUserId: toUserId("user-1"),
   expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   createdAt: new Date(),
 });
@@ -58,23 +58,23 @@ describe("招待リンクサービス", () => {
     test("研究会メンバーが招待リンクを作成できる", async () => {
       const result = await service.createInviteLink({
         actorId: "user-1",
-        circleId: circleId("circle-1"),
+        circleId: toCircleId("circle-1"),
       });
 
       expect(result.token).toBe(TEST_TOKEN_UUID);
       expect(result.circleId).toBe("circle-1");
       const saved = await circleInviteLinkRepository.findByToken(
-        inviteLinkToken(TEST_TOKEN_UUID),
+        toInviteLinkToken(TEST_TOKEN_UUID),
       );
       expect(saved).not.toBeNull();
-      expect(saved?.token).toBe(inviteLinkToken(TEST_TOKEN_UUID));
-      expect(saved?.circleId).toBe(circleId("circle-1"));
+      expect(saved?.token).toBe(toInviteLinkToken(TEST_TOKEN_UUID));
+      expect(saved?.circleId).toBe(toCircleId("circle-1"));
     });
 
     test("有効期限のカスタム日数を指定できる", async () => {
       const result = await service.createInviteLink({
         actorId: "user-1",
-        circleId: circleId("circle-1"),
+        circleId: toCircleId("circle-1"),
         expiryDays: 14,
       });
 
@@ -90,7 +90,7 @@ describe("招待リンクサービス", () => {
       await expect(
         service.createInviteLink({
           actorId: "user-1",
-          circleId: circleId("circle-1"),
+          circleId: toCircleId("circle-1"),
         }),
       ).rejects.toThrow("Circle not found");
     });
@@ -101,12 +101,12 @@ describe("招待リンクサービス", () => {
 
       const result = await service.createInviteLink({
         actorId: "user-1",
-        circleId: circleId("circle-1"),
+        circleId: toCircleId("circle-1"),
       });
 
       expect(result).toEqual(existing);
       const stored = await circleInviteLinkRepository.findActiveByCircleId(
-        circleId("circle-1"),
+        toCircleId("circle-1"),
       );
       expect(stored).not.toBeNull();
     });
@@ -114,12 +114,12 @@ describe("招待リンクサービス", () => {
     test("有効リンクがなければ新規作成する (BR-011)", async () => {
       const result = await service.createInviteLink({
         actorId: "user-1",
-        circleId: circleId("circle-1"),
+        circleId: toCircleId("circle-1"),
       });
 
       expect(result.token).toBe(TEST_TOKEN_UUID);
       const saved = await circleInviteLinkRepository.findByToken(
-        inviteLinkToken(TEST_TOKEN_UUID),
+        toInviteLinkToken(TEST_TOKEN_UUID),
       );
       expect(saved).not.toBeNull();
     });
@@ -130,12 +130,12 @@ describe("招待リンクサービス", () => {
       await expect(
         service.createInviteLink({
           actorId: "user-1",
-          circleId: circleId("circle-1"),
+          circleId: toCircleId("circle-1"),
         }),
       ).rejects.toThrow("Forbidden");
 
       const stored = await circleInviteLinkRepository.findActiveByCircleId(
-        circleId("circle-1"),
+        toCircleId("circle-1"),
       );
       expect(stored).toBeNull();
     });
@@ -146,7 +146,7 @@ describe("招待リンクサービス", () => {
       await circleInviteLinkRepository.save(baseLink());
 
       const result = await service.getInviteLinkInfo({
-        token: inviteLinkToken(TEST_TOKEN_UUID),
+        token: toInviteLinkToken(TEST_TOKEN_UUID),
       });
 
       expect(result.circleName).toBe("テスト研究会");
@@ -162,7 +162,7 @@ describe("招待リンクサービス", () => {
       await circleInviteLinkRepository.save(expiredLink);
 
       const result = await service.getInviteLinkInfo({
-        token: inviteLinkToken(TEST_TOKEN_UUID),
+        token: toInviteLinkToken(TEST_TOKEN_UUID),
       });
 
       expect(result.expired).toBe(true);
@@ -171,7 +171,7 @@ describe("招待リンクサービス", () => {
     test("存在しないトークンはエラー", async () => {
       await expect(
         service.getInviteLinkInfo({
-          token: inviteLinkToken(NONEXISTENT_TOKEN_UUID),
+          token: toInviteLinkToken(NONEXISTENT_TOKEN_UUID),
         }),
       ).rejects.toThrow("InviteLink not found");
     });
@@ -185,13 +185,13 @@ describe("招待リンクサービス", () => {
     test("新規ユーザーが招待リンクで参加できる", async () => {
       const result = await service.redeemInviteLink({
         actorId: "user-new",
-        token: inviteLinkToken(TEST_TOKEN_UUID),
+        token: toInviteLinkToken(TEST_TOKEN_UUID),
       });
 
       expect(result.circleId).toBe("circle-1");
       expect(result.alreadyMember).toBe(false);
       const memberships = await circleRepository.listMembershipsByCircleId(
-        circleId("circle-1"),
+        toCircleId("circle-1"),
       );
       expect(memberships).toHaveLength(1);
       expect(memberships[0].userId).toBe("user-new");
@@ -200,19 +200,19 @@ describe("招待リンクサービス", () => {
 
     test("既存メンバーはalreadyMember=trueを返す", async () => {
       await circleRepository.addMembership(
-        circleId("circle-1"),
-        userId("user-existing"),
+        toCircleId("circle-1"),
+        toUserId("user-existing"),
         "CircleMember",
       );
 
       const result = await service.redeemInviteLink({
         actorId: "user-existing",
-        token: inviteLinkToken(TEST_TOKEN_UUID),
+        token: toInviteLinkToken(TEST_TOKEN_UUID),
       });
 
       expect(result.alreadyMember).toBe(true);
       const memberships = await circleRepository.listMembershipsByCircleId(
-        circleId("circle-1"),
+        toCircleId("circle-1"),
       );
       expect(memberships).toHaveLength(1);
     });
@@ -228,7 +228,7 @@ describe("招待リンクサービス", () => {
       await expect(
         service.redeemInviteLink({
           actorId: "user-new",
-          token: inviteLinkToken(TEST_TOKEN_UUID),
+          token: toInviteLinkToken(TEST_TOKEN_UUID),
         }),
       ).rejects.toThrow("Invite link has expired");
     });
@@ -237,7 +237,7 @@ describe("招待リンクサービス", () => {
       await expect(
         service.redeemInviteLink({
           actorId: "user-new",
-          token: inviteLinkToken(NONEXISTENT_TOKEN_UUID),
+          token: toInviteLinkToken(NONEXISTENT_TOKEN_UUID),
         }),
       ).rejects.toThrow("InviteLink not found");
     });

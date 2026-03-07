@@ -14,7 +14,7 @@ vi.mock("@/server/infrastructure/db", () => ({
 
 import { type User as PrismaUser, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/server/infrastructure/db";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { ConflictError } from "@/server/domain/common/errors";
 import { createUser } from "@/server/domain/models/user/user";
 import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
@@ -38,7 +38,7 @@ describe("Prisma User リポジトリ", () => {
 
     mockedPrisma.user.findUnique.mockResolvedValueOnce(prismaUser);
 
-    const user = await prismaUserRepository.findById(userId("user-1"));
+    const user = await prismaUserRepository.findById(toUserId("user-1"));
 
     expect(mockedPrisma.user.findUnique).toHaveBeenCalledWith({
       where: { id: "user-1" },
@@ -49,7 +49,7 @@ describe("Prisma User リポジトリ", () => {
   test("findById は未取得時に null を返す", async () => {
     mockedPrisma.user.findUnique.mockResolvedValueOnce(null);
 
-    const user = await prismaUserRepository.findById(userId("user-1"));
+    const user = await prismaUserRepository.findById(toUserId("user-1"));
 
     expect(user).toBeNull();
   });
@@ -75,9 +75,9 @@ describe("Prisma User リポジトリ", () => {
     mockedPrisma.user.findMany.mockResolvedValueOnce(prismaUsers);
 
     const users = await prismaUserRepository.findByIds([
-      userId("user-1"),
-      userId("user-2"),
-      userId("user-3"),
+      toUserId("user-1"),
+      toUserId("user-2"),
+      toUserId("user-3"),
     ]);
 
     expect(mockedPrisma.user.findMany).toHaveBeenCalledWith({
@@ -88,7 +88,7 @@ describe("Prisma User リポジトリ", () => {
 
   test("save は upsert を呼ぶ", async () => {
     const user = createUser({
-      id: userId("user-1"),
+      id: toUserId("user-1"),
       name: "Alice",
       email: "alice@example.com",
       image: "https://example.com/icon.png",
@@ -120,7 +120,7 @@ describe("Prisma User リポジトリ", () => {
     );
 
     await expect(
-      prismaUserRepository.updateProfile(userId("user-1"), "Name", "dup@example.com"),
+      prismaUserRepository.updateProfile(toUserId("user-1"), "Name", "dup@example.com"),
     ).rejects.toThrow(ConflictError);
   });
 
@@ -136,7 +136,7 @@ describe("Prisma User リポジトリ", () => {
     mockedPrisma.user.update.mockRejectedValueOnce(error);
 
     await expect(
-      prismaUserRepository.updateProfile(userId("user-1"), "Name", "dup@example.com"),
+      prismaUserRepository.updateProfile(toUserId("user-1"), "Name", "dup@example.com"),
     ).rejects.toThrow(error);
   });
 
@@ -148,7 +148,7 @@ describe("Prisma User リポジトリ", () => {
     mockedPrisma.user.update.mockRejectedValueOnce(otherError);
 
     await expect(
-      prismaUserRepository.updateProfile(userId("user-1"), "Name", "dup@example.com"),
+      prismaUserRepository.updateProfile(toUserId("user-1"), "Name", "dup@example.com"),
     ).rejects.toThrow(otherError);
   });
 

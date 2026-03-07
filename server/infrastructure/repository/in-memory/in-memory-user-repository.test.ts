@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { createInMemoryUserRepository } from "./in-memory-user-repository";
 import { createUser } from "@/server/domain/models/user/user";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { ConflictError } from "@/server/domain/common/errors";
 
 describe("InMemoryUserRepository", () => {
@@ -10,41 +10,41 @@ describe("InMemoryUserRepository", () => {
   describe("User CRUD", () => {
     test("save した User を findById で取得できる", async () => {
       const repo = makeRepo();
-      const user = createUser({ id: userId("u1"), name: "Alice" });
+      const user = createUser({ id: toUserId("u1"), name: "Alice" });
       await repo.save(user);
 
-      const found = await repo.findById(userId("u1"));
+      const found = await repo.findById(toUserId("u1"));
       expect(found).toEqual(user);
     });
 
     test("存在しない User は null を返す", async () => {
       const repo = makeRepo();
-      const found = await repo.findById(userId("not-exist"));
+      const found = await repo.findById(toUserId("not-exist"));
       expect(found).toBeNull();
     });
 
     test("findByEmail でメールアドレスから取得できる", async () => {
       const repo = makeRepo();
       const user = createUser({
-        id: userId("u1"),
+        id: toUserId("u1"),
         name: "Alice",
         email: "alice@example.com",
       });
       await repo.save(user);
 
       const found = await repo.findByEmail("alice@example.com");
-      expect(found?.id).toBe(userId("u1"));
+      expect(found?.id).toBe(toUserId("u1"));
     });
 
     test("findByIds は入力順を保持する", async () => {
       const repo = makeRepo();
-      const u1 = createUser({ id: userId("u1"), name: "A" });
-      const u2 = createUser({ id: userId("u2"), name: "B" });
+      const u1 = createUser({ id: toUserId("u1"), name: "A" });
+      const u2 = createUser({ id: toUserId("u2"), name: "B" });
       await repo.save(u1);
       await repo.save(u2);
 
-      const result = await repo.findByIds([userId("u2"), userId("u1")]);
-      expect(result.map((u) => u.id)).toEqual([userId("u2"), userId("u1")]);
+      const result = await repo.findByIds([toUserId("u2"), toUserId("u1")]);
+      expect(result.map((u) => u.id)).toEqual([toUserId("u2"), toUserId("u1")]);
     });
 
     test("save は既存の User を上書きする（パスワード情報は保持）", async () => {
@@ -73,26 +73,26 @@ describe("InMemoryUserRepository", () => {
     test("updateProfile で名前とメールを更新できる", async () => {
       const repo = makeRepo();
       const user = createUser({
-        id: userId("u1"),
+        id: toUserId("u1"),
         name: "Alice",
         email: "old@example.com",
       });
       await repo.save(user);
-      await repo.updateProfile(userId("u1"), "Bob", "new@example.com");
+      await repo.updateProfile(toUserId("u1"), "Bob", "new@example.com");
 
-      const found = await repo.findById(userId("u1"));
+      const found = await repo.findById(toUserId("u1"));
       expect(found?.name).toBe("Bob");
       expect(found?.email).toBe("new@example.com");
     });
 
     test("updateProfileVisibility で公開設定を変更できる", async () => {
       const repo = makeRepo();
-      const user = createUser({ id: userId("u1") });
+      const user = createUser({ id: toUserId("u1") });
       await repo.save(user);
 
-      await repo.updateProfileVisibility(userId("u1"), "PRIVATE");
+      await repo.updateProfileVisibility(toUserId("u1"), "PRIVATE");
 
-      const found = await repo.findById(userId("u1"));
+      const found = await repo.findById(toUserId("u1"));
       expect(found?.profileVisibility).toBe("PRIVATE");
     });
   });
@@ -101,7 +101,7 @@ describe("InMemoryUserRepository", () => {
     test("emailExists は存在するメールで true を返す", async () => {
       const repo = makeRepo();
       const user = createUser({
-        id: userId("u1"),
+        id: toUserId("u1"),
         email: "alice@example.com",
       });
       await repo.save(user);
@@ -113,15 +113,15 @@ describe("InMemoryUserRepository", () => {
     test("emailExists は excludeUserId で指定したユーザーを除外する", async () => {
       const repo = makeRepo();
       const user = createUser({
-        id: userId("u1"),
+        id: toUserId("u1"),
         email: "alice@example.com",
       });
       await repo.save(user);
 
-      expect(await repo.emailExists("alice@example.com", userId("u1"))).toBe(
+      expect(await repo.emailExists("alice@example.com", toUserId("u1"))).toBe(
         false,
       );
-      expect(await repo.emailExists("alice@example.com", userId("u2"))).toBe(
+      expect(await repo.emailExists("alice@example.com", toUserId("u2"))).toBe(
         true,
       );
     });
@@ -156,7 +156,7 @@ describe("InMemoryUserRepository", () => {
 
     test("存在しない User のパスワードハッシュは null を返す", async () => {
       const repo = makeRepo();
-      const hash = await repo.findPasswordHashById(userId("not-exist"));
+      const hash = await repo.findPasswordHashById(toUserId("not-exist"));
       expect(hash).toBeNull();
     });
   });

@@ -1,8 +1,8 @@
 import { ForbiddenError } from "@/server/domain/common/errors";
 import {
-  circleId,
-  circleInviteLinkId,
-  userId,
+  toCircleId,
+  toCircleInviteLinkId,
+  toUserId,
 } from "@/server/domain/common/ids";
 import type { Context } from "@/server/presentation/trpc/context";
 import { appRouter } from "@/server/presentation/trpc/router";
@@ -18,7 +18,7 @@ const createTestContext = () => {
   };
 
   const context: Context = {
-    actorId: userId("user-1"),
+    actorId: toUserId("user-1"),
     clientIp: "1.2.3.4",
     circleService: {
       getCircle: vi.fn(),
@@ -92,10 +92,10 @@ describe("circleInviteLink tRPC ルーター", () => {
   test("circles.inviteLinks.create は招待リンクを返す", async () => {
     const { context, mocks } = createTestContext();
     mocks.circleInviteLinkService.createInviteLink.mockResolvedValueOnce({
-      id: circleInviteLinkId("link-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleInviteLinkId("link-1"),
+      circleId: toCircleId("circle-1"),
       token: TEST_TOKEN_UUID,
-      createdByUserId: userId("user-1"),
+      createdByUserId: toUserId("user-1"),
       expiresAt: new Date("2026-02-23T00:00:00Z"),
       createdAt: new Date("2026-02-16T00:00:00Z"),
     });
@@ -114,7 +114,7 @@ describe("circleInviteLink tRPC ルーター", () => {
     mocks.circleInviteLinkService.getInviteLinkInfo.mockResolvedValueOnce({
       token: TEST_TOKEN_UUID,
       circleName: "テスト研究会",
-      circleId: circleId("circle-1"),
+      circleId: toCircleId("circle-1"),
       expired: false,
     });
 
@@ -130,7 +130,7 @@ describe("circleInviteLink tRPC ルーター", () => {
   test("circles.inviteLinks.redeem は参加結果を返す", async () => {
     const { context, mocks } = createTestContext();
     mocks.circleInviteLinkService.redeemInviteLink.mockResolvedValueOnce({
-      circleId: circleId("circle-1"),
+      circleId: toCircleId("circle-1"),
       alreadyMember: false,
     });
 
@@ -146,7 +146,7 @@ describe("circleInviteLink tRPC ルーター", () => {
   test("circles.inviteLinks.redeem は既存メンバーの場合 alreadyMember=true", async () => {
     const { context, mocks } = createTestContext();
     mocks.circleInviteLinkService.redeemInviteLink.mockResolvedValueOnce({
-      circleId: circleId("circle-1"),
+      circleId: toCircleId("circle-1"),
       alreadyMember: true,
     });
 

@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { NotFoundError } from "@/server/domain/common/errors";
-import { matchId } from "@/server/domain/common/ids";
+import { toMatchId } from "@/server/domain/common/ids";
 import {
   matchCreateInputSchema,
   matchDeleteInputSchema,
@@ -53,7 +53,7 @@ export const matchRouter = router({
       handleTrpcError(async () => {
         const match = await ctx.matchService.recordMatch({
           actorId: ctx.actorId,
-          id: matchId(randomUUID()),
+          id: toMatchId(randomUUID()),
           circleSessionId: input.circleSessionId,
           player1Id: input.player1Id,
           player2Id: input.player2Id,

@@ -4,7 +4,7 @@ import {
   mapCircleSessionToDomain,
   mapCircleSessionToPersistence,
 } from "@/server/infrastructure/mappers/circle-session-mapper";
-import { circleId, circleSessionId } from "@/server/domain/common/ids";
+import { toCircleId, toCircleSessionId } from "@/server/domain/common/ids";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
 
 describe("CircleSession マッパー", () => {
@@ -30,8 +30,8 @@ describe("CircleSession マッパー", () => {
 
   test("ドメイン CircleSession を永続化モデルに変換できる", () => {
     const session = createCircleSession({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
 
       title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),

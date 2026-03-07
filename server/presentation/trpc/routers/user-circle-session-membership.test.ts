@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
-import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toCircleSessionId, toUserId } from "@/server/domain/common/ids";
 import { ForbiddenError } from "@/server/domain/common/errors";
 
 const createTestContext = (
-  actorIdValue: ReturnType<typeof userId> | null = userId("user-1"),
+  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
 ) => {
   const circleSessionMembershipService = {
     countPastSessionsByUserId: vi.fn(),
@@ -81,8 +81,8 @@ const createTestContext = (
 };
 
 const baseSummary = (overrides?: Record<string, unknown>) => ({
-  circleSessionId: circleSessionId("session-1"),
-  circleId: circleId("circle-1"),
+  circleSessionId: toCircleSessionId("session-1"),
+  circleId: toCircleId("circle-1"),
   circleName: "さくら将棋研究会",
   title: "第1回例会",
   startsAt: new Date("2024-06-01T13:00:00Z"),

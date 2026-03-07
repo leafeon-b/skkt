@@ -5,7 +5,7 @@ import {
 } from "@/lib/date-utils";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import {
-  circleSessionId as toCircleSessionId,
+  toCircleSessionId as toCircleSessionId,
   type CircleSessionId,
   type UserId,
 } from "@/server/domain/common/ids";

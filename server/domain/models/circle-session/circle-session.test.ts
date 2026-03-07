@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { circleId, circleSessionId } from "@/server/domain/common/ids";
+import { toCircleId, toCircleSessionId } from "@/server/domain/common/ids";
 import {
   CIRCLE_SESSION_NOTE_MAX_LENGTH,
   CIRCLE_SESSION_TITLE_MAX_LENGTH,
@@ -12,8 +12,8 @@ import {
 describe("CircleSession ドメイン", () => {
   test("createCircleSession は日時とタイトルを検証する", () => {
     const session = createCircleSession({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -27,8 +27,8 @@ describe("CircleSession ドメイン", () => {
   test("createCircleSession は空タイトルを拒否する", () => {
     expect(() =>
       createCircleSession({
-        id: circleSessionId("session-1"),
-        circleId: circleId("circle-1"),
+        id: toCircleSessionId("session-1"),
+        circleId: toCircleId("circle-1"),
         title: "",
         startsAt: new Date("2024-01-01T10:00:00Z"),
         endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -39,8 +39,8 @@ describe("CircleSession ドメイン", () => {
   test("createCircleSession は不正な日時を拒否する", () => {
     expect(() =>
       createCircleSession({
-        id: circleSessionId("session-1"),
-        circleId: circleId("circle-1"),
+        id: toCircleSessionId("session-1"),
+        circleId: toCircleId("circle-1"),
         title: "第1回 研究会",
         startsAt: new Date("invalid"),
         endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -51,8 +51,8 @@ describe("CircleSession ドメイン", () => {
   test("createCircleSession は開始が終了より後なら拒否する", () => {
     expect(() =>
       createCircleSession({
-        id: circleSessionId("session-1"),
-        circleId: circleId("circle-1"),
+        id: toCircleSessionId("session-1"),
+        circleId: toCircleId("circle-1"),
         title: "第1回 研究会",
         startsAt: new Date("2024-01-01T13:00:00Z"),
         endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -62,8 +62,8 @@ describe("CircleSession ドメイン", () => {
 
   test("rescheduleCircleSession は日時を検証する", () => {
     const session = createCircleSession({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -80,8 +80,8 @@ describe("CircleSession ドメイン", () => {
 
   test("rescheduleCircleSession は不正な日時を拒否する", () => {
     const session = createCircleSession({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -98,8 +98,8 @@ describe("CircleSession ドメイン", () => {
 
   test("rescheduleCircleSession は開始が終了より後なら拒否する", () => {
     const session = createCircleSession({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -116,8 +116,8 @@ describe("CircleSession ドメイン", () => {
 
   test("createCircleSession は note が最大文字数ちょうどなら作成できる", () => {
     const session = createCircleSession({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -130,8 +130,8 @@ describe("CircleSession ドメイン", () => {
   test("createCircleSession は note が最大文字数を超える場合拒否する", () => {
     expect(() =>
       createCircleSession({
-        id: circleSessionId("session-1"),
-        circleId: circleId("circle-1"),
+        id: toCircleSessionId("session-1"),
+        circleId: toCircleId("circle-1"),
         title: "第1回 研究会",
         startsAt: new Date("2024-01-01T10:00:00Z"),
         endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -144,8 +144,8 @@ describe("CircleSession ドメイン", () => {
 
   test("createCircleSession は note 未指定時に空文字を設定する", () => {
     const session = createCircleSession({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "第1回 研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -156,8 +156,8 @@ describe("CircleSession ドメイン", () => {
 
   describe("renameCircleSession", () => {
     const base = createCircleSession({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "旧タイトル",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),
@@ -207,8 +207,8 @@ describe("CircleSession ドメイン", () => {
 
   describe("updateCircleSessionNote", () => {
     const base = createCircleSession({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "研究会",
       startsAt: new Date("2024-01-01T10:00:00Z"),
       endsAt: new Date("2024-01-01T12:00:00Z"),

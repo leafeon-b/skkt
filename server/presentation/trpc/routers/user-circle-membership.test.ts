@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
-import { circleId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toUserId } from "@/server/domain/common/ids";
 import { ForbiddenError } from "@/server/domain/common/errors";
 
 const createTestContext = (
-  actorIdValue: ReturnType<typeof userId> | null = userId("user-1"),
+  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
 ) => {
   const circleMembershipService = {
     listByCircleId: vi.fn(),
@@ -90,12 +90,12 @@ describe("userCircleMembership tRPC ルーター", () => {
       const { context, mocks } = createTestContext();
       mocks.circleMembershipService.listByUserId.mockResolvedValueOnce([
         {
-          circleId: circleId("circle-1"),
+          circleId: toCircleId("circle-1"),
           circleName: "さくら将棋研究会",
           role: "CircleMember",
         },
         {
-          circleId: circleId("circle-2"),
+          circleId: toCircleId("circle-2"),
           circleName: "テスト研究会",
           role: "CircleOwner",
         },

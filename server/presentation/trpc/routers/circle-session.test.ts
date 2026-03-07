@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { BadRequestError } from "@/server/domain/common/errors";
 
 const createTestContext = (
-  actorIdValue: ReturnType<typeof userId> | null = userId("user-1"),
+  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
 ) => {
   const circleSessionService = {
     listByCircleId: vi.fn(),

@@ -1,5 +1,5 @@
 import {
-  userId,
+  toUserId,
   type CircleId,
   type CircleSessionId,
   type UserId,
@@ -98,7 +98,7 @@ export const createCircleSessionMembershipService = (
       userId: UserId;
       limit?: number;
     }): Promise<UserCircleSessionMembershipSummary[]> {
-      if (params.userId !== userId(params.actorId)) {
+      if (params.userId !== toUserId(params.actorId)) {
         throw new ForbiddenError();
       }
       const allowed = await deps.accessService.canListOwnCircles(
@@ -376,7 +376,7 @@ export const createCircleSessionMembershipService = (
         params.circleSessionId,
       );
       const actor = memberships.find(
-        (member) => member.userId === userId(params.actorId),
+        (member) => member.userId === toUserId(params.actorId),
       );
 
       if (!actor) {
@@ -388,7 +388,7 @@ export const createCircleSessionMembershipService = (
       const deletedAt = new Date();
       await deps.circleSessionRepository.removeMembership(
         params.circleSessionId,
-        userId(params.actorId),
+        toUserId(params.actorId),
         deletedAt,
       );
     },

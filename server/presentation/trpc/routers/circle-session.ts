@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { circleSessionId } from "@/server/domain/common/ids";
+import { toCircleSessionId } from "@/server/domain/common/ids";
 import {
   circleSessionCreateInputSchema,
   circleSessionDeleteInputSchema,
@@ -55,7 +55,7 @@ export const circleSessionRouter = router({
       handleTrpcError(async () => {
         const session = await ctx.circleSessionService.createCircleSession({
           actorId: ctx.actorId,
-          id: circleSessionId(randomUUID()),
+          id: toCircleSessionId(randomUUID()),
           circleId: input.circleId,
           title: input.title,
           startsAt: input.startsAt,

@@ -6,7 +6,7 @@ const mockEnv = vi.hoisted(() => ({
 vi.mock("@/server/env", () => ({ env: mockEnv }));
 
 import { createNotificationService } from "@/server/application/notification/notification-service";
-import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toCircleSessionId, toUserId } from "@/server/domain/common/ids";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
@@ -48,8 +48,8 @@ const service = createNotificationService({
 });
 
 const session = createCircleSession({
-  id: circleSessionId("session-1"),
-  circleId: circleId("circle-1"),
+  id: toCircleSessionId("session-1"),
+  circleId: toCircleId("circle-1"),
   title: "第1回 研究会",
   startsAt: new Date("2024-06-01T10:00:00Z"),
   endsAt: new Date("2024-06-01T12:00:00Z"),
@@ -63,15 +63,15 @@ const makeMembership = (
   uid: string,
   deletedAt: Date | null = null,
 ): CircleMembership => ({
-  circleId: circleId("circle-1"),
-  userId: userId(uid),
+  circleId: toCircleId("circle-1"),
+  userId: toUserId(uid),
   role: "CircleMember" as const,
   createdAt: new Date("2024-01-01"),
   deletedAt,
 });
 
 const makeUser = (uid: string, email: string | null): User => ({
-  id: userId(uid),
+  id: toUserId(uid),
   name: uid,
   email,
   image: null,
@@ -80,7 +80,7 @@ const makeUser = (uid: string, email: string | null): User => ({
 });
 
 const defaultCircle = createCircle({
-  id: circleId("circle-1"),
+  id: toCircleId("circle-1"),
   name: "将棋研究会",
   sessionEmailNotificationEnabled: true,
 });
@@ -195,7 +195,7 @@ describe("NotificationService", () => {
       makeUser("user-2", "user2@example.com"),
     ]);
     vi.mocked(mockNotificationPreferenceRepository.findByUserIds).mockResolvedValue([
-      { userId: userId("user-2"), emailEnabled: false },
+      { userId: toUserId("user-2"), emailEnabled: false },
     ]);
 
     await service.notifySessionCreated(session, circleName, actorId);
@@ -216,7 +216,7 @@ describe("NotificationService", () => {
       makeUser("user-3", "user3@example.com"),
     ]);
     vi.mocked(mockNotificationPreferenceRepository.findByUserIds).mockResolvedValue([
-      { userId: userId("user-2"), emailEnabled: false },
+      { userId: toUserId("user-2"), emailEnabled: false },
     ]);
 
     await service.notifySessionCreated(session, circleName, actorId);
@@ -271,7 +271,7 @@ describe("NotificationService", () => {
   test("研究会のメール通知設定が無効の場合、メール送信されない", async () => {
     vi.mocked(mockCircleRepository.findById).mockResolvedValue(
       createCircle({
-        id: circleId("circle-1"),
+        id: toCircleId("circle-1"),
         name: "将棋研究会",
         sessionEmailNotificationEnabled: false,
       }),

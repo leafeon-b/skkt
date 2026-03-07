@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { circleSessionId, userId } from "@/server/domain/common/ids";
+import { toCircleSessionId, toUserId } from "@/server/domain/common/ids";
 import {
   mapCircleSessionMembershipFromPersistence,
   mapCircleSessionRoleFromPersistence,
@@ -13,13 +13,13 @@ import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-
 
 describe("CircleSession メンバーシップマッパー", () => {
   test("CircleSessionId を永続化向けに変換できる", () => {
-    const mapped = toPersistenceId(circleSessionId("session-1"));
+    const mapped = toPersistenceId(toCircleSessionId("session-1"));
 
     expect(mapped).toBe("session-1");
   });
 
   test("UserId 配列を永続化向けに変換できる", () => {
-    const mapped = toPersistenceIds([userId("user-1"), userId("user-2")]);
+    const mapped = toPersistenceIds([toUserId("user-1"), toUserId("user-2")]);
 
     expect(mapped).toEqual(["user-1", "user-2"]);
   });
@@ -49,8 +49,8 @@ describe("CircleSession メンバーシップマッパー", () => {
     });
 
     expect(mapped).toEqual({
-      circleSessionId: circleSessionId("session-1"),
-      userId: userId("user-1"),
+      circleSessionId: toCircleSessionId("session-1"),
+      userId: toUserId("user-1"),
       role: CircleSessionRole.CircleSessionManager,
       createdAt,
       deletedAt: null,

@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
-import { circleSessionId, matchId, userId } from "@/server/domain/common/ids";
+import { toCircleSessionId, toMatchId, toUserId } from "@/server/domain/common/ids";
 import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
 
 const createTestContext = (
-  actorIdValue: ReturnType<typeof userId> | null = userId("user-1"),
+  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
 ) => {
   const matchService = {
     listByCircleSessionId: vi.fn(),
@@ -81,11 +81,11 @@ const createTestContext = (
 };
 
 const baseMatch = () => ({
-  id: matchId("match-1"),
-  circleSessionId: circleSessionId("session-1"),
+  id: toMatchId("match-1"),
+  circleSessionId: toCircleSessionId("session-1"),
   createdAt: new Date("2024-06-01T10:00:00Z"),
-  player1Id: userId("player-1"),
-  player2Id: userId("player-2"),
+  player1Id: toUserId("player-1"),
+  player2Id: toUserId("player-2"),
   outcome: "P1_WIN" as const,
   deletedAt: null,
 });
@@ -282,8 +282,8 @@ describe("match tRPC ルーター", () => {
       const { context, mocks } = createTestContext();
       const updated = {
         ...baseMatch(),
-        player1Id: userId("player-3"),
-        player2Id: userId("player-4"),
+        player1Id: toUserId("player-3"),
+        player2Id: toUserId("player-4"),
       };
       mocks.matchService.updateMatch.mockResolvedValueOnce(updated);
 

@@ -3,7 +3,7 @@ import { env } from "@/server/env";
 import { createGetSession } from "@/server/application/auth/session";
 import { createServiceContainer } from "@/server/infrastructure/service-container";
 import type { ServiceContainer } from "@/server/infrastructure/service-container";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { nextAuthSessionService } from "@/server/infrastructure/auth/nextauth-session-service";
 import { prismaAuthzRepository } from "@/server/infrastructure/repository/authz/prisma-authz-repository";
 import { prismaCircleRepository } from "@/server/infrastructure/repository/circle/prisma-circle-repository";
@@ -63,7 +63,7 @@ export const buildServiceContainer = (): ServiceContainer =>
 
 export const createContext = async (request?: Request) => {
   const session = await getSession();
-  const actorId = session?.user?.id ? userId(session.user.id) : null;
+  const actorId = session?.user?.id ? toUserId(session.user.id) : null;
   const services = buildServiceContainer();
   const clientIp = request ? getClientIp(request) : "unknown";
 

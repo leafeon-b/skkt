@@ -7,10 +7,10 @@ import {
   createInMemoryRepositories,
 } from "@/server/infrastructure/repository/in-memory";
 import {
-  circleId,
-  circleSessionId,
-  matchId,
-  userId,
+  toCircleId,
+  toCircleSessionId,
+  toMatchId,
+  toUserId,
 } from "@/server/domain/common/ids";
 import { createMatch } from "@/server/domain/models/match/match";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
@@ -28,17 +28,17 @@ const service = createMatchService({
 });
 
 const baseMatchParams = {
-  id: matchId("match-1"),
-  circleSessionId: circleSessionId("session-1"),
-  player1Id: userId("user-1"),
-  player2Id: userId("user-2"),
+  id: toMatchId("match-1"),
+  circleSessionId: toCircleSessionId("session-1"),
+  player1Id: toUserId("user-1"),
+  player2Id: toUserId("user-2"),
   outcome: "P1_WIN" as const,
 };
 
 const baseSession = () =>
   createCircleSession({
-    id: circleSessionId("session-1"),
-    circleId: circleId("circle-1"),
+    id: toCircleSessionId("session-1"),
+    circleId: toCircleId("circle-1"),
     title: "第1回 研究会",
     startsAt: new Date("2024-01-01T00:00:00Z"),
     endsAt: new Date("2024-01-02T00:00:00Z"),
@@ -49,13 +49,13 @@ const baseSession = () =>
 
 const addSessionMemberships = async () => {
   await circleSessionRepository.addMembership(
-    circleSessionId("session-1"),
-    userId("user-1"),
+    toCircleSessionId("session-1"),
+    toUserId("user-1"),
     "CircleSessionMember",
   );
   await circleSessionRepository.addMembership(
-    circleSessionId("session-1"),
-    userId("user-2"),
+    toCircleSessionId("session-1"),
+    toUserId("user-2"),
     "CircleSessionMember",
   );
 };
@@ -79,7 +79,7 @@ describe("Match サービス", () => {
 
       await expect(
         service.recordMatch({
-          actorId: userId("user-3"),
+          actorId: toUserId("user-3"),
           ...baseMatchParams,
         }),
       ).rejects.toThrow("Forbidden");
@@ -95,7 +95,7 @@ describe("Match サービス", () => {
 
       await expect(
         service.updateMatch({
-          actorId: userId("user-3"),
+          actorId: toUserId("user-3"),
           id: baseMatchParams.id,
           outcome: "DRAW",
         }),
@@ -111,7 +111,7 @@ describe("Match サービス", () => {
 
     await expect(
       service.recordMatch({
-        actorId: userId("user-3"),
+        actorId: toUserId("user-3"),
         ...baseMatchParams,
       }),
     ).rejects.toThrow("Players must belong to the circle session");
@@ -122,7 +122,7 @@ describe("Match サービス", () => {
 
   test("recordMatch は対局を保存する", async () => {
     const result = await service.recordMatch({
-      actorId: userId("user-3"),
+      actorId: toUserId("user-3"),
       ...baseMatchParams,
     });
 
@@ -142,9 +142,9 @@ describe("Match サービス", () => {
 
     await expect(
       service.updateMatch({
-        actorId: userId("user-3"),
+        actorId: toUserId("user-3"),
         id: baseMatchParams.id,
-        player1Id: userId("user-4"),
+        player1Id: toUserId("user-4"),
       }),
     ).rejects.toThrow("player1Id and player2Id must both be provided");
 
@@ -158,10 +158,10 @@ describe("Match サービス", () => {
 
     await expect(
       service.updateMatch({
-        actorId: userId("user-3"),
+        actorId: toUserId("user-3"),
         id: baseMatchParams.id,
-        player1Id: userId("user-4"),
-        player2Id: userId("user-5"),
+        player1Id: toUserId("user-4"),
+        player2Id: toUserId("user-5"),
       }),
     ).rejects.toThrow("Players must belong to the circle session");
 
@@ -175,7 +175,7 @@ describe("Match サービス", () => {
     await matchRepository.save(existing);
 
     const updated = await service.updateMatch({
-      actorId: userId("user-3"),
+      actorId: toUserId("user-3"),
       id: baseMatchParams.id,
       outcome: "DRAW",
     });
@@ -194,7 +194,7 @@ describe("Match サービス", () => {
 
     await expect(
       service.deleteMatch({
-        actorId: userId("user-3"),
+        actorId: toUserId("user-3"),
         id: baseMatchParams.id,
       }),
     ).rejects.toThrow("Match is deleted");
@@ -208,7 +208,7 @@ describe("Match サービス", () => {
     await matchRepository.save(existing);
 
     const deleted = await service.deleteMatch({
-      actorId: userId("user-3"),
+      actorId: toUserId("user-3"),
       id: baseMatchParams.id,
     });
 
@@ -221,28 +221,28 @@ describe("Match サービス", () => {
     const existing = createMatch(baseMatchParams);
     await matchRepository.save(existing);
     await circleSessionRepository.addMembership(
-      circleSessionId("session-1"),
-      userId("user-4"),
+      toCircleSessionId("session-1"),
+      toUserId("user-4"),
       "CircleSessionMember",
     );
     await circleSessionRepository.addMembership(
-      circleSessionId("session-1"),
-      userId("user-5"),
+      toCircleSessionId("session-1"),
+      toUserId("user-5"),
       "CircleSessionMember",
     );
 
     const updated = await service.updateMatch({
-      actorId: userId("user-3"),
+      actorId: toUserId("user-3"),
       id: baseMatchParams.id,
-      player1Id: userId("user-4"),
-      player2Id: userId("user-5"),
+      player1Id: toUserId("user-4"),
+      player2Id: toUserId("user-5"),
     });
 
     const saved = await matchRepository.findById(baseMatchParams.id);
-    expect(saved!.player1Id).toBe(userId("user-4"));
-    expect(saved!.player2Id).toBe(userId("user-5"));
-    expect(updated.player1Id).toBe(userId("user-4"));
-    expect(updated.player2Id).toBe(userId("user-5"));
+    expect(saved!.player1Id).toBe(toUserId("user-4"));
+    expect(saved!.player2Id).toBe(toUserId("user-5"));
+    expect(updated.player1Id).toBe(toUserId("user-4"));
+    expect(updated.player2Id).toBe(toUserId("user-5"));
   });
 });
 
@@ -260,8 +260,8 @@ describe("UnitOfWork 経路", () => {
 
   const uowBaseSession = () =>
     createCircleSession({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "第1回 研究会",
       startsAt: new Date("2024-01-01T00:00:00Z"),
       endsAt: new Date("2024-01-02T00:00:00Z"),
@@ -272,13 +272,13 @@ describe("UnitOfWork 経路", () => {
 
   const addUowSessionMemberships = async () => {
     await repos.circleSessionRepository.addMembership(
-      circleSessionId("session-1"),
-      userId("user-1"),
+      toCircleSessionId("session-1"),
+      toUserId("user-1"),
       "CircleSessionMember",
     );
     await repos.circleSessionRepository.addMembership(
-      circleSessionId("session-1"),
-      userId("user-2"),
+      toCircleSessionId("session-1"),
+      toUserId("user-2"),
       "CircleSessionMember",
     );
   };
@@ -297,7 +297,7 @@ describe("UnitOfWork 経路", () => {
 
   test("recordMatch は UoW 経由で対局を保存する", async () => {
     await uowService.recordMatch({
-      actorId: userId("user-3"),
+      actorId: toUserId("user-3"),
       ...baseMatchParams,
     });
 
@@ -311,7 +311,7 @@ describe("UnitOfWork 経路", () => {
     await repos.matchRepository.save(existing);
 
     await uowService.updateMatch({
-      actorId: userId("user-3"),
+      actorId: toUserId("user-3"),
       id: baseMatchParams.id,
       outcome: "DRAW",
     });
@@ -325,7 +325,7 @@ describe("UnitOfWork 経路", () => {
     await repos.matchRepository.save(existing);
 
     await uowService.deleteMatch({
-      actorId: userId("user-3"),
+      actorId: toUserId("user-3"),
       id: baseMatchParams.id,
     });
 
@@ -340,7 +340,7 @@ describe("UnitOfWork 経路", () => {
 
     await expect(
       uowService.recordMatch({
-        actorId: userId("user-3"),
+        actorId: toUserId("user-3"),
         ...baseMatchParams,
       }),
     ).rejects.toThrow("DB error");

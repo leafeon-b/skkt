@@ -5,7 +5,7 @@ import {
   createInMemoryCircleRepository,
   createInMemoryRepositories,
 } from "@/server/infrastructure/repository/in-memory";
-import { circleId } from "@/server/domain/common/ids";
+import { toCircleId } from "@/server/domain/common/ids";
 import { createCircle } from "@/server/domain/models/circle/circle";
 
 const circleRepository = createInMemoryCircleRepository();
@@ -34,19 +34,19 @@ describe("Circle サービス", () => {
       await expect(
         service.createCircle({
           actorId: "user-1",
-          id: circleId("circle-1"),
+          id: toCircleId("circle-1"),
           name: "Home",
           createdAt: new Date("2024-01-01T00:00:00Z"),
         }),
       ).rejects.toThrow("Forbidden");
 
-      const saved = await circleRepository.findById(circleId("circle-1"));
+      const saved = await circleRepository.findById(toCircleId("circle-1"));
       expect(saved).toBeNull();
     });
 
     test("renameCircle は認可拒否時に Forbidden エラー", async () => {
       const existing = createCircle({
-        id: circleId("circle-1"),
+        id: toCircleId("circle-1"),
         name: "Home",
         createdAt: new Date("2024-01-01T00:00:00Z"),
       });
@@ -57,7 +57,7 @@ describe("Circle サービス", () => {
         service.renameCircle("user-1", existing.id, "Next"),
       ).rejects.toThrow("Forbidden");
 
-      const saved = await circleRepository.findById(circleId("circle-1"));
+      const saved = await circleRepository.findById(toCircleId("circle-1"));
       expect(saved?.name).toBe("Home");
     });
   });
@@ -67,15 +67,15 @@ describe("Circle サービス", () => {
 
     const circle = await service.createCircle({
       actorId: "user-1",
-      id: circleId("circle-1"),
+      id: toCircleId("circle-1"),
       name: "Home",
       createdAt,
     });
 
-    const saved = await circleRepository.findById(circleId("circle-1"));
+    const saved = await circleRepository.findById(toCircleId("circle-1"));
     expect(saved?.name).toBe("Home");
     const memberships = await circleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
     expect(memberships).toHaveLength(1);
     expect(memberships[0].userId).toBe("user-1");
@@ -86,13 +86,13 @@ describe("Circle サービス", () => {
 
   test("renameCircle は存在しないとエラー", async () => {
     await expect(
-      service.renameCircle("user-1", circleId("circle-1"), "Next"),
+      service.renameCircle("user-1", toCircleId("circle-1"), "Next"),
     ).rejects.toThrow("Circle not found");
   });
 
   test("renameCircle は更新を保存する", async () => {
     const existing = createCircle({
-      id: circleId("circle-1"),
+      id: toCircleId("circle-1"),
       name: "Home",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
@@ -100,7 +100,7 @@ describe("Circle サービス", () => {
 
     const updated = await service.renameCircle("user-1", existing.id, "Next");
 
-    const saved = await circleRepository.findById(circleId("circle-1"));
+    const saved = await circleRepository.findById(toCircleId("circle-1"));
     expect(saved?.name).toBe("Next");
     expect(updated.name).toBe("Next");
   });
@@ -127,15 +127,15 @@ describe("UnitOfWork 経路", () => {
   test("createCircle は UoW 経由で研究会とオーナーメンバーシップを保存する", async () => {
     await uowService.createCircle({
       actorId: "user-1",
-      id: circleId("circle-1"),
+      id: toCircleId("circle-1"),
       name: "Home",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
 
-    const saved = await repos.circleRepository.findById(circleId("circle-1"));
+    const saved = await repos.circleRepository.findById(toCircleId("circle-1"));
     expect(saved?.name).toBe("Home");
     const memberships = await repos.circleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
     expect(memberships).toHaveLength(1);
     expect(memberships[0].userId).toBe("user-1");
@@ -145,7 +145,7 @@ describe("UnitOfWork 経路", () => {
   test("UoW 内で重複メンバーシップ追加時にエラーが伝播する", async () => {
     await uowService.createCircle({
       actorId: "user-1",
-      id: circleId("circle-1"),
+      id: toCircleId("circle-1"),
       name: "Home",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
@@ -153,7 +153,7 @@ describe("UnitOfWork 経路", () => {
     await expect(
       uowService.createCircle({
         actorId: "user-1",
-        id: circleId("circle-1"),
+        id: toCircleId("circle-1"),
         name: "Home",
         createdAt: new Date("2024-01-01T00:00:00Z"),
       }),

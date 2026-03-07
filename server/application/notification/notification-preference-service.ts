@@ -1,4 +1,4 @@
-import { userId, type UserId } from "@/server/domain/common/ids";
+import { toUserId, type UserId } from "@/server/domain/common/ids";
 import {
   createDefaultPreference,
   type NotificationPreference,
@@ -33,7 +33,7 @@ export const createNotificationPreferenceService = (
     async disableByToken(token: string): Promise<NotificationPreference | null> {
       const extractedUserId = deps.unsubscribeTokenService.verify(token);
       if (!extractedUserId) return null;
-      return this.updatePreference(userId(extractedUserId), false);
+      return this.updatePreference(toUserId(extractedUserId), false);
     },
   };
 };

@@ -18,7 +18,7 @@ vi.mock("@/server/infrastructure/db", () => ({
 
 import type { Circle as PrismaCircle } from "@/generated/prisma/client";
 import { ConflictError, NotFoundError } from "@/server/domain/common/errors";
-import { circleId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toUserId } from "@/server/domain/common/ids";
 import { createCircle } from "@/server/domain/models/circle/circle";
 import { prisma } from "@/server/infrastructure/db";
 import { Prisma } from "@/generated/prisma/client";
@@ -41,7 +41,7 @@ describe("Prisma Circle リポジトリ", () => {
 
     mockedPrisma.circle.findUnique.mockResolvedValueOnce(prismaCircle);
 
-    const circle = await prismaCircleRepository.findById(circleId("circle-1"));
+    const circle = await prismaCircleRepository.findById(toCircleId("circle-1"));
 
     expect(mockedPrisma.circle.findUnique).toHaveBeenCalledWith({
       where: { id: "circle-1" },
@@ -52,7 +52,7 @@ describe("Prisma Circle リポジトリ", () => {
   test("findById は未取得時に null を返す", async () => {
     mockedPrisma.circle.findUnique.mockResolvedValueOnce(null);
 
-    const circle = await prismaCircleRepository.findById(circleId("circle-1"));
+    const circle = await prismaCircleRepository.findById(toCircleId("circle-1"));
 
     expect(circle).toBeNull();
   });
@@ -74,22 +74,22 @@ describe("Prisma Circle リポジトリ", () => {
     mockedPrisma.circle.findMany.mockResolvedValueOnce(prismaCircles);
 
     const circles = await prismaCircleRepository.findByIds([
-      circleId("circle-1"),
-      circleId("circle-2"),
+      toCircleId("circle-1"),
+      toCircleId("circle-2"),
     ]);
 
     expect(mockedPrisma.circle.findMany).toHaveBeenCalledWith({
       where: { id: { in: ["circle-1", "circle-2"] } },
     });
     expect(circles.map((circle) => circle.id)).toEqual([
-      circleId("circle-1"),
-      circleId("circle-2"),
+      toCircleId("circle-1"),
+      toCircleId("circle-2"),
     ]);
   });
 
   test("save は upsert を呼ぶ", async () => {
     const circle = createCircle({
-      id: circleId("circle-1"),
+      id: toCircleId("circle-1"),
       name: "Home",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
@@ -109,7 +109,7 @@ describe("Prisma Circle リポジトリ", () => {
   });
 
   test("delete は削除を呼ぶ", async () => {
-    await prismaCircleRepository.delete(circleId("circle-1"));
+    await prismaCircleRepository.delete(toCircleId("circle-1"));
 
     expect(mockedPrisma.circle.delete).toHaveBeenCalledWith({
       where: { id: "circle-1" },
@@ -144,7 +144,7 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
     ]);
 
     const result = await prismaCircleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
 
     expect(mockedPrisma.circleMembership.findMany).toHaveBeenCalledWith({
@@ -159,15 +159,15 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
     });
     expect(result).toEqual([
       {
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-1"),
         role: "CircleOwner",
         createdAt,
         deletedAt: null,
       },
       {
-        circleId: circleId("circle-1"),
-        userId: userId("user-2"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-2"),
         role: "CircleMember",
         createdAt: new Date("2025-01-02T00:00:00Z"),
         deletedAt: null,
@@ -197,7 +197,7 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
     ]);
 
     const result = await prismaCircleRepository.listMembershipsByUserId(
-      userId("user-1"),
+      toUserId("user-1"),
     );
 
     expect(mockedPrisma.circleMembership.findMany).toHaveBeenCalledWith({
@@ -213,15 +213,15 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
     });
     expect(result).toEqual([
       {
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-1"),
         role: "CircleOwner",
         createdAt,
         deletedAt: null,
       },
       {
-        circleId: circleId("circle-2"),
-        userId: userId("user-1"),
+        circleId: toCircleId("circle-2"),
+        userId: toUserId("user-1"),
         role: "CircleMember",
         createdAt: new Date("2025-02-02T00:00:00Z"),
         deletedAt: null,
@@ -231,8 +231,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
 
   test("addMembership はメンバーを追加する", async () => {
     await prismaCircleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleManager",
     );
 
@@ -256,8 +256,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
 
     await expect(
       prismaCircleRepository.addMembership(
-        circleId("circle-1"),
-        userId("user-1"),
+        toCircleId("circle-1"),
+        toUserId("user-1"),
         "CircleMember",
       ),
     ).rejects.toThrow(ConflictError);
@@ -276,8 +276,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
 
     await expect(
       prismaCircleRepository.addMembership(
-        circleId("circle-1"),
-        userId("user-1"),
+        toCircleId("circle-1"),
+        toUserId("user-1"),
         "CircleMember",
       ),
     ).rejects.toThrow(error);
@@ -292,8 +292,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
 
     await expect(
       prismaCircleRepository.addMembership(
-        circleId("circle-1"),
-        userId("user-1"),
+        toCircleId("circle-1"),
+        toUserId("user-1"),
         "CircleMember",
       ),
     ).rejects.toThrow(otherError);
@@ -305,8 +305,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
     });
 
     await prismaCircleRepository.updateMembershipRole(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleMember",
     );
 
@@ -327,8 +327,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
 
     await expect(
       prismaCircleRepository.updateMembershipRole(
-        circleId("circle-1"),
-        userId("user-1"),
+        toCircleId("circle-1"),
+        toUserId("user-1"),
         "CircleMember",
       ),
     ).rejects.toThrow("CircleMembership not found");
@@ -341,8 +341,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
       count: 1,
     });
     await prismaCircleRepository.removeMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       deletedAt,
     );
 
@@ -357,8 +357,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
 
     // 2. addMembership で再参加（新レコード作成）
     await prismaCircleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleMember",
     );
 
@@ -384,7 +384,7 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
     ]);
 
     const result = await prismaCircleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
 
     expect(mockedPrisma.circleMembership.findMany).toHaveBeenCalledWith({
@@ -399,8 +399,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
     });
     expect(result).toEqual([
       {
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-1"),
         role: "CircleMember",
         createdAt: new Date("2025-06-01T00:00:00Z"),
         deletedAt: null,
@@ -416,8 +416,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
 
     await expect(
       prismaCircleRepository.removeMembership(
-        circleId("circle-1"),
-        userId("user-1"),
+        toCircleId("circle-1"),
+        toUserId("user-1"),
         deletedAt,
       ),
     ).rejects.toThrow("CircleMembership not found");
@@ -436,7 +436,7 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
     ]);
 
     const result = await prismaCircleRepository.listMembershipsByUserId(
-      userId("user-1"),
+      toUserId("user-1"),
     );
 
     expect(mockedPrisma.circleMembership.findMany).toHaveBeenCalledWith({
@@ -452,8 +452,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
     });
     expect(result).toEqual([
       {
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-1"),
         role: "CircleMember",
         createdAt: new Date("2025-06-02T00:00:00Z"),
         deletedAt: null,
@@ -464,8 +464,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
   test("再参加時のロールが正しく設定される", async () => {
     // 論理削除後に CircleMember ロールで再参加
     await prismaCircleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleMember",
     );
 
@@ -486,8 +486,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
 
     await expect(
       prismaCircleRepository.removeMembership(
-        circleId("circle-1"),
-        userId("user-1"),
+        toCircleId("circle-1"),
+        toUserId("user-1"),
         new Date("2025-07-01T00:00:00Z"),
       ),
     ).rejects.toThrow(NotFoundError);
@@ -499,8 +499,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
       count: 1,
     });
     await prismaCircleRepository.removeMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       firstDeletedAt,
     );
 
@@ -511,8 +511,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
 
     await expect(
       prismaCircleRepository.removeMembership(
-        circleId("circle-1"),
-        userId("user-1"),
+        toCircleId("circle-1"),
+        toUserId("user-1"),
         new Date("2025-07-01T00:00:00Z"),
       ),
     ).rejects.toThrow(NotFoundError);
@@ -535,8 +535,8 @@ describe("Prisma Circle メンバーシップリポジトリ", () => {
       count: 1,
     });
     await prismaCircleRepository.removeMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       deletedAt,
     );
 

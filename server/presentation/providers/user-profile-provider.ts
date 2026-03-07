@@ -3,7 +3,7 @@ import { createContext } from "@/server/presentation/trpc/context";
 import { NotFoundError } from "@/server/domain/common/errors";
 import type { UserProfileViewModel } from "@/server/presentation/view-models/user-profile";
 import { TRPCError } from "@trpc/server";
-import { userId as userIdBrand } from "@/server/domain/common/ids";
+import { toUserId as userIdBrand } from "@/server/domain/common/ids";
 
 export async function getUserProfileViewModel(
   userId: string,

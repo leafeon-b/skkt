@@ -20,9 +20,9 @@ import type { CircleRole } from "@/server/domain/models/circle/circle-role";
 import type { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { beforeEach, describe, expect, test } from "vitest";
 import {
-  userId as toUserId,
-  circleId as toCircleId,
-  circleSessionId as toCircleSessionId,
+  toUserId as toUserId,
+  toCircleId as toCircleId,
+  toCircleSessionId as toCircleSessionId,
 } from "@/server/domain/common/ids";
 import { ProfileVisibility } from "@/server/domain/models/user/user";
 

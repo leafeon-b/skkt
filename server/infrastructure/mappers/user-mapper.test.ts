@@ -4,7 +4,7 @@ import {
   mapUserToDomain,
   mapUserToPersistence,
 } from "@/server/infrastructure/mappers/user-mapper";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { createUser } from "@/server/domain/models/user/user";
 
 describe("User マッパー", () => {
@@ -32,7 +32,7 @@ describe("User マッパー", () => {
 
   test("ドメイン User を永続化モデルに変換できる", () => {
     const user = createUser({
-      id: userId("user-1"),
+      id: toUserId("user-1"),
       name: "Alice",
       email: "alice@example.com",
       image: "https://example.com/icon.png",

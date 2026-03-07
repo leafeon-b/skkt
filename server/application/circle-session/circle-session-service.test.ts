@@ -5,7 +5,7 @@ import {
   createInMemoryCircleSessionRepository,
   createInMemoryRepositories,
 } from "@/server/infrastructure/repository/in-memory";
-import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toCircleSessionId, toUserId } from "@/server/domain/common/ids";
 import {
   CIRCLE_SESSION_NOTE_MAX_LENGTH,
   CIRCLE_SESSION_TITLE_MAX_LENGTH,
@@ -28,13 +28,13 @@ const service = createCircleSessionService({
 });
 
 const baseCircle = createCircle({
-  id: circleId("circle-1"),
+  id: toCircleId("circle-1"),
   name: "Home",
   createdAt: new Date("2024-01-01T00:00:00Z"),
 });
 
 const baseSessionParams = {
-  id: circleSessionId("session-1"),
+  id: toCircleSessionId("session-1"),
   circleId: baseCircle.id,
   title: "第1回 研究会",
   startsAt: new Date("2024-01-01T00:00:00Z"),
@@ -225,7 +225,7 @@ describe("CircleSession サービス", () => {
         baseSessionParams.id,
       );
       expect(memberships).toHaveLength(1);
-      expect(memberships[0].userId).toBe(userId("user-1"));
+      expect(memberships[0].userId).toBe(toUserId("user-1"));
       expect(memberships[0].role).toBe("CircleSessionOwner");
     });
 
@@ -276,7 +276,7 @@ describe("UnitOfWork 経路", () => {
   });
 
   const uowBaseCircle = createCircle({
-    id: circleId("circle-1"),
+    id: toCircleId("circle-1"),
     name: "Home",
     createdAt: new Date("2024-01-01T00:00:00Z"),
   });
@@ -303,7 +303,7 @@ describe("UnitOfWork 経路", () => {
       session.id,
     );
     expect(memberships).toHaveLength(1);
-    expect(memberships[0].userId).toBe(userId("user-1"));
+    expect(memberships[0].userId).toBe(toUserId("user-1"));
     expect(memberships[0].role).toBe("CircleSessionOwner");
   });
 

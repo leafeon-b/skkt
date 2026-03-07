@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { createUser } from "@/server/domain/models/user/user";
 
 describe("User ドメイン", () => {
   test("createUser は任意項目が未指定でも生成できる", () => {
     const user = createUser({
-      id: userId("user-1"),
+      id: toUserId("user-1"),
     });
 
     expect(user.name).toBeNull();
@@ -16,7 +16,7 @@ describe("User ドメイン", () => {
   test("createUser は指定された値を保持する", () => {
     const createdAt = new Date("2024-01-01T00:00:00Z");
     const user = createUser({
-      id: userId("user-2"),
+      id: toUserId("user-2"),
       name: "Taro Yamada",
       email: "taro@example.com",
       image: "https://example.com/avatar.png",

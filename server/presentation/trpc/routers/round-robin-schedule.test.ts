@@ -2,16 +2,16 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
 import {
-  circleSessionId,
-  roundRobinScheduleId,
-  userId,
+  toCircleSessionId,
+  toRoundRobinScheduleId,
+  toUserId,
 } from "@/server/domain/common/ids";
 import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
 import type { RoundRobinSchedule } from "@/server/domain/models/round-robin-schedule/round-robin-schedule";
 import type { User } from "@/server/domain/models/user/user";
 
 const createTestContext = (
-  actorIdValue: ReturnType<typeof userId> | null = userId("user-1"),
+  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
 ) => {
   const roundRobinScheduleService = {
     getSchedule: vi.fn(),
@@ -93,13 +93,13 @@ const createTestContext = (
 };
 
 const baseSchedule = (): RoundRobinSchedule => ({
-  id: roundRobinScheduleId("schedule-1"),
-  circleSessionId: circleSessionId("session-1"),
+  id: toRoundRobinScheduleId("schedule-1"),
+  circleSessionId: toCircleSessionId("session-1"),
   rounds: [
     {
       roundNumber: 1,
       pairings: [
-        { player1Id: userId("player-1"), player2Id: userId("player-2") },
+        { player1Id: toUserId("player-1"), player2Id: toUserId("player-2") },
       ],
     },
   ],
@@ -109,7 +109,7 @@ const baseSchedule = (): RoundRobinSchedule => ({
 
 const baseUsers = (): User[] => [
   {
-    id: userId("player-1"),
+    id: toUserId("player-1"),
     name: "Player 1",
     email: "player1@example.com",
     image: null,
@@ -117,7 +117,7 @@ const baseUsers = (): User[] => [
     createdAt: new Date("2024-01-01T00:00:00Z"),
   },
   {
-    id: userId("player-2"),
+    id: toUserId("player-2"),
     name: "Player 2",
     email: "player2@example.com",
     image: null,

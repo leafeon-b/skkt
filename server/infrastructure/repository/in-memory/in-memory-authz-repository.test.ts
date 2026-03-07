@@ -4,7 +4,7 @@ import { createInMemoryUserRepository } from "./in-memory-user-repository";
 import { createInMemoryCircleRepository } from "./in-memory-circle-repository";
 import { createInMemoryCircleSessionRepository } from "./in-memory-circle-session-repository";
 import { createUser } from "@/server/domain/models/user/user";
-import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toCircleSessionId, toUserId } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
@@ -24,7 +24,7 @@ describe("InMemoryAuthzRepository", () => {
   describe("isRegisteredUser", () => {
     test("登録済みユーザーは true を返す", async () => {
       const { userRepo, authzRepo } = makeRepos();
-      const user = createUser({ id: userId("u1"), name: "Alice" });
+      const user = createUser({ id: toUserId("u1"), name: "Alice" });
       await userRepo.save(user);
 
       expect(await authzRepo.isRegisteredUser("u1")).toBe(true);
@@ -40,8 +40,8 @@ describe("InMemoryAuthzRepository", () => {
     test("アクティブなメンバーのロールを返す", async () => {
       const { circleRepo, authzRepo } = makeRepos();
       await circleRepo.addMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleOwner,
       );
 
@@ -61,13 +61,13 @@ describe("InMemoryAuthzRepository", () => {
     test("論理削除済みメンバーは none を返す", async () => {
       const { circleRepo, authzRepo } = makeRepos();
       await circleRepo.addMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleMember,
       );
       await circleRepo.removeMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         new Date(),
       );
 
@@ -80,8 +80,8 @@ describe("InMemoryAuthzRepository", () => {
     test("アクティブなメンバーのロールを返す", async () => {
       const { sessionRepo, authzRepo } = makeRepos();
       await sessionRepo.addMembership(
-        circleSessionId("s1"),
-        userId("u1"),
+        toCircleSessionId("s1"),
+        toUserId("u1"),
         CircleSessionRole.CircleSessionOwner,
       );
 
@@ -101,13 +101,13 @@ describe("InMemoryAuthzRepository", () => {
     test("論理削除済みメンバーは none を返す", async () => {
       const { sessionRepo, authzRepo } = makeRepos();
       await sessionRepo.addMembership(
-        circleSessionId("s1"),
-        userId("u1"),
+        toCircleSessionId("s1"),
+        toUserId("u1"),
         CircleSessionRole.CircleSessionMember,
       );
       await sessionRepo.removeMembership(
-        circleSessionId("s1"),
-        userId("u1"),
+        toCircleSessionId("s1"),
+        toUserId("u1"),
         new Date(),
       );
 

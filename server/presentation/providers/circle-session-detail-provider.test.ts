@@ -4,10 +4,10 @@ import { TRPCError } from "@trpc/server";
 vi.mock("@/server/env", () => ({ env: {} }));
 
 import {
-  circleId,
-  circleSessionId,
-  matchId,
-  userId,
+  toCircleId,
+  toCircleSessionId,
+  toMatchId,
+  toUserId,
 } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
@@ -18,9 +18,9 @@ import {
   type MockDeps,
 } from "./__tests__/helpers/create-mock-deps";
 
-const CIRCLE_ID = circleId("circle-1");
-const SESSION_ID = circleSessionId("session-1");
-const VIEWER_ID = userId("viewer-1");
+const CIRCLE_ID = toCircleId("circle-1");
+const SESSION_ID = toCircleSessionId("session-1");
+const VIEWER_ID = toUserId("viewer-1");
 const NOW = new Date("2025-01-01T00:00:00Z");
 
 let mockDeps: MockDeps;
@@ -56,14 +56,14 @@ const VALID_CIRCLE = {
 
 const makeSessionMembership = (uid: string, role: CircleSessionRole) => ({
   circleSessionId: SESSION_ID,
-  userId: userId(uid),
+  userId: toUserId(uid),
   role,
   createdAt: NOW,
   deletedAt: null,
 });
 
 const makeUser = (uid: string, name: string) => ({
-  id: userId(uid),
+  id: toUserId(uid),
   name,
   email: null,
   image: null,
@@ -128,10 +128,10 @@ describe("getCircleSessionDetailViewModel", () => {
 
     mockDeps.matchRepository.listByCircleSessionId.mockResolvedValue([
       {
-        id: matchId("match-1"),
+        id: toMatchId("match-1"),
         circleSessionId: SESSION_ID,
-        player1Id: userId("u-member"),
-        player2Id: userId("u-guest"),
+        player1Id: toUserId("u-member"),
+        player2Id: toUserId("u-guest"),
         outcome: "P1_WIN" as const,
         createdAt: new Date("2025-01-01T10:30:00Z"),
         deletedAt: null,

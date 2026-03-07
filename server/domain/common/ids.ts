@@ -10,27 +10,27 @@ export type CircleInviteLinkId = Brand<string, "CircleInviteLinkId">;
 export type InviteLinkToken = Brand<string, "InviteLinkToken">;
 export type RoundRobinScheduleId = Brand<string, "RoundRobinScheduleId">;
 
-export const userId = (value: string): UserId => {
+export const toUserId = (value: string): UserId => {
   if (!value) throw new BadRequestError("Invalid user ID");
   return value as UserId;
 };
-export const circleId = (value: string): CircleId => {
+export const toCircleId = (value: string): CircleId => {
   if (!value) throw new BadRequestError("Invalid circle ID");
   return value as CircleId;
 };
-export const circleSessionId = (value: string): CircleSessionId => {
+export const toCircleSessionId = (value: string): CircleSessionId => {
   if (!value) throw new BadRequestError("Invalid circle session ID");
   return value as CircleSessionId;
 };
-export const matchId = (value: string): MatchId => {
+export const toMatchId = (value: string): MatchId => {
   if (!value) throw new BadRequestError("Invalid match ID");
   return value as MatchId;
 };
-export const circleInviteLinkId = (value: string): CircleInviteLinkId => {
+export const toCircleInviteLinkId = (value: string): CircleInviteLinkId => {
   if (!value) throw new BadRequestError("Invalid circle invite link ID");
   return value as CircleInviteLinkId;
 };
-export const roundRobinScheduleId = (
+export const toRoundRobinScheduleId = (
   value: string,
 ): RoundRobinScheduleId => {
   if (!value) throw new BadRequestError("Invalid round robin schedule ID");
@@ -40,7 +40,7 @@ export const roundRobinScheduleId = (
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export const inviteLinkToken = (value: string): InviteLinkToken => {
+export const toInviteLinkToken = (value: string): InviteLinkToken => {
   if (!UUID_RE.test(value))
     throw new BadRequestError("Invalid invite link token");
   return value as InviteLinkToken;

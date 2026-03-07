@@ -5,7 +5,7 @@ import {
   DUMMY_HASH,
   verifyPassword,
 } from "@/server/infrastructure/auth/password";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { USER_NAME_MAX_LENGTH } from "@/server/domain/models/user/user";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import { TooManyRequestsError } from "@/server/domain/common/errors";
@@ -144,7 +144,7 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
       if (token.iat) {
         try {
           const passwordChangedAt =
-            await deps.userRepository.findPasswordChangedAt(userId(rawUserId));
+            await deps.userRepository.findPasswordChangedAt(toUserId(rawUserId));
           if (passwordChangedAt) {
             const changedAtSec = Math.floor(passwordChangedAt.getTime() / 1000);
             if (changedAtSec > (token.iat as number)) {

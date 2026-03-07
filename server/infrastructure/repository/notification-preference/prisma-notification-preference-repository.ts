@@ -1,7 +1,7 @@
 import type { NotificationPreferenceRepository } from "@/server/domain/models/notification-preference/notification-preference-repository";
 import type { NotificationPreference } from "@/server/domain/models/notification-preference/notification-preference";
 import type { UserId } from "@/server/domain/common/ids";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
 import {
   toPersistenceId,
@@ -12,7 +12,7 @@ const toDomain = (row: {
   userId: string;
   emailEnabled: boolean;
 }): NotificationPreference => ({
-  userId: userId(row.userId),
+  userId: toUserId(row.userId),
   emailEnabled: row.emailEnabled,
 });
 

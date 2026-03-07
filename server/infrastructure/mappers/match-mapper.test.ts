@@ -4,7 +4,7 @@ import {
   mapMatchToDomain,
   mapMatchToPersistence,
 } from "@/server/infrastructure/mappers/match-mapper";
-import { circleSessionId, matchId, userId } from "@/server/domain/common/ids";
+import { toCircleSessionId, toMatchId, toUserId } from "@/server/domain/common/ids";
 import { createMatch } from "@/server/domain/models/match/match";
 
 describe("Match マッパー", () => {
@@ -29,10 +29,10 @@ describe("Match マッパー", () => {
 
   test("ドメイン Match を永続化モデルに変換できる", () => {
     const match = createMatch({
-      id: matchId("match-1"),
-      circleSessionId: circleSessionId("session-1"),
-      player1Id: userId("user-1"),
-      player2Id: userId("user-2"),
+      id: toMatchId("match-1"),
+      circleSessionId: toCircleSessionId("session-1"),
+      player1Id: toUserId("user-1"),
+      player2Id: toUserId("user-2"),
       outcome: "P2_WIN",
     });
 

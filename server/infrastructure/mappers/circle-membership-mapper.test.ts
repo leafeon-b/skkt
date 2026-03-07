@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { circleId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toUserId } from "@/server/domain/common/ids";
 import {
   mapCircleMembershipFromPersistence,
   mapCircleRoleFromPersistence,
@@ -10,7 +10,7 @@ import { CircleRole } from "@/server/domain/models/circle/circle-role";
 
 describe("Circle メンバーシップマッパー", () => {
   test("CircleId を永続化向けに変換できる", () => {
-    const mapped = toPersistenceId(circleId("circle-1"));
+    const mapped = toPersistenceId(toCircleId("circle-1"));
 
     expect(mapped).toBe("circle-1");
   });
@@ -38,8 +38,8 @@ describe("Circle メンバーシップマッパー", () => {
     });
 
     expect(mapped).toEqual({
-      circleId: circleId("circle-1"),
-      userId: userId("user-1"),
+      circleId: toCircleId("circle-1"),
+      userId: toUserId("user-1"),
       role: CircleRole.CircleManager,
       createdAt,
       deletedAt: null,

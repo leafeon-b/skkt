@@ -12,7 +12,7 @@ vi.mock("@/server/infrastructure/db", () => ({
 
 import type { Match as PrismaMatch } from "@/generated/prisma/client";
 import { prisma } from "@/server/infrastructure/db";
-import { circleSessionId, matchId, userId } from "@/server/domain/common/ids";
+import { toCircleSessionId, toMatchId, toUserId } from "@/server/domain/common/ids";
 import { createMatch } from "@/server/domain/models/match/match";
 import { prismaMatchRepository } from "@/server/infrastructure/repository/match/prisma-match-repository";
 import { mapMatchToPersistence } from "@/server/infrastructure/mappers/match-mapper";
@@ -37,7 +37,7 @@ describe("Prisma Match リポジトリ", () => {
 
     mockedPrisma.match.findUnique.mockResolvedValueOnce(prismaMatch);
 
-    const match = await prismaMatchRepository.findById(matchId("match-1"));
+    const match = await prismaMatchRepository.findById(toMatchId("match-1"));
 
     expect(mockedPrisma.match.findUnique).toHaveBeenCalledWith({
       where: { id: "match-1" },
@@ -48,7 +48,7 @@ describe("Prisma Match リポジトリ", () => {
   test("findById は未取得時に null を返す", async () => {
     mockedPrisma.match.findUnique.mockResolvedValueOnce(null);
 
-    const match = await prismaMatchRepository.findById(matchId("match-1"));
+    const match = await prismaMatchRepository.findById(toMatchId("match-1"));
 
     expect(match).toBeNull();
   });
@@ -67,7 +67,7 @@ describe("Prisma Match リポジトリ", () => {
     mockedPrisma.match.findMany.mockResolvedValueOnce([prismaMatch]);
 
     const matches = await prismaMatchRepository.listByCircleSessionId(
-      circleSessionId("session-1"),
+      toCircleSessionId("session-1"),
     );
 
     expect(mockedPrisma.match.findMany).toHaveBeenCalledWith({
@@ -79,10 +79,10 @@ describe("Prisma Match リポジトリ", () => {
 
   test("save は upsert を呼ぶ", async () => {
     const match = createMatch({
-      id: matchId("match-1"),
-      circleSessionId: circleSessionId("session-1"),
-      player1Id: userId("user-1"),
-      player2Id: userId("user-2"),
+      id: toMatchId("match-1"),
+      circleSessionId: toCircleSessionId("session-1"),
+      player1Id: toUserId("user-1"),
+      player2Id: toUserId("user-2"),
       outcome: "P2_WIN",
     });
 

@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { generateRounds } from "@/server/domain/models/round-robin-schedule/generate-rounds";
 import type { UserId } from "@/server/domain/common/ids";
 
-const ids = (...names: string[]): UserId[] => names.map((n) => userId(n));
+const ids = (...names: string[]): UserId[] => names.map((n) => toUserId(n));
 
 describe("generateRounds", () => {
   describe("バリデーション", () => {

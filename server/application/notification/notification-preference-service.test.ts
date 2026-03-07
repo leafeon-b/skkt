@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { createNotificationPreferenceService } from "@/server/application/notification/notification-preference-service";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import type { NotificationPreferenceRepository } from "@/server/domain/models/notification-preference/notification-preference-repository";
 import type { UnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
 
@@ -29,18 +29,18 @@ describe("NotificationPreferenceService", () => {
     test("レコード未存在時に emailEnabled: true のデフォルトを返す", async () => {
       vi.mocked(mockNotificationPreferenceRepository.findByUserId).mockResolvedValue(null);
 
-      const result = await service.getPreference(userId("user-1"));
+      const result = await service.getPreference(toUserId("user-1"));
 
-      expect(result).toEqual({ userId: userId("user-1"), emailEnabled: true });
+      expect(result).toEqual({ userId: toUserId("user-1"), emailEnabled: true });
     });
 
     test("レコード存在時にそのまま返す", async () => {
-      const existing = { userId: userId("user-1"), emailEnabled: false };
+      const existing = { userId: toUserId("user-1"), emailEnabled: false };
       vi.mocked(mockNotificationPreferenceRepository.findByUserId).mockResolvedValue(existing);
 
-      const result = await service.getPreference(userId("user-1"));
+      const result = await service.getPreference(toUserId("user-1"));
 
-      expect(result).toEqual({ userId: userId("user-1"), emailEnabled: false });
+      expect(result).toEqual({ userId: toUserId("user-1"), emailEnabled: false });
     });
   });
 
@@ -48,13 +48,13 @@ describe("NotificationPreferenceService", () => {
     test("リポジトリに保存し、保存した設定を返す", async () => {
       vi.mocked(mockNotificationPreferenceRepository.save).mockResolvedValue(undefined);
 
-      const result = await service.updatePreference(userId("user-1"), false);
+      const result = await service.updatePreference(toUserId("user-1"), false);
 
       expect(mockNotificationPreferenceRepository.save).toHaveBeenCalledWith({
-        userId: userId("user-1"),
+        userId: toUserId("user-1"),
         emailEnabled: false,
       });
-      expect(result).toEqual({ userId: userId("user-1"), emailEnabled: false });
+      expect(result).toEqual({ userId: toUserId("user-1"), emailEnabled: false });
     });
   });
 
@@ -65,9 +65,9 @@ describe("NotificationPreferenceService", () => {
 
       const result = await service.disableByToken("valid-token");
 
-      expect(result).toEqual({ userId: userId("user-1"), emailEnabled: false });
+      expect(result).toEqual({ userId: toUserId("user-1"), emailEnabled: false });
       expect(mockNotificationPreferenceRepository.save).toHaveBeenCalledWith({
-        userId: userId("user-1"),
+        userId: toUserId("user-1"),
         emailEnabled: false,
       });
     });

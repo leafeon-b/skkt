@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 import {
-  circleSessionId,
-  roundRobinScheduleId,
-  userId,
+  toCircleSessionId,
+  toRoundRobinScheduleId,
+  toUserId,
 } from "@/server/domain/common/ids";
 import {
   createRoundRobinSchedule,
@@ -12,13 +12,13 @@ import {
 describe("RoundRobinSchedule ドメイン", () => {
   test("createRoundRobinSchedule は rounds と totalMatchCount を正しく生成する", () => {
     const schedule = createRoundRobinSchedule({
-      id: roundRobinScheduleId("schedule-1"),
-      circleSessionId: circleSessionId("session-1"),
+      id: toRoundRobinScheduleId("schedule-1"),
+      circleSessionId: toCircleSessionId("session-1"),
       participantIds: [
-        userId("u1"),
-        userId("u2"),
-        userId("u3"),
-        userId("u4"),
+        toUserId("u1"),
+        toUserId("u2"),
+        toUserId("u3"),
+        toUserId("u4"),
       ],
     });
 
@@ -34,13 +34,13 @@ describe("RoundRobinSchedule ドメイン", () => {
     const rounds = [
       {
         roundNumber: 1,
-        pairings: [{ player1Id: userId("u1"), player2Id: userId("u2") }],
+        pairings: [{ player1Id: toUserId("u1"), player2Id: toUserId("u2") }],
       },
     ];
 
     const schedule = restoreRoundRobinSchedule({
-      id: roundRobinScheduleId("schedule-1"),
-      circleSessionId: circleSessionId("session-1"),
+      id: toRoundRobinScheduleId("schedule-1"),
+      circleSessionId: toCircleSessionId("session-1"),
       rounds,
       totalMatchCount: 1,
       createdAt,
@@ -55,8 +55,8 @@ describe("RoundRobinSchedule ドメイン", () => {
   test("restoreRoundRobinSchedule は不正な createdAt を拒否する", () => {
     expect(() =>
       restoreRoundRobinSchedule({
-        id: roundRobinScheduleId("schedule-1"),
-        circleSessionId: circleSessionId("session-1"),
+        id: toRoundRobinScheduleId("schedule-1"),
+        circleSessionId: toCircleSessionId("session-1"),
         rounds: [],
         totalMatchCount: 0,
         createdAt: new Date("invalid"),

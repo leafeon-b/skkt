@@ -14,7 +14,7 @@ import {
   transferCircleSessionOwnership,
 } from "@/server/domain/services/authz/ownership";
 import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
@@ -37,7 +37,7 @@ describe("Owner の不変条件", () => {
   test("assertSingleCircleOwner は Owner がいない場合に失敗する", () => {
     expect(() =>
       assertSingleCircleOwner([
-        { userId: userId("user-1"), role: CircleRole.CircleManager },
+        { userId: toUserId("user-1"), role: CircleRole.CircleManager },
       ]),
     ).toThrow("Circle must have exactly one owner");
   });
@@ -45,8 +45,8 @@ describe("Owner の不変条件", () => {
   test("assertSingleCircleOwner は Owner が複数いる場合に失敗する", () => {
     expect(() =>
       assertSingleCircleOwner([
-        { userId: userId("user-1"), role: CircleRole.CircleOwner },
-        { userId: userId("user-2"), role: CircleRole.CircleOwner },
+        { userId: toUserId("user-1"), role: CircleRole.CircleOwner },
+        { userId: toUserId("user-2"), role: CircleRole.CircleOwner },
       ]),
     ).toThrow("Circle must have exactly one owner");
   });
@@ -54,27 +54,27 @@ describe("Owner の不変条件", () => {
   test("assertSingleCircleOwner は Owner が 1 人なら通る", () => {
     expect(() =>
       assertSingleCircleOwner([
-        { userId: userId("user-1"), role: CircleRole.CircleOwner },
-        { userId: userId("user-2"), role: CircleRole.CircleMember },
+        { userId: toUserId("user-1"), role: CircleRole.CircleOwner },
+        { userId: toUserId("user-2"), role: CircleRole.CircleMember },
       ]),
     ).not.toThrow();
   });
 
   test("transferCircleOwnership は Owner を移譲する", () => {
     const members = [
-      { userId: userId("user-1"), role: CircleRole.CircleOwner },
-      { userId: userId("user-2"), role: CircleRole.CircleMember },
+      { userId: toUserId("user-1"), role: CircleRole.CircleOwner },
+      { userId: toUserId("user-2"), role: CircleRole.CircleMember },
     ];
 
     const updated = transferCircleOwnership(
       members,
-      userId("user-1"),
-      userId("user-2"),
+      toUserId("user-1"),
+      toUserId("user-2"),
     );
 
     expect(updated).toEqual([
-      { userId: userId("user-1"), role: CircleRole.CircleManager },
-      { userId: userId("user-2"), role: CircleRole.CircleOwner },
+      { userId: toUserId("user-1"), role: CircleRole.CircleManager },
+      { userId: toUserId("user-2"), role: CircleRole.CircleOwner },
     ]);
   });
 
@@ -82,11 +82,11 @@ describe("Owner の不変条件", () => {
     expect(() =>
       transferCircleOwnership(
         [
-          { userId: userId("user-1"), role: CircleRole.CircleManager },
-          { userId: userId("user-2"), role: CircleRole.CircleOwner },
+          { userId: toUserId("user-1"), role: CircleRole.CircleManager },
+          { userId: toUserId("user-2"), role: CircleRole.CircleOwner },
         ],
-        userId("user-1"),
-        userId("user-2"),
+        toUserId("user-1"),
+        toUserId("user-2"),
       ),
     ).toThrow("Current owner must be CircleOwner");
   });
@@ -94,9 +94,9 @@ describe("Owner の不変条件", () => {
   test("transferCircleOwnership は移譲先がいない場合に失敗する", () => {
     expect(() =>
       transferCircleOwnership(
-        [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
-        userId("user-1"),
-        userId("user-2"),
+        [{ userId: toUserId("user-1"), role: CircleRole.CircleOwner }],
+        toUserId("user-1"),
+        toUserId("user-2"),
       ),
     ).toThrow("TargetMember not found");
   });
@@ -104,9 +104,9 @@ describe("Owner の不変条件", () => {
   test("transferCircleOwnership は同一ユーザーへの移譲を拒否する", () => {
     expect(() =>
       transferCircleOwnership(
-        [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
-        userId("user-1"),
-        userId("user-1"),
+        [{ userId: toUserId("user-1"), role: CircleRole.CircleOwner }],
+        toUserId("user-1"),
+        toUserId("user-1"),
       ),
     ).toThrow("owner transfer must be different");
   });
@@ -115,7 +115,7 @@ describe("Owner の不変条件", () => {
     expect(() =>
       assertSingleCircleSessionOwner([
         {
-          userId: userId("user-1"),
+          userId: toUserId("user-1"),
           role: CircleSessionRole.CircleSessionOwner,
         },
       ]),
@@ -126,7 +126,7 @@ describe("Owner の不変条件", () => {
     expect(() =>
       assertSingleCircleSessionOwner([
         {
-          userId: userId("user-1"),
+          userId: toUserId("user-1"),
           role: CircleSessionRole.CircleSessionManager,
         },
       ]),
@@ -137,11 +137,11 @@ describe("Owner の不変条件", () => {
     expect(() =>
       assertSingleCircleSessionOwner([
         {
-          userId: userId("user-1"),
+          userId: toUserId("user-1"),
           role: CircleSessionRole.CircleSessionOwner,
         },
         {
-          userId: userId("user-2"),
+          userId: toUserId("user-2"),
           role: CircleSessionRole.CircleSessionOwner,
         },
       ]),
@@ -151,28 +151,28 @@ describe("Owner の不変条件", () => {
   test("transferCircleSessionOwnership は Owner を移譲する", () => {
     const members = [
       {
-        userId: userId("user-1"),
+        userId: toUserId("user-1"),
         role: CircleSessionRole.CircleSessionOwner,
       },
       {
-        userId: userId("user-2"),
+        userId: toUserId("user-2"),
         role: CircleSessionRole.CircleSessionMember,
       },
     ];
 
     const updated = transferCircleSessionOwnership(
       members,
-      userId("user-1"),
-      userId("user-2"),
+      toUserId("user-1"),
+      toUserId("user-2"),
     );
 
     expect(updated).toEqual([
       {
-        userId: userId("user-1"),
+        userId: toUserId("user-1"),
         role: CircleSessionRole.CircleSessionManager,
       },
       {
-        userId: userId("user-2"),
+        userId: toUserId("user-2"),
         role: CircleSessionRole.CircleSessionOwner,
       },
     ]);
@@ -183,12 +183,12 @@ describe("Owner の不変条件", () => {
       transferCircleSessionOwnership(
         [
           {
-            userId: userId("user-1"),
+            userId: toUserId("user-1"),
             role: CircleSessionRole.CircleSessionOwner,
           },
         ],
-        userId("user-1"),
-        userId("user-1"),
+        toUserId("user-1"),
+        toUserId("user-1"),
       ),
     ).toThrow("owner transfer must be different");
   });
@@ -198,16 +198,16 @@ describe("Owner の不変条件", () => {
       transferCircleSessionOwnership(
         [
           {
-            userId: userId("user-1"),
+            userId: toUserId("user-1"),
             role: CircleSessionRole.CircleSessionManager,
           },
           {
-            userId: userId("user-2"),
+            userId: toUserId("user-2"),
             role: CircleSessionRole.CircleSessionOwner,
           },
         ],
-        userId("user-1"),
-        userId("user-2"),
+        toUserId("user-1"),
+        toUserId("user-2"),
       ),
     ).toThrow("Current owner must be CircleSessionOwner");
   });
@@ -217,12 +217,12 @@ describe("Owner の不変条件", () => {
       transferCircleSessionOwnership(
         [
           {
-            userId: userId("user-1"),
+            userId: toUserId("user-1"),
             role: CircleSessionRole.CircleSessionOwner,
           },
         ],
-        userId("user-1"),
-        userId("user-2"),
+        toUserId("user-1"),
+        toUserId("user-2"),
       ),
     ).toThrow("TargetMember not found");
   });
@@ -247,7 +247,7 @@ describe("assertCanAddSessionMemberWithRole", () => {
         assertCanAddSessionMemberWithRole(
           [
             {
-              userId: userId("user-1"),
+              userId: toUserId("user-1"),
               role: CircleSessionRole.CircleSessionOwner,
             },
           ],
@@ -272,7 +272,7 @@ describe("assertCanAddSessionMemberWithRole", () => {
       assertCanAddSessionMemberWithRole(
         [
           {
-            userId: userId("user-1"),
+            userId: toUserId("user-1"),
             role: CircleSessionRole.CircleSessionOwner,
           },
         ],
@@ -286,7 +286,7 @@ describe("assertCanAddSessionMemberWithRole", () => {
       assertCanAddSessionMemberWithRole(
         [
           {
-            userId: userId("user-1"),
+            userId: toUserId("user-1"),
             role: CircleSessionRole.CircleSessionOwner,
           },
         ],
@@ -486,7 +486,7 @@ describe("assertCanAddCircleMemberWithRole", () => {
     expectThrow(
       () =>
         assertCanAddCircleMemberWithRole(
-          [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
+          [{ userId: toUserId("user-1"), role: CircleRole.CircleOwner }],
           CircleRole.CircleOwner,
         ),
       BadRequestError,
@@ -503,7 +503,7 @@ describe("assertCanAddCircleMemberWithRole", () => {
   test("Owner がいる状態で Member を追加できる", () => {
     expect(() =>
       assertCanAddCircleMemberWithRole(
-        [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
+        [{ userId: toUserId("user-1"), role: CircleRole.CircleOwner }],
         CircleRole.CircleMember,
       ),
     ).not.toThrow();
@@ -512,7 +512,7 @@ describe("assertCanAddCircleMemberWithRole", () => {
   test("Owner がいる状態で Manager を追加できる", () => {
     expect(() =>
       assertCanAddCircleMemberWithRole(
-        [{ userId: userId("user-1"), role: CircleRole.CircleOwner }],
+        [{ userId: toUserId("user-1"), role: CircleRole.CircleOwner }],
         CircleRole.CircleManager,
       ),
     ).not.toThrow();

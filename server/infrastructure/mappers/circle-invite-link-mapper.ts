@@ -1,9 +1,9 @@
 import type { CircleInviteLink as PrismaCircleInviteLink } from "@/generated/prisma/client";
 import {
-  circleId,
-  circleInviteLinkId,
-  inviteLinkToken,
-  userId,
+  toCircleId,
+  toCircleInviteLinkId,
+  toInviteLinkToken,
+  toUserId,
 } from "@/server/domain/common/ids";
 import { createCircleInviteLink } from "@/server/domain/models/circle-invite-link/circle-invite-link";
 import type { CircleInviteLink } from "@/server/domain/models/circle-invite-link/circle-invite-link";
@@ -13,10 +13,10 @@ export const mapCircleInviteLinkToDomain = (
   link: PrismaCircleInviteLink,
 ): CircleInviteLink =>
   createCircleInviteLink({
-    id: circleInviteLinkId(link.id),
-    circleId: circleId(link.circleId),
-    token: inviteLinkToken(link.token),
-    createdByUserId: userId(link.createdByUserId),
+    id: toCircleInviteLinkId(link.id),
+    circleId: toCircleId(link.circleId),
+    token: toInviteLinkToken(link.token),
+    createdByUserId: toUserId(link.createdByUserId),
     expiresAt: link.expiresAt,
     createdAt: link.createdAt,
   });

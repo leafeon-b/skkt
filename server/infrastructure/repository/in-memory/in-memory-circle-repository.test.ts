@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { createInMemoryCircleRepository } from "./in-memory-circle-repository";
 import { createCircle } from "@/server/domain/models/circle/circle";
-import { circleId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toUserId } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { ConflictError, NotFoundError } from "@/server/domain/common/errors";
 
@@ -11,48 +11,48 @@ describe("InMemoryCircleRepository", () => {
   describe("Circle CRUD", () => {
     test("save した Circle を findById で取得できる", async () => {
       const repo = makeRepo();
-      const circle = createCircle({ id: circleId("c1"), name: "テスト研究会" });
+      const circle = createCircle({ id: toCircleId("c1"), name: "テスト研究会" });
       await repo.save(circle);
 
-      const found = await repo.findById(circleId("c1"));
+      const found = await repo.findById(toCircleId("c1"));
       expect(found).toEqual(circle);
     });
 
     test("存在しない Circle は null を返す", async () => {
       const repo = makeRepo();
-      const found = await repo.findById(circleId("not-exist"));
+      const found = await repo.findById(toCircleId("not-exist"));
       expect(found).toBeNull();
     });
 
     test("findByIds は入力順を保持する", async () => {
       const repo = makeRepo();
-      const c1 = createCircle({ id: circleId("c1"), name: "A" });
-      const c2 = createCircle({ id: circleId("c2"), name: "B" });
-      const c3 = createCircle({ id: circleId("c3"), name: "C" });
+      const c1 = createCircle({ id: toCircleId("c1"), name: "A" });
+      const c2 = createCircle({ id: toCircleId("c2"), name: "B" });
+      const c3 = createCircle({ id: toCircleId("c3"), name: "C" });
       await repo.save(c1);
       await repo.save(c2);
       await repo.save(c3);
 
       const result = await repo.findByIds([
-        circleId("c3"),
-        circleId("c1"),
-        circleId("c2"),
+        toCircleId("c3"),
+        toCircleId("c1"),
+        toCircleId("c2"),
       ]);
       expect(result.map((c) => c.id)).toEqual([
-        circleId("c3"),
-        circleId("c1"),
-        circleId("c2"),
+        toCircleId("c3"),
+        toCircleId("c1"),
+        toCircleId("c2"),
       ]);
     });
 
     test("findByIds は存在しない ID をスキップする", async () => {
       const repo = makeRepo();
-      const c1 = createCircle({ id: circleId("c1"), name: "A" });
+      const c1 = createCircle({ id: toCircleId("c1"), name: "A" });
       await repo.save(c1);
 
       const result = await repo.findByIds([
-        circleId("c1"),
-        circleId("not-exist"),
+        toCircleId("c1"),
+        toCircleId("not-exist"),
       ]);
       expect(result).toHaveLength(1);
     });
@@ -65,21 +65,21 @@ describe("InMemoryCircleRepository", () => {
 
     test("save は既存の Circle を上書きする", async () => {
       const repo = makeRepo();
-      const circle = createCircle({ id: circleId("c1"), name: "Before" });
+      const circle = createCircle({ id: toCircleId("c1"), name: "Before" });
       await repo.save(circle);
       await repo.save({ ...circle, name: "After" });
 
-      const found = await repo.findById(circleId("c1"));
+      const found = await repo.findById(toCircleId("c1"));
       expect(found?.name).toBe("After");
     });
 
     test("delete は Circle を削除する", async () => {
       const repo = makeRepo();
-      const circle = createCircle({ id: circleId("c1"), name: "テスト" });
+      const circle = createCircle({ id: toCircleId("c1"), name: "テスト" });
       await repo.save(circle);
-      await repo.delete(circleId("c1"));
+      await repo.delete(toCircleId("c1"));
 
-      const found = await repo.findById(circleId("c1"));
+      const found = await repo.findById(toCircleId("c1"));
       expect(found).toBeNull();
     });
   });
@@ -88,29 +88,29 @@ describe("InMemoryCircleRepository", () => {
     test("addMembership で追加したメンバーを listMembershipsByCircleId で取得できる", async () => {
       const repo = makeRepo();
       await repo.addMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleOwner,
       );
 
-      const memberships = await repo.listMembershipsByCircleId(circleId("c1"));
+      const memberships = await repo.listMembershipsByCircleId(toCircleId("c1"));
       expect(memberships).toHaveLength(1);
-      expect(memberships[0].userId).toBe(userId("u1"));
+      expect(memberships[0].userId).toBe(toUserId("u1"));
       expect(memberships[0].role).toBe(CircleRole.CircleOwner);
     });
 
     test("同一ユーザーの重複追加は ConflictError になる", async () => {
       const repo = makeRepo();
       await repo.addMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleMember,
       );
 
       await expect(
         repo.addMembership(
-          circleId("c1"),
-          userId("u1"),
+          toCircleId("c1"),
+          toUserId("u1"),
           CircleRole.CircleMember,
         ),
       ).rejects.toThrow(ConflictError);
@@ -119,20 +119,20 @@ describe("InMemoryCircleRepository", () => {
     test("論理削除済みユーザーを再追加できる", async () => {
       const repo = makeRepo();
       await repo.addMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleMember,
       );
-      await repo.removeMembership(circleId("c1"), userId("u1"), new Date());
+      await repo.removeMembership(toCircleId("c1"), toUserId("u1"), new Date());
 
       // 再追加は成功するべき（部分ユニークインデックスの振る舞い）
       await repo.addMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleOwner,
       );
 
-      const memberships = await repo.listMembershipsByCircleId(circleId("c1"));
+      const memberships = await repo.listMembershipsByCircleId(toCircleId("c1"));
       expect(memberships).toHaveLength(1);
       expect(memberships[0].role).toBe(CircleRole.CircleOwner);
     });
@@ -140,17 +140,17 @@ describe("InMemoryCircleRepository", () => {
     test("updateMembershipRole でロールを変更できる", async () => {
       const repo = makeRepo();
       await repo.addMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleMember,
       );
       await repo.updateMembershipRole(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleManager,
       );
 
-      const memberships = await repo.listMembershipsByCircleId(circleId("c1"));
+      const memberships = await repo.listMembershipsByCircleId(toCircleId("c1"));
       expect(memberships[0].role).toBe(CircleRole.CircleManager);
     });
 
@@ -158,8 +158,8 @@ describe("InMemoryCircleRepository", () => {
       const repo = makeRepo();
       await expect(
         repo.updateMembershipRole(
-          circleId("c1"),
-          userId("u1"),
+          toCircleId("c1"),
+          toUserId("u1"),
           CircleRole.CircleManager,
         ),
       ).rejects.toThrow(NotFoundError);
@@ -168,30 +168,30 @@ describe("InMemoryCircleRepository", () => {
     test("removeMembership で論理削除される", async () => {
       const repo = makeRepo();
       await repo.addMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleMember,
       );
       const deletedAt = new Date();
-      await repo.removeMembership(circleId("c1"), userId("u1"), deletedAt);
+      await repo.removeMembership(toCircleId("c1"), toUserId("u1"), deletedAt);
 
-      const memberships = await repo.listMembershipsByCircleId(circleId("c1"));
+      const memberships = await repo.listMembershipsByCircleId(toCircleId("c1"));
       expect(memberships).toHaveLength(0);
     });
 
     test("論理削除済みメンバーのロール変更は NotFoundError になる", async () => {
       const repo = makeRepo();
       await repo.addMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleMember,
       );
-      await repo.removeMembership(circleId("c1"), userId("u1"), new Date());
+      await repo.removeMembership(toCircleId("c1"), toUserId("u1"), new Date());
 
       await expect(
         repo.updateMembershipRole(
-          circleId("c1"),
-          userId("u1"),
+          toCircleId("c1"),
+          toUserId("u1"),
           CircleRole.CircleManager,
         ),
       ).rejects.toThrow(NotFoundError);
@@ -200,35 +200,35 @@ describe("InMemoryCircleRepository", () => {
     test("listMembershipsByUserId はユーザーの全メンバーシップを createdAt desc で返す", async () => {
       const repo = makeRepo();
       await repo.addMembership(
-        circleId("c1"),
-        userId("u1"),
+        toCircleId("c1"),
+        toUserId("u1"),
         CircleRole.CircleMember,
       );
       // 少し時間をずらすため直接ストアに追加
-      const memberships = repo._membershipStore.get(circleId("c1"))!;
+      const memberships = repo._membershipStore.get(toCircleId("c1"))!;
       memberships[0] = {
         ...memberships[0],
         createdAt: new Date("2024-01-01"),
       };
-      repo._membershipStore.set(circleId("c1"), memberships);
+      repo._membershipStore.set(toCircleId("c1"), memberships);
 
       await repo.addMembership(
-        circleId("c2"),
-        userId("u1"),
+        toCircleId("c2"),
+        toUserId("u1"),
         CircleRole.CircleOwner,
       );
 
-      const result = await repo.listMembershipsByUserId(userId("u1"));
+      const result = await repo.listMembershipsByUserId(toUserId("u1"));
       expect(result).toHaveLength(2);
       // c2 の方が新しいので先に来る
-      expect(result[0].circleId).toBe(circleId("c2"));
-      expect(result[1].circleId).toBe(circleId("c1"));
+      expect(result[0].circleId).toBe(toCircleId("c2"));
+      expect(result[1].circleId).toBe(toCircleId("c1"));
     });
 
     test("存在しないメンバーの removeMembership は NotFoundError になる", async () => {
       const repo = makeRepo();
       await expect(
-        repo.removeMembership(circleId("c1"), userId("u1"), new Date()),
+        repo.removeMembership(toCircleId("c1"), toUserId("u1"), new Date()),
       ).rejects.toThrow(NotFoundError);
     });
   });

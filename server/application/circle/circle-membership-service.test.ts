@@ -10,7 +10,7 @@ import {
   ConflictError,
   ForbiddenError,
 } from "@/server/domain/common/errors";
-import { circleId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toUserId } from "@/server/domain/common/ids";
 
 async function expectReject<T extends Error>(
   promise: Promise<unknown>,
@@ -37,7 +37,7 @@ const service = createCircleMembershipService({
 });
 
 const baseCircle = () => ({
-  id: circleId("circle-1"),
+  id: toCircleId("circle-1"),
   name: "Circle One",
   createdAt: new Date(),
   sessionEmailNotificationEnabled: true,
@@ -64,7 +64,7 @@ describe("Circle メンバーシップサービス", () => {
       await expect(
         service.listByCircleId({
           actorId: "user-actor",
-          circleId: circleId("circle-1"),
+          circleId: toCircleId("circle-1"),
         }),
       ).rejects.toThrow("Forbidden");
     });
@@ -75,14 +75,14 @@ describe("Circle メンバーシップサービス", () => {
       await expect(
         service.addMembership({
           actorId: "user-actor",
-          circleId: circleId("circle-1"),
-          userId: userId("user-1"),
+          circleId: toCircleId("circle-1"),
+          userId: toUserId("user-1"),
           role: "CircleMember",
         }),
       ).rejects.toThrow("Forbidden");
 
       const memberships = await circleRepository.listMembershipsByCircleId(
-        circleId("circle-1"),
+        toCircleId("circle-1"),
       );
       expect(memberships).toHaveLength(0);
     });
@@ -90,55 +90,55 @@ describe("Circle メンバーシップサービス", () => {
 
   test("listByCircleId は一覧を返す", async () => {
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleOwner",
     );
 
     const result = await service.listByCircleId({
       actorId: "user-actor",
-      circleId: circleId("circle-1"),
+      circleId: toCircleId("circle-1"),
     });
 
     expect(result).toHaveLength(1);
-    expect(result[0].circleId).toBe(circleId("circle-1"));
-    expect(result[0].userId).toBe(userId("user-1"));
+    expect(result[0].circleId).toBe(toCircleId("circle-1"));
+    expect(result[0].userId).toBe(toUserId("user-1"));
     expect(result[0].role).toBe("CircleOwner");
   });
 
   test("listByUserId は所属研究会の概要を返す", async () => {
     await circleRepository.save({
-      id: circleId("circle-2"),
+      id: toCircleId("circle-2"),
       name: "Circle Two",
       createdAt: new Date("2025-01-02T00:00:00Z"),
       sessionEmailNotificationEnabled: true,
     });
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleOwner",
     );
     await circleRepository.addMembership(
-      circleId("circle-2"),
-      userId("user-1"),
+      toCircleId("circle-2"),
+      toUserId("user-1"),
       "CircleMember",
     );
 
     const result = await service.listByUserId({
       actorId: "user-1",
-      userId: userId("user-1"),
+      userId: toUserId("user-1"),
     });
 
     expect(result).toHaveLength(2);
     expect(result).toEqual(
       expect.arrayContaining([
         {
-          circleId: circleId("circle-1"),
+          circleId: toCircleId("circle-1"),
           circleName: "Circle One",
           role: "CircleOwner",
         },
         {
-          circleId: circleId("circle-2"),
+          circleId: toCircleId("circle-2"),
           circleName: "Circle Two",
           role: "CircleMember",
         },
@@ -148,8 +148,8 @@ describe("Circle メンバーシップサービス", () => {
 
   test("listByUserId は研究会が欠けているとエラー", async () => {
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleOwner",
     );
     circleRepository._circleStore.clear();
@@ -157,28 +157,28 @@ describe("Circle メンバーシップサービス", () => {
     await expect(
       service.listByUserId({
         actorId: "user-1",
-        userId: userId("user-1"),
+        userId: toUserId("user-1"),
       }),
     ).rejects.toThrow("Circle not found");
   });
 
   test("addMembership は論理削除済みユーザーを再加入できる", async () => {
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-owner"),
+      toCircleId("circle-1"),
+      toUserId("user-owner"),
       "CircleOwner",
     );
 
     const result = await service.addMembership({
       actorId: "user-actor",
-      circleId: circleId("circle-1"),
-      userId: userId("user-rejoining"),
+      circleId: toCircleId("circle-1"),
+      userId: toUserId("user-rejoining"),
       role: "CircleMember",
     });
 
     expect(result).toBeUndefined();
     const memberships = await circleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
     expect(memberships).toHaveLength(2);
     const rejoined = memberships.find((m) => m.userId === "user-rejoining");
@@ -187,22 +187,22 @@ describe("Circle メンバーシップサービス", () => {
 
   test("addMembership は既存メンバーの重複追加で ConflictError", async () => {
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleOwner",
     );
 
     await expect(
       service.addMembership({
         actorId: "user-actor",
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-1"),
         role: "CircleMember",
       }),
     ).rejects.toThrow(ConflictError);
 
     const memberships = await circleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
     expect(memberships).toHaveLength(1);
   });
@@ -211,8 +211,8 @@ describe("Circle メンバーシップサービス", () => {
     await expectReject(
       service.addMembership({
         actorId: "user-actor",
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-1"),
         role: "CircleMember",
       }),
       BadRequestError,
@@ -220,23 +220,23 @@ describe("Circle メンバーシップサービス", () => {
     );
 
     const memberships = await circleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
     expect(memberships).toHaveLength(0);
   });
 
   test("changeMembershipRole は Owner への変更を拒否する", async () => {
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleMember",
     );
 
     await expect(
       service.changeMembershipRole({
         actorId: "user-actor",
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-1"),
         role: "CircleOwner",
       }),
     ).rejects.toThrow("Use transferOwnership to assign owner");
@@ -244,25 +244,25 @@ describe("Circle メンバーシップサービス", () => {
 
   test("transferOwnership は Owner を移譲する", async () => {
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleOwner",
     );
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-2"),
+      toCircleId("circle-1"),
+      toUserId("user-2"),
       "CircleMember",
     );
 
     await service.transferOwnership({
       actorId: "user-actor",
-      circleId: circleId("circle-1"),
-      fromUserId: userId("user-1"),
-      toUserId: userId("user-2"),
+      circleId: toCircleId("circle-1"),
+      fromUserId: toUserId("user-1"),
+      toUserId: toUserId("user-2"),
     });
 
     const memberships = await circleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
     const user1 = memberships.find((m) => m.userId === "user-1");
     const user2 = memberships.find((m) => m.userId === "user-2");
@@ -273,23 +273,23 @@ describe("Circle メンバーシップサービス", () => {
   describe("withdrawMembership（自己退会）", () => {
     test("Manager は退会できる", async () => {
       await circleRepository.addMembership(
-        circleId("circle-1"),
-        userId("user-owner"),
+        toCircleId("circle-1"),
+        toUserId("user-owner"),
         "CircleOwner",
       );
       await circleRepository.addMembership(
-        circleId("circle-1"),
-        userId("user-manager"),
+        toCircleId("circle-1"),
+        toUserId("user-manager"),
         "CircleManager",
       );
 
       await service.withdrawMembership({
         actorId: "user-manager",
-        circleId: circleId("circle-1"),
+        circleId: toCircleId("circle-1"),
       });
 
       const memberships = await circleRepository.listMembershipsByCircleId(
-        circleId("circle-1"),
+        toCircleId("circle-1"),
       );
       expect(memberships).toHaveLength(1);
       expect(memberships[0].userId).toBe("user-owner");
@@ -297,23 +297,23 @@ describe("Circle メンバーシップサービス", () => {
 
     test("Member は退会できる", async () => {
       await circleRepository.addMembership(
-        circleId("circle-1"),
-        userId("user-owner"),
+        toCircleId("circle-1"),
+        toUserId("user-owner"),
         "CircleOwner",
       );
       await circleRepository.addMembership(
-        circleId("circle-1"),
-        userId("user-member"),
+        toCircleId("circle-1"),
+        toUserId("user-member"),
         "CircleMember",
       );
 
       await service.withdrawMembership({
         actorId: "user-member",
-        circleId: circleId("circle-1"),
+        circleId: toCircleId("circle-1"),
       });
 
       const memberships = await circleRepository.listMembershipsByCircleId(
-        circleId("circle-1"),
+        toCircleId("circle-1"),
       );
       expect(memberships).toHaveLength(1);
       expect(memberships[0].userId).toBe("user-owner");
@@ -321,22 +321,22 @@ describe("Circle メンバーシップサービス", () => {
 
     test("Owner は退会を拒否される", async () => {
       await circleRepository.addMembership(
-        circleId("circle-1"),
-        userId("user-owner"),
+        toCircleId("circle-1"),
+        toUserId("user-owner"),
         "CircleOwner",
       );
 
       await expect(
         service.withdrawMembership({
           actorId: "user-owner",
-          circleId: circleId("circle-1"),
+          circleId: toCircleId("circle-1"),
         }),
       ).rejects.toThrow(
         "Owner cannot withdraw from circle. Use transferOwnership instead",
       );
 
       const memberships = await circleRepository.listMembershipsByCircleId(
-        circleId("circle-1"),
+        toCircleId("circle-1"),
       );
       expect(memberships).toHaveLength(1);
       expect(memberships[0].userId).toBe("user-owner");
@@ -348,7 +348,7 @@ describe("Circle メンバーシップサービス", () => {
       await expect(
         service.withdrawMembership({
           actorId: "user-stranger",
-          circleId: circleId("circle-1"),
+          circleId: toCircleId("circle-1"),
         }),
       ).rejects.toThrow("Forbidden");
     });
@@ -357,7 +357,7 @@ describe("Circle メンバーシップサービス", () => {
       await expect(
         service.withdrawMembership({
           actorId: "user-actor",
-          circleId: circleId("circle-999"),
+          circleId: toCircleId("circle-999"),
         }),
       ).rejects.toThrow("Circle not found");
     });
@@ -365,47 +365,47 @@ describe("Circle メンバーシップサービス", () => {
 
   test("removeMembership は Owner の削除を拒否する", async () => {
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleOwner",
     );
 
     await expectReject(
       service.removeMembership({
         actorId: "user-actor",
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-1"),
       }),
       ForbiddenError,
       "Use transferOwnership to remove owner",
     );
 
     const memberships = await circleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
     expect(memberships).toHaveLength(1);
   });
 
   test("removeMembership は Owner 以外を削除できる", async () => {
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-1"),
+      toCircleId("circle-1"),
+      toUserId("user-1"),
       "CircleOwner",
     );
     await circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-2"),
+      toCircleId("circle-1"),
+      toUserId("user-2"),
       "CircleMember",
     );
 
     await service.removeMembership({
       actorId: "user-actor",
-      circleId: circleId("circle-1"),
-      userId: userId("user-2"),
+      circleId: toCircleId("circle-1"),
+      userId: toUserId("user-2"),
     });
 
     const memberships = await circleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
     expect(memberships).toHaveLength(1);
     expect(memberships[0].userId).toBe("user-1");
@@ -428,19 +428,19 @@ describe("UnitOfWork 経路", () => {
     stores.circleMembershipStore.clear();
     vi.clearAllMocks();
     await repos.circleRepository.save({
-      id: circleId("circle-1"),
+      id: toCircleId("circle-1"),
       name: "Circle One",
       createdAt: new Date(),
       sessionEmailNotificationEnabled: true,
     });
     await repos.circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-owner"),
+      toCircleId("circle-1"),
+      toUserId("user-owner"),
       "CircleOwner",
     );
     await repos.circleRepository.addMembership(
-      circleId("circle-1"),
-      userId("user-member"),
+      toCircleId("circle-1"),
+      toUserId("user-member"),
       "CircleMember",
     );
     vi.mocked(uowAccessService.canWithdrawFromCircle).mockResolvedValue(true);
@@ -450,11 +450,11 @@ describe("UnitOfWork 経路", () => {
   test("withdrawMembership は UoW 経由でメンバーシップを削除する", async () => {
     await uowService.withdrawMembership({
       actorId: "user-member",
-      circleId: circleId("circle-1"),
+      circleId: toCircleId("circle-1"),
     });
 
     const memberships = await repos.circleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
     expect(memberships).toHaveLength(1);
     expect(memberships[0].userId).toBe("user-owner");
@@ -463,12 +463,12 @@ describe("UnitOfWork 経路", () => {
   test("removeMembership は UoW 経由でメンバーシップを削除する", async () => {
     await uowService.removeMembership({
       actorId: "user-actor",
-      circleId: circleId("circle-1"),
-      userId: userId("user-member"),
+      circleId: toCircleId("circle-1"),
+      userId: toUserId("user-member"),
     });
 
     const memberships = await repos.circleRepository.listMembershipsByCircleId(
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
     expect(memberships).toHaveLength(1);
     expect(memberships[0].userId).toBe("user-owner");
@@ -478,8 +478,8 @@ describe("UnitOfWork 経路", () => {
     await expect(
       uowService.removeMembership({
         actorId: "user-actor",
-        circleId: circleId("circle-1"),
-        userId: userId("user-nonexistent"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-nonexistent"),
       }),
     ).rejects.toThrow("Membership not found");
   });

@@ -4,7 +4,7 @@ import type {
 } from "@/server/domain/models/user/user-repository";
 import type { User, ProfileVisibility } from "@/server/domain/models/user/user";
 import type { UserId } from "@/server/domain/common/ids";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { ConflictError } from "@/server/domain/common/errors";
 import { randomUUID } from "crypto";
 
@@ -108,7 +108,7 @@ export const createInMemoryUserRepository = (
         throw new ConflictError("User already exists");
       }
     }
-    const id = userId(randomUUID());
+    const id = toUserId(randomUUID());
     const record: UserRecord = {
       id,
       name: data.name,

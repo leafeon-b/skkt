@@ -6,7 +6,7 @@ import {
   truncateAllTables,
   type TestPrismaContext,
 } from "@/server/test-utils/prisma-test-client";
-import { circleId } from "@/server/domain/common/ids";
+import { toCircleId } from "@/server/domain/common/ids";
 
 let ctx: TestPrismaContext;
 const CIRCLE_ID = "circle-1";
@@ -61,7 +61,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       },
     });
 
-    const result = await repo.findActiveByCircleId(circleId(CIRCLE_ID));
+    const result = await repo.findActiveByCircleId(toCircleId(CIRCLE_ID));
 
     expect(result).not.toBeNull();
     expect(result!.id).toBe("link-active");
@@ -92,7 +92,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       },
     });
 
-    const result = await repo.findActiveByCircleId(circleId(CIRCLE_ID));
+    const result = await repo.findActiveByCircleId(toCircleId(CIRCLE_ID));
 
     expect(result).toBeNull();
   });
@@ -115,7 +115,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       },
     });
 
-    const result = await repo.findActiveByCircleId(circleId(CIRCLE_ID));
+    const result = await repo.findActiveByCircleId(toCircleId(CIRCLE_ID));
 
     expect(result).toBeNull();
   });
@@ -148,7 +148,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       },
     });
 
-    const result = await repo.findActiveByCircleId(circleId(CIRCLE_ID));
+    const result = await repo.findActiveByCircleId(toCircleId(CIRCLE_ID));
 
     expect(result).not.toBeNull();
     expect(result!.id).toBe("link-active-new");
@@ -191,7 +191,7 @@ describe("PrismaCircleInviteLinkRepository.findActiveByCircleId", () => {
       },
     });
 
-    const result = await repo.findActiveByCircleId(circleId(CIRCLE_ID));
+    const result = await repo.findActiveByCircleId(toCircleId(CIRCLE_ID));
 
     expect(result).not.toBeNull();
     expect(result!.id).toBe("link-active");

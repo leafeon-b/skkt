@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { TRPCError } from "@trpc/server";
-import { circleId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toUserId } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 
 vi.mock("@/server/env", () => ({ env: {} }));
@@ -12,8 +12,8 @@ import {
   type MockDeps,
 } from "./__tests__/helpers/create-mock-deps";
 
-const CIRCLE_ID = circleId("circle-1");
-const VIEWER_ID = userId("viewer-1");
+const CIRCLE_ID = toCircleId("circle-1");
+const VIEWER_ID = toUserId("viewer-1");
 const NOW = new Date("2025-01-01T00:00:00Z");
 
 let mockDeps: MockDeps;
@@ -38,14 +38,14 @@ const VALID_CIRCLE = {
 
 const makeCircleMembership = (uid: string, role: CircleRole) => ({
   circleId: CIRCLE_ID,
-  userId: userId(uid),
+  userId: toUserId(uid),
   role,
   createdAt: NOW,
   deletedAt: null,
 });
 
 const makeUser = (uid: string, name: string) => ({
-  id: userId(uid),
+  id: toUserId(uid),
   name,
   email: null,
   image: null,

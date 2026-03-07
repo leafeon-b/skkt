@@ -3,9 +3,9 @@ import { createRoundRobinScheduleService } from "@/server/application/round-robi
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
 import { createInMemoryCircleSessionRepository } from "@/server/infrastructure/repository/in-memory";
 import {
-  circleId,
-  circleSessionId,
-  userId,
+  toCircleId,
+  toCircleSessionId,
+  toUserId,
 } from "@/server/domain/common/ids";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
 import type { RoundRobinScheduleRepository } from "@/server/domain/models/round-robin-schedule/round-robin-schedule-repository";
@@ -48,9 +48,9 @@ const service = createRoundRobinScheduleService({
   accessService,
 });
 
-const SESSION_ID = circleSessionId("session-1");
-const CIRCLE_ID = circleId("circle-1");
-const ACTOR_ID = userId("actor-1");
+const SESSION_ID = toCircleSessionId("session-1");
+const CIRCLE_ID = toCircleId("circle-1");
+const ACTOR_ID = toUserId("actor-1");
 
 const baseSession = () =>
   createCircleSession({
@@ -68,7 +68,7 @@ const addMembers = async (count: number) => {
   for (let i = 1; i <= count; i++) {
     await circleSessionRepository.addMembership(
       SESSION_ID,
-      userId(`user-${i}`),
+      toUserId(`user-${i}`),
       "CircleSessionMember",
     );
   }

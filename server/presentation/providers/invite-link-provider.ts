@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { BadRequestError } from "@/server/domain/common/errors";
-import { inviteLinkToken } from "@/server/domain/common/ids";
+import { toInviteLinkToken } from "@/server/domain/common/ids";
 import { createContext } from "@/server/presentation/trpc/context";
 import { appRouter } from "@/server/presentation/trpc/router";
 
@@ -16,7 +16,7 @@ export async function getInviteLinkPageData(
 ): Promise<InviteLinkPageData | null> {
   let validatedToken;
   try {
-    validatedToken = inviteLinkToken(token);
+    validatedToken = toInviteLinkToken(token);
   } catch (e) {
     if (e instanceof BadRequestError) return null;
     throw e;

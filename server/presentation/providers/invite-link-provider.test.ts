@@ -4,10 +4,10 @@ import { TRPCError } from "@trpc/server";
 vi.mock("@/server/env", () => ({ env: {} }));
 
 import {
-  circleId,
-  circleInviteLinkId,
-  inviteLinkToken,
-  userId,
+  toCircleId,
+  toCircleInviteLinkId,
+  toInviteLinkToken,
+  toUserId,
 } from "@/server/domain/common/ids";
 import { createServiceContainer } from "@/server/infrastructure/service-container";
 import {
@@ -20,7 +20,7 @@ const VALID_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440000";
 const UNKNOWN_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440099";
 
 let mockDeps: MockDeps;
-let actorId: ReturnType<typeof userId> | null = null;
+let actorId: ReturnType<typeof toUserId> | null = null;
 
 vi.mock("@/server/presentation/trpc/context", () => ({
   createContext: () => {
@@ -32,14 +32,14 @@ vi.mock("@/server/presentation/trpc/context", () => ({
 // dynamic import after mocks are registered
 const { getInviteLinkPageData } = await import("./invite-link-provider");
 
-const CIRCLE_ID = circleId("circle-1");
-const LINK_TOKEN = inviteLinkToken(VALID_TOKEN_UUID);
+const CIRCLE_ID = toCircleId("circle-1");
+const LINK_TOKEN = toInviteLinkToken(VALID_TOKEN_UUID);
 
 const VALID_INVITE_LINK = {
-  id: circleInviteLinkId("link-1"),
+  id: toCircleInviteLinkId("link-1"),
   circleId: CIRCLE_ID,
   token: LINK_TOKEN,
-  createdByUserId: userId("creator-1"),
+  createdByUserId: toUserId("creator-1"),
   expiresAt: new Date("2099-12-31T00:00:00Z"),
   createdAt: new Date("2025-01-01T00:00:00Z"),
 };
@@ -63,7 +63,7 @@ describe("getInviteLinkPageData", () => {
       VALID_INVITE_LINK,
     );
     mockDeps.circleRepository.findById.mockResolvedValueOnce(VALID_CIRCLE);
-    actorId = userId("user-1");
+    actorId = toUserId("user-1");
 
     const result = await getInviteLinkPageData(VALID_TOKEN_UUID);
 

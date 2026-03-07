@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import {
   BadRequestError,
   TooManyRequestsError,
@@ -19,7 +19,7 @@ const createMockContext = () => {
   };
 
   const context: Context = {
-    actorId: userId("user-1"),
+    actorId: toUserId("user-1"),
     clientIp: "1.2.3.4",
     circleService: {} as Context["circleService"],
     circleMembershipService: {} as Context["circleMembershipService"],

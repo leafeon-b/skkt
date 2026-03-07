@@ -6,7 +6,7 @@ import {
   updateCircleSessionNote,
 } from "@/server/domain/models/circle-session/circle-session";
 import type { CircleId, CircleSessionId } from "@/server/domain/common/ids";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
@@ -79,7 +79,7 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => {
         await repos.circleSessionRepository.save(session);
         await repos.circleSessionRepository.addMembership(
           session.id,
-          userId(params.actorId),
+          toUserId(params.actorId),
           CircleSessionRole.CircleSessionOwner,
         );
       });

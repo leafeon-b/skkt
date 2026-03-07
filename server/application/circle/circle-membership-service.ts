@@ -1,4 +1,4 @@
-import { userId, type CircleId, type UserId } from "@/server/domain/common/ids";
+import { toUserId, type CircleId, type UserId } from "@/server/domain/common/ids";
 import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
@@ -66,7 +66,7 @@ export const createCircleMembershipService = (
       actorId: string;
       userId: UserId;
     }): Promise<UserCircleMembership[]> {
-      if (params.userId !== userId(params.actorId)) {
+      if (params.userId !== toUserId(params.actorId)) {
         throw new ForbiddenError();
       }
       const allowed = await deps.accessService.canListOwnCircles(
@@ -245,7 +245,7 @@ export const createCircleMembershipService = (
         params.circleId,
       );
       const actor = memberships.find(
-        (member) => member.userId === userId(params.actorId),
+        (member) => member.userId === toUserId(params.actorId),
       );
 
       if (!actor) {

@@ -11,7 +11,7 @@ import type {
   MatchId,
   UserId,
 } from "@/server/domain/common/ids";
-import { circleId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toUserId } from "@/server/domain/common/ids";
 import { toPersistenceId } from "@/server/infrastructure/common/id-utils";
 
 export const createPrismaMatchRepository = (
@@ -96,7 +96,7 @@ export const createPrismaMatchRepository = (
 
     return matches.map((m) => ({
       ...mapMatchToDomain(m),
-      circleId: circleId(m.session.circleId),
+      circleId: toCircleId(m.session.circleId),
       circleName: m.session.circle.name,
     }));
   },
@@ -121,7 +121,7 @@ export const createPrismaMatchRepository = (
     for (const m of asPlayer1) ids.add(m.player2Id);
     for (const m of asPlayer2) ids.add(m.player1Id);
 
-    return [...ids].map(userId);
+    return [...ids].map(toUserId);
   },
 
   async save(match: Match): Promise<void> {

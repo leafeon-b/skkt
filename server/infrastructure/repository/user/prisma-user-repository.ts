@@ -4,7 +4,7 @@ import type {
 } from "@/server/domain/models/user/user-repository";
 import type { User, ProfileVisibility } from "@/server/domain/models/user/user";
 import type { UserId } from "@/server/domain/common/ids";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import { prisma, type PrismaClientLike } from "@/server/infrastructure/db";
 import {
   mapUserToDomain,
@@ -150,7 +150,7 @@ export const createPrismaUserRepository = (
         },
         select: { id: true },
       });
-      return userId(user.id);
+      return toUserId(user.id);
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

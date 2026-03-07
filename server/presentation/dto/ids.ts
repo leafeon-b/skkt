@@ -9,13 +9,13 @@ import type {
   UserId,
 } from "@/server/domain/common/ids";
 import {
-  circleId,
-  circleInviteLinkId,
-  circleSessionId,
-  inviteLinkToken,
-  matchId,
-  roundRobinScheduleId,
-  userId,
+  toCircleId,
+  toCircleInviteLinkId,
+  toCircleSessionId,
+  toInviteLinkToken,
+  toMatchId,
+  toRoundRobinScheduleId,
+  toUserId,
 } from "@/server/domain/common/ids";
 
 const idStringSchema = z.string().trim().min(1);
@@ -24,18 +24,18 @@ const makeIdSchema = <T>(
   brand: (value: string) => T,
 ): z.ZodType<T, z.ZodTypeDef, string> => idStringSchema.transform(brand);
 
-export const userIdSchema = makeIdSchema<UserId>(userId);
-export const circleIdSchema = makeIdSchema<CircleId>(circleId);
+export const userIdSchema = makeIdSchema<UserId>(toUserId);
+export const circleIdSchema = makeIdSchema<CircleId>(toCircleId);
 export const circleSessionIdSchema =
-  makeIdSchema<CircleSessionId>(circleSessionId);
-export const matchIdSchema = makeIdSchema<MatchId>(matchId);
+  makeIdSchema<CircleSessionId>(toCircleSessionId);
+export const matchIdSchema = makeIdSchema<MatchId>(toMatchId);
 export const circleInviteLinkIdSchema =
-  makeIdSchema<CircleInviteLinkId>(circleInviteLinkId);
+  makeIdSchema<CircleInviteLinkId>(toCircleInviteLinkId);
 export const roundRobinScheduleIdSchema =
-  makeIdSchema<RoundRobinScheduleId>(roundRobinScheduleId);
+  makeIdSchema<RoundRobinScheduleId>(toRoundRobinScheduleId);
 
 export const inviteLinkTokenSchema: z.ZodType<
   InviteLinkToken,
   z.ZodTypeDef,
   string
-> = z.string().uuid().transform(inviteLinkToken);
+> = z.string().uuid().transform(toInviteLinkToken);

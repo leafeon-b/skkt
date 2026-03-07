@@ -1,4 +1,4 @@
-import { circleId, userId } from "@/server/domain/common/ids";
+import { toCircleId, toUserId } from "@/server/domain/common/ids";
 import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
 import type { CircleRole } from "@/server/domain/models/circle/circle-role";
 import type { CircleRole as PrismaCircleRole } from "@/generated/prisma/enums";
@@ -18,8 +18,8 @@ export const mapCircleMembershipFromPersistence = (input: {
   createdAt: Date;
   deletedAt: Date | null;
 }): CircleMembership => ({
-  circleId: circleId(input.circleId),
-  userId: userId(input.userId),
+  circleId: toCircleId(input.circleId),
+  userId: toUserId(input.userId),
   role: mapCircleRoleFromPersistence(input.role),
   createdAt: input.createdAt,
   deletedAt: input.deletedAt,

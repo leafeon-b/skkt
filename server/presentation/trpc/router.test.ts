@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
 import {
-  circleId,
-  circleSessionId,
-  matchId,
-  userId,
+  toCircleId,
+  toCircleSessionId,
+  toMatchId,
+  toUserId,
 } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
@@ -72,7 +72,7 @@ const createContext = () => {
   };
 
   const context: Context = {
-    actorId: userId("user-1"),
+    actorId: toUserId("user-1"),
     clientIp: "1.2.3.4",
     circleService,
     circleMembershipService,
@@ -110,7 +110,7 @@ describe("tRPC router", () => {
   test("circles.get はサークルを返す", async () => {
     const { context, mocks } = createContext();
     mocks.circleService.getCircle.mockResolvedValueOnce({
-      id: circleId("circle-1"),
+      id: toCircleId("circle-1"),
       name: "Test Circle",
       createdAt: new Date("2025-01-01T00:00:00Z"),
       sessionEmailNotificationEnabled: true,
@@ -148,9 +148,9 @@ describe("tRPC router", () => {
 
     expect(result).toBeUndefined();
     expect(mocks.circleMembershipService.addMembership).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      circleId: circleId("circle-1"),
-      userId: userId("user-2"),
+      actorId: toUserId("user-1"),
+      circleId: toCircleId("circle-1"),
+      userId: toUserId("user-2"),
       role: CircleRole.CircleMember,
     });
   });
@@ -159,7 +159,7 @@ describe("tRPC router", () => {
     const { context, mocks } = createContext();
     mocks.circleMembershipService.listByUserId.mockResolvedValueOnce([
       {
-        circleId: circleId("circle-1"),
+        circleId: toCircleId("circle-1"),
         circleName: "Test Circle",
         role: CircleRole.CircleOwner,
       },
@@ -176,8 +176,8 @@ describe("tRPC router", () => {
       },
     ]);
     expect(mocks.circleMembershipService.listByUserId).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      userId: userId("user-1"),
+      actorId: toUserId("user-1"),
+      userId: toUserId("user-1"),
     });
   });
 
@@ -185,8 +185,8 @@ describe("tRPC router", () => {
     const { context, mocks } = createContext();
     mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce([
       {
-        circleSessionId: circleSessionId("session-1"),
-        circleId: circleId("circle-1"),
+        circleSessionId: toCircleSessionId("session-1"),
+        circleId: toCircleId("circle-1"),
         circleName: "Test Circle",
         title: "第1回 研究会",
         startsAt: new Date("2025-01-01T10:00:00Z"),
@@ -214,8 +214,8 @@ describe("tRPC router", () => {
     expect(
       mocks.circleSessionMembershipService.listByUserId,
     ).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      userId: userId("user-1"),
+      actorId: toUserId("user-1"),
+      userId: toUserId("user-1"),
       limit: 3,
     });
   });
@@ -223,7 +223,7 @@ describe("tRPC router", () => {
   test("circles.rename は更新後のサークルを返す", async () => {
     const { context, mocks } = createContext();
     mocks.circleService.renameCircle.mockResolvedValueOnce({
-      id: circleId("circle-1"),
+      id: toCircleId("circle-1"),
       name: "Renamed Circle",
       createdAt: new Date("2025-01-01T00:00:00Z"),
       sessionEmailNotificationEnabled: true,
@@ -238,7 +238,7 @@ describe("tRPC router", () => {
     expect(result.name).toBe("Renamed Circle");
     expect(mocks.circleService.renameCircle).toHaveBeenCalledWith(
       "user-1",
-      circleId("circle-1"),
+      toCircleId("circle-1"),
       "Renamed Circle",
     );
   });
@@ -253,7 +253,7 @@ describe("tRPC router", () => {
     expect(result).toBeUndefined();
     expect(mocks.circleService.deleteCircle).toHaveBeenCalledWith(
       "user-1",
-      circleId("circle-1"),
+      toCircleId("circle-1"),
     );
   });
 
@@ -273,8 +273,8 @@ describe("tRPC router", () => {
   test("circleSessions.create は Date 入力を受け付ける", async () => {
     const { context, mocks } = createContext();
     mocks.circleSessionService.createCircleSession.mockResolvedValueOnce({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "第1回 研究会",
       startsAt: new Date("2025-02-01T09:00:00Z"),
       endsAt: new Date("2025-02-01T12:00:00Z"),
@@ -313,7 +313,7 @@ describe("tRPC router", () => {
     expect(result).toBeUndefined();
     expect(mocks.circleSessionService.deleteCircleSession).toHaveBeenCalledWith(
       "user-1",
-      circleSessionId("session-1"),
+      toCircleSessionId("session-1"),
     );
   });
 
@@ -333,11 +333,11 @@ describe("tRPC router", () => {
     const { context, mocks } = createContext();
     mocks.matchService.listByCircleSessionId.mockResolvedValueOnce([
       {
-        id: matchId("match-1"),
-        circleSessionId: circleSessionId("session-1"),
+        id: toMatchId("match-1"),
+        circleSessionId: toCircleSessionId("session-1"),
         createdAt: new Date("2024-01-01T00:00:00Z"),
-        player1Id: userId("user-1"),
-        player2Id: userId("user-2"),
+        player1Id: toUserId("user-1"),
+        player2Id: toUserId("user-2"),
         outcome: "P1_WIN",
         deletedAt: null,
       },
@@ -355,11 +355,11 @@ describe("tRPC router", () => {
   test("matches.get は対局を返す", async () => {
     const { context, mocks } = createContext();
     mocks.matchService.getMatch.mockResolvedValueOnce({
-      id: matchId("match-1"),
-      circleSessionId: circleSessionId("session-1"),
+      id: toMatchId("match-1"),
+      circleSessionId: toCircleSessionId("session-1"),
       createdAt: new Date("2024-01-01T00:00:00Z"),
-      player1Id: userId("user-1"),
-      player2Id: userId("user-2"),
+      player1Id: toUserId("user-1"),
+      player2Id: toUserId("user-2"),
       outcome: "P1_WIN",
       deletedAt: null,
     });
@@ -369,8 +369,8 @@ describe("tRPC router", () => {
 
     expect(result.id).toBe("match-1");
     expect(mocks.matchService.getMatch).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      id: matchId("match-1"),
+      actorId: toUserId("user-1"),
+      id: toMatchId("match-1"),
     });
   });
 
@@ -388,11 +388,11 @@ describe("tRPC router", () => {
   test("matches.create は作成した対局を返す", async () => {
     const { context, mocks } = createContext();
     mocks.matchService.recordMatch.mockResolvedValueOnce({
-      id: matchId("match-1"),
-      circleSessionId: circleSessionId("session-1"),
+      id: toMatchId("match-1"),
+      circleSessionId: toCircleSessionId("session-1"),
       createdAt: new Date("2024-01-01T00:00:00Z"),
-      player1Id: userId("user-1"),
-      player2Id: userId("user-2"),
+      player1Id: toUserId("user-1"),
+      player2Id: toUserId("user-2"),
       outcome: "P1_WIN",
       deletedAt: null,
     });
@@ -408,10 +408,10 @@ describe("tRPC router", () => {
     expect(result.id).toBe("match-1");
     expect(mocks.matchService.recordMatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        actorId: userId("user-1"),
-        circleSessionId: circleSessionId("session-1"),
-        player1Id: userId("user-1"),
-        player2Id: userId("user-2"),
+        actorId: toUserId("user-1"),
+        circleSessionId: toCircleSessionId("session-1"),
+        player1Id: toUserId("user-1"),
+        player2Id: toUserId("user-2"),
         outcome: "P1_WIN",
       }),
     );
@@ -432,11 +432,11 @@ describe("tRPC router", () => {
   test("matches.update は更新後の対局を返す", async () => {
     const { context, mocks } = createContext();
     mocks.matchService.updateMatch.mockResolvedValueOnce({
-      id: matchId("match-1"),
-      circleSessionId: circleSessionId("session-1"),
+      id: toMatchId("match-1"),
+      circleSessionId: toCircleSessionId("session-1"),
       createdAt: new Date("2024-01-01T00:00:00Z"),
-      player1Id: userId("user-1"),
-      player2Id: userId("user-2"),
+      player1Id: toUserId("user-1"),
+      player2Id: toUserId("user-2"),
       outcome: "P2_WIN",
       deletedAt: null,
     });
@@ -449,8 +449,8 @@ describe("tRPC router", () => {
 
     expect(result.outcome).toBe("P2_WIN");
     expect(mocks.matchService.updateMatch).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      id: matchId("match-1"),
+      actorId: toUserId("user-1"),
+      id: toMatchId("match-1"),
       player1Id: undefined,
       player2Id: undefined,
       outcome: "P2_WIN",
@@ -460,11 +460,11 @@ describe("tRPC router", () => {
   test("matches.delete は削除済みの対局を返す", async () => {
     const { context, mocks } = createContext();
     mocks.matchService.deleteMatch.mockResolvedValueOnce({
-      id: matchId("match-1"),
-      circleSessionId: circleSessionId("session-1"),
+      id: toMatchId("match-1"),
+      circleSessionId: toCircleSessionId("session-1"),
       createdAt: new Date("2024-01-01T00:00:00Z"),
-      player1Id: userId("user-1"),
-      player2Id: userId("user-2"),
+      player1Id: toUserId("user-1"),
+      player2Id: toUserId("user-2"),
       outcome: "P1_WIN",
       deletedAt: new Date("2025-02-03T00:00:00Z"),
     });
@@ -474,8 +474,8 @@ describe("tRPC router", () => {
 
     expect(result.deletedAt).toBeInstanceOf(Date);
     expect(mocks.matchService.deleteMatch).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      id: matchId("match-1"),
+      actorId: toUserId("user-1"),
+      id: toMatchId("match-1"),
     });
   });
 
@@ -518,7 +518,7 @@ describe("tRPC router", () => {
   test("circles.create は作成したサークルを返す", async () => {
     const { context, mocks } = createContext();
     mocks.circleService.createCircle.mockResolvedValueOnce({
-      id: circleId("circle-new"),
+      id: toCircleId("circle-new"),
       name: "新しい研究会",
       createdAt: new Date("2025-01-01T00:00:00Z"),
       sessionEmailNotificationEnabled: true,
@@ -530,7 +530,7 @@ describe("tRPC router", () => {
     expect(result.name).toBe("新しい研究会");
     expect(mocks.circleService.createCircle).toHaveBeenCalledWith(
       expect.objectContaining({
-        actorId: userId("user-1"),
+        actorId: toUserId("user-1"),
         name: "新しい研究会",
       }),
     );
@@ -544,14 +544,14 @@ describe("tRPC router", () => {
     const { context, mocks } = createContext();
     mocks.circleMembershipService.listByCircleId.mockResolvedValueOnce([
       {
-        circleId: circleId("circle-1"),
-        userId: userId("user-1"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-1"),
         displayName: "テストユーザー",
         role: CircleRole.CircleOwner,
       },
       {
-        circleId: circleId("circle-1"),
-        userId: userId("user-2"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-2"),
         displayName: "メンバー",
         role: CircleRole.CircleMember,
       },
@@ -566,8 +566,8 @@ describe("tRPC router", () => {
     expect(result[0].userId).toBe("user-1");
     expect(result[0].role).toBe(CircleRole.CircleOwner);
     expect(mocks.circleMembershipService.listByCircleId).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      circleId: circleId("circle-1"),
+      actorId: toUserId("user-1"),
+      circleId: toCircleId("circle-1"),
     });
   });
 
@@ -588,9 +588,9 @@ describe("tRPC router", () => {
     expect(
       mocks.circleMembershipService.changeMembershipRole,
     ).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      circleId: circleId("circle-1"),
-      userId: userId("user-2"),
+      actorId: toUserId("user-1"),
+      circleId: toCircleId("circle-1"),
+      userId: toUserId("user-2"),
       role: CircleRole.CircleManager,
     });
   });
@@ -610,9 +610,9 @@ describe("tRPC router", () => {
     expect(result).toBeUndefined();
     expect(mocks.circleMembershipService.removeMembership).toHaveBeenCalledWith(
       {
-        actorId: userId("user-1"),
-        circleId: circleId("circle-1"),
-        userId: userId("user-2"),
+        actorId: toUserId("user-1"),
+        circleId: toCircleId("circle-1"),
+        userId: toUserId("user-2"),
       },
     );
   });
@@ -634,10 +634,10 @@ describe("tRPC router", () => {
     expect(
       mocks.circleMembershipService.transferOwnership,
     ).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      circleId: circleId("circle-1"),
-      fromUserId: userId("user-1"),
-      toUserId: userId("user-2"),
+      actorId: toUserId("user-1"),
+      circleId: toCircleId("circle-1"),
+      fromUserId: toUserId("user-1"),
+      toUserId: toUserId("user-2"),
     });
   });
 
@@ -649,8 +649,8 @@ describe("tRPC router", () => {
     const { context, mocks } = createContext();
     mocks.circleSessionService.listByCircleId.mockResolvedValueOnce([
       {
-        id: circleSessionId("session-1"),
-        circleId: circleId("circle-1"),
+        id: toCircleSessionId("session-1"),
+        circleId: toCircleId("circle-1"),
         title: "第1回 研究会",
         startsAt: new Date("2025-02-01T09:00:00Z"),
         endsAt: new Date("2025-02-01T12:00:00Z"),
@@ -659,8 +659,8 @@ describe("tRPC router", () => {
         createdAt: new Date("2025-01-01T00:00:00Z"),
       },
       {
-        id: circleSessionId("session-2"),
-        circleId: circleId("circle-1"),
+        id: toCircleSessionId("session-2"),
+        circleId: toCircleId("circle-1"),
         title: "第2回 研究会",
         startsAt: new Date("2025-03-01T09:00:00Z"),
         endsAt: new Date("2025-03-01T12:00:00Z"),
@@ -686,8 +686,8 @@ describe("tRPC router", () => {
   test("circleSessions.get はセッションを返す", async () => {
     const { context, mocks } = createContext();
     mocks.circleSessionService.getCircleSession.mockResolvedValueOnce({
-      id: circleSessionId("session-1"),
-      circleId: circleId("circle-1"),
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
       title: "第1回 研究会",
       startsAt: new Date("2025-02-01T09:00:00Z"),
       endsAt: new Date("2025-02-01T12:00:00Z"),
@@ -728,14 +728,14 @@ describe("tRPC router", () => {
     const { context, mocks } = createContext();
     mocks.circleSessionMembershipService.listMemberships.mockResolvedValueOnce([
       {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-1"),
+        circleSessionId: toCircleSessionId("session-1"),
+        userId: toUserId("user-1"),
         displayName: "オーナー",
         role: CircleSessionRole.CircleSessionOwner,
       },
       {
-        circleSessionId: circleSessionId("session-1"),
-        userId: userId("user-2"),
+        circleSessionId: toCircleSessionId("session-1"),
+        userId: toUserId("user-2"),
         displayName: "メンバー",
         role: CircleSessionRole.CircleSessionMember,
       },
@@ -752,8 +752,8 @@ describe("tRPC router", () => {
     expect(
       mocks.circleSessionMembershipService.listMemberships,
     ).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      circleSessionId: circleSessionId("session-1"),
+      actorId: toUserId("user-1"),
+      circleSessionId: toCircleSessionId("session-1"),
     });
   });
 
@@ -774,9 +774,9 @@ describe("tRPC router", () => {
     expect(
       mocks.circleSessionMembershipService.addMembership,
     ).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      circleSessionId: circleSessionId("session-1"),
-      userId: userId("user-3"),
+      actorId: toUserId("user-1"),
+      circleSessionId: toCircleSessionId("session-1"),
+      userId: toUserId("user-3"),
       role: CircleSessionRole.CircleSessionMember,
     });
   });
@@ -797,9 +797,9 @@ describe("tRPC router", () => {
     expect(
       mocks.circleSessionMembershipService.removeMembership,
     ).toHaveBeenCalledWith({
-      actorId: userId("user-1"),
-      circleSessionId: circleSessionId("session-1"),
-      userId: userId("user-3"),
+      actorId: toUserId("user-1"),
+      circleSessionId: toCircleSessionId("session-1"),
+      userId: toUserId("user-3"),
     });
   });
 
@@ -810,7 +810,7 @@ describe("tRPC router", () => {
   test("users.get はユーザーを返す", async () => {
     const { context, mocks } = createContext();
     mocks.userService.getUser.mockResolvedValueOnce({
-      id: userId("user-2"),
+      id: toUserId("user-2"),
       name: "テストユーザー",
       email: "test@example.com",
       image: null,
@@ -840,14 +840,14 @@ describe("tRPC router", () => {
     const { context, mocks } = createContext();
     mocks.userService.listUsers.mockResolvedValueOnce([
       {
-        id: userId("user-1"),
+        id: toUserId("user-1"),
         name: "ユーザー1",
         email: "user1@example.com",
         image: null,
         createdAt: new Date("2025-01-01T00:00:00Z"),
       },
       {
-        id: userId("user-2"),
+        id: toUserId("user-2"),
         name: "ユーザー2",
         email: "user2@example.com",
         image: null,

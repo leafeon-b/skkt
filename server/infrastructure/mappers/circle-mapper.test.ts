@@ -4,7 +4,7 @@ import {
   mapCircleToDomain,
   mapCircleToPersistence,
 } from "@/server/infrastructure/mappers/circle-mapper";
-import { circleId } from "@/server/domain/common/ids";
+import { toCircleId } from "@/server/domain/common/ids";
 import { createCircle } from "@/server/domain/models/circle/circle";
 
 describe("Circle マッパー", () => {
@@ -25,7 +25,7 @@ describe("Circle マッパー", () => {
 
   test("ドメイン Circle を永続化モデルに変換できる", () => {
     const circle = createCircle({
-      id: circleId("circle-1"),
+      id: toCircleId("circle-1"),
       name: "Home",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });

@@ -5,7 +5,7 @@ import type { NotificationPreferenceRepository } from "@/server/domain/models/no
 import type { UnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
 import type { EmailSender } from "@/server/domain/common/email-sender";
 import type { CircleSession } from "@/server/domain/models/circle-session/circle-session";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 
 export type NotificationServiceDeps = {
   circleRepository: CircleRepository;
@@ -31,7 +31,7 @@ export const createNotificationService = (deps: NotificationServiceDeps) => {
         );
 
       const otherMembers = memberships.filter(
-        (m) => m.userId !== userId(actorId) && m.deletedAt === null,
+        (m) => m.userId !== toUserId(actorId) && m.deletedAt === null,
       );
 
       if (otherMembers.length === 0) return;

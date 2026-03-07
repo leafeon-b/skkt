@@ -3,7 +3,7 @@ import {
   createCircle,
   renameCircle,
 } from "@/server/domain/models/circle/circle";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import type { CircleId } from "@/server/domain/common/ids";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
@@ -46,7 +46,7 @@ export const createCircleService = (deps: CircleServiceDeps) => {
         await repos.circleRepository.save(circle);
         await repos.circleRepository.addMembership(
           circle.id,
-          userId(params.actorId),
+          toUserId(params.actorId),
           CircleRole.CircleOwner,
         );
       });

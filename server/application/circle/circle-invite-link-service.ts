@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import {
-  circleInviteLinkId,
-  inviteLinkToken,
-  userId,
+  toCircleInviteLinkId,
+  toInviteLinkToken,
+  toUserId,
   type CircleId,
   type InviteLinkToken,
 } from "@/server/domain/common/ids";
@@ -78,10 +78,10 @@ export const createCircleInviteLinkService = (
     expiresAt.setDate(expiresAt.getDate() + days);
 
     const link = createCircleInviteLink({
-      id: circleInviteLinkId(generateId()),
+      id: toCircleInviteLinkId(generateId()),
       circleId: params.circleId,
-      token: inviteLinkToken(generateToken()),
-      createdByUserId: userId(params.actorId),
+      token: toInviteLinkToken(generateToken()),
+      createdByUserId: toUserId(params.actorId),
       expiresAt,
     });
 
@@ -137,7 +137,7 @@ export const createCircleInviteLinkService = (
       link.circleId,
     );
     const alreadyMember = memberships.some(
-      (p) => p.userId === userId(params.actorId),
+      (p) => p.userId === toUserId(params.actorId),
     );
 
     if (alreadyMember) {
@@ -146,7 +146,7 @@ export const createCircleInviteLinkService = (
 
     await deps.circleRepository.addMembership(
       link.circleId,
-      userId(params.actorId),
+      toUserId(params.actorId),
       CircleRole.CircleMember,
     );
 

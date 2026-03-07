@@ -5,7 +5,7 @@ import { createInMemoryUserRepository } from "@/server/infrastructure/repository
 import type { UserStore } from "@/server/infrastructure/repository/in-memory/in-memory-user-repository";
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import {
   createUser,
   ProfileVisibility,
@@ -38,7 +38,7 @@ const service = createUserService({
   changePasswordRateLimiter,
 });
 
-const actorId = userId("user-1");
+const actorId = toUserId("user-1");
 const testUser = createUser({
   id: actorId,
   name: "Taro",
@@ -107,7 +107,7 @@ describe("updateProfile", () => {
     addTestUser("hashed:pass");
     // 別のユーザーが同じメールを使用中
     userStore.set("other-user", {
-      id: userId("other-user"),
+      id: toUserId("other-user"),
       name: "Other",
       email: "taken@example.com",
       image: null,

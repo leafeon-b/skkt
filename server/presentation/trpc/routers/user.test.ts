@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import type { Context } from "@/server/presentation/trpc/context";
-import { userId } from "@/server/domain/common/ids";
+import { toUserId } from "@/server/domain/common/ids";
 import {
   BadRequestError,
   ForbiddenError,
@@ -9,7 +9,7 @@ import {
 } from "@/server/domain/common/errors";
 
 const createTestContext = (
-  actorIdValue: ReturnType<typeof userId> | null = userId("user-1"),
+  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
 ) => {
   const userService = {
     getUser: vi.fn(),
@@ -94,7 +94,7 @@ describe("user tRPC ルーター", () => {
       const { context, mocks } = createTestContext();
       mocks.userService.getMe.mockResolvedValueOnce({
         user: {
-          id: userId("user-1"),
+          id: toUserId("user-1"),
           name: "Taro",
           email: "taro@example.com",
           image: null,

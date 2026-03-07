@@ -2,10 +2,10 @@ import { describe, expect, test } from "vitest";
 import { createInMemoryCircleInviteLinkRepository } from "./in-memory-circle-invite-link-repository";
 import { createCircleInviteLink } from "@/server/domain/models/circle-invite-link/circle-invite-link";
 import {
-  circleId,
-  circleInviteLinkId,
-  inviteLinkToken,
-  userId,
+  toCircleId,
+  toCircleInviteLinkId,
+  toInviteLinkToken,
+  toUserId,
 } from "@/server/domain/common/ids";
 import { randomUUID } from "crypto";
 
@@ -19,10 +19,10 @@ describe("InMemoryCircleInviteLinkRepository", () => {
     createdAt?: Date,
   ) =>
     createCircleInviteLink({
-      id: circleInviteLinkId(id),
-      circleId: circleId(cId),
-      token: inviteLinkToken(randomUUID()),
-      createdByUserId: userId("u1"),
+      id: toCircleInviteLinkId(id),
+      circleId: toCircleId(cId),
+      token: toInviteLinkToken(randomUUID()),
+      createdByUserId: toUserId("u1"),
       expiresAt,
       createdAt,
     });
@@ -38,7 +38,7 @@ describe("InMemoryCircleInviteLinkRepository", () => {
 
   test("存在しない Token は null を返す", async () => {
     const repo = makeRepo();
-    const found = await repo.findByToken(inviteLinkToken(randomUUID()));
+    const found = await repo.findByToken(toInviteLinkToken(randomUUID()));
     expect(found).toBeNull();
   });
 
@@ -51,7 +51,7 @@ describe("InMemoryCircleInviteLinkRepository", () => {
     );
     await repo.save(activeLink);
 
-    const found = await repo.findActiveByCircleId(circleId("c1"));
+    const found = await repo.findActiveByCircleId(toCircleId("c1"));
     expect(found).toEqual(activeLink);
   });
 
@@ -64,7 +64,7 @@ describe("InMemoryCircleInviteLinkRepository", () => {
     );
     await repo.save(expiredLink);
 
-    const found = await repo.findActiveByCircleId(circleId("c1"));
+    const found = await repo.findActiveByCircleId(toCircleId("c1"));
     expect(found).toBeNull();
   });
 
@@ -85,8 +85,8 @@ describe("InMemoryCircleInviteLinkRepository", () => {
     await repo.save(older);
     await repo.save(newer);
 
-    const found = await repo.findActiveByCircleId(circleId("c1"));
-    expect(found?.id).toBe(circleInviteLinkId("link2"));
+    const found = await repo.findActiveByCircleId(toCircleId("c1"));
+    expect(found?.id).toBe(toCircleInviteLinkId("link2"));
   });
 
   test("findActiveByCircleId は別の Circle のリンクを返さない", async () => {
@@ -94,7 +94,7 @@ describe("InMemoryCircleInviteLinkRepository", () => {
     const link = makeLink("link1", "c1", new Date(Date.now() + 86400000));
     await repo.save(link);
 
-    const found = await repo.findActiveByCircleId(circleId("c2"));
+    const found = await repo.findActiveByCircleId(toCircleId("c2"));
     expect(found).toBeNull();
   });
 

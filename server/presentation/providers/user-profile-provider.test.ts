@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { TRPCError } from "@trpc/server";
-import { circleSessionId, userId } from "@/server/domain/common/ids";
+import { toCircleSessionId, toUserId } from "@/server/domain/common/ids";
 
 vi.mock("@/server/env", () => ({ env: {} }));
 
@@ -11,8 +11,8 @@ import {
   type MockDeps,
 } from "./__tests__/helpers/create-mock-deps";
 
-const VIEWER_ID = userId("viewer-1");
-const TARGET_USER_ID = userId("target-1");
+const VIEWER_ID = toUserId("viewer-1");
+const TARGET_USER_ID = toUserId("target-1");
 const NOW = new Date("2025-01-01T00:00:00Z");
 
 let mockDeps: MockDeps;
@@ -27,7 +27,7 @@ vi.mock("@/server/presentation/trpc/context", () => ({
 const { getUserProfileViewModel } = await import("./user-profile-provider");
 
 const makeUser = (uid: string, name: string, visibility: "PUBLIC" | "PRIVATE") => ({
-  id: userId(uid),
+  id: toUserId(uid),
   name,
   email: null,
   image: null,
@@ -89,7 +89,7 @@ describe("getUserProfileViewModel", () => {
       mockDeps.circleSessionRepository.listMembershipsByUserId.mockResolvedValue(
         [
           {
-            circleSessionId: circleSessionId("session-past"),
+            circleSessionId: toCircleSessionId("session-past"),
             userId: TARGET_USER_ID,
             role: "CircleSessionMember" as never,
             createdAt: NOW,
@@ -120,7 +120,7 @@ describe("getUserProfileViewModel", () => {
           circleId: "circle-1" as never,
           circleName: "テスト研究会",
           player1Id: TARGET_USER_ID,
-          player2Id: userId("opponent-1"),
+          player2Id: toUserId("opponent-1"),
           outcome: "P1_WIN" as never,
           createdAt: NOW,
           deletedAt: null,

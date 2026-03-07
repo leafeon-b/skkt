@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { circleId } from "@/server/domain/common/ids";
+import { toCircleId } from "@/server/domain/common/ids";
 import {
   circleCreateInputSchema,
   circleDeleteInputSchema,
@@ -40,7 +40,7 @@ export const circleRouter = router({
       handleTrpcError(async () => {
         const circle = await ctx.circleService.createCircle({
           actorId: ctx.actorId,
-          id: circleId(randomUUID()),
+          id: toCircleId(randomUUID()),
           name: input.name,
         });
         return toCircleDto(circle);

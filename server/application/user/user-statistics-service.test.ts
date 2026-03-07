@@ -9,10 +9,10 @@ import type { MatchStore } from "@/server/infrastructure/repository/in-memory/in
 import type { CircleStore } from "@/server/infrastructure/repository/in-memory/in-memory-circle-repository";
 import type { CircleSessionStore } from "@/server/infrastructure/repository/in-memory/in-memory-circle-session-repository";
 import {
-  circleId,
-  circleSessionId,
-  matchId,
-  userId,
+  toCircleId,
+  toCircleSessionId,
+  toMatchId,
+  toUserId,
 } from "@/server/domain/common/ids";
 import type { MatchOutcome } from "@/server/domain/models/match/match";
 
@@ -32,21 +32,21 @@ const service = createUserStatisticsService({
   userRepository,
 });
 
-const TARGET_USER = userId("target-user");
-const OPPONENT = userId("opponent");
+const TARGET_USER = toUserId("target-user");
+const OPPONENT = toUserId("opponent");
 
-const CIRCLE_A = circleId("circle-a");
-const CIRCLE_B = circleId("circle-b");
+const CIRCLE_A = toCircleId("circle-a");
+const CIRCLE_B = toCircleId("circle-b");
 
-const OPPONENT_B = userId("opponent-b");
+const OPPONENT_B = toUserId("opponent-b");
 
 let matchCounter = 0;
 
-const ensureCircle = (cId: ReturnType<typeof circleId>, name: string) => {
+const ensureCircle = (cId: ReturnType<typeof toCircleId>, name: string) => {
   if (!circleStore.has(cId)) {
     circleStore.set(cId, { id: cId, name, createdAt: new Date(), sessionEmailNotificationEnabled: true });
   }
-  const csId = circleSessionId(`session-for-${cId}`);
+  const csId = toCircleSessionId(`session-for-${cId}`);
   if (!circleSessionStore.has(csId)) {
     circleSessionStore.set(csId, {
       id: csId,
@@ -63,10 +63,10 @@ const ensureCircle = (cId: ReturnType<typeof circleId>, name: string) => {
 
 const addMatchWithCircle = (
   overrides: Partial<{
-    player1Id: ReturnType<typeof userId>;
-    player2Id: ReturnType<typeof userId>;
+    player1Id: ReturnType<typeof toUserId>;
+    player2Id: ReturnType<typeof toUserId>;
     outcome: MatchOutcome;
-    circleId: ReturnType<typeof circleId>;
+    circleId: ReturnType<typeof toCircleId>;
     circleName: string;
   }> = {},
 ) => {
@@ -74,8 +74,8 @@ const addMatchWithCircle = (
   const cName = overrides.circleName ?? "研究会A";
   ensureCircle(cId, cName);
 
-  const csId = circleSessionId(`session-for-${cId}`);
-  const mId = matchId(`match-${matchCounter++}`);
+  const csId = toCircleSessionId(`session-for-${cId}`);
+  const mId = toMatchId(`match-${matchCounter++}`);
   matchStore.set(mId, {
     id: mId,
     circleSessionId: csId,
@@ -89,14 +89,14 @@ const addMatchWithCircle = (
 
 const addMatch = (
   overrides: Partial<{
-    player1Id: ReturnType<typeof userId>;
-    player2Id: ReturnType<typeof userId>;
+    player1Id: ReturnType<typeof toUserId>;
+    player2Id: ReturnType<typeof toUserId>;
     outcome: MatchOutcome;
   }> = {},
 ) => {
-  const csId = circleSessionId("session-1");
+  const csId = toCircleSessionId("session-1");
   if (!circleSessionStore.has(csId)) {
-    const cId = circleId("default-circle");
+    const cId = toCircleId("default-circle");
     if (!circleStore.has(cId)) {
       circleStore.set(cId, { id: cId, name: "Default", createdAt: new Date(), sessionEmailNotificationEnabled: true });
     }
@@ -111,7 +111,7 @@ const addMatch = (
       createdAt: new Date(),
     });
   }
-  const mId = matchId(`match-${matchCounter++}`);
+  const mId = toMatchId(`match-${matchCounter++}`);
   matchStore.set(mId, {
     id: mId,
     circleSessionId: csId,
@@ -305,7 +305,7 @@ describe("UserStatisticsService", () => {
 
   describe("getMatchStatisticsAll - byCircle ソート", () => {
     test("byCircleはcircleName昇順でソートされる", async () => {
-      const CIRCLE_C = circleId("circle-c");
+      const CIRCLE_C = toCircleId("circle-c");
 
       // データは逆順（C → B → A）で登場
       addMatchWithCircle({

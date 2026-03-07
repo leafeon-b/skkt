@@ -9,7 +9,7 @@ import type { RoundRobinScheduleRepository } from "@/server/domain/models/round-
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import { ForbiddenError, NotFoundError } from "@/server/domain/common/errors";
-import { roundRobinScheduleId } from "@/server/domain/common/ids";
+import { toRoundRobinScheduleId } from "@/server/domain/common/ids";
 
 type AccessService = ReturnType<typeof createAccessService>;
 
@@ -52,7 +52,7 @@ export const createRoundRobinScheduleService = (
         params.circleSessionId,
       );
 
-      const id = roundRobinScheduleId(crypto.randomUUID());
+      const id = toRoundRobinScheduleId(crypto.randomUUID());
       // createRoundRobinSchedule 内で参加者が2人未満の場合 BadRequestError が発生
       const schedule = createRoundRobinSchedule({
         id,
