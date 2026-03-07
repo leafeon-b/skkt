@@ -18,9 +18,15 @@ import {
 import { createJapaneseHolidayProvider } from "@/server/infrastructure/holiday/japanese-holiday-provider";
 import { createPrismaRateLimiter } from "@/server/infrastructure/rate-limit/prisma-rate-limiter";
 import { getClientIp } from "@/server/infrastructure/http/client-ip";
+import { createResendEmailSender } from "@/server/infrastructure/email/resend-email-sender";
+import { noopEmailSender } from "@/server/infrastructure/email/noop-email-sender";
 
 const getSession = createGetSession(nextAuthSessionService);
 const japaneseHolidayProvider = createJapaneseHolidayProvider();
+const emailSender = process.env.RESEND_API_KEY
+  ? createResendEmailSender(process.env.RESEND_API_KEY)
+  : noopEmailSender;
+
 const changePasswordRateLimiter = createPrismaRateLimiter({
   maxAttempts: 3,
   windowMs: 15 * 60 * 1000,
@@ -40,6 +46,7 @@ export const buildServiceContainer = (): ServiceContainer =>
     passwordHasher: { hash: hashPassword, verify: verifyPassword },
     changePasswordRateLimiter,
     holidayProvider: japaneseHolidayProvider,
+    emailSender,
     unitOfWork: prismaUnitOfWork,
   });
 

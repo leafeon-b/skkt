@@ -9,7 +9,9 @@ import { createSignupService } from "@/server/application/auth/signup-service";
 import { createCircleInviteLinkService } from "@/server/application/circle/circle-invite-link-service";
 import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
 import { createRoundRobinScheduleService } from "@/server/application/round-robin-schedule/round-robin-schedule-service";
+import { createNotificationService } from "@/server/application/notification/notification-service";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
+import type { EmailSender } from "@/server/domain/common/email-sender";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
@@ -51,6 +53,7 @@ export type ServiceContainerDeps = {
   passwordHasher: PasswordHasher;
   changePasswordRateLimiter: RateLimiter;
   holidayProvider: HolidayProvider;
+  emailSender: EmailSender;
   unitOfWork?: UnitOfWork;
 };
 
@@ -60,6 +63,11 @@ export const createServiceContainer = (
   const accessService = createAccessService({
     authzRepository: deps.authzRepository,
     userRepository: deps.userRepository,
+  });
+  const notificationService = createNotificationService({
+    circleRepository: deps.circleRepository,
+    userRepository: deps.userRepository,
+    emailSender: deps.emailSender,
   });
   return {
     circleService: createCircleService({
@@ -76,6 +84,7 @@ export const createServiceContainer = (
       circleRepository: deps.circleRepository,
       circleSessionRepository: deps.circleSessionRepository,
       accessService,
+      notificationService,
       unitOfWork: deps.unitOfWork,
     }),
     circleSessionMembershipService: createCircleSessionMembershipService({

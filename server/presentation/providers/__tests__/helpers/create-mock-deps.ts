@@ -10,6 +10,7 @@ import type { RoundRobinScheduleRepository } from "@/server/domain/models/round-
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import type { HolidayProvider } from "@/server/domain/common/holiday-provider";
+import type { EmailSender } from "@/server/domain/common/email-sender";
 import type { UserId } from "@/server/domain/common/ids";
 import type { Mock } from "vitest";
 
@@ -30,6 +31,7 @@ export type MockDeps = {
   passwordHasher: Mocked<PasswordHasher>;
   changePasswordRateLimiter: Mocked<RateLimiter>;
   holidayProvider: Mocked<HolidayProvider>;
+  emailSender: Mocked<EmailSender>;
 };
 
 export const createMockDeps = (): MockDeps => ({
@@ -108,6 +110,9 @@ export const createMockDeps = (): MockDeps => ({
   holidayProvider: {
     getHolidayDateStrings: vi.fn().mockReturnValue([]),
     getHolidayDateStringsForRange: vi.fn().mockReturnValue([]),
+  },
+  emailSender: {
+    send: vi.fn().mockResolvedValue(undefined),
   },
 });
 

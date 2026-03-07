@@ -13,6 +13,7 @@ import {
 } from "@/server/domain/models/circle-session/circle-session";
 import { createCircle } from "@/server/domain/models/circle/circle";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import type { createNotificationService } from "@/server/application/notification/notification-service";
 
 const circleRepository = createInMemoryCircleRepository();
 
@@ -318,5 +319,77 @@ describe("UnitOfWork 経路", () => {
         ...baseSessionParams,
       }),
     ).rejects.toThrow("Membership already exists");
+  });
+});
+
+describe("セッション作成時のメール通知", () => {
+  const notificationService: ReturnType<typeof createNotificationService> = {
+    notifySessionCreated: vi.fn().mockResolvedValue(undefined),
+  };
+
+  const notifyCircleRepo = createInMemoryCircleRepository();
+  const notifySessionRepo = createInMemoryCircleSessionRepository();
+  const notifyAccessService = createAccessServiceStub();
+
+  const notifyService = createCircleSessionService({
+    circleRepository: notifyCircleRepo,
+    circleSessionRepository: notifySessionRepo,
+    accessService: notifyAccessService,
+    notificationService,
+  });
+
+  beforeEach(async () => {
+    notifyCircleRepo._clear();
+    notifySessionRepo._clear();
+    vi.clearAllMocks();
+    await notifyCircleRepo.save(baseCircle);
+    vi.mocked(notifyAccessService.canCreateCircleSession).mockResolvedValue(
+      true,
+    );
+  });
+
+  test("セッション作成時に通知が呼ばれる", async () => {
+    await notifyService.createCircleSession({
+      actorId: "user-1",
+      ...baseSessionParams,
+    });
+
+    expect(notificationService.notifySessionCreated).toHaveBeenCalledWith(
+      expect.objectContaining({ id: baseSessionParams.id }),
+      baseCircle.name,
+      "user-1",
+    );
+  });
+
+  test("メール送信失敗時もセッション作成は成功する", async () => {
+    vi.mocked(notificationService.notifySessionCreated).mockRejectedValue(
+      new Error("email error"),
+    );
+
+    const consoleSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const session = await notifyService.createCircleSession({
+      actorId: "user-1",
+      ...baseSessionParams,
+    });
+
+    expect(session).toBeDefined();
+    const saved = await notifySessionRepo.findById(session.id);
+    expect(saved).toEqual(session);
+
+    // Wait for the fire-and-forget promise to settle
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Failed to send session notification:",
+      expect.objectContaining({
+        sessionId: baseSessionParams.id,
+        circleId: baseCircle.id,
+        message: "email error",
+      }),
+    );
+    consoleSpy.mockRestore();
   });
 });

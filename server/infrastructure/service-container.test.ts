@@ -30,6 +30,7 @@ describe("Service container", () => {
       circleInviteLinkRepository,
       roundRobinScheduleRepository,
       passwordHasher: { hash: vi.fn(), verify: vi.fn() },
+      emailSender: { send: vi.fn() },
       changePasswordRateLimiter: {
         check: vi.fn(),
         recordAttempt: vi.fn(),
