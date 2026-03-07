@@ -5,4 +5,5 @@ export type AccountViewModel = {
   email: string;
   hasPassword: boolean;
   profileVisibility: ProfileVisibilityDto;
+  emailEnabled: boolean;
 };

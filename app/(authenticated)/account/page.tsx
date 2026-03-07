@@ -1,3 +1,4 @@
+import { NotificationForm } from "@/app/(authenticated)/account/notification-form";
 import { PasswordForm } from "@/app/(authenticated)/account/password-form";
 import { ProfileFormInner } from "@/app/(authenticated)/account/profile-form";
 import { VisibilityForm } from "@/app/(authenticated)/account/visibility-form";
@@ -38,6 +39,19 @@ export default async function AccountPage() {
           プライバシー
         </h2>
         <VisibilityForm initialVisibility={viewModel.profileVisibility} />
+      </section>
+
+      <section
+        aria-labelledby="section-notification"
+        className="rounded-2xl border border-border/60 bg-white/85 p-6 shadow-sm"
+      >
+        <h2
+          id="section-notification"
+          className="mb-4 text-lg font-semibold text-(--brand-ink)"
+        >
+          通知
+        </h2>
+        <NotificationForm initialEmailEnabled={viewModel.emailEnabled} />
       </section>
 
       {viewModel.hasPassword && (
