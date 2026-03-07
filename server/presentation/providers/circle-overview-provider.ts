@@ -1,4 +1,5 @@
 import { formatDateTimeRange } from "@/lib/date-utils";
+import { toCircleId } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { NotFoundError } from "@/server/domain/common/errors";
 import { UNKNOWN_USER_NAME } from "@/server/presentation/constants";
@@ -42,8 +43,9 @@ const getViewerRole = (
 };
 
 export async function getCircleOverviewViewModel(
-  circleId: string,
+  rawCircleId: string,
 ): Promise<CircleOverviewViewModel> {
+  const circleId = toCircleId(rawCircleId);
   const ctx = await createContext();
   const caller = appRouter.createCaller(ctx);
 
