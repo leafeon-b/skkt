@@ -83,6 +83,7 @@ export const createServiceContainer = (
   });
   const notificationPreferenceService = createNotificationPreferenceService({
     notificationPreferenceRepository: deps.notificationPreferenceRepository,
+    unsubscribeTokenService: deps.unsubscribeTokenService,
   });
   return {
     circleService: createCircleService({
