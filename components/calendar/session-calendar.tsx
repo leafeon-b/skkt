@@ -15,18 +15,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { formatTooltipDateTime } from "@/lib/date-utils";
+import { formatTooltipDateTime, toLocalDateString } from "@/lib/date-utils";
 import { trpc } from "@/lib/trpc/client";
 import "./session-calendar.css";
 
 const FC_PLUGINS = [dayGridPlugin, interactionPlugin];
-
-export function toLocalDateString(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
 
 export type SessionExtendedProps = {
   startsAt: string | Date;

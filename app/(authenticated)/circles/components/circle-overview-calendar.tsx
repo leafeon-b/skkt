@@ -3,8 +3,8 @@
 import {
   SessionCalendar,
   type SessionExtendedProps,
-  toLocalDateString,
 } from "@/components/calendar/session-calendar";
+import { toLocalDateString } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import type { CircleOverviewSession } from "@/server/presentation/view-models/circle-overview";
 import type { EventInput } from "@fullcalendar/core";
