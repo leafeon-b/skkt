@@ -53,6 +53,7 @@ export const createPrismaCircleRepository = (
       where: { id: data.id },
       update: {
         name: data.name,
+        sessionEmailNotificationEnabled: data.sessionEmailNotificationEnabled,
       },
       create: data,
     });

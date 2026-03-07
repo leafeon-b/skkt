@@ -232,7 +232,10 @@ export function CircleOverviewView({
           <p className="mb-4 text-sm font-semibold text-(--brand-ink)">
             通知設定
           </p>
-          <CircleNotificationToggle />
+          <CircleNotificationToggle
+            circleId={overview.circleId}
+            initialEnabled={overview.sessionEmailNotificationEnabled}
+          />
         </section>
       ) : null}
 

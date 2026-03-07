@@ -10,12 +10,14 @@ export type Circle = {
   id: CircleId;
   name: string;
   createdAt: Date;
+  sessionEmailNotificationEnabled: boolean;
 };
 
 export type CircleCreateParams = {
   id: CircleId;
   name: string;
   createdAt?: Date;
+  sessionEmailNotificationEnabled?: boolean;
 };
 
 export const createCircle = (params: CircleCreateParams): Circle => ({
@@ -26,6 +28,8 @@ export const createCircle = (params: CircleCreateParams): Circle => ({
     "Circle name",
   ),
   createdAt: params.createdAt ?? new Date(),
+  sessionEmailNotificationEnabled:
+    params.sessionEmailNotificationEnabled ?? true,
 });
 
 export const renameCircle = (circle: Circle, name: string): Circle => ({

@@ -100,7 +100,10 @@ describe("Prisma Circle リポジトリ", () => {
 
     expect(mockedPrisma.circle.upsert).toHaveBeenCalledWith({
       where: { id: data.id },
-      update: { name: data.name },
+      update: {
+        name: data.name,
+        sessionEmailNotificationEnabled: data.sessionEmailNotificationEnabled,
+      },
       create: data,
     });
   });

@@ -48,6 +48,7 @@ const VALID_CIRCLE = {
   id: CIRCLE_ID,
   name: "テスト研究会",
   createdAt: new Date("2025-01-01T00:00:00Z"),
+  sessionEmailNotificationEnabled: true,
 };
 
 describe("getInviteLinkPageData", () => {

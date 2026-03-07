@@ -70,6 +70,8 @@ model Circle {
   name      String   @db.VarChar(50)
   createdAt DateTime @default(now())
 
+  sessionEmailNotificationEnabled Boolean @default(true)
+
   circleSessions    CircleSession[]
   circleMemberships CircleMembership[]
   inviteLinks       CircleInviteLink[]

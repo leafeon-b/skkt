@@ -44,7 +44,7 @@ let matchCounter = 0;
 
 const ensureCircle = (cId: ReturnType<typeof circleId>, name: string) => {
   if (!circleStore.has(cId)) {
-    circleStore.set(cId, { id: cId, name, createdAt: new Date() });
+    circleStore.set(cId, { id: cId, name, createdAt: new Date(), sessionEmailNotificationEnabled: true });
   }
   const csId = circleSessionId(`session-for-${cId}`);
   if (!circleSessionStore.has(csId)) {
@@ -98,7 +98,7 @@ const addMatch = (
   if (!circleSessionStore.has(csId)) {
     const cId = circleId("default-circle");
     if (!circleStore.has(cId)) {
-      circleStore.set(cId, { id: cId, name: "Default", createdAt: new Date() });
+      circleStore.set(cId, { id: cId, name: "Default", createdAt: new Date(), sessionEmailNotificationEnabled: true });
     }
     circleSessionStore.set(csId, {
       id: csId,

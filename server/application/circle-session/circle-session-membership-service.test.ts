@@ -216,6 +216,7 @@ describe("CircleSession セッションメンバーシップサービス", () =>
       id: circleId("circle-1"),
       name: "さくら将棋研究会",
       createdAt: new Date("2024-01-01T00:00:00Z"),
+      sessionEmailNotificationEnabled: true,
     });
     await circleSessionRepository.save(
       createCircleSession({

@@ -156,6 +156,7 @@ export async function getCircleOverviewViewModel(
     canTransferOwnership,
     canEditNotificationSetting:
       viewerRole === "owner" || viewerRole === "manager",
+    sessionEmailNotificationEnabled: circle.sessionEmailNotificationEnabled,
     viewerUserId: viewerId,
   };
 

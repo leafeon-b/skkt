@@ -33,6 +33,7 @@ const VALID_CIRCLE = {
   id: CIRCLE_ID,
   name: "テスト研究会",
   createdAt: NOW,
+  sessionEmailNotificationEnabled: true,
 };
 
 const makeCircleMembership = (uid: string, role: CircleRole) => ({
@@ -219,6 +220,50 @@ describe("getCircleOverviewViewModel", () => {
 
       const result = await getCircleOverviewViewModel("circle-1");
       expect(result.canEditNotificationSetting).toBe(false);
+    });
+  });
+
+  describe("sessionEmailNotificationEnabled", () => {
+    test("研究会のメール通知設定がViewModelに反映される", async () => {
+      const memberships = [
+        makeCircleMembership("viewer-1", CircleRole.CircleOwner),
+      ];
+      mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue(
+        memberships,
+      );
+      mockDeps.userRepository.findByIds.mockResolvedValue([
+        makeUser("viewer-1", "オーナー"),
+      ]);
+      mockDeps.authzRepository.findCircleMembership.mockResolvedValue({
+        kind: "member" as const,
+        role: CircleRole.CircleOwner,
+      });
+
+      const result = await getCircleOverviewViewModel("circle-1");
+      expect(result.sessionEmailNotificationEnabled).toBe(true);
+    });
+
+    test("研究会のメール通知設定がfalseの場合、ViewModelにfalseが反映される", async () => {
+      mockDeps.circleRepository.findById.mockResolvedValue({
+        ...VALID_CIRCLE,
+        sessionEmailNotificationEnabled: false,
+      });
+      const memberships = [
+        makeCircleMembership("viewer-1", CircleRole.CircleOwner),
+      ];
+      mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue(
+        memberships,
+      );
+      mockDeps.userRepository.findByIds.mockResolvedValue([
+        makeUser("viewer-1", "オーナー"),
+      ]);
+      mockDeps.authzRepository.findCircleMembership.mockResolvedValue({
+        kind: "member" as const,
+        role: CircleRole.CircleOwner,
+      });
+
+      const result = await getCircleOverviewViewModel("circle-1");
+      expect(result.sessionEmailNotificationEnabled).toBe(false);
     });
   });
 

@@ -7,6 +7,7 @@ export const circleDtoSchema = z.object({
   id: circleIdSchema,
   name: z.string().trim().min(1),
   createdAt: z.date(),
+  sessionEmailNotificationEnabled: z.boolean(),
 });
 
 export type CircleDto = z.infer<typeof circleDtoSchema>;
@@ -41,3 +42,12 @@ export const circleDeleteInputSchema = z.object({
 });
 
 export type CircleDeleteInput = z.infer<typeof circleDeleteInputSchema>;
+
+export const circleUpdateSessionEmailNotificationInputSchema = z.object({
+  circleId: circleIdSchema,
+  enabled: z.boolean(),
+});
+
+export type CircleUpdateSessionEmailNotificationInput = z.infer<
+  typeof circleUpdateSessionEmailNotificationInputSchema
+>;

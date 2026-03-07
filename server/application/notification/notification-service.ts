@@ -22,6 +22,9 @@ export const createNotificationService = (deps: NotificationServiceDeps) => {
       circleName: string,
       actorId: string,
     ): Promise<void> {
+      const circle = await deps.circleRepository.findById(session.circleId);
+      if (!circle || !circle.sessionEmailNotificationEnabled) return;
+
       const memberships =
         await deps.circleRepository.listMembershipsByCircleId(
           session.circleId,

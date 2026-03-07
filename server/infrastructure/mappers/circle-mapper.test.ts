@@ -13,6 +13,7 @@ describe("Circle マッパー", () => {
       id: "circle-1",
       name: "Home",
       createdAt: new Date("2024-01-01T00:00:00Z"),
+      sessionEmailNotificationEnabled: true,
     };
 
     const circle = mapCircleToDomain(prismaCircle);
@@ -35,6 +36,7 @@ describe("Circle マッパー", () => {
       id: "circle-1",
       name: "Home",
       createdAt: new Date("2024-01-01T00:00:00Z"),
+      sessionEmailNotificationEnabled: true,
     });
   });
 });

@@ -25,6 +25,7 @@ const createTestContext = () => {
       createCircle: vi.fn(),
       renameCircle: vi.fn(),
       deleteCircle: vi.fn(),
+      updateSessionEmailNotificationEnabled: vi.fn(),
     },
     circleMembershipService: {
       listByCircleId: vi.fn(),
