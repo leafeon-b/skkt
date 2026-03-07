@@ -7,6 +7,7 @@ import {
   circleDtoSchema,
   circleGetInputSchema,
   circleRenameInputSchema,
+  circleUpdateSessionEmailNotificationInputSchema,
 } from "@/server/presentation/dto/circle";
 import { circleMembershipRouter } from "@/server/presentation/trpc/routers/circle-membership";
 import { circleInviteLinkRouter } from "@/server/presentation/trpc/routers/circle-invite-link";
@@ -66,6 +67,20 @@ export const circleRouter = router({
     .mutation(({ ctx, input }) =>
       handleTrpcError(async () => {
         await ctx.circleService.deleteCircle(ctx.actorId, input.circleId);
+        return;
+      }),
+    ),
+
+  updateSessionEmailNotification: protectedProcedure
+    .input(circleUpdateSessionEmailNotificationInputSchema)
+    .output(z.void())
+    .mutation(({ ctx, input }) =>
+      handleTrpcError(async () => {
+        await ctx.circleService.updateSessionEmailNotificationEnabled(
+          ctx.actorId,
+          input.circleId,
+          input.enabled,
+        );
         return;
       }),
     ),

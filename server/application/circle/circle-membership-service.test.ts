@@ -40,6 +40,7 @@ const baseCircle = () => ({
   id: circleId("circle-1"),
   name: "Circle One",
   createdAt: new Date(),
+  sessionEmailNotificationEnabled: true,
 });
 
 beforeEach(async () => {
@@ -110,6 +111,7 @@ describe("Circle メンバーシップサービス", () => {
       id: circleId("circle-2"),
       name: "Circle Two",
       createdAt: new Date("2025-01-02T00:00:00Z"),
+      sessionEmailNotificationEnabled: true,
     });
     await circleRepository.addMembership(
       circleId("circle-1"),
@@ -429,6 +431,7 @@ describe("UnitOfWork 経路", () => {
       id: circleId("circle-1"),
       name: "Circle One",
       createdAt: new Date(),
+      sessionEmailNotificationEnabled: true,
     });
     await repos.circleRepository.addMembership(
       circleId("circle-1"),

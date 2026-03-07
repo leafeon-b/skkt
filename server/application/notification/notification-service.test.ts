@@ -15,8 +15,10 @@ import type { UnsubscribeTokenService } from "@/server/domain/services/unsubscri
 import type { EmailSender } from "@/server/domain/common/email-sender";
 import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
 import type { User } from "@/server/domain/models/user/user";
+import { createCircle } from "@/server/domain/models/circle/circle";
 
 const mockCircleRepository = {
+  findById: vi.fn(),
   listMembershipsByCircleId: vi.fn(),
 } as unknown as CircleRepository;
 
@@ -77,9 +79,16 @@ const makeUser = (uid: string, email: string | null): User => ({
   createdAt: new Date("2024-01-01"),
 });
 
+const defaultCircle = createCircle({
+  id: circleId("circle-1"),
+  name: "将棋研究会",
+  sessionEmailNotificationEnabled: true,
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockEnv.BASE_URL = undefined;
+  vi.mocked(mockCircleRepository.findById).mockResolvedValue(defaultCircle);
   vi.mocked(mockNotificationPreferenceRepository.findByUserIds).mockResolvedValue([]);
   vi.mocked(mockUnsubscribeTokenService.generate).mockReturnValue("mock-token");
 });
@@ -257,6 +266,28 @@ describe("NotificationService", () => {
 
     const call = vi.mocked(mockEmailSender.send).mock.calls[0]?.[0];
     expect(call).not.toHaveProperty("headers");
+  });
+
+  test("研究会のメール通知設定が無効の場合、メール送信されない", async () => {
+    vi.mocked(mockCircleRepository.findById).mockResolvedValue(
+      createCircle({
+        id: circleId("circle-1"),
+        name: "将棋研究会",
+        sessionEmailNotificationEnabled: false,
+      }),
+    );
+
+    vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
+      [makeMembership("user-1"), makeMembership("user-2")],
+    );
+    vi.mocked(mockUserRepository.findByIds).mockResolvedValue([
+      makeUser("user-2", "user2@example.com"),
+    ]);
+
+    await service.notifySessionCreated(session, circleName, actorId);
+
+    expect(mockEmailSender.send).not.toHaveBeenCalled();
+    expect(mockCircleRepository.listMembershipsByCircleId).not.toHaveBeenCalled();
   });
 
   test("BASE_URL が設定されている場合、メール本文に配信停止リンクが含まれる", async () => {

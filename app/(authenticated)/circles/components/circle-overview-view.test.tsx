@@ -106,6 +106,7 @@ function buildOverview(
     canRenameCircle: false,
     canTransferOwnership: false,
     canEditNotificationSetting: false,
+    sessionEmailNotificationEnabled: true,
     viewerUserId: null,
     ...overrides,
   };

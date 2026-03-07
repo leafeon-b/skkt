@@ -51,6 +51,7 @@ const VALID_CIRCLE = {
   id: CIRCLE_ID,
   name: "テスト研究会",
   createdAt: NOW,
+  sessionEmailNotificationEnabled: true,
 };
 
 const makeSessionMembership = (uid: string, role: CircleSessionRole) => ({

@@ -90,6 +90,29 @@ export const createCircleService = (deps: CircleServiceDeps) => {
       return circle;
     },
 
+    async updateSessionEmailNotificationEnabled(
+      actorId: string,
+      id: CircleId,
+      enabled: boolean,
+    ): Promise<void> {
+      const circle = await deps.circleRepository.findById(id);
+      if (!circle) {
+        throw new NotFoundError("Circle");
+      }
+      const allowed = await deps.accessService.canEditCircle(
+        actorId,
+        id as string,
+      );
+      if (!allowed) {
+        throw new ForbiddenError();
+      }
+      const updated: Circle = {
+        ...circle,
+        sessionEmailNotificationEnabled: enabled,
+      };
+      await deps.circleRepository.save(updated);
+    },
+
     async deleteCircle(actorId: string, id: CircleId): Promise<void> {
       const circle = await deps.circleRepository.findById(id);
       if (!circle) {

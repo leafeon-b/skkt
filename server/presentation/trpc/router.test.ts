@@ -17,6 +17,7 @@ const createContext = () => {
     createCircle: vi.fn(),
     renameCircle: vi.fn(),
     deleteCircle: vi.fn(),
+    updateSessionEmailNotificationEnabled: vi.fn(),
   };
   const circleMembershipService = {
     listByCircleId: vi.fn(),
@@ -112,6 +113,7 @@ describe("tRPC router", () => {
       id: circleId("circle-1"),
       name: "Test Circle",
       createdAt: new Date("2025-01-01T00:00:00Z"),
+      sessionEmailNotificationEnabled: true,
     });
 
     const caller = appRouter.createCaller(context);
@@ -224,6 +226,7 @@ describe("tRPC router", () => {
       id: circleId("circle-1"),
       name: "Renamed Circle",
       createdAt: new Date("2025-01-01T00:00:00Z"),
+      sessionEmailNotificationEnabled: true,
     });
 
     const caller = appRouter.createCaller(context);
@@ -518,6 +521,7 @@ describe("tRPC router", () => {
       id: circleId("circle-new"),
       name: "新しい研究会",
       createdAt: new Date("2025-01-01T00:00:00Z"),
+      sessionEmailNotificationEnabled: true,
     });
 
     const caller = appRouter.createCaller(context);

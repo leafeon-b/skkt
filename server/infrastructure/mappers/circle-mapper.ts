@@ -9,10 +9,12 @@ export const mapCircleToDomain = (circle: PrismaCircle): Circle =>
     id: circleId(circle.id),
     name: circle.name,
     createdAt: circle.createdAt,
+    sessionEmailNotificationEnabled: circle.sessionEmailNotificationEnabled,
   });
 
 export const mapCircleToPersistence = (circle: Circle) => ({
   id: toPersistenceId(circle.id),
   name: circle.name,
   createdAt: circle.createdAt,
+  sessionEmailNotificationEnabled: circle.sessionEmailNotificationEnabled,
 });

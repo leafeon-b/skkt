@@ -34,5 +34,6 @@ export type CircleOverviewViewModel = {
   canRenameCircle: boolean;
   canTransferOwnership: boolean;
   canEditNotificationSetting: boolean;
+  sessionEmailNotificationEnabled: boolean;
   viewerUserId: string | null;
 };

@@ -33,6 +33,7 @@ const baseCircle = () => ({
   id: circleId("circle-1"),
   name: "テスト研究会",
   createdAt: new Date(),
+  sessionEmailNotificationEnabled: true,
 });
 
 const baseLink = () => ({

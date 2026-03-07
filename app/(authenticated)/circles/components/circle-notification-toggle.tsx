@@ -1,11 +1,38 @@
 "use client";
 
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+import { trpc } from "@/lib/trpc/client";
+import { useCallback, useState } from "react";
 
-export function CircleNotificationToggle() {
-  // TODO: バックエンドAPI連携時にローカルステートからtRPC mutationに置き換える
-  const [enabled, setEnabled] = useState(true);
+type CircleNotificationToggleProps = {
+  circleId: string;
+  initialEnabled: boolean;
+};
+
+export function CircleNotificationToggle({
+  circleId,
+  initialEnabled,
+}: CircleNotificationToggleProps) {
+  const [enabled, setEnabled] = useState(initialEnabled);
+
+  const mutation =
+    trpc.circles.updateSessionEmailNotification.useMutation();
+
+  const handleChange = useCallback(
+    (checked: boolean) => {
+      const previous = enabled;
+      setEnabled(checked);
+      mutation.mutate(
+        { circleId, enabled: checked },
+        {
+          onError: () => {
+            setEnabled(previous);
+          },
+        },
+      );
+    },
+    [circleId, enabled, mutation],
+  );
 
   return (
     <div className="flex items-center justify-between gap-4">
@@ -19,7 +46,8 @@ export function CircleNotificationToggle() {
       </div>
       <Switch
         checked={enabled}
-        onCheckedChange={setEnabled}
+        onCheckedChange={handleChange}
+        disabled={mutation.isPending}
         aria-label="セッション作成時のメール通知"
       />
     </div>
