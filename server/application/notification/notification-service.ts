@@ -106,10 +106,22 @@ export const createNotificationService = (deps: NotificationServiceDeps) => {
             .filter((line) => line !== undefined)
             .join("\n");
 
+          const unsubscribeApiUrl = baseUrl
+            ? `${baseUrl}/api/unsubscribe?token=${unsubscribeToken}`
+            : null;
+
+          const headers: Record<string, string> = {};
+          if (unsubscribeApiUrl) {
+            headers["List-Unsubscribe"] = `<${unsubscribeApiUrl}>`;
+            headers["List-Unsubscribe-Post"] =
+              "List-Unsubscribe=One-Click";
+          }
+
           return deps.emailSender.send({
             to: [user.email!],
             subject: `[${circleName}] ${session.title}`,
             body,
+            ...(Object.keys(headers).length > 0 && { headers }),
           });
         }),
       );

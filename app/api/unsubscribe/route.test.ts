@@ -171,6 +171,29 @@ describe("POST /api/unsubscribe", () => {
     expect(mockDisableByToken).toHaveBeenCalledWith(token);
   });
 
+  test("URLクエリパラメータからトークンを読み取れる（RFC 8058 One-Click対応）", async () => {
+    mockDisableByToken.mockResolvedValue({
+      userId: "user-1",
+      emailEnabled: false,
+    });
+
+    const token = "dmFsaWQtdG9rZW4tZm9yLXRlc3Q";
+    const request = new Request(
+      `http://localhost/api/unsubscribe?token=${token}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "List-Unsubscribe=One-Click",
+      },
+    );
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.message).toBe("メール配信を停止しました。");
+    expect(mockDisableByToken).toHaveBeenCalledWith(token);
+  });
+
   test("サポート外のContent-Typeで 415 エラー", async () => {
     const request = new Request("http://localhost/api/unsubscribe", {
       method: "POST",

@@ -11,6 +11,7 @@ export const createResendEmailSender = (apiKey: string): EmailSender => {
         to: message.to,
         subject: message.subject,
         text: message.body,
+        headers: message.headers,
       });
     },
   };

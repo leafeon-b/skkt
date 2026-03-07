@@ -213,6 +213,45 @@ describe("NotificationService", () => {
     );
   });
 
+  test("BASE_URL が設定されている場合、List-Unsubscribe ヘッダーが付与される", async () => {
+    vi.stubEnv("BASE_URL", "https://example.com");
+
+    vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
+      [makeMembership("user-1"), makeMembership("user-2")],
+    );
+    vi.mocked(mockUserRepository.findByIds).mockResolvedValue([
+      makeUser("user-2", "user2@example.com"),
+    ]);
+
+    await service.notifySessionCreated(session, circleName, actorId);
+
+    expect(mockEmailSender.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headers: {
+          "List-Unsubscribe":
+            "<https://example.com/api/unsubscribe?token=mock-token>",
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      }),
+    );
+  });
+
+  test("BASE_URL が未設定の場合、headers が付与されない", async () => {
+    vi.stubEnv("BASE_URL", "");
+
+    vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
+      [makeMembership("user-1"), makeMembership("user-2")],
+    );
+    vi.mocked(mockUserRepository.findByIds).mockResolvedValue([
+      makeUser("user-2", "user2@example.com"),
+    ]);
+
+    await service.notifySessionCreated(session, circleName, actorId);
+
+    const call = vi.mocked(mockEmailSender.send).mock.calls[0]?.[0];
+    expect(call).not.toHaveProperty("headers");
+  });
+
   test("BASE_URL が設定されている場合、メール本文に配信停止リンクが含まれる", async () => {
     vi.stubEnv("BASE_URL", "https://example.com");
 
