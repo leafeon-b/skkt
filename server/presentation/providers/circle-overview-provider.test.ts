@@ -17,11 +17,12 @@ const VIEWER_ID = toUserId("viewer-1");
 const NOW = new Date("2025-01-01T00:00:00Z");
 
 let mockDeps: MockDeps;
+let actorId: ReturnType<typeof toUserId> | null = VIEWER_ID;
 
 vi.mock("@/server/presentation/trpc/context", () => ({
   createContext: () => {
     const services = createServiceContainer(toServiceContainerDeps(mockDeps));
-    return Promise.resolve({ actorId: VIEWER_ID, ...services });
+    return Promise.resolve({ actorId, ...services });
   },
 }));
 
@@ -56,6 +57,7 @@ const makeUser = (uid: string, name: string) => ({
 describe("getCircleOverviewViewModel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    actorId = VIEWER_ID;
     mockDeps = createMockDeps();
 
     // Circle exists
@@ -158,6 +160,18 @@ describe("getCircleOverviewViewModel", () => {
       await expect(
         getCircleOverviewViewModel("circle-1"),
       ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    });
+
+    test("未認証ユーザーが研究会詳細を取得するとUNAUTHORIZEDエラーになる", async () => {
+      actorId = null;
+
+      await expect(
+        getCircleOverviewViewModel("circle-1"),
+      ).rejects.toThrow(TRPCError);
+
+      await expect(
+        getCircleOverviewViewModel("circle-1"),
+      ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     });
   });
 });

@@ -24,11 +24,12 @@ const VIEWER_ID = toUserId("viewer-1");
 const NOW = new Date("2025-01-01T00:00:00Z");
 
 let mockDeps: MockDeps;
+let actorId: ReturnType<typeof toUserId> | null = VIEWER_ID;
 
 vi.mock("@/server/presentation/trpc/context", () => ({
   createContext: () => {
     const services = createServiceContainer(toServiceContainerDeps(mockDeps));
-    return Promise.resolve({ actorId: VIEWER_ID, ...services });
+    return Promise.resolve({ actorId, ...services });
   },
 }));
 
@@ -74,6 +75,7 @@ const makeUser = (uid: string, name: string) => ({
 describe("getCircleSessionDetailViewModel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    actorId = VIEWER_ID;
     mockDeps = createMockDeps();
 
     // Session exists
@@ -200,6 +202,18 @@ describe("getCircleSessionDetailViewModel", () => {
       await expect(
         getCircleSessionDetailViewModel("session-1"),
       ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    });
+
+    test("未認証ユーザーがセッション詳細を取得するとUNAUTHORIZEDエラーになる", async () => {
+      actorId = null;
+
+      await expect(
+        getCircleSessionDetailViewModel("session-1"),
+      ).rejects.toThrow(TRPCError);
+
+      await expect(
+        getCircleSessionDetailViewModel("session-1"),
+      ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     });
   });
 });
