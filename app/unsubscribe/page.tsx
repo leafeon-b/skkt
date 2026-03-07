@@ -1,6 +1,6 @@
 import Footer from "@/app/components/footer";
 import { buildServiceContainer } from "@/server/presentation/trpc/context";
-import { DomainError } from "@/server/domain/common/errors";
+import { BadRequestError } from "@/server/domain/common/errors";
 import { isValidUnsubscribeToken } from "@/server/domain/common/token-validation";
 import Link from "next/link";
 
@@ -27,7 +27,7 @@ async function unsubscribe(token: string): Promise<UnsubscribeResult> {
     }
     return { status: "success" };
   } catch (error) {
-    if (error instanceof DomainError) {
+    if (error instanceof BadRequestError) {
       return { status: "error", message: error.message };
     }
     console.error("Unhandled error in unsubscribe page:", error);
