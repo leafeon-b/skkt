@@ -61,6 +61,8 @@ model User {
   sessions Session[]
 
   createdInviteLinks CircleInviteLink[]
+
+  notificationPreference NotificationPreference?
 }
 
 model Circle {
@@ -206,6 +208,14 @@ model RoundRobinPairing {
   player2 User            @relation("RoundRobinPlayer2", fields: [player2Id], references: [id], onDelete: Restrict)
 
   @@index([roundId])
+}
+
+model NotificationPreference {
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  emailEnabled Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model RateLimitAttempt {

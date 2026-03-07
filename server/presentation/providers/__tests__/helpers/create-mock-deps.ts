@@ -7,6 +7,8 @@ import type { UserRepository } from "@/server/domain/models/user/user-repository
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { RoundRobinScheduleRepository } from "@/server/domain/models/round-robin-schedule/round-robin-schedule-repository";
+import type { NotificationPreferenceRepository } from "@/server/domain/models/notification-preference/notification-preference-repository";
+import type { UnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import type { HolidayProvider } from "@/server/domain/common/holiday-provider";
@@ -29,6 +31,8 @@ export type MockDeps = {
   authzRepository: Mocked<AuthzRepository>;
   circleInviteLinkRepository: Mocked<CircleInviteLinkRepository>;
   roundRobinScheduleRepository: Mocked<RoundRobinScheduleRepository>;
+  notificationPreferenceRepository: Mocked<NotificationPreferenceRepository>;
+  unsubscribeTokenService: Mocked<UnsubscribeTokenService>;
   passwordHasher: Mocked<PasswordHasher>;
   changePasswordRateLimiter: Mocked<RateLimiter>;
   holidayProvider: Mocked<HolidayProvider>;
@@ -99,6 +103,15 @@ export const createMockDeps = (): MockDeps => ({
     findByCircleSessionId: vi.fn().mockResolvedValue(null),
     save: vi.fn().mockResolvedValue(undefined),
     deleteByCircleSessionId: vi.fn().mockResolvedValue(undefined),
+  },
+  notificationPreferenceRepository: {
+    findByUserId: vi.fn().mockResolvedValue(null),
+    findByUserIds: vi.fn().mockResolvedValue([]),
+    save: vi.fn().mockResolvedValue(undefined),
+  },
+  unsubscribeTokenService: {
+    generate: vi.fn().mockReturnValue("mock-token"),
+    verify: vi.fn().mockReturnValue(null),
   },
   passwordHasher: {
     hash: vi.fn().mockReturnValue("hashed"),

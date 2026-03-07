@@ -85,6 +85,7 @@ const createTestContext = (
     userStatisticsService: {} as Context["userStatisticsService"],
     roundRobinScheduleService,
     holidayProvider: {} as Context["holidayProvider"],
+    notificationPreferenceService: {} as Context["notificationPreferenceService"],
   };
 
   return { context, mocks: { roundRobinScheduleService, userService } };

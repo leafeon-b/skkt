@@ -8,6 +8,7 @@ import {
   createMockAuthzRepository,
   createMockCircleInviteLinkRepository,
   createMockRoundRobinScheduleRepository,
+  createMockNotificationPreferenceRepository,
 } from "@/server/application/test-helpers/mock-repositories";
 
 describe("Service container", () => {
@@ -20,6 +21,8 @@ describe("Service container", () => {
     const circleInviteLinkRepository = createMockCircleInviteLinkRepository();
     const roundRobinScheduleRepository =
       createMockRoundRobinScheduleRepository();
+    const notificationPreferenceRepository =
+      createMockNotificationPreferenceRepository();
 
     const container = createServiceContainer({
       circleRepository,
@@ -29,6 +32,11 @@ describe("Service container", () => {
       authzRepository,
       circleInviteLinkRepository,
       roundRobinScheduleRepository,
+      notificationPreferenceRepository,
+      unsubscribeTokenService: {
+        generate: vi.fn(),
+        verify: vi.fn(),
+      },
       passwordHasher: { hash: vi.fn(), verify: vi.fn() },
       emailSender: { send: vi.fn() },
       changePasswordRateLimiter: {

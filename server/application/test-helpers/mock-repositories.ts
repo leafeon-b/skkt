@@ -5,6 +5,7 @@ import type { CircleRepository } from "@/server/domain/models/circle/circle-repo
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-invite-link/circle-invite-link-repository";
 import type { RoundRobinScheduleRepository } from "@/server/domain/models/round-robin-schedule/round-robin-schedule-repository";
+import type { NotificationPreferenceRepository } from "@/server/domain/models/notification-preference/notification-preference-repository";
 import type { AuthzRepository } from "@/server/domain/services/authz/authz-repository";
 import type {
   Repositories,
@@ -80,6 +81,13 @@ export const createMockRoundRobinScheduleRepository = () =>
     save: vi.fn(),
     deleteByCircleSessionId: vi.fn(),
   }) satisfies RoundRobinScheduleRepository;
+
+export const createMockNotificationPreferenceRepository = () =>
+  ({
+    findByUserId: vi.fn(),
+    findByUserIds: vi.fn(),
+    save: vi.fn(),
+  }) satisfies NotificationPreferenceRepository;
 
 export const createMockAuthzRepository = () =>
   ({

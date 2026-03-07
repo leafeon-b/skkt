@@ -10,6 +10,7 @@ import { createCircleInviteLinkService } from "@/server/application/circle/circl
 import { createUserStatisticsService } from "@/server/application/user/user-statistics-service";
 import { createRoundRobinScheduleService } from "@/server/application/round-robin-schedule/round-robin-schedule-service";
 import { createNotificationService } from "@/server/application/notification/notification-service";
+import { createNotificationPreferenceService } from "@/server/application/notification/notification-preference-service";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import type { EmailSender } from "@/server/domain/common/email-sender";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
@@ -22,6 +23,8 @@ import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-i
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { HolidayProvider } from "@/server/domain/common/holiday-provider";
 import type { RoundRobinScheduleRepository } from "@/server/domain/models/round-robin-schedule/round-robin-schedule-repository";
+import type { NotificationPreferenceRepository } from "@/server/domain/models/notification-preference/notification-preference-repository";
+import type { UnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
 import type { BackgroundTaskRunner } from "@/server/domain/common/background-task";
 
 export type ServiceContainer = {
@@ -40,6 +43,9 @@ export type ServiceContainer = {
   roundRobinScheduleService: ReturnType<
     typeof createRoundRobinScheduleService
   >;
+  notificationPreferenceService: ReturnType<
+    typeof createNotificationPreferenceService
+  >;
   holidayProvider: HolidayProvider;
 };
 
@@ -51,6 +57,8 @@ export type ServiceContainerDeps = {
   authzRepository: AuthzRepository;
   circleInviteLinkRepository: CircleInviteLinkRepository;
   roundRobinScheduleRepository: RoundRobinScheduleRepository;
+  notificationPreferenceRepository: NotificationPreferenceRepository;
+  unsubscribeTokenService: UnsubscribeTokenService;
   passwordHasher: PasswordHasher;
   changePasswordRateLimiter: RateLimiter;
   holidayProvider: HolidayProvider;
@@ -69,7 +77,12 @@ export const createServiceContainer = (
   const notificationService = createNotificationService({
     circleRepository: deps.circleRepository,
     userRepository: deps.userRepository,
+    notificationPreferenceRepository: deps.notificationPreferenceRepository,
+    unsubscribeTokenService: deps.unsubscribeTokenService,
     emailSender: deps.emailSender,
+  });
+  const notificationPreferenceService = createNotificationPreferenceService({
+    notificationPreferenceRepository: deps.notificationPreferenceRepository,
   });
   return {
     circleService: createCircleService({
@@ -127,6 +140,7 @@ export const createServiceContainer = (
       circleSessionRepository: deps.circleSessionRepository,
       accessService,
     }),
+    notificationPreferenceService,
     holidayProvider: deps.holidayProvider,
   };
 };
