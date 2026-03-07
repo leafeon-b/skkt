@@ -48,7 +48,7 @@ export const buildServiceContainer = (): ServiceContainer =>
     changePasswordRateLimiter,
     holidayProvider: japaneseHolidayProvider,
     emailSender,
-    waitUntil: (promise) => after(promise),
+    runInBackground: (promise) => after(promise),
     unitOfWork: prismaUnitOfWork,
   });
 

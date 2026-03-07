@@ -33,7 +33,7 @@ export type MockDeps = {
   changePasswordRateLimiter: Mocked<RateLimiter>;
   holidayProvider: Mocked<HolidayProvider>;
   emailSender: Mocked<EmailSender>;
-  waitUntil: BackgroundTaskRunner;
+  runInBackground: BackgroundTaskRunner;
 };
 
 export const createMockDeps = (): MockDeps => ({
@@ -116,7 +116,7 @@ export const createMockDeps = (): MockDeps => ({
   emailSender: {
     send: vi.fn().mockResolvedValue(undefined),
   },
-  waitUntil: (p) => { void p; },
+  runInBackground: (p) => { void p; },
 });
 
 export const toServiceContainerDeps = (

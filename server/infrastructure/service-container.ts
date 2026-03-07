@@ -55,7 +55,7 @@ export type ServiceContainerDeps = {
   changePasswordRateLimiter: RateLimiter;
   holidayProvider: HolidayProvider;
   emailSender: EmailSender;
-  waitUntil?: BackgroundTaskRunner;
+  runInBackground?: BackgroundTaskRunner;
   unitOfWork?: UnitOfWork;
 };
 
@@ -87,7 +87,7 @@ export const createServiceContainer = (
       circleSessionRepository: deps.circleSessionRepository,
       accessService,
       notificationService,
-      waitUntil: deps.waitUntil,
+      runInBackground: deps.runInBackground,
       unitOfWork: deps.unitOfWork,
     }),
     circleSessionMembershipService: createCircleSessionMembershipService({
