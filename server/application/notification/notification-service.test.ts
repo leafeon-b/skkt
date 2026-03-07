@@ -1,4 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
+
+const mockEnv = vi.hoisted(() => ({
+  BASE_URL: undefined as string | undefined,
+}));
+vi.mock("@/server/env", () => ({ env: mockEnv }));
+
 import { createNotificationService } from "@/server/application/notification/notification-service";
 import { circleId, circleSessionId, userId } from "@/server/domain/common/ids";
 import { createCircleSession } from "@/server/domain/models/circle-session/circle-session";
@@ -73,6 +79,7 @@ const makeUser = (uid: string, email: string | null): User => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockEnv.BASE_URL = undefined;
   vi.mocked(mockNotificationPreferenceRepository.findByUserIds).mockResolvedValue([]);
   vi.mocked(mockUnsubscribeTokenService.generate).mockReturnValue("mock-token");
 });
@@ -132,7 +139,7 @@ describe("NotificationService", () => {
   });
 
   test("BASE_URL が設定されている場合、メール本文にセッション詳細リンクが含まれる", async () => {
-    vi.stubEnv("BASE_URL", "https://example.com");
+    mockEnv.BASE_URL = "https://example.com";
 
     vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
       [makeMembership("user-1"), makeMembership("user-2")],
@@ -153,7 +160,7 @@ describe("NotificationService", () => {
   });
 
   test("BASE_URL が未設定の場合、メール本文にリンクが含まれない", async () => {
-    vi.stubEnv("BASE_URL", "");
+    mockEnv.BASE_URL = undefined;
 
     vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
       [makeMembership("user-1"), makeMembership("user-2")],
@@ -214,7 +221,7 @@ describe("NotificationService", () => {
   });
 
   test("BASE_URL が設定されている場合、List-Unsubscribe ヘッダーが付与される", async () => {
-    vi.stubEnv("BASE_URL", "https://example.com");
+    mockEnv.BASE_URL = "https://example.com";
 
     vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
       [makeMembership("user-1"), makeMembership("user-2")],
@@ -237,7 +244,7 @@ describe("NotificationService", () => {
   });
 
   test("BASE_URL が未設定の場合、headers が付与されない", async () => {
-    vi.stubEnv("BASE_URL", "");
+    mockEnv.BASE_URL = undefined;
 
     vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
       [makeMembership("user-1"), makeMembership("user-2")],
@@ -253,7 +260,7 @@ describe("NotificationService", () => {
   });
 
   test("BASE_URL が設定されている場合、メール本文に配信停止リンクが含まれる", async () => {
-    vi.stubEnv("BASE_URL", "https://example.com");
+    mockEnv.BASE_URL = "https://example.com";
 
     vi.mocked(mockCircleRepository.listMembershipsByCircleId).mockResolvedValue(
       [makeMembership("user-1"), makeMembership("user-2")],

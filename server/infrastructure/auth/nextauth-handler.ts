@@ -1,5 +1,6 @@
 // PrismaAdapter が NextAuth のアダプタ要件として prisma を直接必要とするため、この import のみリポジトリ抽象化の対象外
 import { prisma } from "@/server/infrastructure/db";
+import { env } from "@/server/env";
 import {
   DUMMY_HASH,
   verifyPassword,
@@ -101,8 +102,8 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
       },
     }),
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
       profile(profile) {
         return {
           id: profile.sub,

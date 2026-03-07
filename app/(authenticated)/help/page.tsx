@@ -1,3 +1,4 @@
+import { env } from "@/server/env";
 import { validateContactFormUrl } from "@/lib/url";
 import { ExternalLink } from "lucide-react";
 
@@ -101,7 +102,7 @@ function renderPermissionCell(value: string, noteId?: string) {
 }
 
 const contactFormUrl = validateContactFormUrl(
-  process.env.NEXT_PUBLIC_CONTACT_FORM_URL,
+  env.NEXT_PUBLIC_CONTACT_FORM_URL,
 );
 
 export default function HelpPage() {

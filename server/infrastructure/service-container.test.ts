@@ -1,4 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
+
+vi.mock("@/server/env", () => ({ env: {} }));
+
 import { createServiceContainer } from "@/server/infrastructure/service-container";
 import {
   createMockCircleRepository,

@@ -1,9 +1,12 @@
-import { beforeAll, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import type { ServiceContainerDeps } from "@/server/infrastructure/service-container";
 
-beforeAll(() => {
-  process.env.UNSUBSCRIBE_SECRET = "test-secret-that-is-at-least-32-characters-long";
-});
+vi.mock("@/server/env", () => ({
+  env: {
+    UNSUBSCRIBE_SECRET: "test-secret-that-is-at-least-32-characters-long",
+    RESEND_API_KEY: undefined,
+  },
+}));
 
 vi.mock("@/server/infrastructure/service-container", () => ({
   createServiceContainer: vi.fn(() => ({})),
