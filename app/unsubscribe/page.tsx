@@ -1,4 +1,6 @@
 import Footer from "@/app/components/footer";
+import { buildServiceContainer } from "@/server/presentation/trpc/context";
+import { DomainError } from "@/server/domain/common/errors";
 import Link from "next/link";
 
 type UnsubscribePageProps = {
@@ -9,22 +11,34 @@ type UnsubscribeResult =
   | { status: "success" }
   | { status: "error"; message: string };
 
-async function unsubscribe(token: string): Promise<UnsubscribeResult> {
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-  const res = await fetch(
-    `${baseUrl}/api/unsubscribe?token=${encodeURIComponent(token)}`,
-    { cache: "no-store" },
-  );
+const { notificationPreferenceService } = buildServiceContainer();
 
-  if (res.ok) {
-    return { status: "success" };
+async function unsubscribe(token: string): Promise<UnsubscribeResult> {
+  if (
+    !/^[A-Za-z0-9_-]+$/.test(token) ||
+    token.length < 20 ||
+    token.length > 256
+  ) {
+    return { status: "error", message: "無効なトークンです。" };
   }
 
-  const body = await res.json().catch(() => null);
-  return {
-    status: "error",
-    message: body?.message ?? "配信停止の処理中にエラーが発生しました。",
-  };
+  try {
+    const result =
+      await notificationPreferenceService.disableByToken(token);
+    if (!result) {
+      return { status: "error", message: "無効なトークンです。" };
+    }
+    return { status: "success" };
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    console.error("Unhandled error in unsubscribe page:", error);
+    return {
+      status: "error",
+      message: "配信停止の処理中にエラーが発生しました。",
+    };
+  }
 }
 
 export default async function UnsubscribePage({
