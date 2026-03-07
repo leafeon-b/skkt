@@ -6,6 +6,7 @@ import {
   formatDateForInput,
   formatDateTimeForInput,
   formatTooltipDateTime,
+  toLocalDateString,
 } from "./date-utils";
 
 describe("formatDate", () => {
@@ -96,6 +97,18 @@ describe("formatDateTimeForInput", () => {
     expect(formatDateTimeForInput(new Date("2025-01-14T15:30:00Z"))).toBe(
       "2025-01-15T00:30",
     );
+  });
+});
+
+describe("toLocalDateString", () => {
+  it("Date オブジェクトからローカル日付の YYYY-MM-DD 文字列を返す", () => {
+    const date = new Date(2025, 0, 15, 14, 0);
+    expect(toLocalDateString(date)).toBe("2025-01-15");
+  });
+
+  it("月・日が1桁の場合もゼロ埋めされる", () => {
+    const date = new Date(2025, 2, 5, 10, 0);
+    expect(toLocalDateString(date)).toBe("2025-03-05");
   });
 });
 
