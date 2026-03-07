@@ -12,6 +12,7 @@ describe("server/env", () => {
   };
 
   const setEnv = (overrides: Record<string, string> = {}) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- 分割代入で VITEST を除外するために必要
     const { VITEST: _, ...clean } = { ...requiredEnv, ...overrides };
     process.env = clean as NodeJS.ProcessEnv;
   };
@@ -32,6 +33,7 @@ describe("server/env", () => {
   });
 
   test("DATABASE_URL が未設定の場合エラーをスローする", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- 分割代入で DATABASE_URL を除外するために必要
     const { DATABASE_URL: _, ...rest } = requiredEnv;
     process.env = { ...rest } as NodeJS.ProcessEnv;
     await expect(import("./env")).rejects.toThrow(
