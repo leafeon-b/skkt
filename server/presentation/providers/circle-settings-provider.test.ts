@@ -16,11 +16,12 @@ const VIEWER_ID = toUserId("viewer-1");
 const NOW = new Date("2025-01-01T00:00:00Z");
 
 let mockDeps: MockDeps;
+let actorId: ReturnType<typeof toUserId> | null = VIEWER_ID;
 
 vi.mock("@/server/presentation/trpc/context", () => ({
   createContext: () => {
     const services = createServiceContainer(toServiceContainerDeps(mockDeps));
-    return Promise.resolve({ actorId: VIEWER_ID, ...services });
+    return Promise.resolve({ actorId, ...services });
   },
 }));
 
@@ -55,6 +56,7 @@ const makeUser = (uid: string, name: string) => ({
 describe("getCircleSettingsViewModel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    actorId = VIEWER_ID;
     mockDeps = createMockDeps();
 
     mockDeps.circleRepository.findById.mockResolvedValue(VALID_CIRCLE);
@@ -86,6 +88,14 @@ describe("getCircleSettingsViewModel", () => {
 
   test("認可ゲート: 非メンバーにはnullを返す", async () => {
     // findCircleMembership のデフォルトは { kind: "none" }
+    const result = await getCircleSettingsViewModel("circle-1");
+
+    expect(result).toBeNull();
+  });
+
+  test("認可ゲート: 未認証ユーザーにはnullを返す", async () => {
+    actorId = null;
+
     const result = await getCircleSettingsViewModel("circle-1");
 
     expect(result).toBeNull();
