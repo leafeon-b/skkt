@@ -1,6 +1,7 @@
 import Footer from "@/app/components/footer";
 import { buildServiceContainer } from "@/server/presentation/trpc/context";
 import { DomainError } from "@/server/domain/common/errors";
+import { isValidUnsubscribeToken } from "@/server/domain/common/token-validation";
 import Link from "next/link";
 
 type UnsubscribePageProps = {
@@ -14,11 +15,7 @@ type UnsubscribeResult =
 const { notificationPreferenceService } = buildServiceContainer();
 
 async function unsubscribe(token: string): Promise<UnsubscribeResult> {
-  if (
-    !/^[A-Za-z0-9_-]+$/.test(token) ||
-    token.length < 20 ||
-    token.length > 256
-  ) {
+  if (!isValidUnsubscribeToken(token)) {
     return { status: "error", message: "無効なトークンです。" };
   }
 
