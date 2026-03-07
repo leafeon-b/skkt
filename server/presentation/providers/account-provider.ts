@@ -6,12 +6,16 @@ export async function getAccountViewModel(): Promise<AccountViewModel> {
   const ctx = await createContext();
   const caller = appRouter.createCaller(ctx);
 
-  const me = await caller.users.me();
+  const [me, notificationPref] = await Promise.all([
+    caller.users.me(),
+    caller.notificationPreferences.get(),
+  ]);
 
   return {
     name: me.name ?? "",
     email: me.email ?? "",
     hasPassword: me.hasPassword,
     profileVisibility: me.profileVisibility,
+    emailEnabled: notificationPref.emailEnabled,
   };
 }
