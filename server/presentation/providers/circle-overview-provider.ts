@@ -154,6 +154,8 @@ export async function getCircleOverviewViewModel(
     canDeleteCircle,
     canRenameCircle,
     canTransferOwnership,
+    canEditNotificationSetting:
+      viewerRole === "owner" || viewerRole === "manager",
     viewerUserId: viewerId,
   };
 

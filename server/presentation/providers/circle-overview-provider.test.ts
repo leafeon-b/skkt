@@ -145,6 +145,83 @@ describe("getCircleOverviewViewModel", () => {
     ]);
   });
 
+  describe("canEditNotificationSetting", () => {
+    test("viewerがownerの場合、trueになる", async () => {
+      const memberships = [
+        makeCircleMembership("viewer-1", CircleRole.CircleOwner),
+      ];
+      mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue(
+        memberships,
+      );
+      mockDeps.userRepository.findByIds.mockResolvedValue([
+        makeUser("viewer-1", "オーナー"),
+      ]);
+      mockDeps.authzRepository.findCircleMembership.mockResolvedValue({
+        kind: "member" as const,
+        role: CircleRole.CircleOwner,
+      });
+
+      const result = await getCircleOverviewViewModel("circle-1");
+      expect(result.canEditNotificationSetting).toBe(true);
+    });
+
+    test("viewerがmanagerの場合、trueになる", async () => {
+      const memberships = [
+        makeCircleMembership("viewer-1", CircleRole.CircleManager),
+        makeCircleMembership("u-owner", CircleRole.CircleOwner),
+      ];
+      mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue(
+        memberships,
+      );
+      mockDeps.userRepository.findByIds.mockResolvedValue([
+        makeUser("viewer-1", "マネージャー"),
+        makeUser("u-owner", "オーナー"),
+      ]);
+      mockDeps.authzRepository.findCircleMembership.mockImplementation(
+        async (uid: string) => {
+          const roles: Record<string, CircleRole> = {
+            "viewer-1": CircleRole.CircleManager,
+            "u-owner": CircleRole.CircleOwner,
+          };
+          const role = roles[uid];
+          if (role) return { kind: "member" as const, role };
+          return { kind: "none" as const };
+        },
+      );
+
+      const result = await getCircleOverviewViewModel("circle-1");
+      expect(result.canEditNotificationSetting).toBe(true);
+    });
+
+    test("viewerがmemberの場合、falseになる", async () => {
+      const memberships = [
+        makeCircleMembership("viewer-1", CircleRole.CircleMember),
+        makeCircleMembership("u-owner", CircleRole.CircleOwner),
+      ];
+      mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue(
+        memberships,
+      );
+      mockDeps.userRepository.findByIds.mockResolvedValue([
+        makeUser("viewer-1", "メンバー"),
+        makeUser("u-owner", "オーナー"),
+      ]);
+      mockDeps.authzRepository.findCircleMembership.mockImplementation(
+        async (uid: string) => {
+          const roles: Record<string, CircleRole> = {
+            "viewer-1": CircleRole.CircleMember,
+            "u-owner": CircleRole.CircleOwner,
+          };
+          const role = roles[uid];
+          if (role) return { kind: "member" as const, role };
+          return { kind: "none" as const };
+        },
+      );
+
+      const result = await getCircleOverviewViewModel("circle-1");
+      expect(result.canEditNotificationSetting).toBe(false);
+    });
+  });
+
   describe("認可エラー", () => {
     test("研究会メンバーでないユーザーが研究会詳細を取得するとFORBIDDENエラーになる", async () => {
       // authzRepository.findCircleMembership はデフォルト { kind: "none" } のまま

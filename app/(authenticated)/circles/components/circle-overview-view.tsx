@@ -1,4 +1,5 @@
 import { CircleDeleteButton } from "@/app/(authenticated)/circles/components/circle-delete-button";
+import { CircleNotificationToggle } from "@/app/(authenticated)/circles/components/circle-notification-toggle";
 import { CircleOverviewCalendar } from "@/app/(authenticated)/circles/components/circle-overview-calendar";
 import { CircleRenameDialog } from "@/app/(authenticated)/circles/components/circle-rename-dialog";
 import { CircleWithdrawButton } from "@/app/(authenticated)/circles/components/circle-withdraw-button";
@@ -225,6 +226,15 @@ export function CircleOverviewView({
           </div>
         </div>
       </section>
+
+      {overview.canEditNotificationSetting ? (
+        <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
+          <p className="mb-4 text-sm font-semibold text-(--brand-ink)">
+            通知設定
+          </p>
+          <CircleNotificationToggle />
+        </section>
+      ) : null}
 
       {overview.canTransferOwnership && overview.viewerUserId ? (
         <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
