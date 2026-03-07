@@ -68,6 +68,15 @@ vi.mock(
 );
 
 vi.mock(
+  "@/app/(authenticated)/circles/components/circle-notification-toggle",
+  () => ({
+    CircleNotificationToggle: () => (
+      <div data-testid="notification-toggle">通知トグル</div>
+    ),
+  }),
+);
+
+vi.mock(
   "@/app/(authenticated)/circles/components/transfer-circle-ownership-dialog",
   () => ({
     TransferCircleOwnershipDialog: () => (
@@ -96,6 +105,7 @@ function buildOverview(
     canDeleteCircle: false,
     canRenameCircle: false,
     canTransferOwnership: false,
+    canEditNotificationSetting: false,
     viewerUserId: null,
     ...overrides,
   };
@@ -292,6 +302,30 @@ describe("CircleOverviewView ロールベース表示制御", () => {
 
     expect(screen.getByText("オーナー")).toBeInTheDocument();
     expect(screen.queryByTestId("role-edit-user-2")).not.toBeInTheDocument();
+  });
+});
+
+describe("CircleOverviewView 通知設定トグル", () => {
+  it("canEditNotificationSetting が true の場合、通知トグルが表示される", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({ canEditNotificationSetting: true })}
+      />,
+    );
+
+    expect(screen.getByTestId("notification-toggle")).toBeInTheDocument();
+  });
+
+  it("canEditNotificationSetting が false の場合、通知トグルが表示されない", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({ canEditNotificationSetting: false })}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId("notification-toggle"),
+    ).not.toBeInTheDocument();
   });
 });
 
