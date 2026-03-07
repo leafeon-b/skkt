@@ -1,3 +1,4 @@
+import { toCircleId } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { NotFoundError } from "@/server/domain/common/errors";
 import { UNKNOWN_USER_NAME } from "@/server/presentation/constants";
@@ -13,8 +14,9 @@ const roleKeyByDto: Record<CircleRole, CircleRoleKey> = {
 };
 
 export async function getCircleSettingsViewModel(
-  circleId: string,
+  rawCircleId: string,
 ): Promise<CircleSettingsViewModel | null> {
+  const circleId = toCircleId(rawCircleId);
   const ctx = await createContext();
   const viewerId = ctx.actorId ?? null;
 
