@@ -1,17 +1,14 @@
-import { CircleDeleteButton } from "@/app/(authenticated)/circles/components/circle-delete-button";
-import { CircleNotificationToggle } from "@/app/(authenticated)/circles/components/circle-notification-toggle";
 import { CircleOverviewCalendar } from "@/app/(authenticated)/circles/components/circle-overview-calendar";
 import { CircleRenameDialog } from "@/app/(authenticated)/circles/components/circle-rename-dialog";
 import { CircleWithdrawButton } from "@/app/(authenticated)/circles/components/circle-withdraw-button";
 import { MemberRoleDropdown } from "@/app/(authenticated)/circles/components/member-role-dropdown";
 import { RemoveCircleMemberButton } from "@/app/(authenticated)/circles/components/remove-circle-member-button";
-import { TransferCircleOwnershipDialog } from "@/app/(authenticated)/circles/components/transfer-circle-ownership-dialog";
 import type {
   CircleOverviewMember,
   CircleOverviewViewModel,
   CircleRoleKey,
 } from "@/server/presentation/view-models/circle-overview";
-import { UserPlus } from "lucide-react";
+import { Settings, UserPlus } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -24,6 +21,7 @@ export type CircleOverviewViewProps = {
   ) => string | null;
   getCreateSessionHref?: () => string | null;
   getInviteLinkHref?: () => string | null;
+  getSettingsHref?: () => string | null;
 };
 
 const roleLabels: Record<CircleRoleKey, string> = {
@@ -63,6 +61,7 @@ export function CircleOverviewView({
   getNextSessionHref,
   getCreateSessionHref,
   getInviteLinkHref,
+  getSettingsHref,
 }: CircleOverviewViewProps) {
   const roleLabel = overview.viewerRole
     ? roleLabels[overview.viewerRole]
@@ -134,12 +133,24 @@ export function CircleOverviewView({
               )}
             </div>
           </div>
-          {overview.viewerRole && overview.viewerRole !== "owner" ? (
-            <CircleWithdrawButton
-              circleId={overview.circleId}
-              circleName={overview.circleName}
-            />
-          ) : null}
+          <div className="flex items-start gap-2">
+            {overview.viewerRole === "owner" && getSettingsHref?.() ? (
+              <Link
+                href={getSettingsHref()!}
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-(--brand-ink-muted) hover:bg-(--brand-ink)/5 hover:text-(--brand-ink)"
+                data-testid="settings-link"
+              >
+                <Settings className="size-3.5" aria-hidden="true" />
+                設定
+              </Link>
+            ) : null}
+            {overview.viewerRole && overview.viewerRole !== "owner" ? (
+              <CircleWithdrawButton
+                circleId={overview.circleId}
+                circleName={overview.circleName}
+              />
+            ) : null}
+          </div>
         </div>
       </section>
 
@@ -227,46 +238,6 @@ export function CircleOverviewView({
         </div>
       </section>
 
-      {overview.canEditNotificationSetting ? (
-        <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
-          <p className="mb-4 text-sm font-semibold text-(--brand-ink)">
-            通知設定
-          </p>
-          <CircleNotificationToggle
-            circleId={overview.circleId}
-            initialEnabled={overview.sessionEmailNotificationEnabled}
-          />
-        </section>
-      ) : null}
-
-      {overview.canTransferOwnership && overview.viewerUserId ? (
-        <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
-          <p className="mb-1 text-sm font-semibold text-(--brand-ink)">
-            オーナー移譲
-          </p>
-          <p className="mb-4 text-xs text-(--brand-ink-muted)">
-            研究会のオーナー権限を他のメンバーに移譲します。移譲後、あなたのロールはマネージャーに変更されます。
-          </p>
-          <TransferCircleOwnershipDialog
-            circleId={overview.circleId}
-            viewerUserId={overview.viewerUserId}
-            members={overview.members}
-          />
-        </section>
-      ) : null}
-
-      {overview.canDeleteCircle ? (
-        <section className="rounded-2xl border border-red-200 bg-white/90 p-6 shadow-sm">
-          <p className="mb-1 text-sm font-semibold text-red-700">危険な操作</p>
-          <p className="mb-4 text-xs text-(--brand-ink-muted)">
-            研究会を削除すると、すべてのデータが完全に削除されます。この操作は取り消せません。
-          </p>
-          <CircleDeleteButton
-            circleId={overview.circleId}
-            circleName={overview.circleName}
-          />
-        </section>
-      ) : null}
     </div>
   );
 }

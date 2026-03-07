@@ -34,6 +34,7 @@ export default async function CircleDetailPage({
       }
       getCreateSessionHref={() => `/circles/${circleId}/sessions/new`}
       getInviteLinkHref={() => `/circles/${circleId}/invite-link`}
+      getSettingsHref={() => `/circles/${circleId}/settings`}
     />
   );
 }

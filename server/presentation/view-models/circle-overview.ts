@@ -30,10 +30,5 @@ export type CircleOverviewViewModel = {
   sessions: CircleOverviewSession[];
   members: CircleOverviewMember[];
   holidayDates: string[];
-  canDeleteCircle: boolean;
   canRenameCircle: boolean;
-  canTransferOwnership: boolean;
-  canEditNotificationSetting: boolean;
-  sessionEmailNotificationEnabled: boolean;
-  viewerUserId: string | null;
 };

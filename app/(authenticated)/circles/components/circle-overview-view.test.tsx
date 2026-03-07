@@ -32,15 +32,6 @@ vi.mock(
 );
 
 vi.mock(
-  "@/app/(authenticated)/circles/components/circle-delete-button",
-  () => ({
-    CircleDeleteButton: () => (
-      <button data-testid="circle-delete-button">削除</button>
-    ),
-  }),
-);
-
-vi.mock(
   "@/app/(authenticated)/circles/components/circle-rename-dialog",
   () => ({
     CircleRenameDialog: () => (
@@ -67,24 +58,6 @@ vi.mock(
   }),
 );
 
-vi.mock(
-  "@/app/(authenticated)/circles/components/circle-notification-toggle",
-  () => ({
-    CircleNotificationToggle: () => (
-      <div data-testid="notification-toggle">通知トグル</div>
-    ),
-  }),
-);
-
-vi.mock(
-  "@/app/(authenticated)/circles/components/transfer-circle-ownership-dialog",
-  () => ({
-    TransferCircleOwnershipDialog: () => (
-      <button data-testid="transfer-ownership-button">オーナーを移譲</button>
-    ),
-  }),
-);
-
 afterEach(() => {
   cleanup();
 });
@@ -102,12 +75,7 @@ function buildOverview(
     sessions: [],
     members: [],
     holidayDates: [],
-    canDeleteCircle: false,
     canRenameCircle: false,
-    canTransferOwnership: false,
-    canEditNotificationSetting: false,
-    sessionEmailNotificationEnabled: true,
-    viewerUserId: null,
     ...overrides,
   };
 }
@@ -199,28 +167,6 @@ describe("CircleOverviewView ロールベース表示制御", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("canDeleteCircle が true の場合、削除ボタンが表示される", () => {
-    render(
-      <CircleOverviewView
-        overview={buildOverview({ canDeleteCircle: true })}
-      />,
-    );
-
-    expect(screen.getByTestId("circle-delete-button")).toBeInTheDocument();
-  });
-
-  it("canDeleteCircle が false の場合、削除ボタンが表示されない", () => {
-    render(
-      <CircleOverviewView
-        overview={buildOverview({ canDeleteCircle: false })}
-      />,
-    );
-
-    expect(
-      screen.queryByTestId("circle-delete-button"),
-    ).not.toBeInTheDocument();
-  });
-
   it("canChangeRole が true のメンバーにはロールバッジと編集ボタンが表示される", () => {
     render(
       <CircleOverviewView
@@ -306,70 +252,47 @@ describe("CircleOverviewView ロールベース表示制御", () => {
   });
 });
 
-describe("CircleOverviewView 通知設定トグル", () => {
-  it("canEditNotificationSetting が true の場合、通知トグルが表示される", () => {
+describe("CircleOverviewView 設定リンク", () => {
+  const getSettingsHref = () => "/circles/circle-1/settings";
+
+  it("owner の場合、設定リンクが表示される", () => {
     render(
       <CircleOverviewView
-        overview={buildOverview({ canEditNotificationSetting: true })}
+        overview={buildOverview({ viewerRole: "owner" })}
+        getSettingsHref={getSettingsHref}
       />,
     );
 
-    expect(screen.getByTestId("notification-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-link")).toBeInTheDocument();
   });
 
-  it("canEditNotificationSetting が false の場合、通知トグルが表示されない", () => {
+  it("manager の場合、設定リンクが表示されない", () => {
     render(
       <CircleOverviewView
-        overview={buildOverview({ canEditNotificationSetting: false })}
+        overview={buildOverview({ viewerRole: "manager" })}
+        getSettingsHref={getSettingsHref}
       />,
     );
 
-    expect(
-      screen.queryByTestId("notification-toggle"),
-    ).not.toBeInTheDocument();
-  });
-});
-
-describe("CircleOverviewView オーナー移譲ボタン", () => {
-  it("canTransferOwnership: true かつ viewerUserId が存在する場合、移譲ボタンが表示される", () => {
-    render(
-      <CircleOverviewView
-        overview={buildOverview({
-          canTransferOwnership: true,
-          viewerUserId: "viewer-1",
-        })}
-      />,
-    );
-
-    expect(
-      screen.getByTestId("transfer-ownership-button"),
-    ).toBeInTheDocument();
+    expect(screen.queryByTestId("settings-link")).not.toBeInTheDocument();
   });
 
-  it("canTransferOwnership: false の場合、移譲ボタンが表示されない", () => {
+  it("member の場合、設定リンクが表示されない", () => {
     render(
       <CircleOverviewView
-        overview={buildOverview({ canTransferOwnership: false })}
+        overview={buildOverview({ viewerRole: "member" })}
+        getSettingsHref={getSettingsHref}
       />,
     );
 
-    expect(
-      screen.queryByTestId("transfer-ownership-button"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("settings-link")).not.toBeInTheDocument();
   });
 
-  it("canTransferOwnership: true かつ viewerUserId: null の場合、移譲ボタンが表示されない", () => {
+  it("getSettingsHref が未指定の場合、owner でも設定リンクが表示されない", () => {
     render(
-      <CircleOverviewView
-        overview={buildOverview({
-          canTransferOwnership: true,
-          viewerUserId: null,
-        })}
-      />,
+      <CircleOverviewView overview={buildOverview({ viewerRole: "owner" })} />,
     );
 
-    expect(
-      screen.queryByTestId("transfer-ownership-button"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("settings-link")).not.toBeInTheDocument();
   });
 });
