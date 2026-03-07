@@ -31,7 +31,7 @@ export type CircleSessionServiceDeps = {
   circleSessionRepository: CircleSessionRepository;
   accessService: AccessService;
   notificationService?: NotificationService;
-  waitUntil?: BackgroundTaskRunner;
+  runInBackground?: BackgroundTaskRunner;
   unitOfWork?: UnitOfWork;
 };
 
@@ -39,7 +39,7 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => {
   const uow: UnitOfWork =
     deps.unitOfWork ?? (async (op) => op(deps as unknown as Repositories));
   const runInBackground: BackgroundTaskRunner =
-    deps.waitUntil ?? ((p) => { void p; });
+    deps.runInBackground ?? ((p) => { void p; });
 
   return {
     async createCircleSession(params: {
