@@ -66,6 +66,15 @@ describe("server/env", () => {
     );
   });
 
+  test("本番ビルドフェーズでは NEXTAUTH_URL 未設定でもエラーにならない", async () => {
+    setEnv({
+      NODE_ENV: "production",
+      NEXT_PHASE: "phase-production-build",
+    });
+    const { env } = await import("./env");
+    expect(env.NEXTAUTH_URL).toBeUndefined();
+  });
+
   test("開発環境で NEXTAUTH_URL が未設定でもエラーにならない", async () => {
     setEnv({ NODE_ENV: "development" });
     const { env } = await import("./env");

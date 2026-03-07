@@ -29,7 +29,10 @@ function loadEnv(): ServerEnv {
     );
   }
 
+  const isBuilding = process.env.NEXT_PHASE === "phase-production-build";
+
   if (
+    !isBuilding &&
     process.env.NODE_ENV === "production" &&
     !parsed.data.NEXTAUTH_URL?.trim()
   ) {
