@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
-import { createUnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
 import { buildServiceContainer } from "@/server/presentation/trpc/context";
-import { userId } from "@/server/domain/common/ids";
 
-const unsubscribeTokenService = createUnsubscribeTokenService(
-  process.env.UNSUBSCRIBE_SECRET || "default-unsubscribe-secret",
-);
 const { notificationPreferenceService } = buildServiceContainer();
 
 export async function GET(request: Request) {
@@ -19,18 +14,13 @@ export async function GET(request: Request) {
     );
   }
 
-  const extractedUserId = unsubscribeTokenService.verify(token);
-  if (!extractedUserId) {
+  const result = await notificationPreferenceService.disableByToken(token);
+  if (!result) {
     return NextResponse.json(
       { message: "無効なトークンです。" },
       { status: 400 },
     );
   }
-
-  await notificationPreferenceService.updatePreference(
-    userId(extractedUserId),
-    false,
-  );
 
   return NextResponse.json(
     { message: "メール配信を停止しました。" },
