@@ -1,4 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
+import { BadRequestError } from "@/server/domain/common/errors";
 
 const mockDisableByToken = vi.fn();
 
@@ -51,5 +52,33 @@ describe("GET /api/unsubscribe", () => {
     expect(response.status).toBe(400);
     expect(body.message).toBe("トークンが指定されていません。");
     expect(mockDisableByToken).not.toHaveBeenCalled();
+  });
+
+  test("DomainError がスローされた場合、対応するHTTPステータスとメッセージを返す", async () => {
+    mockDisableByToken.mockRejectedValue(
+      new BadRequestError("トークンの形式が不正です。"),
+    );
+
+    const request = new Request(
+      "http://localhost/api/unsubscribe?token=malformed-token",
+    );
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.message).toBe("トークンの形式が不正です。");
+  });
+
+  test("未知のエラーがスローされた場合、500レスポンスと汎用メッセージを返す", async () => {
+    mockDisableByToken.mockRejectedValue(new Error("unexpected DB error"));
+
+    const request = new Request(
+      "http://localhost/api/unsubscribe?token=some-token",
+    );
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body.message).toBe("Internal server error");
   });
 });
