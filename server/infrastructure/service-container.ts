@@ -22,6 +22,7 @@ import type { CircleInviteLinkRepository } from "@/server/domain/models/circle-i
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { HolidayProvider } from "@/server/domain/common/holiday-provider";
 import type { RoundRobinScheduleRepository } from "@/server/domain/models/round-robin-schedule/round-robin-schedule-repository";
+import type { BackgroundTaskRunner } from "@/server/domain/common/background-task";
 
 export type ServiceContainer = {
   circleService: ReturnType<typeof createCircleService>;
@@ -54,6 +55,7 @@ export type ServiceContainerDeps = {
   changePasswordRateLimiter: RateLimiter;
   holidayProvider: HolidayProvider;
   emailSender: EmailSender;
+  waitUntil?: BackgroundTaskRunner;
   unitOfWork?: UnitOfWork;
 };
 
@@ -85,6 +87,7 @@ export const createServiceContainer = (
       circleSessionRepository: deps.circleSessionRepository,
       accessService,
       notificationService,
+      waitUntil: deps.waitUntil,
       unitOfWork: deps.unitOfWork,
     }),
     circleSessionMembershipService: createCircleSessionMembershipService({
