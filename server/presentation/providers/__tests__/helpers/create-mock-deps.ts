@@ -11,6 +11,7 @@ import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
 import type { HolidayProvider } from "@/server/domain/common/holiday-provider";
 import type { EmailSender } from "@/server/domain/common/email-sender";
+import type { BackgroundTaskRunner } from "@/server/domain/common/background-task";
 import type { UserId } from "@/server/domain/common/ids";
 import type { Mock } from "vitest";
 
@@ -32,6 +33,7 @@ export type MockDeps = {
   changePasswordRateLimiter: Mocked<RateLimiter>;
   holidayProvider: Mocked<HolidayProvider>;
   emailSender: Mocked<EmailSender>;
+  waitUntil: BackgroundTaskRunner;
 };
 
 export const createMockDeps = (): MockDeps => ({
@@ -114,6 +116,7 @@ export const createMockDeps = (): MockDeps => ({
   emailSender: {
     send: vi.fn().mockResolvedValue(undefined),
   },
+  waitUntil: (p) => { void p; },
 });
 
 export const toServiceContainerDeps = (

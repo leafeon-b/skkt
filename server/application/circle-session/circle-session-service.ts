@@ -11,6 +11,7 @@ import type { CircleRepository } from "@/server/domain/models/circle/circle-repo
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import type { createNotificationService } from "@/server/application/notification/notification-service";
+import type { BackgroundTaskRunner } from "@/server/domain/common/background-task";
 import type {
   Repositories,
   UnitOfWork,
@@ -30,12 +31,15 @@ export type CircleSessionServiceDeps = {
   circleSessionRepository: CircleSessionRepository;
   accessService: AccessService;
   notificationService?: NotificationService;
+  waitUntil?: BackgroundTaskRunner;
   unitOfWork?: UnitOfWork;
 };
 
 export const createCircleSessionService = (deps: CircleSessionServiceDeps) => {
   const uow: UnitOfWork =
     deps.unitOfWork ?? (async (op) => op(deps as unknown as Repositories));
+  const runInBackground: BackgroundTaskRunner =
+    deps.waitUntil ?? ((p) => { void p; });
 
   return {
     async createCircleSession(params: {
@@ -80,15 +84,19 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => {
         );
       });
 
-      void deps.notificationService
-        ?.notifySessionCreated(session, circle.name, params.actorId)
-        .catch((err) =>
-          console.error("Failed to send session notification:", {
-            sessionId: session.id,
-            circleId: session.circleId,
-            message: err instanceof Error ? err.message : "Unknown error",
-          }),
+      if (deps.notificationService) {
+        runInBackground(
+          deps.notificationService
+            .notifySessionCreated(session, circle.name, params.actorId)
+            .catch((err) =>
+              console.error("Failed to send session notification:", {
+                sessionId: session.id,
+                circleId: session.circleId,
+                message: err instanceof Error ? err.message : "Unknown error",
+              }),
+            ),
         );
+      }
 
       return session;
     },

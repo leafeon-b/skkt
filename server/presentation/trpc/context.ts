@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { createGetSession } from "@/server/application/auth/session";
 import { createServiceContainer } from "@/server/infrastructure/service-container";
 import type { ServiceContainer } from "@/server/infrastructure/service-container";
@@ -47,6 +48,7 @@ export const buildServiceContainer = (): ServiceContainer =>
     changePasswordRateLimiter,
     holidayProvider: japaneseHolidayProvider,
     emailSender,
+    waitUntil: (promise) => after(promise),
     unitOfWork: prismaUnitOfWork,
   });
 
