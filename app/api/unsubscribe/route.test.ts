@@ -194,6 +194,30 @@ describe("POST /api/unsubscribe", () => {
     expect(mockDisableByToken).toHaveBeenCalledWith(token);
   });
 
+  test("ボディとクエリパラメータの両方にトークンがある場合、ボディのトークンが優先される", async () => {
+    const bodyToken = "Ym9keS10b2tlbi1mb3ItdGVzdA";
+    const queryToken = "cXVlcnktdG9rZW4tZm9yLXRlc3Q";
+    mockDisableByToken.mockResolvedValue({
+      userId: "user-1",
+      emailEnabled: false,
+    });
+
+    const request = new Request(
+      `http://localhost/api/unsubscribe?token=${queryToken}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: bodyToken }),
+      },
+    );
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.message).toBe("メール配信を停止しました。");
+    expect(mockDisableByToken).toHaveBeenCalledWith(bodyToken);
+  });
+
   test("サポート外のContent-Typeで 415 エラー", async () => {
     const request = new Request("http://localhost/api/unsubscribe", {
       method: "POST",
