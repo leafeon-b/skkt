@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+const mockEnv = vi.hoisted(() => ({
+  CRON_SECRET: "test-secret" as string | undefined,
+}));
+vi.mock("@/server/env", () => ({ env: mockEnv }));
+
 vi.mock("@/server/presentation/cron/rate-limit-cleanup", () => ({
   rateLimitCleanupService: {
     cleanupExpired: vi.fn(),
@@ -14,11 +19,11 @@ const mockedCleanupService = vi.mocked(rateLimitCleanupService);
 describe("GET /api/cron/cleanup-rate-limits", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubEnv("CRON_SECRET", "test-secret");
+    mockEnv.CRON_SECRET = "test-secret";
   });
 
   test("CRON_SECRETが未設定の場合は401を返す", async () => {
-    vi.stubEnv("CRON_SECRET", "");
+    mockEnv.CRON_SECRET = undefined;
 
     const request = new Request("http://localhost/api/cron/cleanup-rate-limits", {
       headers: { authorization: "Bearer test-secret" },

@@ -2,11 +2,12 @@ import crypto from "node:crypto";
 
 import { NextResponse } from "next/server";
 
+import { env } from "@/server/env";
 import { rateLimitCleanupService } from "@/server/presentation/cron/rate-limit-cleanup";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = env.CRON_SECRET;
 
   if (!cronSecret || !authHeader) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

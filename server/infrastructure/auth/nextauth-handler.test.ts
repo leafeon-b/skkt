@@ -13,7 +13,12 @@ const prismaAdapterMock = vi.hoisted(() => vi.fn());
 const credentialsMock = vi.hoisted(() => vi.fn());
 const googleMock = vi.hoisted(() => vi.fn());
 const verifyPasswordMock = vi.hoisted(() => vi.fn());
+const mockEnv = vi.hoisted(() => ({
+  GOOGLE_CLIENT_ID: "default-client-id",
+  GOOGLE_CLIENT_SECRET: "default-client-secret",
+}));
 
+vi.mock("@/server/env", () => ({ env: mockEnv }));
 vi.mock("@/server/infrastructure/db", () => prismaValue);
 vi.mock("next-auth", () => ({ default: nextAuthMock }));
 vi.mock("@auth/prisma-adapter", () => ({ PrismaAdapter: prismaAdapterMock }));
@@ -64,19 +69,14 @@ const createMockRateLimiter = (
 
 const mockGetClientIp = vi.fn(() => "1.2.3.4");
 
-const ORIGINAL_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const ORIGINAL_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-
 describe("NextAuth ハンドラ", () => {
   afterEach(() => {
-    process.env.GOOGLE_CLIENT_ID = ORIGINAL_CLIENT_ID;
-    process.env.GOOGLE_CLIENT_SECRET = ORIGINAL_CLIENT_SECRET;
     vi.clearAllMocks();
   });
 
   test("PrismaAdapter と Google プロバイダを使って設定を生成する", () => {
-    process.env.GOOGLE_CLIENT_ID = "client-id";
-    process.env.GOOGLE_CLIENT_SECRET = "client-secret";
+    mockEnv.GOOGLE_CLIENT_ID = "client-id";
+    mockEnv.GOOGLE_CLIENT_SECRET = "client-secret";
 
     const adapter = { kind: "adapter" } as unknown as ReturnType<
       typeof PrismaAdapter
@@ -133,8 +133,8 @@ describe("NextAuth ハンドラ", () => {
 describe("Google プロバイダの profile コールバック", () => {
   const extractGoogleProfile = () => {
     googleMock.mockClear();
-    process.env.GOOGLE_CLIENT_ID = "client-id";
-    process.env.GOOGLE_CLIENT_SECRET = "client-secret";
+    mockEnv.GOOGLE_CLIENT_ID = "client-id";
+    mockEnv.GOOGLE_CLIENT_SECRET = "client-secret";
     createAuthOptions({
       userRepository: createMockUserRepository(),
       loginRateLimiter: createMockRateLimiter(),
@@ -150,8 +150,6 @@ describe("Google プロバイダの profile コールバック", () => {
   };
 
   afterEach(() => {
-    process.env.GOOGLE_CLIENT_ID = ORIGINAL_CLIENT_ID;
-    process.env.GOOGLE_CLIENT_SECRET = ORIGINAL_CLIENT_SECRET;
     vi.clearAllMocks();
   });
 

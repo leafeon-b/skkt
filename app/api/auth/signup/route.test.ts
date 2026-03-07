@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type UserId } from "@/server/domain/common/ids";
 import { TooManyRequestsError } from "@/server/domain/common/errors";
+
+vi.mock("@/server/env", () => ({ env: {} }));
+
 import {
   createMockDeps,
   createServiceContainer,

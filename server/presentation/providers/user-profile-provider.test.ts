@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { circleSessionId, userId } from "@/server/domain/common/ids";
+
+vi.mock("@/server/env", () => ({ env: {} }));
+
 import { createServiceContainer } from "@/server/infrastructure/service-container";
 import {
   createMockDeps,

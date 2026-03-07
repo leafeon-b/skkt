@@ -1,4 +1,5 @@
 import { after } from "next/server";
+import { env } from "@/server/env";
 import { createGetSession } from "@/server/application/auth/session";
 import { createServiceContainer } from "@/server/infrastructure/service-container";
 import type { ServiceContainer } from "@/server/infrastructure/service-container";
@@ -26,18 +27,13 @@ import { createUnsubscribeTokenService } from "@/server/domain/services/unsubscr
 
 const getSession = createGetSession(nextAuthSessionService);
 const japaneseHolidayProvider = createJapaneseHolidayProvider();
-const emailSender = process.env.RESEND_API_KEY
-  ? createResendEmailSender(process.env.RESEND_API_KEY)
+const emailSender = env.RESEND_API_KEY
+  ? createResendEmailSender(env.RESEND_API_KEY)
   : noopEmailSender;
 
-const unsubscribeSecret = process.env.UNSUBSCRIBE_SECRET?.trim();
-if (!unsubscribeSecret || unsubscribeSecret.length < 32) {
-  throw new Error(
-    "UNSUBSCRIBE_SECRET must be set and at least 32 characters long",
-  );
-}
-const unsubscribeTokenService =
-  createUnsubscribeTokenService(unsubscribeSecret);
+const unsubscribeTokenService = createUnsubscribeTokenService(
+  env.UNSUBSCRIBE_SECRET,
+);
 
 const changePasswordRateLimiter = createPrismaRateLimiter({
   maxAttempts: 3,

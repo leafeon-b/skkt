@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { AuthOptions } from "next-auth";
 
+vi.mock("@/server/env", () => ({ env: {} }));
+
 const getServerSessionMock = vi.hoisted(() => vi.fn());
 const createAuthOptionsMock = vi.hoisted(() =>
   vi.fn().mockReturnValue({} as AuthOptions),

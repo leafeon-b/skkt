@@ -1,3 +1,4 @@
+import { env } from "@/server/env";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { NotificationPreferenceRepository } from "@/server/domain/models/notification-preference/notification-preference-repository";
@@ -72,7 +73,7 @@ export const createNotificationService = (deps: NotificationServiceDeps) => {
         ? `場所: ${session.location}\n`
         : "";
 
-      const baseUrl = process.env.BASE_URL;
+      const baseUrl = env.BASE_URL;
       const sessionUrl = baseUrl
         ? `${baseUrl}/circle-sessions/${session.id}`
         : null;
