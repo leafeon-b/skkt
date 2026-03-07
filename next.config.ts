@@ -35,6 +35,15 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: "/unsubscribe",
+        headers: [
+          {
+            key: "Referrer-Policy",
+            value: "no-referrer",
+          },
+        ],
+      },
     ];
   },
 };
