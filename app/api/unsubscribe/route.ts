@@ -47,6 +47,14 @@ export async function POST(request: Request) {
   }
 
   if (!token) {
+    const { searchParams } = new URL(request.url);
+    const queryToken = searchParams.get("token")?.trim() || null;
+    if (queryToken) {
+      token = queryToken;
+    }
+  }
+
+  if (!token) {
     return NextResponse.json(
       { message: "トークンが指定されていません。" },
       { status: 400 },
