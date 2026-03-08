@@ -20,7 +20,8 @@ const TARGET_ERROR_CLASSES = [
 ];
 
 const THROW_PATTERN = new RegExp(
-  `throw\\s+new\\s+(${TARGET_ERROR_CLASSES.join("|")})\\(`,
+  `throw\\s+new\\s+(${TARGET_ERROR_CLASSES.join("|")})(\\([^)]*\\))`,
+  "gs",
 );
 
 function collectTsFiles(dir: string): string[] {
@@ -52,17 +53,21 @@ function isExcluded(filePath: string): boolean {
 const COMMON_ALLOWED_PATTERNS = [
   // 引数なし: XxxError()
   /^\(\s*\)/,
-  // 静的文字列リテラルのみ: XxxError("msg") or XxxError('msg')
-  /^\(\s*["'][^"']*["']\s*\)/,
+  // 静的文字列リテラルのみ: XxxError("msg") or XxxError('msg')（末尾カンマ許容）
+  /^\(\s*["'][^"']*["']\s*,?\s*\)/,
 ];
 
 // TooManyRequestsError 専用: 第1引数が数値/変数
 const TOO_MANY_REQUESTS_PATTERNS = [
   // 第1引数が数値/変数のみ: TooManyRequestsError(retryAfterMs)
-  /^\(\s*[^"'`),]+\s*\)/,
+  /^\(\s*[^"'`),]+\s*,?\s*\)/,
   // 第1引数が数値/変数 + 第2引数が静的文字列: TooManyRequestsError(retryAfterMs, "msg")
-  /^\(\s*[^"'`),]+,\s*["'][^"']*["']\s*\)/,
+  /^\(\s*[^"'`),]+,\s*["'][^"']*["']\s*,?\s*\)/,
 ];
+
+function getLineNumber(content: string, index: number): number {
+  return content.slice(0, index).split("\n").length;
+}
 
 function isAllowedArgs(argsStr: string, errorClass: string): boolean {
   if (COMMON_ALLOWED_PATTERNS.some((pattern) => pattern.test(argsStr))) {
@@ -83,24 +88,17 @@ describe("DomainError メッセージの静的検証", () => {
     );
 
     for (const filePath of tsFiles) {
-      const lines = fs.readFileSync(filePath, "utf-8").split("\n");
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const matchResult = line.match(THROW_PATTERN);
-        if (!matchResult) continue;
+      const content = fs.readFileSync(filePath, "utf-8");
+      for (const match of content.matchAll(THROW_PATTERN)) {
+        const errorClass = match[1];
+        const argsStr = match[2];
 
-        // throw new XxxError( の "(" 以降を抽出
-        const argsStart = matchResult.index! + matchResult[0].length - 1;
-        const argsStr = line.slice(argsStart);
-
-        // 閉じ括弧が同一行にない場合は複数行throwとみなしスキップ (#997)
-        if (!argsStr.includes(")")) continue;
-
-        if (!isAllowedArgs(argsStr, matchResult[1])) {
+        if (!isAllowedArgs(argsStr, errorClass)) {
+          const line = getLineNumber(content, match.index!);
           violations.push({
             file: path.relative(SERVER_DIR, filePath),
-            line: i + 1,
-            content: line.trim(),
+            line,
+            content: match[0].replace(/\s+/g, " ").trim(),
           });
         }
       }
