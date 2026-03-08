@@ -194,15 +194,18 @@ const fetchAddableMemberCandidates = async (
   caller: ReturnType<typeof appRouter.createCaller>,
   session: { id: string; circleId: string },
   memberships: Array<{ userId: string }>,
-  userNameById: Map<string, string | null>,
+  userNameById: ReadonlyMap<string, string | null>,
   circleSessionMembershipService: {
     listDeletedMemberships: (
       sessionId: CircleSessionId,
     ) => Promise<Array<{ userId: UserId }>>;
   },
-): Promise<AddableMemberCandidate[]> => {
+): Promise<{
+  candidates: AddableMemberCandidate[];
+  newNames: ReadonlyMap<UserId, string | null>;
+}> => {
   if (!canAddCircleSessionMember) {
-    return [];
+    return { candidates: [], newNames: new Map() };
   }
 
   const circleMembers = await caller.circles.memberships.list({
@@ -227,9 +230,10 @@ const fetchAddableMemberCandidates = async (
 
   const candidateUserIdArray = Array.from(candidateUserIds);
   if (candidateUserIdArray.length === 0) {
-    return [];
+    return { candidates: [], newNames: new Map() };
   }
 
+  const newNames = new Map<UserId, string | null>();
   const candidateUserIdsToResolve = candidateUserIdArray.filter(
     (id) => !userNameById.has(id),
   );
@@ -238,14 +242,16 @@ const fetchAddableMemberCandidates = async (
       userIds: candidateUserIdsToResolve,
     });
     for (const user of extraUsers) {
-      userNameById.set(user.id, user.name);
+      newNames.set(user.id, user.name);
     }
   }
 
-  return candidateUserIdArray.map((id) => ({
+  const candidates = candidateUserIdArray.map((id) => ({
     id,
-    name: userNameById.get(id) ?? UNKNOWN_USER_NAME,
+    name: userNameById.get(id) ?? newNames.get(id) ?? UNKNOWN_USER_NAME,
   }));
+
+  return { candidates, newNames };
 };
 
 export async function getCircleSessionDetailViewModel(
@@ -324,14 +330,18 @@ export async function getCircleSessionDetailViewModel(
   const userNameById = new Map(users.map((user) => [user.id, user.name]));
   const viewerRole = getViewerRole(memberships, viewerId);
 
-  const addableMemberCandidates = await fetchAddableMemberCandidates(
-    canAddCircleSessionMember,
-    caller,
-    session,
-    memberships,
-    userNameById,
-    ctx.circleSessionMembershipService,
-  );
+  const { candidates: addableMemberCandidates, newNames } =
+    await fetchAddableMemberCandidates(
+      canAddCircleSessionMember,
+      caller,
+      session,
+      memberships,
+      userNameById,
+      ctx.circleSessionMembershipService,
+    );
+  for (const [id, name] of newNames) {
+    userNameById.set(id, name);
+  }
 
   const matchViewModels = mapMatches(matches);
 
