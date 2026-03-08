@@ -3,6 +3,7 @@ import {
   createCircleSession,
   renameCircleSession,
   rescheduleCircleSession,
+  updateCircleSessionLocation,
   updateCircleSessionNote,
 } from "@/server/domain/models/circle-session/circle-session";
 import type { CircleId, CircleSessionId } from "@/server/domain/common/ids";
@@ -167,10 +168,10 @@ export const createCircleSessionService = (deps: CircleSessionServiceDeps) => {
       }
 
       if (params.location !== undefined) {
-        updated = {
-          ...updated,
-          location: params.location ?? null,
-        };
+        updated = updateCircleSessionLocation(
+          updated,
+          params.location ?? null,
+        );
       }
 
       if (params.note !== undefined) {

@@ -7,6 +7,7 @@ import {
 } from "@/server/domain/common/validation";
 
 export const CIRCLE_SESSION_TITLE_MAX_LENGTH = 100;
+export const CIRCLE_SESSION_LOCATION_MAX_LENGTH = 100;
 export const CIRCLE_SESSION_NOTE_MAX_LENGTH = 500;
 
 export type CircleSession = {
@@ -49,7 +50,13 @@ export const createCircleSession = (
     title,
     startsAt,
     endsAt,
-    location: params.location ?? null,
+    location: params.location
+      ? assertMaxLength(
+          params.location,
+          CIRCLE_SESSION_LOCATION_MAX_LENGTH,
+          "CircleSession location",
+        )
+      : null,
     note: assertMaxLength(
       params.note?.trim() ?? "",
       CIRCLE_SESSION_NOTE_MAX_LENGTH,
@@ -81,6 +88,20 @@ export const updateCircleSessionNote = (
     CIRCLE_SESSION_NOTE_MAX_LENGTH,
     "CircleSession note",
   ),
+});
+
+export const updateCircleSessionLocation = (
+  session: CircleSession,
+  location: string | null,
+): CircleSession => ({
+  ...session,
+  location: location
+    ? assertMaxLength(
+        location,
+        CIRCLE_SESSION_LOCATION_MAX_LENGTH,
+        "CircleSession location",
+      )
+    : null,
 });
 
 export const rescheduleCircleSession = (
