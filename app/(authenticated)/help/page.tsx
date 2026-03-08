@@ -141,10 +141,12 @@ export default function HelpPage() {
             className="mt-4 overflow-x-auto rounded-md focus:outline-2 focus:outline-offset-2 focus:outline-(--brand-moss)"
             tabIndex={0}
             role="region"
-            aria-label={table.ariaLabel}
+            aria-labelledby={`${table.noteId}-caption`}
           >
             <table className="w-full text-sm text-(--brand-ink-muted)">
-              <caption className="sr-only">{table.ariaLabel}</caption>
+              <caption id={`${table.noteId}-caption`} className="sr-only">
+                {table.ariaLabel}
+              </caption>
               <thead>
                 <tr className="border-b border-border/60 text-left">
                   <th
