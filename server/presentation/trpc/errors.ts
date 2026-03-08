@@ -1,5 +1,18 @@
-import { TRPCError } from "@trpc/server";
-import { DomainError, TooManyRequestsError } from "@/server/domain/common/errors";
+import { TRPCError, type TRPC_ERROR_CODE_KEY } from "@trpc/server";
+import {
+  type DomainErrorCode,
+  DomainError,
+  TooManyRequestsError,
+} from "@/server/domain/common/errors";
+
+const DOMAIN_TO_TRPC_CODE = {
+  NOT_FOUND: "NOT_FOUND",
+  FORBIDDEN: "FORBIDDEN",
+  UNAUTHORIZED: "UNAUTHORIZED",
+  BAD_REQUEST: "BAD_REQUEST",
+  CONFLICT: "CONFLICT",
+  TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
+} as const satisfies Record<DomainErrorCode, TRPC_ERROR_CODE_KEY>;
 
 export const toTrpcError = (error: unknown): TRPCError => {
   if (error instanceof TRPCError) {
@@ -18,7 +31,7 @@ export const toTrpcError = (error: unknown): TRPCError => {
   // Do not include dynamic data (IDs, emails, SQL, etc.) in DomainError messages.
   if (error instanceof DomainError) {
     return new TRPCError({
-      code: error.code,
+      code: DOMAIN_TO_TRPC_CODE[error.code],
       message: error.message,
       cause:
         error instanceof TooManyRequestsError
