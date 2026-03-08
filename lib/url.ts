@@ -74,6 +74,7 @@ export function validateContactFormUrl(
   if (parsed.hostname !== "docs.google.com") return undefined;
   if (!parsed.pathname.startsWith("/forms/")) return undefined;
   if (parsed.username !== "" || parsed.password !== "") return undefined;
+  if (parsed.port !== "") return undefined;
 
   return parsed.href;
 }
