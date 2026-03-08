@@ -218,5 +218,21 @@ describe("validateContactFormUrl", () => {
         ),
       ).toBe("https://docs.google.com/forms/d/e/xxx/viewform#section");
     });
+
+    it("非標準ポート付き URL は拒否する", () => {
+      expect(
+        validateContactFormUrl(
+          "https://docs.google.com:8080/forms/d/e/xxx/viewform",
+        ),
+      ).toBeUndefined();
+    });
+
+    it("標準ポート(443)明示の URL は正常に通過する", () => {
+      expect(
+        validateContactFormUrl(
+          "https://docs.google.com:443/forms/d/e/xxx/viewform",
+        ),
+      ).toBe("https://docs.google.com/forms/d/e/xxx/viewform");
+    });
   });
 });
