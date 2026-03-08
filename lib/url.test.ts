@@ -177,4 +177,26 @@ describe("validateContactFormUrl", () => {
   it("空文字は undefined を返す", () => {
     expect(validateContactFormUrl("")).toBeUndefined();
   });
+
+  describe("セキュリティエッジケース", () => {
+    it("userinfo を使ったドメインバイパスを拒否する", () => {
+      expect(
+        validateContactFormUrl("https://docs.google.com@evil.com/forms/d/xxx"),
+      ).toBeUndefined();
+    });
+
+    it("パストラバーサルを含む URL はプレフィックスマッチによりそのまま返す", () => {
+      expect(
+        validateContactFormUrl("https://docs.google.com/forms/../../other"),
+      ).toBe("https://docs.google.com/forms/../../other");
+    });
+
+    it("null バイトを含む URL はプレフィックスマッチによりそのまま返す", () => {
+      expect(
+        validateContactFormUrl(
+          "https://docs.google.com/forms/\0javascript:alert(1)",
+        ),
+      ).toBe("https://docs.google.com/forms/\0javascript:alert(1)");
+    });
+  });
 });
