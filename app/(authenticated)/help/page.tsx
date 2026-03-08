@@ -2,11 +2,13 @@ import { env } from "@/server/env";
 import { validateContactFormUrl } from "@/lib/url";
 import { ExternalLink } from "lucide-react";
 
+type PermissionValue = "○" | "—" | "○ ※";
+
 type PermissionRow = {
   operation: string;
-  owner: string;
-  manager: string;
-  member: string;
+  owner: PermissionValue;
+  manager: PermissionValue;
+  member: PermissionValue;
 };
 
 type PermissionTableConfig = {
@@ -66,7 +68,7 @@ const permissionTables: PermissionTableConfig[] = [
   },
 ];
 
-function renderPermissionCell(value: string, noteId?: string) {
+function renderPermissionCell(value: PermissionValue, noteId?: string) {
   switch (value) {
     case "○ ※":
       return {
@@ -96,8 +98,6 @@ function renderPermissionCell(value: string, noteId?: string) {
           </>
         ),
       };
-    default:
-      return { content: value };
   }
 }
 
