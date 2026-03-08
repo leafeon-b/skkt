@@ -132,6 +132,30 @@ describe("POST /api/auth/signup", () => {
     expect(mockCheck).toHaveBeenCalledWith("1.2.3.4");
   });
 
+  test("レート制限のRetry-Afterはsub-secondでも最小1秒になる", async () => {
+    mockCheck.mockRejectedValueOnce(new TooManyRequestsError(500));
+
+    const res = await postJson(validBody);
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe("1");
+  });
+
+  test("レート制限のRetry-Afterはゼロでも最小1秒になる", async () => {
+    mockCheck.mockRejectedValueOnce(new TooManyRequestsError(0));
+
+    const res = await postJson(validBody);
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe("1");
+  });
+
+  test("レート制限のRetry-Afterは負値でも最小1秒になる", async () => {
+    mockCheck.mockRejectedValueOnce(new TooManyRequestsError(-1000));
+
+    const res = await postJson(validBody);
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe("1");
+  });
+
   test("正常リクエスト後にrecordAttemptが呼ばれる", async () => {
     await postJson(validBody);
     expect(mockRecordFailure).toHaveBeenCalledWith("1.2.3.4");
