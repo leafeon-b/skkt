@@ -1,8 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import {
-  DomainError,
-  TooManyRequestsError,
-} from "@/server/domain/common/errors";
+import { DomainError, TooManyRequestsError } from "@/server/domain/common/errors";
 
 export const toTrpcError = (error: unknown): TRPCError => {
   if (error instanceof TRPCError) {
@@ -23,7 +20,10 @@ export const toTrpcError = (error: unknown): TRPCError => {
     return new TRPCError({
       code: error.code,
       message: error.message,
-      cause: error instanceof TooManyRequestsError ? error : undefined,
+      cause:
+        error instanceof TooManyRequestsError
+          ? { retryAfterMs: error.retryAfterMs }
+          : undefined,
     });
   }
 

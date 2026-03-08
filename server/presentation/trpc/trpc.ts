@@ -1,10 +1,7 @@
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import {
-  UnauthorizedError,
-  TooManyRequestsError,
-} from "@/server/domain/common/errors";
+import { UnauthorizedError } from "@/server/domain/common/errors";
 import { toTrpcError } from "@/server/presentation/trpc/errors";
 import type { Context } from "@/server/presentation/trpc/context";
 
@@ -19,7 +16,10 @@ const t = initTRPC.context<Context>().create({
         ...shape.data,
         isValidationError: isValidationError || undefined,
         retryAfterMs:
-          error.cause instanceof TooManyRequestsError
+          error.cause != null &&
+          typeof error.cause === "object" &&
+          "retryAfterMs" in error.cause &&
+          typeof error.cause.retryAfterMs === "number"
             ? error.cause.retryAfterMs
             : undefined,
       },
