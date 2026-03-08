@@ -126,6 +126,7 @@ describe("POST /api/auth/signup", () => {
 
     const res = await postJson(validBody);
     expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe("45");
     const body = await res.json();
     expect(body.message).toContain("リクエストが多すぎます");
     expect(mockCheck).toHaveBeenCalledWith("1.2.3.4");
