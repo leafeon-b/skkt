@@ -48,8 +48,34 @@ function isExcluded(filePath: string): boolean {
   );
 }
 
+// allowlist: throw new XxxError(...) の引数部分として許可するパターン
+const COMMON_ALLOWED_PATTERNS = [
+  // 引数なし: XxxError()
+  /^\(\s*\)/,
+  // 静的文字列リテラルのみ: XxxError("msg") or XxxError('msg')
+  /^\(\s*["'][^"']*["']\s*\)/,
+];
+
+// TooManyRequestsError 専用: 第1引数が数値/変数
+const TOO_MANY_REQUESTS_PATTERNS = [
+  // 第1引数が数値/変数のみ: TooManyRequestsError(retryAfterMs)
+  /^\(\s*[^"'`),]+\s*\)/,
+  // 第1引数が数値/変数 + 第2引数が静的文字列: TooManyRequestsError(retryAfterMs, "msg")
+  /^\(\s*[^"'`),]+,\s*["'][^"']*["']\s*\)/,
+];
+
+function isAllowedArgs(argsStr: string, errorClass: string): boolean {
+  if (COMMON_ALLOWED_PATTERNS.some((pattern) => pattern.test(argsStr))) {
+    return true;
+  }
+  if (errorClass === "TooManyRequestsError") {
+    return TOO_MANY_REQUESTS_PATTERNS.some((pattern) => pattern.test(argsStr));
+  }
+  return false;
+}
+
 describe("DomainError メッセージの静的検証", () => {
-  it("throw new XxxError(...) のメッセージにテンプレートリテラルや文字列結合が使われていない", () => {
+  it("throw new XxxError(...) の引数が静的文字列リテラルまたはデフォルト引数のみであること", () => {
     const violations: { file: string; line: number; content: string }[] = [];
 
     const tsFiles = collectTsFiles(SERVER_DIR).filter(
@@ -60,14 +86,17 @@ describe("DomainError メッセージの静的検証", () => {
       const lines = fs.readFileSync(filePath, "utf-8").split("\n");
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if (!THROW_PATTERN.test(line)) continue;
-
-        // テンプレートリテラルまたは文字列結合を検出
         const matchResult = line.match(THROW_PATTERN);
         if (!matchResult) continue;
-        const throwIndex = matchResult.index! + matchResult[0].length - 1;
-        const afterThrow = line.slice(throwIndex);
-        if (afterThrow.includes("`") || /["']\s*\+|\+\s*["']/.test(afterThrow)) {
+
+        // throw new XxxError( の "(" 以降を抽出
+        const argsStart = matchResult.index! + matchResult[0].length - 1;
+        const argsStr = line.slice(argsStart);
+
+        // 閉じ括弧が同一行にない場合は複数行throwとみなしスキップ (#997)
+        if (!argsStr.includes(")")) continue;
+
+        if (!isAllowedArgs(argsStr, matchResult[1])) {
           violations.push({
             file: path.relative(SERVER_DIR, filePath),
             line: i + 1,
