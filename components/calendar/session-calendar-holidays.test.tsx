@@ -6,7 +6,7 @@
  * 過去に取得した祝日データが消失しないことを検証する。
  */
 import React from "react";
-import { cleanup, render, act } from "@testing-library/react";
+import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── trpc mock: useQuery の戻り値を動的に制御 ──
@@ -16,7 +16,7 @@ let mockQueryData: string[] | undefined = undefined;
 vi.mock("@fullcalendar/react", () => ({
   default: React.forwardRef(function MockFullCalendar(
     props: Record<string, unknown>,
-    _ref: React.Ref<unknown>,
+    _ref: React.Ref<unknown>, // eslint-disable-line @typescript-eslint/no-unused-vars
   ) {
     // datesSet を呼び出して動的レンジの設定をシミュレート
     const datesSetRef = React.useRef(false);
@@ -74,12 +74,8 @@ describe("動的祝日の累積保持", () => {
 
 describe("accumulatedHolidays の累積ロジック（ユニットテスト）", () => {
   it("dynamicHolidays が変わっても以前の値が保持される", () => {
-    // accumulation ロジックを直接テストするためのカスタムフック
-    const { renderHook } =
-      require("@testing-library/react") as typeof import("@testing-library/react");
-
     // Set の累積ロジックを再現
-    let accumulated = new Set<string>();
+    const accumulated = new Set<string>();
 
     // 1回目の取得: 2027年の祝日
     const batch1 = ["2027-01-01", "2027-01-13"];
@@ -116,7 +112,7 @@ describe("accumulatedHolidays の累積ロジック（ユニットテスト）",
   });
 
   it("同じ祝日データが重複追加されない", () => {
-    let accumulated = new Set<string>();
+    const accumulated = new Set<string>();
 
     const batch = ["2027-01-01"];
     for (const d of batch) accumulated.add(d);

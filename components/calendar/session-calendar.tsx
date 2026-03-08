@@ -140,35 +140,19 @@ export function SessionCalendar({
       start: dynamicRange?.start ?? new Date(),
       end: dynamicRange?.end ?? new Date(),
     },
-    { enabled: dynamicRange !== null },
+    { enabled: dynamicRange !== null, placeholderData: (prev) => prev },
   );
 
-  // 動的取得した祝日を累積的に保持する Set
-  const [accumulatedHolidays, setAccumulatedHolidays] = useState<Set<string>>(
-    () => new Set(),
-  );
-
-  useEffect(() => {
-    if (!dynamicHolidays || dynamicHolidays.length === 0) return;
-    setAccumulatedHolidays((prev) => {
-      const hasNew = dynamicHolidays.some((d) => !prev.has(d));
-      if (!hasNew) return prev;
-      const next = new Set(prev);
-      for (const d of dynamicHolidays) {
-        next.add(d);
-      }
-      return next;
-    });
-  }, [dynamicHolidays]);
-
-  // 初期 props + 累積動的取得結果をマージした Set
+  // 初期 props + 動的取得結果をマージした Set
   const mergedHolidayDates = useMemo(() => {
     const set = new Set(holidayDates);
-    for (const d of accumulatedHolidays) {
-      set.add(d);
+    if (dynamicHolidays) {
+      for (const d of dynamicHolidays) {
+        set.add(d);
+      }
     }
     return set;
-  }, [holidayDates, accumulatedHolidays]);
+  }, [holidayDates, dynamicHolidays]);
 
   useEffect(() => {
     if (!onDateClick) return;
