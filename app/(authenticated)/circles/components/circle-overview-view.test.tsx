@@ -296,3 +296,41 @@ describe("CircleOverviewView 設定リンク", () => {
     expect(screen.queryByTestId("settings-link")).not.toBeInTheDocument();
   });
 });
+
+describe("CircleOverviewView 退会ボタン表示制御", () => {
+  it("owner の場合、退会ボタンが表示されない", () => {
+    render(
+      <CircleOverviewView overview={buildOverview({ viewerRole: "owner" })} />,
+    );
+
+    expect(screen.queryByTestId("withdraw-button")).not.toBeInTheDocument();
+  });
+
+  it("manager の場合、退会ボタンが表示される", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({ viewerRole: "manager" })}
+      />,
+    );
+
+    expect(screen.getByTestId("withdraw-button")).toBeInTheDocument();
+  });
+
+  it("member の場合、退会ボタンが表示される", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({ viewerRole: "member" })}
+      />,
+    );
+
+    expect(screen.getByTestId("withdraw-button")).toBeInTheDocument();
+  });
+
+  it("viewerRole が null の場合、退会ボタンが表示されない", () => {
+    render(
+      <CircleOverviewView overview={buildOverview({ viewerRole: null })} />,
+    );
+
+    expect(screen.queryByTestId("withdraw-button")).not.toBeInTheDocument();
+  });
+});
