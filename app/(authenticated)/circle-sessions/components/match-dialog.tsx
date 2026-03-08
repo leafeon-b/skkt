@@ -16,6 +16,7 @@ import {
   type PairMatchEntry,
   type RowOutcome,
 } from "./match-utils";
+import { MatchSelect } from "./match-select";
 
 type MatchDialogProps = {
   activeDialog: ActiveDialog | null;
@@ -86,30 +87,22 @@ export function MatchDialog({
             <label className="text-xs font-semibold text-(--brand-ink)">
               対象の対局結果
             </label>
-            <select
-              className="mt-2 w-full rounded-lg border border-border/60 bg-white px-3 py-2 text-sm text-(--brand-ink) shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-              value={selectedMatch?.index ?? ""}
-              onChange={(event) =>
-                handleMatchSelectChange(Number(event.target.value))
-              }
-            >
-              {activePairMatches.map((entry, index) => {
+            <MatchSelect
+              activePairMatches={activePairMatches}
+              selectedMatch={selectedMatch}
+              onMatchSelectChange={handleMatchSelectChange}
+              getOptionLabel={(entry, index) => {
                 const rowOutcome = getRowOutcomeValue(
                   activeDialog.rowId,
                   entry.match,
                 );
-                return (
-                  <option key={entry.index} value={entry.index}>
-                    第{index + 1}局目:{" "}
-                    {getOutcomeLabel(
-                      rowOutcome,
-                      dialogRowName,
-                      dialogColumnName,
-                    )}
-                  </option>
-                );
-              })}
-            </select>
+                return `第${index + 1}局目: ${getOutcomeLabel(
+                  rowOutcome,
+                  dialogRowName,
+                  dialogColumnName,
+                )}`;
+              }}
+            />
           </div>
         ) : null}
 
