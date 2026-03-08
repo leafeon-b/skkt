@@ -1,11 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { toCircleId, toCircleSessionId } from "@/server/domain/common/ids";
 import {
+  CIRCLE_SESSION_LOCATION_MAX_LENGTH,
   CIRCLE_SESSION_NOTE_MAX_LENGTH,
   CIRCLE_SESSION_TITLE_MAX_LENGTH,
   createCircleSession,
   renameCircleSession,
   rescheduleCircleSession,
+  updateCircleSessionLocation,
   updateCircleSessionNote,
 } from "@/server/domain/models/circle-session/circle-session";
 
@@ -142,6 +144,60 @@ describe("CircleSession ドメイン", () => {
     );
   });
 
+  test("createCircleSession は location が最大文字数ちょうどなら作成できる", () => {
+    const session = createCircleSession({
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
+      title: "第1回 研究会",
+      startsAt: new Date("2024-01-01T10:00:00Z"),
+      endsAt: new Date("2024-01-01T12:00:00Z"),
+      location: "a".repeat(CIRCLE_SESSION_LOCATION_MAX_LENGTH),
+    });
+
+    expect(session.location?.length).toBe(CIRCLE_SESSION_LOCATION_MAX_LENGTH);
+  });
+
+  test("createCircleSession は location が最大文字数を超える場合拒否する", () => {
+    expect(() =>
+      createCircleSession({
+        id: toCircleSessionId("session-1"),
+        circleId: toCircleId("circle-1"),
+        title: "第1回 研究会",
+        startsAt: new Date("2024-01-01T10:00:00Z"),
+        endsAt: new Date("2024-01-01T12:00:00Z"),
+        location: "a".repeat(CIRCLE_SESSION_LOCATION_MAX_LENGTH + 1),
+      }),
+    ).toThrow(
+      `CircleSession location must be at most ${CIRCLE_SESSION_LOCATION_MAX_LENGTH} characters`,
+    );
+  });
+
+  test("createCircleSession は location が null の場合バリデーションエラーにならない", () => {
+    const session = createCircleSession({
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
+      title: "第1回 研究会",
+      startsAt: new Date("2024-01-01T10:00:00Z"),
+      endsAt: new Date("2024-01-01T12:00:00Z"),
+      location: null,
+    });
+
+    expect(session.location).toBeNull();
+  });
+
+  test("createCircleSession は location が空文字の場合 null として扱う", () => {
+    const session = createCircleSession({
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
+      title: "第1回 研究会",
+      startsAt: new Date("2024-01-01T10:00:00Z"),
+      endsAt: new Date("2024-01-01T12:00:00Z"),
+      location: "",
+    });
+
+    expect(session.location).toBeNull();
+  });
+
   test("createCircleSession は note 未指定時に空文字を設定する", () => {
     const session = createCircleSession({
       id: toCircleSessionId("session-1"),
@@ -202,6 +258,51 @@ describe("CircleSession ドメイン", () => {
         "a".repeat(CIRCLE_SESSION_TITLE_MAX_LENGTH),
       );
       expect(renamed.title.length).toBe(CIRCLE_SESSION_TITLE_MAX_LENGTH);
+    });
+  });
+
+  describe("updateCircleSessionLocation", () => {
+    const base = createCircleSession({
+      id: toCircleSessionId("session-1"),
+      circleId: toCircleId("circle-1"),
+      title: "研究会",
+      startsAt: new Date("2024-01-01T10:00:00Z"),
+      endsAt: new Date("2024-01-01T12:00:00Z"),
+      location: "旧場所",
+    });
+
+    test("場所を更新できる", () => {
+      const updated = updateCircleSessionLocation(base, "新場所");
+      expect(updated.location).toBe("新場所");
+    });
+
+    test("null を許可する", () => {
+      const updated = updateCircleSessionLocation(base, null);
+      expect(updated.location).toBeNull();
+    });
+
+    test("空文字を null として扱う", () => {
+      const updated = updateCircleSessionLocation(base, "");
+      expect(updated.location).toBeNull();
+    });
+
+    test("最大文字数超過を拒否する", () => {
+      expect(() =>
+        updateCircleSessionLocation(
+          base,
+          "a".repeat(CIRCLE_SESSION_LOCATION_MAX_LENGTH + 1),
+        ),
+      ).toThrow(
+        `CircleSession location must be at most ${CIRCLE_SESSION_LOCATION_MAX_LENGTH} characters`,
+      );
+    });
+
+    test("最大文字数ちょうどなら許可する", () => {
+      const updated = updateCircleSessionLocation(
+        base,
+        "a".repeat(CIRCLE_SESSION_LOCATION_MAX_LENGTH),
+      );
+      expect(updated.location?.length).toBe(CIRCLE_SESSION_LOCATION_MAX_LENGTH);
     });
   });
 
