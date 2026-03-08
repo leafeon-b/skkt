@@ -53,8 +53,10 @@ function isExcluded(filePath: string): boolean {
 const COMMON_ALLOWED_PATTERNS = [
   // 引数なし: XxxError()
   /^\(\s*\)/,
-  // 静的文字列リテラルのみ: XxxError("msg") or XxxError('msg')（末尾カンマ許容）
-  /^\(\s*["'][^"']*["']\s*,?\s*\)/,
+  // 静的文字列リテラルのみ: XxxError("msg")（末尾カンマ許容）
+  /^\(\s*"[^"]*"\s*,?\s*\)/,
+  // 静的文字列リテラルのみ: XxxError('msg')（末尾カンマ許容）
+  /^\(\s*'[^']*'\s*,?\s*\)/,
 ];
 
 // TooManyRequestsError 専用: 第1引数が数値/変数
@@ -62,7 +64,9 @@ const TOO_MANY_REQUESTS_PATTERNS = [
   // 第1引数が数値/変数のみ: TooManyRequestsError(retryAfterMs)
   /^\(\s*[^"'`),]+\s*,?\s*\)/,
   // 第1引数が数値/変数 + 第2引数が静的文字列: TooManyRequestsError(retryAfterMs, "msg")
-  /^\(\s*[^"'`),]+,\s*["'][^"']*["']\s*,?\s*\)/,
+  /^\(\s*[^"'`),]+,\s*"[^"]*"\s*,?\s*\)/,
+  // 第1引数が数値/変数 + 第2引数が静的文字列: TooManyRequestsError(retryAfterMs, 'msg')
+  /^\(\s*[^"'`),]+,\s*'[^']*'\s*,?\s*\)/,
 ];
 
 function extractArgs(content: string, startIndex: number): string {
