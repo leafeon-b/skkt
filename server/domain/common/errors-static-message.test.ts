@@ -20,7 +20,7 @@ const TARGET_ERROR_CLASSES = [
 ];
 
 const THROW_PATTERN = new RegExp(
-  `throw\\s+new\\s+(${TARGET_ERROR_CLASSES.join("|")})(\\([^)]*\\))`,
+  `throw\\s+new\\s+(${TARGET_ERROR_CLASSES.join("|")})\\(`,
   "gs",
 );
 
@@ -65,6 +65,42 @@ const TOO_MANY_REQUESTS_PATTERNS = [
   /^\(\s*[^"'`),]+,\s*["'][^"']*["']\s*,?\s*\)/,
 ];
 
+function extractArgs(content: string, startIndex: number): string {
+  let depth = 0;
+  let inString: "'" | '"' | "`" | null = null;
+
+  for (let i = startIndex; i < content.length; i++) {
+    const ch = content[i];
+
+    if (inString) {
+      if (ch === "\\") {
+        i++; // skip escaped character
+        continue;
+      }
+      if (ch === inString) {
+        inString = null;
+      }
+      continue;
+    }
+
+    if (ch === '"' || ch === "'" || ch === "`") {
+      inString = ch;
+      continue;
+    }
+
+    if (ch === "(") {
+      depth++;
+    } else if (ch === ")") {
+      depth--;
+      if (depth === 0) {
+        return content.slice(startIndex, i + 1);
+      }
+    }
+  }
+
+  return content.slice(startIndex);
+}
+
 function getLineNumber(content: string, index: number): number {
   return content.slice(0, index).split("\n").length;
 }
@@ -91,14 +127,16 @@ describe("DomainError メッセージの静的検証", () => {
       const content = fs.readFileSync(filePath, "utf-8");
       for (const match of content.matchAll(THROW_PATTERN)) {
         const errorClass = match[1];
-        const argsStr = match[2];
+        const argsStart = match.index! + match[0].length - 1; // position of '('
+        const argsStr = extractArgs(content, argsStart);
 
         if (!isAllowedArgs(argsStr, errorClass)) {
           const line = getLineNumber(content, match.index!);
+          const fullMatch = match[0].slice(0, -1) + argsStr; // replace trailing '(' with full args
           violations.push({
             file: path.relative(SERVER_DIR, filePath),
             line,
-            content: match[0].replace(/\s+/g, " ").trim(),
+            content: fullMatch.replace(/\s+/g, " ").trim(),
           });
         }
       }
