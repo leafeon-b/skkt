@@ -185,18 +185,38 @@ describe("validateContactFormUrl", () => {
       ).toBeUndefined();
     });
 
-    it("パストラバーサルを含む URL はプレフィックスマッチによりそのまま返す", () => {
+    it("パストラバーサルを含む URL は正規化により /forms/ 外になるため拒否する", () => {
       expect(
         validateContactFormUrl("https://docs.google.com/forms/../../other"),
-      ).toBe("https://docs.google.com/forms/../../other");
+      ).toBeUndefined();
     });
 
-    it("null バイトを含む URL はプレフィックスマッチによりそのまま返す", () => {
+    it("null バイトを含む URL は拒否する", () => {
       expect(
         validateContactFormUrl(
           "https://docs.google.com/forms/\0javascript:alert(1)",
         ),
-      ).toBe("https://docs.google.com/forms/\0javascript:alert(1)");
+      ).toBeUndefined();
+    });
+
+    it("http:// プロトコルは拒否する", () => {
+      expect(
+        validateContactFormUrl("http://docs.google.com/forms/d/e/xxx/viewform"),
+      ).toBeUndefined();
+    });
+
+    it("正規化済み URL を返す", () => {
+      const input = "https://docs.google.com/forms/d/e/xxx/viewform";
+      const result = validateContactFormUrl(input);
+      expect(result).toBe(new URL(input).href);
+    });
+
+    it("フラグメント付き URL は正規化されて返る", () => {
+      expect(
+        validateContactFormUrl(
+          "https://docs.google.com/forms/d/e/xxx/viewform#section",
+        ),
+      ).toBe("https://docs.google.com/forms/d/e/xxx/viewform#section");
     });
   });
 });
