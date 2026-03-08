@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc/client";
 import { trimWithFullwidth } from "@/lib/string";
 import {
+  CIRCLE_SESSION_LOCATION_MAX_LENGTH,
   CIRCLE_SESSION_NOTE_MAX_LENGTH,
   CIRCLE_SESSION_TITLE_MAX_LENGTH,
 } from "@/server/domain/models/circle-session/circle-session";
@@ -180,6 +181,7 @@ export function CircleSessionCreateForm({
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder="例: 将棋会館 3F"
+            maxLength={CIRCLE_SESSION_LOCATION_MAX_LENGTH}
             className="bg-white"
           />
         </div>

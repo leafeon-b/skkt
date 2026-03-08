@@ -101,7 +101,7 @@ model CircleSession {
   /// 複数日開催も許容
   startsAt DateTime
   endsAt   DateTime
-  location String?
+  location String?  @db.VarChar(100)
   note     String   @default("") @db.VarChar(500)
 
   circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
