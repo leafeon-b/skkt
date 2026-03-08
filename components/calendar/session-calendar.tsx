@@ -140,7 +140,7 @@ export function SessionCalendar({
       start: dynamicRange?.start ?? new Date(),
       end: dynamicRange?.end ?? new Date(),
     },
-    { enabled: dynamicRange !== null },
+    { enabled: dynamicRange !== null, placeholderData: (prev) => prev },
   );
 
   // 初期 props + 動的取得結果をマージした Set
