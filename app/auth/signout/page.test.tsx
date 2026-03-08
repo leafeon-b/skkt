@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import SignOutPage from "./page";
@@ -83,6 +83,28 @@ describe("SignOutPage", () => {
         "トークンの取得に失敗しました。ページを再読み込みしてください。",
       );
       expect(screen.getByRole("button", { name: "ログアウト" })).toBeDisabled();
+    });
+  });
+
+  describe("getCsrfToken が undefined を resolve した場合", () => {
+    it("ログアウトボタンが disabled である", async () => {
+      mockGetCsrfToken.mockResolvedValue(undefined);
+      render(<SignOutPage />);
+      await act(async () => {});
+      expect(
+        screen.getByRole("button", { name: "ログアウト" }),
+      ).toBeDisabled();
+    });
+
+    it("エラーメッセージが表示されない", async () => {
+      mockGetCsrfToken.mockResolvedValue(undefined);
+      render(<SignOutPage />);
+      await act(async () => {});
+      expect(
+        screen.queryByText(
+          "トークンの取得に失敗しました。ページを再読み込みしてください。",
+        ),
+      ).not.toBeInTheDocument();
     });
   });
 
