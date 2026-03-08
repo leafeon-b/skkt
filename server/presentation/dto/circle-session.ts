@@ -18,7 +18,7 @@ export const circleSessionDtoSchema = z.object({
   title: z.string().min(1),
   startsAt: z.date(),
   endsAt: z.date(),
-  location: z.string().max(CIRCLE_SESSION_LOCATION_MAX_LENGTH).nullable(),
+  location: z.string().nullable(),
   note: z.string(),
   createdAt: z.date(),
 });
