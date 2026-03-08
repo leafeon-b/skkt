@@ -75,6 +75,22 @@ describe("getInviteLinkPageData", () => {
     });
   });
 
+  test("未認証ユーザーの場合 isAuthenticated が false を返す", async () => {
+    mockDeps.circleInviteLinkRepository.findByToken.mockResolvedValueOnce(
+      VALID_INVITE_LINK,
+    );
+    mockDeps.circleRepository.findById.mockResolvedValueOnce(VALID_CIRCLE);
+
+    const result = await getInviteLinkPageData(VALID_TOKEN_UUID);
+
+    expect(result).toEqual({
+      circleName: "テスト研究会",
+      circleId: "circle-1",
+      expired: false,
+      isAuthenticated: false,
+    });
+  });
+
   test("NotFoundError の場合 null を返す", async () => {
     // findByToken returns null -> service throws NotFoundError -> tRPC converts to NOT_FOUND
     mockDeps.circleInviteLinkRepository.findByToken.mockResolvedValueOnce(null);
