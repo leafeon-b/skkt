@@ -75,10 +75,10 @@ describe("toTrpcError", () => {
       expect(result.message).toBe("Too many requests");
     });
 
-    test("TooManyRequestsError の cause に元エラーが保持される", () => {
-      const original = new TooManyRequestsError(50_000);
-      const result = toTrpcError(original);
-      expect(result.cause).toBe(original);
+    test("TooManyRequestsError の cause に retryAfterMs のみが保持される", () => {
+      const result = toTrpcError(new TooManyRequestsError(50_000));
+      expect(result.cause).toMatchObject({ retryAfterMs: 50_000 });
+      expect(result.cause).not.toBeInstanceOf(TooManyRequestsError);
     });
   });
 
