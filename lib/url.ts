@@ -55,10 +55,25 @@ export function sanitizeCallbackUrl(url: string | undefined): string {
   return DEFAULT_CALLBACK;
 }
 
-const GOOGLE_FORMS_URL_PATTERN = /^https:\/\/docs\.google\.com\/forms\//;
-
 export function validateContactFormUrl(
   raw: string | undefined,
 ): string | undefined {
-  return raw && GOOGLE_FORMS_URL_PATTERN.test(raw) ? raw : undefined;
+  if (!raw) return undefined;
+
+  // Reject null bytes before parsing (URL constructor silently strips them)
+  if (raw.includes("\0")) return undefined;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return undefined;
+  }
+
+  if (parsed.protocol !== "https:") return undefined;
+  if (parsed.hostname !== "docs.google.com") return undefined;
+  if (!parsed.pathname.startsWith("/forms/")) return undefined;
+  if (parsed.username !== "" || parsed.password !== "") return undefined;
+
+  return parsed.href;
 }
