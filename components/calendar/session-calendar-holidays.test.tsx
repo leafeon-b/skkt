@@ -13,19 +13,45 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 let mockQueryData: string[] | undefined = undefined;
 
+/** Mock が dayCellClassNames を呼び出す対象日付 */
+const TEST_DATES = [
+  "2026-01-01",
+  "2027-01-01",
+  "2027-01-13",
+  "2028-01-01",
+  "2028-01-09",
+];
+
 vi.mock("@fullcalendar/react", () => ({
   default: React.forwardRef(function MockFullCalendar(
     props: Record<string, unknown>,
     _ref: React.Ref<unknown>, // eslint-disable-line @typescript-eslint/no-unused-vars
   ) {
-    // datesSet を呼び出して動的レンジの設定をシミュレート
     const datesSetRef = React.useRef(false);
     React.useEffect(() => {
       if (!datesSetRef.current && typeof props.datesSet === "function") {
         datesSetRef.current = true;
       }
     }, [props.datesSet]);
-    return null;
+
+    const dayCellClassNames = props.dayCellClassNames as
+      | ((arg: { date: Date }) => string[])
+      | undefined;
+
+    return (
+      <div data-testid="mock-calendar">
+        {TEST_DATES.map((dateStr) => {
+          const classes =
+            dayCellClassNames?.({ date: new Date(dateStr + "T00:00:00") }) ??
+            [];
+          return (
+            <div key={dateStr} data-date={dateStr} className={classes.join(" ")}>
+              {dateStr}
+            </div>
+          );
+        })}
+      </div>
+    );
   }),
 }));
 vi.mock("@fullcalendar/daygrid", () => ({ default: {} }));
@@ -68,59 +94,60 @@ describe("動的祝日の累積保持", () => {
     rerender(<SessionCalendar holidayDates={["2026-01-01"]} />);
 
     // 再レンダー後もエラーなく完了することを確認
-    // （累積ロジックの詳細な検証は下の純粋関数テストで行う）
+    // （DOM 上のクラス検証は「祝日クラスの DOM 反映」で行う）
   });
 });
 
-describe("accumulatedHolidays の累積ロジック（ユニットテスト）", () => {
+describe("祝日クラスの DOM 反映", () => {
+  /** 指定日付のセルが fc-day-holiday クラスを持つか判定するヘルパー */
+  function hasHolidayClass(
+    container: HTMLElement,
+    dateStr: string,
+  ): boolean {
+    const cell = container.querySelector(`[data-date="${dateStr}"]`);
+    return cell?.classList.contains("fc-day-holiday") ?? false;
+  }
+
   it("dynamicHolidays が変わっても以前の値が保持される", () => {
-    // Set の累積ロジックを再現
-    const accumulated = new Set<string>();
+    // 1回目: 2027年の祝日を動的取得
+    mockQueryData = ["2027-01-01", "2027-01-13"];
 
-    // 1回目の取得: 2027年の祝日
-    const batch1 = ["2027-01-01", "2027-01-13"];
-    const hasNew1 = batch1.some((d) => !accumulated.has(d));
-    expect(hasNew1).toBe(true);
-    for (const d of batch1) accumulated.add(d);
+    const { container, rerender } = render(
+      <SessionCalendar holidayDates={["2026-01-01"]} />,
+    );
 
-    expect(accumulated.size).toBe(2);
-    expect(accumulated.has("2027-01-01")).toBe(true);
-    expect(accumulated.has("2027-01-13")).toBe(true);
+    // props 由来 + 動的取得した祝日にクラスが付与される
+    expect(hasHolidayClass(container, "2026-01-01")).toBe(true);
+    expect(hasHolidayClass(container, "2027-01-01")).toBe(true);
+    expect(hasHolidayClass(container, "2027-01-13")).toBe(true);
+    expect(hasHolidayClass(container, "2028-01-01")).toBe(false);
 
-    // 2回目の取得: 2028年の祝日（dynamicRange が変わった）
-    const batch2 = ["2028-01-01", "2028-01-09"];
-    const hasNew2 = batch2.some((d) => !accumulated.has(d));
-    expect(hasNew2).toBe(true);
-    for (const d of batch2) accumulated.add(d);
+    // 2回目: 2028年の祝日に切り替え
+    mockQueryData = ["2028-01-01", "2028-01-09"];
 
-    // 累積されているので 4 件すべてが存在する
-    expect(accumulated.size).toBe(4);
-    expect(accumulated.has("2027-01-01")).toBe(true);
-    expect(accumulated.has("2027-01-13")).toBe(true);
-    expect(accumulated.has("2028-01-01")).toBe(true);
-    expect(accumulated.has("2028-01-09")).toBe(true);
+    rerender(<SessionCalendar holidayDates={["2026-01-01"]} />);
 
-    // 初期 props とマージ
-    const holidayDates = ["2026-01-01"];
-    const merged = new Set(holidayDates);
-    for (const d of accumulated) merged.add(d);
-
-    expect(merged.size).toBe(5);
-    expect(merged.has("2026-01-01")).toBe(true);
-    expect(merged.has("2027-01-01")).toBe(true);
-    expect(merged.has("2028-01-01")).toBe(true);
+    // props 由来の祝日は維持される
+    expect(hasHolidayClass(container, "2026-01-01")).toBe(true);
+    // 新しい動的祝日にクラスが付与される
+    expect(hasHolidayClass(container, "2028-01-01")).toBe(true);
+    expect(hasHolidayClass(container, "2028-01-09")).toBe(true);
   });
 
-  it("同じ祝日データが重複追加されない", () => {
-    const accumulated = new Set<string>();
+  it("同じ祝日データで再レンダーしてもクラスが正しく維持される", () => {
+    mockQueryData = ["2027-01-01"];
 
-    const batch = ["2027-01-01"];
-    for (const d of batch) accumulated.add(d);
-    expect(accumulated.size).toBe(1);
+    const { container, rerender } = render(
+      <SessionCalendar holidayDates={["2026-01-01"]} />,
+    );
 
-    // 同じデータを再度追加
-    const hasNew = batch.some((d) => !accumulated.has(d));
-    expect(hasNew).toBe(false);
-    // hasNew が false なので Set は更新されない（参照同一性を保つ）
+    expect(hasHolidayClass(container, "2026-01-01")).toBe(true);
+    expect(hasHolidayClass(container, "2027-01-01")).toBe(true);
+
+    // 同じデータで再レンダー
+    rerender(<SessionCalendar holidayDates={["2026-01-01"]} />);
+
+    expect(hasHolidayClass(container, "2026-01-01")).toBe(true);
+    expect(hasHolidayClass(container, "2027-01-01")).toBe(true);
   });
 });
