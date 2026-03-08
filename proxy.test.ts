@@ -2,7 +2,11 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { matcherSource, proxy } from "./proxy";
 
-const FIXED_NONCE = "test-nonce-00000000-0000-0000-0000";
+const FIXED_BYTES = new Uint8Array([
+  0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
+  0x0d, 0x0e, 0x0f, 0x10,
+]);
+const FIXED_NONCE = btoa(String.fromCharCode(...FIXED_BYTES));
 
 describe("proxy", () => {
   afterEach(() => {
@@ -10,9 +14,7 @@ describe("proxy", () => {
   });
 
   test("nonce が生成され CSP ヘッダーに埋め込まれる", () => {
-    vi.spyOn(crypto, "randomUUID").mockReturnValue(
-      FIXED_NONCE as `${string}-${string}-${string}-${string}-${string}`,
-    );
+    vi.spyOn(crypto, "getRandomValues").mockReturnValue(FIXED_BYTES);
 
     const request = new NextRequest("http://localhost/");
     const response = proxy(request);
@@ -22,9 +24,7 @@ describe("proxy", () => {
   });
 
   test("x-nonce リクエストヘッダーが設定される", () => {
-    vi.spyOn(crypto, "randomUUID").mockReturnValue(
-      FIXED_NONCE as `${string}-${string}-${string}-${string}-${string}`,
-    );
+    vi.spyOn(crypto, "getRandomValues").mockReturnValue(FIXED_BYTES);
 
     const request = new NextRequest("http://localhost/");
     const response = proxy(request);
