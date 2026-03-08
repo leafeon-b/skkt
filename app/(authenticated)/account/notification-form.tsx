@@ -20,6 +20,12 @@ export function NotificationForm({
     },
     onError: (error) => {
       setEmailEnabled((prev) => !prev);
+      if (error.data?.isValidationError) {
+        toast.error(
+          "通知設定の更新に失敗しました。入力内容を確認してください。",
+        );
+        return;
+      }
       toast.error(error.message);
     },
   });

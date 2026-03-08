@@ -29,6 +29,12 @@ export function ProfileFormInner({
       await utils.users.me.invalidate();
     },
     onError: (error) => {
+      if (error.data?.isValidationError) {
+        toast.error(
+          "プロフィールの更新に失敗しました。入力内容を確認してください。",
+        );
+        return;
+      }
       toast.error(error.message);
     },
   });
