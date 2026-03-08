@@ -6,6 +6,7 @@ import {
   toMatchId,
   toCircleInviteLinkId,
   toInviteLinkToken,
+  toRoundRobinScheduleId,
 } from "./ids";
 import { BadRequestError } from "./errors";
 
@@ -19,6 +20,12 @@ describe("toUserId", () => {
     expect(() => toUserId("")).toThrow(BadRequestError);
     expect(() => toUserId("")).toThrow("Invalid user ID");
   });
+
+  it("空白のみの文字列はBadRequestErrorをスローする", () => {
+    expect(() => toUserId("   ")).toThrow(BadRequestError);
+    expect(() => toUserId("\t")).toThrow(BadRequestError);
+    expect(() => toUserId("\n")).toThrow(BadRequestError);
+  });
 });
 
 describe("toCircleId", () => {
@@ -30,6 +37,12 @@ describe("toCircleId", () => {
   it("should throw BadRequestError for empty string", () => {
     expect(() => toCircleId("")).toThrow(BadRequestError);
     expect(() => toCircleId("")).toThrow("Invalid circle ID");
+  });
+
+  it("空白のみの文字列はBadRequestErrorをスローする", () => {
+    expect(() => toCircleId("   ")).toThrow(BadRequestError);
+    expect(() => toCircleId("\t")).toThrow(BadRequestError);
+    expect(() => toCircleId("\n")).toThrow(BadRequestError);
   });
 });
 
@@ -43,6 +56,12 @@ describe("toCircleSessionId", () => {
     expect(() => toCircleSessionId("")).toThrow(BadRequestError);
     expect(() => toCircleSessionId("")).toThrow("Invalid circle session ID");
   });
+
+  it("空白のみの文字列はBadRequestErrorをスローする", () => {
+    expect(() => toCircleSessionId("   ")).toThrow(BadRequestError);
+    expect(() => toCircleSessionId("\t")).toThrow(BadRequestError);
+    expect(() => toCircleSessionId("\n")).toThrow(BadRequestError);
+  });
 });
 
 describe("toMatchId", () => {
@@ -54,6 +73,12 @@ describe("toMatchId", () => {
   it("should throw BadRequestError for empty string", () => {
     expect(() => toMatchId("")).toThrow(BadRequestError);
     expect(() => toMatchId("")).toThrow("Invalid match ID");
+  });
+
+  it("空白のみの文字列はBadRequestErrorをスローする", () => {
+    expect(() => toMatchId("   ")).toThrow(BadRequestError);
+    expect(() => toMatchId("\t")).toThrow(BadRequestError);
+    expect(() => toMatchId("\n")).toThrow(BadRequestError);
   });
 });
 
@@ -68,6 +93,32 @@ describe("toCircleInviteLinkId", () => {
     expect(() => toCircleInviteLinkId("")).toThrow(
       "Invalid circle invite link ID",
     );
+  });
+
+  it("空白のみの文字列はBadRequestErrorをスローする", () => {
+    expect(() => toCircleInviteLinkId("   ")).toThrow(BadRequestError);
+    expect(() => toCircleInviteLinkId("\t")).toThrow(BadRequestError);
+    expect(() => toCircleInviteLinkId("\n")).toThrow(BadRequestError);
+  });
+});
+
+describe("toRoundRobinScheduleId", () => {
+  it("should return branded RoundRobinScheduleId for valid string", () => {
+    const id = toRoundRobinScheduleId("schedule-123");
+    expect(id).toBe("schedule-123");
+  });
+
+  it("should throw BadRequestError for empty string", () => {
+    expect(() => toRoundRobinScheduleId("")).toThrow(BadRequestError);
+    expect(() => toRoundRobinScheduleId("")).toThrow(
+      "Invalid round robin schedule ID",
+    );
+  });
+
+  it("空白のみの文字列はBadRequestErrorをスローする", () => {
+    expect(() => toRoundRobinScheduleId("   ")).toThrow(BadRequestError);
+    expect(() => toRoundRobinScheduleId("\t")).toThrow(BadRequestError);
+    expect(() => toRoundRobinScheduleId("\n")).toThrow(BadRequestError);
   });
 });
 
