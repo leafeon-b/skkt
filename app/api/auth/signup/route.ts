@@ -24,7 +24,12 @@ export async function POST(request: Request) {
     if (e instanceof TooManyRequestsError) {
       return NextResponse.json(
         { message: "リクエストが多すぎます。しばらくしてからお試しください。" },
-        { status: 429 },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.max(1, Math.ceil(e.retryAfterMs / 1000)).toString(),
+          },
+        },
       );
     }
     throw e;
