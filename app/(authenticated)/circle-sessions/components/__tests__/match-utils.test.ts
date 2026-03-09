@@ -148,6 +148,10 @@ describe("getNameInitial", () => {
   it("空白のみの場合は空文字を返す", () => {
     expect(getNameInitial("   ")).toBe("");
   });
+
+  it("サロゲートペア（絵文字）を含む名前から先頭1文字を正しく返す", () => {
+    expect(getNameInitial("🎯テスト")).toBe("🎯");
+  });
 });
 
 describe("getOutcomeLabel", () => {
