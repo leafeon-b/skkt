@@ -141,8 +141,12 @@ describe("getNameInitial", () => {
     expect(getNameInitial(" 田中 ")).toBe("田");
   });
 
-  it("空文字の場合はそのまま返す", () => {
+  it("空文字の場合は空文字を返す", () => {
     expect(getNameInitial("")).toBe("");
+  });
+
+  it("空白のみの場合は空文字を返す", () => {
+    expect(getNameInitial("   ")).toBe("");
   });
 });
 
