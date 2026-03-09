@@ -39,7 +39,9 @@ export function RemoveSessionMemberButton({
     },
     onError: () => {
       setOpen(false);
-      toast.error("除外に失敗しました");
+      toast.error("除外に失敗しました", {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 

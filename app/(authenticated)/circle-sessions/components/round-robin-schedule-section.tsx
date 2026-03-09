@@ -75,7 +75,9 @@ export function RoundRobinScheduleSection({
       toast.success("総当たりスケジュールを生成しました");
     },
     onError: (error) => {
-      toast.error(GENERIC_ERROR_MESSAGE);
+      toast.error(GENERIC_ERROR_MESSAGE, {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 
@@ -87,7 +89,9 @@ export function RoundRobinScheduleSection({
     },
     onError: (error) => {
       setShowDeleteDialog(false);
-      toast.error(GENERIC_ERROR_MESSAGE);
+      toast.error(GENERIC_ERROR_MESSAGE, {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 

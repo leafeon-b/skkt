@@ -112,7 +112,9 @@ export function CircleSessionDetailView({
     },
     onError: () => {
       setActiveDialog(null);
-      toast.error("対局結果の追加に失敗しました");
+      toast.error("対局結果の追加に失敗しました", {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 
@@ -122,7 +124,9 @@ export function CircleSessionDetailView({
     },
     onError: () => {
       setActiveDialog(null);
-      toast.error("対局結果の更新に失敗しました");
+      toast.error("対局結果の更新に失敗しました", {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 

@@ -42,7 +42,9 @@ export function MemberRoleDropdown({
       router.refresh();
     },
     onError: () => {
-      toast.error("ロールの変更に失敗しました");
+      toast.error("ロールの変更に失敗しました", {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 
