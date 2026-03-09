@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { GENERIC_ERROR_MESSAGE } from "@/app/constants/error-messages";
 import { trpc } from "@/lib/trpc/client";
 import { useSession } from "next-auth/react";
 import type { FormEvent } from "react";
@@ -35,7 +36,7 @@ export function ProfileFormInner({
         );
         return;
       }
-      toast.error(error.message);
+      toast.error(GENERIC_ERROR_MESSAGE);
     },
   });
 

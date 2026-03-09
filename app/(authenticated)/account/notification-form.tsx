@@ -1,6 +1,7 @@
 "use client";
 
 import { Switch } from "@/components/ui/switch";
+import { GENERIC_ERROR_MESSAGE } from "@/app/constants/error-messages";
 import { trpc } from "@/lib/trpc/client";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -26,7 +27,7 @@ export function NotificationForm({
         );
         return;
       }
-      toast.error(error.message);
+      toast.error(GENERIC_ERROR_MESSAGE);
     },
   });
 

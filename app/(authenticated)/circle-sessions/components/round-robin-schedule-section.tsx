@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { GENERIC_ERROR_MESSAGE } from "@/app/constants/error-messages";
 import { trpc } from "@/lib/trpc/client";
 import type {
   RoundRobinPairingPlayer,
@@ -74,7 +75,7 @@ export function RoundRobinScheduleSection({
       toast.success("総当たりスケジュールを生成しました");
     },
     onError: (error) => {
-      toast.error(error.message);
+      toast.error(GENERIC_ERROR_MESSAGE);
     },
   });
 
@@ -86,7 +87,7 @@ export function RoundRobinScheduleSection({
     },
     onError: (error) => {
       setShowDeleteDialog(false);
-      toast.error(error.message);
+      toast.error(GENERIC_ERROR_MESSAGE);
     },
   });
 
