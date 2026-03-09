@@ -149,7 +149,9 @@ describe("RemoveCircleMemberButton", () => {
     });
     await user.click(removeButton);
 
-    expect(toastModule.toast.error).toHaveBeenCalledWith("除外に失敗しました");
+    expect(toastModule.toast.error).toHaveBeenCalledWith("除外に失敗しました", {
+      description: "時間をおいて再度お試しください",
+    });
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 

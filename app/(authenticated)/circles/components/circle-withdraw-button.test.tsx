@@ -142,7 +142,9 @@ describe("CircleWithdrawButton", () => {
     });
     await user.click(withdrawButton);
 
-    expect(toastModule.toast.error).toHaveBeenCalledWith("退会に失敗しました");
+    expect(toastModule.toast.error).toHaveBeenCalledWith("退会に失敗しました", {
+      description: "時間をおいて再度お試しください",
+    });
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
