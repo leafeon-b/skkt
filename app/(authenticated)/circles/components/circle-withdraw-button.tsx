@@ -36,7 +36,9 @@ export function CircleWithdrawButton({
     },
     onError: () => {
       setOpen(false);
-      toast.error("退会に失敗しました");
+      toast.error("退会に失敗しました", {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 

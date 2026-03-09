@@ -54,7 +54,9 @@ export function TransferCircleOwnershipDialog({
     },
     onError: () => {
       setShowConfirm(false);
-      toast.error("オーナーの移譲に失敗しました");
+      toast.error("オーナーの移譲に失敗しました", {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 

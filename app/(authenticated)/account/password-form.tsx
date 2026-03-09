@@ -34,7 +34,9 @@ export function PasswordForm() {
         );
         return;
       }
-      toast.error(GENERIC_ERROR_MESSAGE);
+      toast.error(GENERIC_ERROR_MESSAGE, {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 
