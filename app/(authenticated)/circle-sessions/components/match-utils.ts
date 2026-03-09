@@ -31,7 +31,7 @@ export const convertRowOutcomeToApiOutcome = (
 };
 
 export const getNameInitial = (name: string) =>
-  Array.from(name.trim())[0] ?? name;
+  Array.from(name.trim())[0] ?? "";
 
 export const getOutcomeLabel = (
   outcome: RowOutcome,
