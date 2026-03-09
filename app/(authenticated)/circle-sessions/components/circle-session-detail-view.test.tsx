@@ -400,6 +400,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(toastModule.toast.error).toHaveBeenCalledWith(
         "対局結果の追加に失敗しました",
+        { description: "時間をおいて再度お試しください" },
       );
     });
 
@@ -431,6 +432,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(toastModule.toast.error).toHaveBeenCalledWith(
         "対局結果の更新に失敗しました",
+        { description: "時間をおいて再度お試しください" },
       );
     });
 

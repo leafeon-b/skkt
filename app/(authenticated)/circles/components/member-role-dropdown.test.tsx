@@ -151,6 +151,7 @@ describe("MemberRoleDropdown", () => {
 
     expect(toastModule.toast.error).toHaveBeenCalledWith(
       "ロールの変更に失敗しました",
+      { description: "時間をおいて再度お試しください" },
     );
   });
 
