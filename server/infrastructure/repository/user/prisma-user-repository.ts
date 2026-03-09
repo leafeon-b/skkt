@@ -15,7 +15,7 @@ import {
   toPersistenceIds,
 } from "@/server/infrastructure/common/id-utils";
 import { ConflictError } from "@/server/domain/common/errors";
-import { Prisma } from "@/generated/prisma/client";
+import { isPrismaUniqueConstraintError } from "@/server/infrastructure/repository/lib/is-prisma-unique-constraint-error";
 
 export const createPrismaUserRepository = (
   client: PrismaClientLike,
@@ -76,10 +76,7 @@ export const createPrismaUserRepository = (
         data: { name, email },
       });
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
+      if (isPrismaUniqueConstraintError(error)) {
         const target = error.meta?.target;
         if (Array.isArray(target) && target.includes("email")) {
           throw new ConflictError("Email already in use");
@@ -152,10 +149,7 @@ export const createPrismaUserRepository = (
       });
       return toUserId(user.id);
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
+      if (isPrismaUniqueConstraintError(error)) {
         const target = error.meta?.target;
         if (Array.isArray(target) && target.includes("email")) {
           throw new ConflictError("User already exists");

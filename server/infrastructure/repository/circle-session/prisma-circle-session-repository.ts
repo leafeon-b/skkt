@@ -17,7 +17,7 @@ import type {
 } from "@/server/domain/common/ids";
 import type { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { ConflictError, NotFoundError } from "@/server/domain/common/errors";
-import { Prisma } from "@/generated/prisma/client";
+import { isPrismaUniqueConstraintError } from "@/server/infrastructure/repository/lib/is-prisma-unique-constraint-error";
 import {
   toPersistenceId,
   toPersistenceIds,
@@ -138,10 +138,7 @@ export const createPrismaCircleSessionRepository = (
         },
       });
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
+      if (isPrismaUniqueConstraintError(error)) {
         const target = error.meta?.target;
         if (
           Array.isArray(target) &&
