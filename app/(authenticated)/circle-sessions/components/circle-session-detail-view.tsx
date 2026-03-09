@@ -96,7 +96,9 @@ export function CircleSessionDetailView({
     },
     onError: () => {
       setShowDeleteSessionDialog(false);
-      toast.error("削除に失敗しました");
+      toast.error("削除に失敗しました", {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 
@@ -130,7 +132,9 @@ export function CircleSessionDetailView({
     },
     onError: () => {
       setActiveDialog(null);
-      toast.error("対局結果の削除に失敗しました");
+      toast.error("対局結果の削除に失敗しました", {
+        description: "時間をおいて再度お試しください",
+      });
     },
   });
 

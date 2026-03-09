@@ -462,6 +462,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
       expect(toastModule.toast.error).toHaveBeenCalledWith(
         "対局結果の削除に失敗しました",
+        { description: "時間をおいて再度お試しください" },
       );
     });
 
