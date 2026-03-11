@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { ErrorContent } from "@/components/error-content";
+import { ErrorContent } from "@/app/components/error-content";
 
 type ErrorProps = {
   error: Error & { digest?: string };
