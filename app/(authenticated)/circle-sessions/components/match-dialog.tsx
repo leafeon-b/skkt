@@ -8,10 +8,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
-import type { FormEvent } from "react";
+import { useEffect, useState } from "react";
 import {
   getOutcomeLabel,
   getRowOutcomeValue,
+  getTodayInputValue,
   type ActiveDialog,
   type PairMatchEntry,
   type RowOutcome,
@@ -20,45 +21,83 @@ import { MatchSelect } from "./match-select";
 
 type MatchDialogProps = {
   activeDialog: ActiveDialog | null;
-  dialogTitle: string;
   dialogRowName: string;
   dialogColumnName: string;
   activePairMatches: PairMatchEntry[];
-  selectedMatch: PairMatchEntry | null;
-  selectedOutcome: RowOutcome;
-  selectedDate: string;
   outcomeOptions: Array<{ value: RowOutcome; label: string }>;
   createMatchIsPending: boolean;
   updateMatchIsPending: boolean;
   onRequestDelete: (() => void) | undefined;
-  handleMatchSelectChange: (nextIndex: number) => void;
-  handleDialogSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  setSelectedOutcome: (outcome: RowOutcome) => void;
-  setSelectedDate: (date: string) => void;
+  onSubmit: (data: { outcome: RowOutcome; date: string }) => void;
   closeDialog: () => void;
   handleCloseAutoFocus: (event: Event) => void;
 };
 
 export function MatchDialog({
   activeDialog,
-  dialogTitle,
   dialogRowName,
   dialogColumnName,
   activePairMatches,
-  selectedMatch,
-  selectedOutcome,
-  selectedDate,
   outcomeOptions,
   createMatchIsPending,
   updateMatchIsPending,
   onRequestDelete,
-  handleMatchSelectChange,
-  handleDialogSubmit,
-  setSelectedOutcome,
-  setSelectedDate,
+  onSubmit,
   closeDialog,
   handleCloseAutoFocus,
 }: MatchDialogProps) {
+  const [selectedOutcome, setSelectedOutcome] = useState<RowOutcome>("ROW_WIN");
+  const [selectedDate, setSelectedDate] = useState<string>(
+    getTodayInputValue(),
+  );
+  const [selectedMatchIndex, setSelectedMatchIndex] = useState<number | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!activeDialog || activeDialog.mode === "delete") return;
+
+    if (activeDialog.mode === "add") {
+      setSelectedOutcome("ROW_WIN");
+      setSelectedDate(getTodayInputValue());
+      setSelectedMatchIndex(null);
+    } else {
+      const first = activePairMatches[0];
+      if (first) {
+        setSelectedOutcome(getRowOutcomeValue(activeDialog.rowId, first.match));
+        setSelectedDate(first.match.createdAtInput);
+        setSelectedMatchIndex(first.index);
+      }
+    }
+  }, [activeDialog, activePairMatches]);
+
+  const handleMatchSelectChange = (nextIndex: number) => {
+    const selected = activePairMatches.find(
+      (entry) => entry.index === nextIndex,
+    );
+    if (selected) {
+      setSelectedMatchIndex(selected.index);
+      setSelectedOutcome(
+        getRowOutcomeValue(activeDialog!.rowId, selected.match),
+      );
+      setSelectedDate(selected.match.createdAtInput);
+    } else {
+      setSelectedMatchIndex(null);
+      setSelectedOutcome("ROW_WIN");
+      setSelectedDate(getTodayInputValue());
+    }
+  };
+
+  const selectedMatch =
+    activePairMatches.length > 0
+      ? (activePairMatches.find(
+          (entry) => entry.index === selectedMatchIndex,
+        ) ?? activePairMatches[0])
+      : null;
+
+  const dialogTitle =
+    activeDialog?.mode === "add" ? "対局結果を追加" : "対局結果を編集";
+
   return (
     <Dialog
       open={activeDialog != null && activeDialog.mode !== "delete"}
@@ -106,7 +145,12 @@ export function MatchDialog({
           </div>
         ) : null}
 
-        <form onSubmit={handleDialogSubmit}>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSubmit({ outcome: selectedOutcome, date: selectedDate });
+          }}
+        >
           <p className="mb-3 text-xs text-(--brand-ink-muted)">
             <span className="text-red-600" aria-hidden="true">
               *
