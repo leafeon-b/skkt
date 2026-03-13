@@ -72,20 +72,20 @@ npx vitest
 
 # 使用している技術・ライブラリ・フレームワーク
 
-TypeScript
-React
-Next.js
-tRPC
-TanStack React Query
-Prisma
-NextAuth.js
-Tailwind CSS
-shadcn/ui
-FullCalendar
-Lucide React
-Sonner
-Zod
-ESLint
-Prettier
-Vitest
-Playwright
+- TypeScript
+- React
+- Next.js
+- tRPC
+- TanStack React Query
+- Prisma
+- NextAuth.js
+- Tailwind CSS
+- shadcn/ui
+- FullCalendar
+- Lucide React
+- Sonner
+- Zod
+- ESLint
+- Prettier
+- Vitest
+- Playwright
