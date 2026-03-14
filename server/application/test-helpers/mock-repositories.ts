@@ -20,6 +20,9 @@ export const createMockMatchRepository = () =>
     listByBothPlayerIds: vi.fn(),
     listByPlayerIdWithCircle: vi.fn(),
     listDistinctOpponentIds: vi.fn(),
+    countMatchStatisticsByUserId: vi.fn(),
+    countMatchStatisticsByUserIdGroupByCircle: vi.fn(),
+    countMatchStatisticsByBothPlayerIds: vi.fn(),
     save: vi.fn(),
   }) satisfies MatchRepository;
 

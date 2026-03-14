@@ -1,10 +1,6 @@
 import type { CircleId } from "@/server/domain/common/ids";
 
-export type UserMatchStatistics = {
-  wins: number;
-  losses: number;
-  draws: number;
-};
+export type { UserMatchStatistics } from "@/server/domain/models/match/match-statistics";
 
 export type CircleMatchStatistics = {
   circleId: CircleId;
