@@ -18,6 +18,8 @@ describe("User マッパー", () => {
       passwordHash: null,
       passwordChangedAt: null,
       profileVisibility: "PUBLIC",
+      imageData: null,
+      imageMimeType: null,
       createdAt: new Date("2024-01-01T00:00:00Z"),
     };
 

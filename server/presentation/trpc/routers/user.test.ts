@@ -18,6 +18,7 @@ const createTestContext = (
     updateProfile: vi.fn(),
     changePassword: vi.fn(),
     updateProfileVisibility: vi.fn(),
+    uploadAvatar: vi.fn().mockResolvedValue(undefined),
   };
 
   const context: Context = {
