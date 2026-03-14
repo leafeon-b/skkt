@@ -30,4 +30,12 @@ export type UserRepository = {
     visibility: ProfileVisibility,
   ): Promise<void>;
   createUser(data: SignupData): Promise<UserId>;
+  saveImageData(
+    id: UserId,
+    data: Buffer,
+    mimeType: string,
+  ): Promise<void>;
+  findImageData(
+    id: UserId,
+  ): Promise<{ data: Buffer; mimeType: string } | null>;
 };
