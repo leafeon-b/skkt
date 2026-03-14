@@ -2,7 +2,6 @@
 import type { CircleSessionMatch } from "@/server/presentation/view-models/circle-session-detail";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { FormEvent } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MatchDialog } from "./match-dialog";
 import type { ActiveDialog, PairMatchEntry, RowOutcome } from "./match-utils";
@@ -33,23 +32,14 @@ function buildDefaultProps(
 ): MatchDialogProps {
   return {
     activeDialog: { mode: "add", rowId: "row-1", columnId: "col-1" },
-    dialogTitle: "対局結果の入力",
     dialogRowName: "山田 太郎",
     dialogColumnName: "鈴木 花子",
     activePairMatches: defaultPairMatches,
-    selectedMatch: defaultPairMatches[0],
-    selectedOutcome: "ROW_WIN",
-    selectedDate: "2025-04-01",
     outcomeOptions,
     createMatchIsPending: false,
     updateMatchIsPending: false,
     onRequestDelete: undefined,
-    handleMatchSelectChange: vi.fn(),
-    handleDialogSubmit: vi.fn((e: FormEvent<HTMLFormElement>) =>
-      e.preventDefault(),
-    ),
-    setSelectedOutcome: vi.fn(),
-    setSelectedDate: vi.fn(),
+    onSubmit: vi.fn(),
     closeDialog: vi.fn(),
     handleCloseAutoFocus: vi.fn(),
     ...overrides,
@@ -140,9 +130,8 @@ describe("MatchDialog", () => {
       ).toBeInTheDocument();
     });
 
-    it("対局選択ドロップダウンの変更で handleMatchSelectChange が呼ばれる", async () => {
+    it("対局選択ドロップダウンの変更でフォーム状態が更新される", async () => {
       const user = userEvent.setup();
-      const handleMatchSelectChange = vi.fn();
       const twoMatches: PairMatchEntry[] = [
         {
           match: {
@@ -171,8 +160,6 @@ describe("MatchDialog", () => {
           {...buildDefaultProps({
             activeDialog: editDialog,
             activePairMatches: twoMatches,
-            selectedMatch: twoMatches[0],
-            handleMatchSelectChange,
           })}
         />,
       );
@@ -181,7 +168,10 @@ describe("MatchDialog", () => {
       const select = label.parentElement!.querySelector("select")!;
       await user.selectOptions(select, "1");
 
-      expect(handleMatchSelectChange).toHaveBeenCalledWith(1);
+      // After selecting the second match (P2_WIN for row-1 = ROW_LOSS),
+      // the outcome select should reflect the new selection
+      const outcomeSelect = screen.getByLabelText("結果");
+      expect(outcomeSelect).toHaveValue("ROW_LOSS");
     });
   });
 
@@ -213,14 +203,22 @@ describe("MatchDialog", () => {
   });
 
   describe("共通の表示・操作", () => {
-    it("ダイアログタイトルが表示される", () => {
+    it("add モードでダイアログタイトルが「対局結果を追加」と表示される", () => {
+      render(<MatchDialog {...buildDefaultProps()} />);
+
+      expect(screen.getByText("対局結果を追加")).toBeInTheDocument();
+    });
+
+    it("edit モードでダイアログタイトルが「対局結果を編集」と表示される", () => {
       render(
         <MatchDialog
-          {...buildDefaultProps({ dialogTitle: "テストタイトル" })}
+          {...buildDefaultProps({
+            activeDialog: { mode: "edit", rowId: "row-1", columnId: "col-1" },
+          })}
         />,
       );
 
-      expect(screen.getByText("テストタイトル")).toBeInTheDocument();
+      expect(screen.getByText("対局結果を編集")).toBeInTheDocument();
     });
 
     it("対局者名（dialogRowName × dialogColumnName）が表示される", () => {
@@ -279,6 +277,23 @@ describe("MatchDialog", () => {
       render(<MatchDialog {...buildDefaultProps({ activeDialog: null })} />);
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("フォーム送信時に onSubmit が outcome と date で呼ばれる", async () => {
+      const user = userEvent.setup();
+      const onSubmit = vi.fn();
+      render(<MatchDialog {...buildDefaultProps({ onSubmit })} />);
+
+      const dialog = screen.getByRole("dialog");
+      await user.click(within(dialog).getByRole("button", { name: "追加" }));
+
+      expect(onSubmit).toHaveBeenCalledOnce();
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outcome: expect.any(String),
+          date: expect.any(String),
+        }),
+      );
     });
   });
 });

@@ -24,7 +24,7 @@ import { SessionMemberRoleDropdown } from "@/app/(authenticated)/circle-sessions
 import { TransferSessionOwnershipDialog } from "@/app/(authenticated)/circle-sessions/components/transfer-session-ownership-dialog";
 import { Copy, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { RoundRobinScheduleSection } from "./round-robin-schedule-section";
 import { MatchDeleteDialog } from "./match-delete-dialog";
@@ -35,7 +35,6 @@ import {
   getOutcomeLabel,
   getPairMatches,
   getRowOutcomeValue,
-  getTodayInputValue,
   type ActiveDialog,
   type DialogMode,
   type RowOutcome,
@@ -62,7 +61,6 @@ export function CircleSessionDetailView({
 }: CircleSessionDetailViewProps) {
   const memberships = detail.memberships;
   const matches = detail.matches;
-  const todayInputValue = getTodayInputValue();
   const getMemberName = (id: string) => {
     const membershipsById = Object.fromEntries(
       memberships.map((membership) => [membership.id, membership]),
@@ -153,8 +151,6 @@ export function CircleSessionDetailView({
   const [selectedMatchIndex, setSelectedMatchIndex] = useState<number | null>(
     null,
   );
-  const [selectedOutcome, setSelectedOutcome] = useState<RowOutcome>("ROW_WIN");
-  const [selectedDate, setSelectedDate] = useState<string>(todayInputValue);
 
   const applyMatchSelection = (
     rowId: string,
@@ -165,35 +161,14 @@ export function CircleSessionDetailView({
   ) => {
     if (!entry) {
       setSelectedMatchIndex(null);
-      setSelectedOutcome("ROW_WIN");
-      setSelectedDate(todayInputValue);
       return;
     }
 
     setSelectedMatchIndex(entry.index);
-    setSelectedOutcome(getRowOutcomeValue(rowId, entry.match));
-    setSelectedDate(entry.match.createdAtInput);
-  };
-
-  const initializeDialogState = (
-    mode: DialogMode,
-    rowId: string,
-    columnId: string,
-  ) => {
-    if (mode === "add") {
-      setSelectedMatchIndex(null);
-      setSelectedOutcome("ROW_WIN");
-      setSelectedDate(todayInputValue);
-      return;
-    }
-
-    const pairMatches = getPairMatches(matches, rowId, columnId);
-    applyMatchSelection(rowId, pairMatches[0]);
   };
 
   const openDialog = (mode: DialogMode, rowId: string, columnId: string) => {
     triggerCellIdRef.current = `${rowId}-${columnId}`;
-    initializeDialogState(mode, rowId, columnId);
     setActiveDialog({ mode, rowId, columnId });
   };
 
@@ -223,8 +198,10 @@ export function CircleSessionDetailView({
     applyMatchSelection(activeDialog.rowId, selected);
   };
 
-  const handleDialogSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleDialogSubmit = (data: {
+    outcome: RowOutcome;
+    date: string;
+  }) => {
     if (!activeDialog) {
       return;
     }
@@ -232,7 +209,7 @@ export function CircleSessionDetailView({
     const player1Id = activeDialog.rowId;
     const player2Id = activeDialog.columnId;
     const outcome = convertRowOutcomeToApiOutcome(
-      selectedOutcome,
+      data.outcome,
       activeDialog.rowId,
       player1Id,
     );
@@ -250,7 +227,7 @@ export function CircleSessionDetailView({
             const rowName = getMemberName(activeDialog.rowId);
             const columnName = getMemberName(activeDialog.columnId);
             const outcomeLabel = getOutcomeLabel(
-              selectedOutcome,
+              data.outcome,
               rowName,
               columnName,
             );
@@ -284,7 +261,7 @@ export function CircleSessionDetailView({
             const rowName = getMemberName(activeDialog.rowId);
             const columnName = getMemberName(activeDialog.columnId);
             const outcomeLabel = getOutcomeLabel(
-              selectedOutcome,
+              data.outcome,
               rowName,
               columnName,
             );
@@ -334,19 +311,16 @@ export function CircleSessionDetailView({
     );
   };
 
-  const activePairMatches = activeDialog
-    ? getPairMatches(matches, activeDialog.rowId, activeDialog.columnId)
-    : [];
+  const activePairMatches = useMemo(
+    () =>
+      activeDialog
+        ? getPairMatches(matches, activeDialog.rowId, activeDialog.columnId)
+        : [],
+    [matches, activeDialog],
+  );
   const dialogRowName = activeDialog ? getMemberName(activeDialog.rowId) : "";
   const dialogColumnName = activeDialog
     ? getMemberName(activeDialog.columnId)
-    : "";
-  const dialogTitle = activeDialog
-    ? activeDialog.mode === "add"
-      ? "対局結果を追加"
-      : activeDialog.mode === "edit"
-        ? "対局結果を編集"
-        : "対局結果を削除"
     : "";
   const outcomeOptions: Array<{ value: RowOutcome; label: string }> =
     activeDialog
@@ -577,13 +551,9 @@ export function CircleSessionDetailView({
 
       <MatchDialog
         activeDialog={activeDialog}
-        dialogTitle={dialogTitle}
         dialogRowName={dialogRowName}
         dialogColumnName={dialogColumnName}
         activePairMatches={activePairMatches}
-        selectedMatch={selectedMatch}
-        selectedOutcome={selectedOutcome}
-        selectedDate={selectedDate}
         outcomeOptions={outcomeOptions}
         createMatchIsPending={createMatch.isPending}
         updateMatchIsPending={updateMatch.isPending}
@@ -595,10 +565,7 @@ export function CircleSessionDetailView({
                 )
             : undefined
         }
-        handleMatchSelectChange={handleMatchSelectChange}
-        handleDialogSubmit={handleDialogSubmit}
-        setSelectedOutcome={setSelectedOutcome}
-        setSelectedDate={setSelectedDate}
+        onSubmit={handleDialogSubmit}
         closeDialog={closeDialog}
         handleCloseAutoFocus={handleCloseAutoFocus}
       />

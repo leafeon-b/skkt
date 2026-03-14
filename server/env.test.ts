@@ -68,6 +68,12 @@ describe("server/env", () => {
     );
   });
 
+  test("Vercel プレビュー環境では NEXTAUTH_URL 未設定でもエラーにならない", async () => {
+    setEnv({ NODE_ENV: "production", VERCEL_ENV: "preview" });
+    const { env } = await import("./env");
+    expect(env.NEXTAUTH_URL).toBeUndefined();
+  });
+
   test("本番ビルドフェーズでは NEXTAUTH_URL 未設定でもエラーにならない", async () => {
     setEnv({
       NODE_ENV: "production",
