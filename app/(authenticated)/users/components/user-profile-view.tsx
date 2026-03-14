@@ -18,6 +18,7 @@ export function UserProfileView({ profile }: UserProfileViewProps) {
               width={80}
               height={80}
               className="rounded-full"
+              unoptimized
             />
           ) : (
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-(--brand-moss)/20 text-2xl font-bold text-(--brand-ink)">

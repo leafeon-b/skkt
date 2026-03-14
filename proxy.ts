@@ -10,7 +10,7 @@ export function proxy(request: NextRequest) {
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}'`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' https://lh3.googleusercontent.com",
+    "img-src 'self' https://lh3.googleusercontent.com data: blob:",
     "font-src 'self' data:",
     "connect-src 'self'",
     "form-action 'self'",
