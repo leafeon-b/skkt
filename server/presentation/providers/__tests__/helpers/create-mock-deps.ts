@@ -74,6 +74,15 @@ export const createMockDeps = (): MockDeps => ({
     listByBothPlayerIds: vi.fn().mockResolvedValue([]),
     listByPlayerIdWithCircle: vi.fn().mockResolvedValue([]),
     listDistinctOpponentIds: vi.fn().mockResolvedValue([]),
+    countMatchStatisticsByUserId: vi
+      .fn()
+      .mockResolvedValue({ wins: 0, losses: 0, draws: 0 }),
+    countMatchStatisticsByUserIdGroupByCircle: vi
+      .fn()
+      .mockResolvedValue([]),
+    countMatchStatisticsByBothPlayerIds: vi
+      .fn()
+      .mockResolvedValue({ wins: 0, losses: 0, draws: 0 }),
     save: vi.fn().mockResolvedValue(undefined),
   },
   userRepository: {

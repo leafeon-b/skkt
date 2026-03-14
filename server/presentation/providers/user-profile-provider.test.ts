@@ -113,17 +113,18 @@ describe("getUserProfileViewModel", () => {
       ]);
 
       // 対局統計
-      mockDeps.matchRepository.listByPlayerIdWithCircle.mockResolvedValue([
+      mockDeps.matchRepository.countMatchStatisticsByUserId.mockResolvedValue({
+        wins: 1,
+        losses: 0,
+        draws: 0,
+      });
+      mockDeps.matchRepository.countMatchStatisticsByUserIdGroupByCircle.mockResolvedValue([
         {
-          id: "match-1" as never,
-          circleSessionId: "session-past" as never,
           circleId: "circle-1" as never,
           circleName: "テスト研究会",
-          player1Id: TARGET_USER_ID,
-          player2Id: toUserId("opponent-1"),
-          outcome: "P1_WIN" as never,
-          createdAt: NOW,
-          deletedAt: null,
+          wins: 1,
+          losses: 0,
+          draws: 0,
         },
       ]);
 
