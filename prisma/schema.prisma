@@ -46,6 +46,9 @@ model User {
   passwordHash      String?
   passwordChangedAt DateTime?
 
+  imageData     Bytes?
+  imageMimeType String?
+
   profileVisibility ProfileVisibility @default(PUBLIC)
 
   circleMemberships        CircleMembership[]
