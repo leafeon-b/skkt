@@ -1,7 +1,7 @@
-import Link from "next/link";
 import LoginButton from "@/app/components/login-button";
-import { sanitizeCallbackUrl } from "@/lib/url";
 import SignupForm from "@/app/components/signup-form";
+import { sanitizeCallbackUrl } from "@/lib/url";
+import Link from "next/link";
 
 type SignupPageProps = {
   searchParams: Promise<{ callbackUrl?: string }>;
@@ -28,7 +28,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               新しいアカウントを作成
             </h1>
             <p className="text-sm leading-relaxed text-(--brand-ink-muted)">
-              メールとパスワードでデモ用アカウントを作成できます。
+              メールとパスワードでアカウントを作成できます。
             </p>
           </div>
           <div className="mt-6 space-y-4 rounded-2xl border border-border/60 bg-white/90 p-6">
