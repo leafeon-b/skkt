@@ -55,6 +55,8 @@ const createMockUserRepository = (
   findPasswordChangedAt: vi.fn(),
   updatePasswordHash: vi.fn(),
   createUser: vi.fn(),
+  saveImageData: vi.fn().mockResolvedValue(undefined),
+  findImageData: vi.fn().mockResolvedValue(null),
   ...overrides,
 });
 

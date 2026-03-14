@@ -137,6 +137,34 @@ export const createPrismaUserRepository = (
     });
   },
 
+  async saveImageData(
+    id: UserId,
+    data: Buffer,
+    mimeType: string,
+  ): Promise<void> {
+    await client.user.update({
+      where: { id: toPersistenceId(id) },
+      data: {
+        imageData: new Uint8Array(data),
+        imageMimeType: mimeType,
+        image: `/api/avatar/${toPersistenceId(id)}`,
+      },
+    });
+  },
+
+  async findImageData(
+    id: UserId,
+  ): Promise<{ data: Buffer; mimeType: string } | null> {
+    const found = await client.user.findUnique({
+      where: { id: toPersistenceId(id) },
+      select: { imageData: true, imageMimeType: true },
+    });
+    if (!found?.imageData || !found.imageMimeType) {
+      return null;
+    }
+    return { data: Buffer.from(found.imageData), mimeType: found.imageMimeType };
+  },
+
   async createUser(data: SignupData): Promise<UserId> {
     try {
       const user = await client.user.create({

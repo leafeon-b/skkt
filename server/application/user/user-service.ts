@@ -12,6 +12,13 @@ import {
 import { USER_PASSWORD_MAX_LENGTH } from "@/server/domain/models/user/user";
 
 const MIN_PASSWORD_LENGTH = 8;
+const AVATAR_MAX_SIZE = 2 * 1024 * 1024; // 2MB
+const AVATAR_ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+] as const;
 
 type AccessService = ReturnType<typeof createAccessService>;
 
@@ -126,5 +133,36 @@ export const createUserService = (deps: UserServiceDeps) => ({
       throw new ForbiddenError();
     }
     await deps.userRepository.updateProfileVisibility(actorId, visibility);
+  },
+
+  async uploadAvatar(
+    actorId: UserId,
+    fileBuffer: Buffer,
+    mimeType: string,
+  ): Promise<void> {
+    const user = await deps.userRepository.findById(actorId);
+    if (!user) {
+      throw new ForbiddenError();
+    }
+
+    if (fileBuffer.length > AVATAR_MAX_SIZE) {
+      throw new BadRequestError("File size exceeds 2MB limit");
+    }
+
+    if (
+      !AVATAR_ALLOWED_MIME_TYPES.includes(
+        mimeType as (typeof AVATAR_ALLOWED_MIME_TYPES)[number],
+      )
+    ) {
+      throw new BadRequestError("Unsupported image format");
+    }
+
+    await deps.userRepository.saveImageData(actorId, fileBuffer, mimeType);
+  },
+
+  async findImageData(
+    userId: UserId,
+  ): Promise<{ data: Buffer; mimeType: string } | null> {
+    return deps.userRepository.findImageData(userId);
   },
 });

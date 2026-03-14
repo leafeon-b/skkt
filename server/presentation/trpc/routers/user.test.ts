@@ -18,6 +18,8 @@ const createTestContext = (
     updateProfile: vi.fn(),
     changePassword: vi.fn(),
     updateProfileVisibility: vi.fn(),
+    uploadAvatar: vi.fn().mockResolvedValue(undefined),
+    findImageData: vi.fn().mockResolvedValue(null),
   };
 
   const context: Context = {

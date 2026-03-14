@@ -11,6 +11,8 @@ import { randomUUID } from "crypto";
 type UserRecord = User & {
   passwordHash: string | null;
   passwordChangedAt: Date | null;
+  imageData?: Buffer;
+  imageMimeType?: string;
 };
 
 export type UserStore = Map<string, UserRecord>;
@@ -100,6 +102,29 @@ export const createInMemoryUserRepository = (
     if (existing) {
       store.set(id, { ...existing, profileVisibility: visibility });
     }
+  },
+
+  async saveImageData(
+    id: UserId,
+    data: Buffer,
+    mimeType: string,
+  ): Promise<void> {
+    const existing = store.get(id);
+    if (existing) {
+      existing.imageData = data;
+      existing.imageMimeType = mimeType;
+      existing.image = `/api/avatar/${id}`;
+    }
+  },
+
+  async findImageData(
+    id: UserId,
+  ): Promise<{ data: Buffer; mimeType: string } | null> {
+    const existing = store.get(id);
+    if (existing?.imageData && existing?.imageMimeType) {
+      return { data: existing.imageData, mimeType: existing.imageMimeType };
+    }
+    return null;
   },
 
   async createUser(data: SignupData): Promise<UserId> {

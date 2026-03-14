@@ -1,6 +1,9 @@
 import { after } from "next/server";
 import { env } from "@/server/env";
-import { createGetSession } from "@/server/application/auth/session";
+import {
+  createGetSession,
+  createGetSessionUserId,
+} from "@/server/application/auth/session";
 import { createServiceContainer } from "@/server/infrastructure/service-container";
 import type { ServiceContainer } from "@/server/infrastructure/service-container";
 import { toUserId } from "@/server/domain/common/ids";
@@ -26,6 +29,9 @@ import { noopEmailSender } from "@/server/infrastructure/email/noop-email-sender
 import { createUnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
 
 const getSession = createGetSession(nextAuthSessionService);
+
+/** @internal Route Handler 等から認証済みユーザーIDを取得する */
+export const getSessionUserId = createGetSessionUserId(nextAuthSessionService);
 const japaneseHolidayProvider = createJapaneseHolidayProvider();
 const emailSender = env.RESEND_API_KEY
   ? createResendEmailSender(env.RESEND_API_KEY)
