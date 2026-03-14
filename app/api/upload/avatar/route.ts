@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { buildServiceContainer } from "@/server/presentation/trpc/context";
-import { createGetSessionUserId } from "@/server/application/auth/session";
-import { nextAuthSessionService } from "@/server/infrastructure/auth/nextauth-session-service";
+import {
+  buildServiceContainer,
+  getSessionUserId,
+} from "@/server/presentation/trpc/context";
 import { toUserId } from "@/server/domain/common/ids";
 import { BadRequestError, UnauthorizedError } from "@/server/domain/common/errors";
-
-const getSessionUserId = createGetSessionUserId(nextAuthSessionService);
 
 export async function POST(request: Request) {
   let actorId: string;

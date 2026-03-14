@@ -159,4 +159,10 @@ export const createUserService = (deps: UserServiceDeps) => ({
 
     await deps.userRepository.saveImageData(actorId, fileBuffer, mimeType);
   },
+
+  async findImageData(
+    userId: UserId,
+  ): Promise<{ data: Buffer; mimeType: string } | null> {
+    return deps.userRepository.findImageData(userId);
+  },
 });

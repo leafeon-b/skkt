@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prismaUserRepository } from "@/server/infrastructure/repository/user/prisma-user-repository";
+import { buildServiceContainer } from "@/server/presentation/trpc/context";
 import { toUserId } from "@/server/domain/common/ids";
 
 export async function GET(
@@ -7,7 +7,8 @@ export async function GET(
   { params }: { params: Promise<{ userId: string }> },
 ) {
   const { userId } = await params;
-  const imageData = await prismaUserRepository.findImageData(toUserId(userId));
+  const { userService } = buildServiceContainer();
+  const imageData = await userService.findImageData(toUserId(userId));
 
   if (!imageData) {
     return new NextResponse(null, { status: 404 });
