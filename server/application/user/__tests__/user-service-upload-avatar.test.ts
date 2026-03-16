@@ -121,14 +121,16 @@ describe("uploadAvatar", () => {
     ).rejects.toThrow(BadRequestError);
   });
 
-  test("magic bytesが宣言されたMIMEタイプと一致しない場合 BadRequestError がスローされる", async () => {
+  test("クライアント提供MIMEタイプと実際のバイト内容が異なる場合、検出されたMIMEタイプで保存される", async () => {
     addTestUser();
     // JPEG magic bytes with PNG MIME type
     const jpegBuffer = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00]);
 
-    await expect(
-      service.uploadAvatar(actorId, jpegBuffer, "image/png"),
-    ).rejects.toThrow(BadRequestError);
+    await service.uploadAvatar(actorId, jpegBuffer, "image/png");
+
+    const stored = userStore.get(actorId);
+    expect(stored?.imageData).toEqual(jpegBuffer);
+    expect(stored?.imageMimeType).toBe("image/jpeg");
   });
 
   test.each([
@@ -179,6 +181,15 @@ describe("uploadAvatar", () => {
 
     await expect(
       service.uploadAvatar(actorId, wavBuffer, "image/webp"),
+    ).rejects.toThrow(BadRequestError);
+  });
+
+  test("どのシグネチャにも一致しないバイト列で BadRequestError がスローされる", async () => {
+    addTestUser();
+    const unknownBuffer = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+
+    await expect(
+      service.uploadAvatar(actorId, unknownBuffer, "image/png"),
     ).rejects.toThrow(BadRequestError);
   });
 });
