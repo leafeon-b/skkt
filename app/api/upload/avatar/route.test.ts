@@ -53,7 +53,9 @@ describe("POST /api/upload/avatar", () => {
   });
 
   test("アップロード成功時に200とsuccess:trueが返る", async () => {
-    const file = new File(["fake-image"], "avatar.png", {
+    // PNG magic bytes
+    const pngData = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x00, 0x00]);
+    const file = new File([pngData], "avatar.png", {
       type: "image/png",
     });
     const res = await POST(createFormDataRequest(file));
