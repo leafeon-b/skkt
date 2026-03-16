@@ -80,8 +80,14 @@ export const createUserService = (deps: UserServiceDeps) => ({
 
     const passwordHash =
       await deps.userRepository.findPasswordHashById(actorId);
-    if (passwordHash === null) {
-      throw new BadRequestError("OAuth users cannot change email");
+    const isOAuthUser = passwordHash === null;
+
+    if (isOAuthUser) {
+      if (email !== user.email) {
+        throw new BadRequestError("OAuth users cannot change email");
+      }
+      await deps.userRepository.updateProfile(actorId, name, user.email);
+      return;
     }
 
     const exists = await deps.userRepository.emailExists(email, actorId);
