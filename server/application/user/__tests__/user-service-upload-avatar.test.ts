@@ -103,4 +103,30 @@ describe("uploadAvatar", () => {
       service.uploadAvatar(actorId, jpegBuffer, "image/png"),
     ).rejects.toThrow(BadRequestError);
   });
+
+  test("正当なWebPファイルがアップロード成功する", async () => {
+    addTestUser();
+    // RIFF....WEBP header (offset 0: RIFF, offset 8: WEBP)
+    const webpBuffer = Buffer.from([
+      0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50,
+    ]);
+
+    await service.uploadAvatar(actorId, webpBuffer, "image/webp");
+
+    const stored = userStore.get(actorId);
+    expect(stored?.imageData).toEqual(webpBuffer);
+    expect(stored?.imageMimeType).toBe("image/webp");
+  });
+
+  test("非WebP RIFFファイルが image/webp として拒否される", async () => {
+    addTestUser();
+    // RIFF....WAVE header (valid RIFF but not WebP)
+    const wavBuffer = Buffer.from([
+      0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+    ]);
+
+    await expect(
+      service.uploadAvatar(actorId, wavBuffer, "image/webp"),
+    ).rejects.toThrow(BadRequestError);
+  });
 });

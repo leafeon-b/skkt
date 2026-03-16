@@ -20,11 +20,16 @@ const AVATAR_ALLOWED_MIME_TYPES = [
   "image/gif",
 ] as const;
 
-const AVATAR_MAGIC_BYTES: Record<string, number[]> = {
-  "image/png": [0x89, 0x50, 0x4e, 0x47],
-  "image/jpeg": [0xff, 0xd8, 0xff],
-  "image/webp": [0x52, 0x49, 0x46, 0x46],
-  "image/gif": [0x47, 0x49, 0x46, 0x38],
+type MagicBytesSegment = { offset: number; bytes: number[] };
+
+const AVATAR_MAGIC_BYTES: Record<string, MagicBytesSegment[]> = {
+  "image/png": [{ offset: 0, bytes: [0x89, 0x50, 0x4e, 0x47] }],
+  "image/jpeg": [{ offset: 0, bytes: [0xff, 0xd8, 0xff] }],
+  "image/webp": [
+    { offset: 0, bytes: [0x52, 0x49, 0x46, 0x46] },
+    { offset: 8, bytes: [0x57, 0x45, 0x42, 0x50] },
+  ],
+  "image/gif": [{ offset: 0, bytes: [0x47, 0x49, 0x46, 0x38] }],
 };
 
 type AccessService = ReturnType<typeof createAccessService>;
@@ -164,11 +169,12 @@ export const createUserService = (deps: UserServiceDeps) => ({
       throw new BadRequestError("Unsupported image format");
     }
 
-    const expectedBytes = AVATAR_MAGIC_BYTES[mimeType];
-    if (expectedBytes) {
-      const header = fileBuffer.subarray(0, expectedBytes.length);
-      const matches = expectedBytes.every(
-        (byte, index) => header[index] === byte,
+    const segments = AVATAR_MAGIC_BYTES[mimeType];
+    if (segments) {
+      const matches = segments.every((segment) =>
+        segment.bytes.every(
+          (byte, index) => fileBuffer[segment.offset + index] === byte,
+        ),
       );
       if (!matches) {
         throw new BadRequestError(
