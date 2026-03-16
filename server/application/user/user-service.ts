@@ -169,31 +169,39 @@ export const createUserService = (deps: UserServiceDeps) => ({
       throw new BadRequestError("Unsupported image format");
     }
 
-    const segments = AVATAR_MAGIC_BYTES[mimeType];
-    if (segments) {
+    // Detect MIME type from magic bytes (scan all allowed types)
+    let detectedMimeType: string | null = null;
+    for (const [candidateMime, segments] of Object.entries(
+      AVATAR_MAGIC_BYTES,
+    )) {
       const minRequired = segments.reduce(
         (max, segment) => Math.max(max, segment.offset + segment.bytes.length),
         0,
       );
-      if (fileBuffer.length < minRequired) {
-        throw new BadRequestError(
-          "File content does not match declared MIME type",
-        );
-      }
+      if (fileBuffer.length < minRequired) continue;
 
       const matches = segments.every((segment) =>
         segment.bytes.every(
           (byte, index) => fileBuffer[segment.offset + index] === byte,
         ),
       );
-      if (!matches) {
-        throw new BadRequestError(
-          "File content does not match declared MIME type",
-        );
+      if (matches) {
+        detectedMimeType = candidateMime;
+        break;
       }
     }
 
-    await deps.userRepository.saveImageData(actorId, fileBuffer, mimeType);
+    if (detectedMimeType === null) {
+      throw new BadRequestError(
+        "File content does not match any supported image format",
+      );
+    }
+
+    await deps.userRepository.saveImageData(
+      actorId,
+      fileBuffer,
+      detectedMimeType,
+    );
   },
 
   async findImageData(
