@@ -61,15 +61,42 @@ describe("uploadAvatar", () => {
   const validBuffer = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0x00]);
   const validMimeType = "image/png";
 
-  test("アップロード成功時にリポジトリにデータが保存される", async () => {
-    addTestUser();
+  test.each([
+    {
+      format: "PNG",
+      buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0x00]),
+      mimeType: "image/png",
+    },
+    {
+      format: "JPEG",
+      buffer: Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00]),
+      mimeType: "image/jpeg",
+    },
+    {
+      format: "WebP",
+      buffer: Buffer.from([
+        0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42,
+        0x50,
+      ]),
+      mimeType: "image/webp",
+    },
+    {
+      format: "GIF",
+      buffer: Buffer.from([0x47, 0x49, 0x46, 0x38, 0x00, 0x00]),
+      mimeType: "image/gif",
+    },
+  ])(
+    "正当な$formatファイルがアップロード成功する",
+    async ({ buffer, mimeType }) => {
+      addTestUser();
 
-    await service.uploadAvatar(actorId, validBuffer, validMimeType);
+      await service.uploadAvatar(actorId, buffer, mimeType);
 
-    const stored = userStore.get(actorId);
-    expect(stored?.imageData).toEqual(validBuffer);
-    expect(stored?.imageMimeType).toBe(validMimeType);
-  });
+      const stored = userStore.get(actorId);
+      expect(stored?.imageData).toEqual(buffer);
+      expect(stored?.imageMimeType).toBe(mimeType);
+    },
+  );
 
   test("存在しないユーザーで ForbiddenError がスローされる", async () => {
     await expect(
@@ -102,20 +129,6 @@ describe("uploadAvatar", () => {
     await expect(
       service.uploadAvatar(actorId, jpegBuffer, "image/png"),
     ).rejects.toThrow(BadRequestError);
-  });
-
-  test("正当なWebPファイルがアップロード成功する", async () => {
-    addTestUser();
-    // RIFF....WEBP header (offset 0: RIFF, offset 8: WEBP)
-    const webpBuffer = Buffer.from([
-      0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50,
-    ]);
-
-    await service.uploadAvatar(actorId, webpBuffer, "image/webp");
-
-    const stored = userStore.get(actorId);
-    expect(stored?.imageData).toEqual(webpBuffer);
-    expect(stored?.imageMimeType).toBe("image/webp");
   });
 
   test("非WebP RIFFファイルが image/webp として拒否される", async () => {
