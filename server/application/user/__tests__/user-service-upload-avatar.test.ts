@@ -57,7 +57,8 @@ beforeEach(() => {
 });
 
 describe("uploadAvatar", () => {
-  const validBuffer = Buffer.from("fake-image-data");
+  // PNG magic bytes: 0x89 0x50 0x4E 0x47
+  const validBuffer = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0x00]);
   const validMimeType = "image/png";
 
   test("アップロード成功時にリポジトリにデータが保存される", async () => {
@@ -90,6 +91,16 @@ describe("uploadAvatar", () => {
 
     await expect(
       service.uploadAvatar(actorId, validBuffer, "text/plain"),
+    ).rejects.toThrow(BadRequestError);
+  });
+
+  test("magic bytesが宣言されたMIMEタイプと一致しない場合 BadRequestError がスローされる", async () => {
+    addTestUser();
+    // JPEG magic bytes with PNG MIME type
+    const jpegBuffer = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00]);
+
+    await expect(
+      service.uploadAvatar(actorId, jpegBuffer, "image/png"),
     ).rejects.toThrow(BadRequestError);
   });
 });
