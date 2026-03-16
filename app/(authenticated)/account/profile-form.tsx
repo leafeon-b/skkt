@@ -3,12 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GENERIC_ERROR_MESSAGE } from "@/app/constants/error-messages";
+import { PROFILE_ERROR_MESSAGES } from "@/app/components/profile-form-messages";
 import { trpc } from "@/lib/trpc/client";
 import { useSession } from "next-auth/react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
+import {
+  USER_NAME_MAX_LENGTH,
+  USER_EMAIL_MAX_LENGTH,
+} from "@/server/domain/models/user/user";
 
 const AVATAR_MAX_SIZE = 2 * 1024 * 1024;
 const AVATAR_ACCEPTED = "image/jpeg,image/png,image/webp,image/gif";
@@ -31,6 +36,7 @@ export function ProfileFormInner({
   const [imagePreview, setImagePreview] = useState<string | null>(initialImage);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateProfile = trpc.users.updateProfile.useMutation({
@@ -108,9 +114,32 @@ export function ProfileFormInner({
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (updateProfile.isPending) return;
+
+    const newErrors: { name?: string; email?: string } = {};
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (trimmedName && [...trimmedName].length > USER_NAME_MAX_LENGTH) {
+      newErrors.name = PROFILE_ERROR_MESSAGES.nameTooLong;
+    }
+
+    if (hasPassword) {
+      if (!trimmedEmail) {
+        newErrors.email = PROFILE_ERROR_MESSAGES.emailRequired;
+      } else if (trimmedEmail.length > USER_EMAIL_MAX_LENGTH) {
+        newErrors.email = PROFILE_ERROR_MESSAGES.emailTooLong;
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
     updateProfile.mutate({
-      name: name.trim() || null,
-      email: email.trim() || null,
+      name: trimmedName || null,
+      email: trimmedEmail,
     });
   };
 
@@ -178,10 +207,21 @@ export function ProfileFormInner({
           <Input
             id="profile-name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+            }}
             placeholder="名前"
+            maxLength={USER_NAME_MAX_LENGTH}
             className="bg-white"
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? "profile-name-error" : undefined}
           />
+          {errors.name && (
+            <p id="profile-name-error" className="text-xs text-red-600">
+              {errors.name}
+            </p>
+          )}
         </div>
         <div className="flex flex-col gap-1.5">
           <label
@@ -194,12 +234,29 @@ export function ProfileFormInner({
             id="profile-email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+            }}
             placeholder="メールアドレス"
+            required={hasPassword}
+            maxLength={USER_EMAIL_MAX_LENGTH}
             className="bg-white"
             disabled={!hasPassword}
-            aria-describedby={!hasPassword ? "profile-email-desc" : undefined}
+            aria-invalid={!!errors.email}
+            aria-describedby={
+              errors.email
+                ? "profile-email-error"
+                : !hasPassword
+                  ? "profile-email-desc"
+                  : undefined
+            }
           />
+          {errors.email && (
+            <p id="profile-email-error" className="text-xs text-red-600">
+              {errors.email}
+            </p>
+          )}
           {!hasPassword && (
             <p
               id="profile-email-desc"

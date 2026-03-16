@@ -93,16 +93,6 @@ describe("updateProfile", () => {
     expect(stored?.email).toBe("new@example.com");
   });
 
-  test("メールがnullの場合はメール重複チェックをスキップ", async () => {
-    addTestUser();
-
-    await service.updateProfile(actorId, "NewName", null);
-
-    const stored = userStore.get(actorId);
-    expect(stored?.name).toBe("NewName");
-    expect(stored?.email).toBeNull();
-  });
-
   test("メール重複時に ConflictError", async () => {
     addTestUser("hashed:pass");
     // 別のユーザーが同じメールを使用中
@@ -141,25 +131,6 @@ describe("updateProfile", () => {
     ).rejects.toThrow(ConflictError);
 
     userRepository.updateProfile = originalUpdateProfile;
-  });
-
-  test("name=null, email=null の場合はメール重複チェックをスキップして更新する", async () => {
-    addTestUser();
-
-    await service.updateProfile(actorId, null, null);
-
-    const stored = userStore.get(actorId);
-    expect(stored?.name).toBeNull();
-    expect(stored?.email).toBeNull();
-  });
-
-  test("OAuthユーザーでもメールがnullなら名前のみ更新できる", async () => {
-    addTestUser(null);
-
-    await service.updateProfile(actorId, "NewName", null);
-
-    const stored = userStore.get(actorId);
-    expect(stored?.name).toBe("NewName");
   });
 
   test("OAuthユーザー（パスワード未設定）がメール変更を試みた場合 BadRequest エラー", async () => {

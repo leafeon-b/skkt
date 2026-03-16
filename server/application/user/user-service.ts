@@ -71,24 +71,22 @@ export const createUserService = (deps: UserServiceDeps) => ({
   async updateProfile(
     actorId: UserId,
     name: string | null,
-    email: string | null,
+    email: string,
   ): Promise<void> {
     const user = await deps.userRepository.findById(actorId);
     if (!user) {
       throw new ForbiddenError();
     }
 
-    if (email !== null) {
-      const passwordHash =
-        await deps.userRepository.findPasswordHashById(actorId);
-      if (passwordHash === null) {
-        throw new BadRequestError("OAuth users cannot change email");
-      }
+    const passwordHash =
+      await deps.userRepository.findPasswordHashById(actorId);
+    if (passwordHash === null) {
+      throw new BadRequestError("OAuth users cannot change email");
+    }
 
-      const exists = await deps.userRepository.emailExists(email, actorId);
-      if (exists) {
-        throw new ConflictError("Email already in use");
-      }
+    const exists = await deps.userRepository.emailExists(email, actorId);
+    if (exists) {
+      throw new ConflictError("Email already in use");
     }
 
     await deps.userRepository.updateProfile(actorId, name, email);
