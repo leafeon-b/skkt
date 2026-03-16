@@ -133,11 +133,21 @@ describe("updateProfile", () => {
     userRepository.updateProfile = originalUpdateProfile;
   });
 
-  test("OAuthユーザー（パスワード未設定）がメール変更を試みた場合 BadRequest エラー", async () => {
+  test("OAuthユーザーが同一メールで名前を更新できる", async () => {
+    addTestUser(null);
+
+    await service.updateProfile(actorId, "NewName", "taro@example.com");
+
+    const stored = userStore.get(actorId);
+    expect(stored?.name).toBe("NewName");
+    expect(stored?.email).toBe("taro@example.com");
+  });
+
+  test("OAuthユーザーがメール変更を試みた場合 BadRequest エラー", async () => {
     addTestUser(null);
 
     await expect(
-      service.updateProfile(actorId, "NewName", "new@example.com"),
+      service.updateProfile(actorId, "NewName", "different@example.com"),
     ).rejects.toThrow("OAuth users cannot change email");
 
     // ストアが変更されていないことを検証
