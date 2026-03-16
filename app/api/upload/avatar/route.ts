@@ -33,6 +33,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (file.size > 2 * 1024 * 1024) {
+    return NextResponse.json(
+      { message: "ファイルサイズが大きすぎます" },
+      { status: 400 },
+    );
+  }
+
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   const mimeType = file.type;

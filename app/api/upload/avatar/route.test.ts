@@ -98,5 +98,8 @@ describe("POST /api/upload/avatar", () => {
     const res = await POST(createFormDataRequest(file));
 
     expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({
+      message: "ファイルサイズが大きすぎます",
+    });
   });
 });
