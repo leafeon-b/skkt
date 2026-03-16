@@ -48,13 +48,13 @@ describe("updateProfileInputSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  test("メールアドレスがnullの場合はバリデーション成功", () => {
+  test("メールアドレスがnullの場合はバリデーション失敗", () => {
     const result = updateProfileInputSchema.safeParse({
       name: "テスト",
       email: null,
     });
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 
   test("空白のみのメールアドレスはバリデーション失敗", () => {
