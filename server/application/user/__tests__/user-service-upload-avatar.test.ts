@@ -131,6 +131,45 @@ describe("uploadAvatar", () => {
     ).rejects.toThrow(BadRequestError);
   });
 
+  test.each([
+    {
+      format: "PNG",
+      buffer: Buffer.from([0x89, 0x50, 0x4e]),
+      mimeType: "image/png",
+      minRequired: 4,
+    },
+    {
+      format: "JPEG",
+      buffer: Buffer.from([0xff, 0xd8]),
+      mimeType: "image/jpeg",
+      minRequired: 3,
+    },
+    {
+      format: "WebP",
+      buffer: Buffer.from([
+        0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42,
+      ]),
+      mimeType: "image/webp",
+      minRequired: 12,
+    },
+    {
+      format: "GIF",
+      buffer: Buffer.from([0x47, 0x49, 0x46]),
+      mimeType: "image/gif",
+      minRequired: 4,
+    },
+  ])(
+    "$format の最小必要バイト数($minRequired)未満のバッファで BadRequestError がスローされる",
+    async ({ buffer, mimeType, minRequired }) => {
+      addTestUser();
+      expect(buffer.length).toBeLessThan(minRequired);
+
+      await expect(
+        service.uploadAvatar(actorId, buffer, mimeType),
+      ).rejects.toThrow(BadRequestError);
+    },
+  );
+
   test("非WebP RIFFファイルが image/webp として拒否される", async () => {
     addTestUser();
     // RIFF....WAVE header (valid RIFF but not WebP)
