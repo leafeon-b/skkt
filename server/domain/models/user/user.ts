@@ -17,6 +17,7 @@ export type User = {
   name: string | null;
   email: string | null;
   image: string | null;
+  hasCustomImage: boolean;
   profileVisibility: ProfileVisibility;
   createdAt: Date;
 };
@@ -26,6 +27,7 @@ export type UserCreateParams = {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  hasCustomImage?: boolean;
   profileVisibility?: ProfileVisibility;
   createdAt?: Date;
 };
@@ -35,6 +37,7 @@ export const createUser = (params: UserCreateParams): User => ({
   name: params.name ?? null,
   email: params.email ?? null,
   image: params.image ?? null,
+  hasCustomImage: params.hasCustomImage ?? false,
   profileVisibility: params.profileVisibility ?? ProfileVisibility.PUBLIC,
   createdAt: params.createdAt ?? new Date(),
 });

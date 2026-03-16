@@ -47,6 +47,7 @@ describe("POST /api/upload/avatar", () => {
       name: "Taro",
       email: "taro@example.com",
       image: null,
+      hasCustomImage: false,
       profileVisibility: "PUBLIC",
       createdAt: new Date(),
     });

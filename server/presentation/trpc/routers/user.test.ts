@@ -100,6 +100,7 @@ describe("user tRPC ルーター", () => {
           name: "Taro",
           email: "taro@example.com",
           image: null,
+          hasCustomImage: false,
           profileVisibility: "PUBLIC",
           createdAt: new Date("2024-01-01"),
         },

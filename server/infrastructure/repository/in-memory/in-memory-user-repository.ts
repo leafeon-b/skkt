@@ -113,7 +113,6 @@ export const createInMemoryUserRepository = (
     if (existing) {
       existing.imageData = data;
       existing.imageMimeType = mimeType;
-      existing.image = `/api/avatar/${id}`;
     }
   },
 
@@ -139,6 +138,7 @@ export const createInMemoryUserRepository = (
       name: data.name,
       email: data.email,
       image: null,
+      hasCustomImage: false,
       profileVisibility: "PUBLIC",
       createdAt: new Date(),
       passwordHash: data.passwordHash,
@@ -155,6 +155,7 @@ function toUser(record: UserRecord): User {
     name: record.name,
     email: record.email,
     image: record.image,
+    hasCustomImage: record.imageMimeType != null,
     profileVisibility: record.profileVisibility,
     createdAt: record.createdAt,
   };
