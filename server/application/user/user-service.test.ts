@@ -111,6 +111,7 @@ describe("updateProfile", () => {
       name: "Other",
       email: "taken@example.com",
       image: null,
+      hasCustomImage: false,
       profileVisibility: "PUBLIC",
       createdAt: new Date(),
       passwordHash: null,

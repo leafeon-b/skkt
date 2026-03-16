@@ -147,7 +147,6 @@ export const createPrismaUserRepository = (
       data: {
         imageData: new Uint8Array(data),
         imageMimeType: mimeType,
-        image: `/api/avatar/${toPersistenceId(id)}`,
       },
     });
   },

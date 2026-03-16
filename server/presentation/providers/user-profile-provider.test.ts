@@ -31,6 +31,7 @@ const makeUser = (uid: string, name: string, visibility: "PUBLIC" | "PRIVATE") =
   name,
   email: null,
   image: null,
+  hasCustomImage: false,
   profileVisibility: visibility,
   createdAt: NOW,
   passwordChangedAt: null,

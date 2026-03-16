@@ -10,6 +10,7 @@ export const mapUserToDomain = (user: PrismaUser): User =>
     name: user.name,
     email: user.email,
     image: user.image,
+    hasCustomImage: user.imageMimeType != null,
     profileVisibility: user.profileVisibility,
     createdAt: user.createdAt,
   });

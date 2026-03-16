@@ -151,6 +151,7 @@ describe("SignupService", () => {
       passwordChangedAt: null,
       name: "Existing",
       image: null,
+      hasCustomImage: false,
       profileVisibility: "PUBLIC",
       createdAt: new Date(),
     });
@@ -173,6 +174,7 @@ describe("SignupService", () => {
       passwordChangedAt: null,
       name: "Existing",
       image: null,
+      hasCustomImage: false,
       profileVisibility: "PUBLIC",
       createdAt: new Date(),
     });

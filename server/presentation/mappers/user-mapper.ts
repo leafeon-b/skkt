@@ -14,7 +14,9 @@ export const toUserDto = (user: User): UserDto =>
     ...user,
     name: normalizeOptionalText(user.name),
     email: normalizeOptionalText(user.email),
-    image: normalizeOptionalText(user.image),
+    image: user.hasCustomImage
+      ? `/api/avatar/${user.id}`
+      : normalizeOptionalText(user.image),
   });
 
 export const toUserDtos = (users: User[]): UserDto[] => users.map(toUserDto);

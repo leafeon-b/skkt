@@ -50,6 +50,7 @@ const makeUser = (uid: string, name: string) => ({
   name,
   email: null,
   image: null,
+  hasCustomImage: false,
   profileVisibility: "PUBLIC" as const,
   createdAt: NOW,
 });

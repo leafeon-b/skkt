@@ -29,7 +29,28 @@ describe("User マッパー", () => {
     expect(user.name).toBe("Alice");
     expect(user.email).toBe("alice@example.com");
     expect(user.image).toBe("https://example.com/icon.png");
+    expect(user.hasCustomImage).toBe(false);
     expect(user.createdAt.toISOString()).toBe("2024-01-01T00:00:00.000Z");
+  });
+
+  test("imageMimeType が存在する場合 hasCustomImage が true になる", () => {
+    const prismaUser: PrismaUser = {
+      id: "user-2",
+      name: "Bob",
+      email: "bob@example.com",
+      emailVerified: null,
+      image: null,
+      passwordHash: null,
+      passwordChangedAt: null,
+      profileVisibility: "PUBLIC",
+      imageData: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+      imageMimeType: "image/png",
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+    };
+
+    const user = mapUserToDomain(prismaUser);
+
+    expect(user.hasCustomImage).toBe(true);
   });
 
   test("ドメイン User を永続化モデルに変換できる", () => {
@@ -51,5 +72,6 @@ describe("User マッパー", () => {
       profileVisibility: "PUBLIC",
       createdAt: new Date("2024-01-01T00:00:00Z"),
     });
+    expect(mapped).not.toHaveProperty("hasCustomImage");
   });
 });
