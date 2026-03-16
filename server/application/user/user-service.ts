@@ -171,6 +171,16 @@ export const createUserService = (deps: UserServiceDeps) => ({
 
     const segments = AVATAR_MAGIC_BYTES[mimeType];
     if (segments) {
+      const minRequired = segments.reduce(
+        (max, segment) => Math.max(max, segment.offset + segment.bytes.length),
+        0,
+      );
+      if (fileBuffer.length < minRequired) {
+        throw new BadRequestError(
+          "File content does not match declared MIME type",
+        );
+      }
+
       const matches = segments.every((segment) =>
         segment.bytes.every(
           (byte, index) => fileBuffer[segment.offset + index] === byte,
