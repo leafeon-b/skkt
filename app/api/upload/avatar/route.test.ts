@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type UserId } from "@/server/domain/common/ids";
 import { UnauthorizedError } from "@/server/domain/common/errors";
 
-vi.mock("@/server/env", () => ({ env: {} }));
+vi.mock("@/server/env", () => ({
+  env: { NEXTAUTH_URL: "http://localhost:3000" },
+}));
 
 import {
   createMockDeps,
@@ -27,14 +29,23 @@ const { POST } = await import("./route");
 
 const actorId = "user-1" as UserId;
 
-const createFormDataRequest = (file?: File) => {
+const createFormDataRequest = (
+  file?: File,
+  options?: { origin?: string | null },
+) => {
   const formData = new FormData();
   if (file) {
     formData.append("file", file);
   }
+  const headers: Record<string, string> = {};
+  const origin = options?.origin === undefined ? "http://localhost:3000" : options.origin;
+  if (origin !== null) {
+    headers["Origin"] = origin;
+  }
   return new Request("http://localhost/api/upload/avatar", {
     method: "POST",
     body: formData,
+    headers,
   });
 };
 
@@ -114,5 +125,31 @@ describe("POST /api/upload/avatar", () => {
     expect(await res.json()).toEqual({
       message: "ファイルサイズが大きすぎます",
     });
+  });
+
+  test("Originヘッダーが不正なオリジンの場合に403が返る", async () => {
+    const file = new File(["fake"], "avatar.png", { type: "image/png" });
+    const res = await POST(
+      createFormDataRequest(file, { origin: "https://evil.example.com" }),
+    );
+
+    expect(res.status).toBe(403);
+  });
+
+  test("Originヘッダーが未設定の場合に403が返る", async () => {
+    const file = new File(["fake"], "avatar.png", { type: "image/png" });
+    const res = await POST(createFormDataRequest(file, { origin: null }));
+
+    expect(res.status).toBe(403);
+  });
+
+  test("正当なOriginヘッダーの場合は処理が継続される", async () => {
+    const pngData = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x00, 0x00]);
+    const file = new File([pngData], "avatar.png", { type: "image/png" });
+    const res = await POST(
+      createFormDataRequest(file, { origin: "http://localhost:3000" }),
+    );
+
+    expect(res.status).toBe(200);
   });
 });
