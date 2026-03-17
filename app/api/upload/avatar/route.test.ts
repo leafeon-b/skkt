@@ -91,6 +91,18 @@ describe("POST /api/upload/avatar", () => {
     expect(res.status).toBe(400);
   });
 
+  test("0バイトファイル時に400が返る", async () => {
+    const file = new File([], "empty.png", {
+      type: "image/png",
+    });
+    const res = await POST(createFormDataRequest(file));
+
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({
+      message: "ファイルが空です",
+    });
+  });
+
   test("ファイルサイズ超過時に400が返る", async () => {
     const largeContent = new Uint8Array(2 * 1024 * 1024 + 1);
     const file = new File([largeContent], "large.png", {
