@@ -5,8 +5,16 @@ import {
 } from "@/server/presentation/trpc/context";
 import { toUserId } from "@/server/domain/common/ids";
 import { BadRequestError, UnauthorizedError } from "@/server/domain/common/errors";
+import { env } from "@/server/env";
 
 export async function POST(request: Request) {
+  if (env.NEXTAUTH_URL) {
+    const origin = request.headers.get("Origin");
+    const allowedOrigin = new URL(env.NEXTAUTH_URL).origin;
+    if (!origin || origin !== allowedOrigin) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+  }
   let actorId: string;
   try {
     actorId = await getSessionUserId();
