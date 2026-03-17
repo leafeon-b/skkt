@@ -161,6 +161,10 @@ export const createUserService = (deps: UserServiceDeps) => ({
       throw new ForbiddenError();
     }
 
+    if (fileBuffer.length === 0) {
+      throw new BadRequestError("File is empty");
+    }
+
     if (fileBuffer.length > AVATAR_MAX_SIZE) {
       throw new BadRequestError("File size exceeds 2MB limit");
     }
