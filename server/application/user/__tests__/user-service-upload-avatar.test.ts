@@ -104,6 +104,15 @@ describe("uploadAvatar", () => {
     ).rejects.toThrow(ForbiddenError);
   });
 
+  test("0バイトバッファで BadRequestError がスローされる", async () => {
+    addTestUser();
+    const emptyBuffer = Buffer.alloc(0);
+
+    await expect(
+      service.uploadAvatar(actorId, emptyBuffer, validMimeType),
+    ).rejects.toThrow(BadRequestError);
+  });
+
   test("ファイルサイズ超過（2MB超）で BadRequestError がスローされる", async () => {
     addTestUser();
     const largeBuffer = Buffer.alloc(2 * 1024 * 1024 + 1);
