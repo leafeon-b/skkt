@@ -33,6 +33,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (file.size === 0) {
+    return NextResponse.json(
+      { message: "ファイルが空です" },
+      { status: 400 },
+    );
+  }
+
   if (file.size > 2 * 1024 * 1024) {
     return NextResponse.json(
       { message: "ファイルサイズが大きすぎます" },
