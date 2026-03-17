@@ -82,20 +82,22 @@ export const createUserService = (deps: UserServiceDeps) => ({
       await deps.userRepository.findPasswordHashById(actorId);
     const isOAuthUser = passwordHash === null;
 
+    let finalEmail: string;
+
     if (isOAuthUser) {
       if (email !== user.email) {
         throw new BadRequestError("OAuth users cannot change email");
       }
-      await deps.userRepository.updateProfile(actorId, name, user.email);
-      return;
+      finalEmail = user.email;
+    } else {
+      const exists = await deps.userRepository.emailExists(email, actorId);
+      if (exists) {
+        throw new ConflictError("Email already in use");
+      }
+      finalEmail = email;
     }
 
-    const exists = await deps.userRepository.emailExists(email, actorId);
-    if (exists) {
-      throw new ConflictError("Email already in use");
-    }
-
-    await deps.userRepository.updateProfile(actorId, name, email);
+    await deps.userRepository.updateProfile(actorId, name, finalEmail);
   },
 
   async changePassword(
