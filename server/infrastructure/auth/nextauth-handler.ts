@@ -141,6 +141,18 @@ export const createAuthOptions = (deps: AuthDeps): AuthOptions => ({
         return {} as typeof token;
       }
 
+      try {
+        // 削除済みユーザーのセッションを無効化
+        const deletedAt =
+          await deps.userRepository.findDeletedAt(toUserId(rawUserId));
+        if (deletedAt) {
+          return {} as typeof token;
+        }
+      } catch (error) {
+        console.error("[auth] deletedAt check failed", error);
+        return {} as typeof token;
+      }
+
       if (token.iat) {
         try {
           const passwordChangedAt =
