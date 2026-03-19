@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 // TODO: ダークモード設計完了後に有効化する
 // import { useTheme } from "next-themes";
-import { User, LogOut, Trash2, Settings } from "lucide-react";
+import { User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -20,10 +20,6 @@ export default function UserMenu() {
 
   const handleLogout = () => {
     signOut({ callbackUrl: "/" });
-  };
-
-  const handleDeleteAccount = () => {
-    alert("アカウント削除機能は現在実装中です");
   };
 
   // TODO: ダークモード設計完了後に有効化する
@@ -75,13 +71,6 @@ export default function UserMenu() {
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           ログアウト
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleDeleteAccount}
-          className="text-destructive focus:text-destructive"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          アカウント削除
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
