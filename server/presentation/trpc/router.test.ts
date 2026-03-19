@@ -63,6 +63,7 @@ const createContext = () => {
     changePassword: vi.fn(),
     uploadAvatar: vi.fn().mockResolvedValue(undefined),
     findImageData: vi.fn().mockResolvedValue(null),
+    deleteAccount: vi.fn(),
   };
   const signupService = {
     signup: vi.fn(),

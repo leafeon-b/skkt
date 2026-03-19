@@ -100,4 +100,12 @@ export const userRouter = router({
         );
       }),
     ),
+
+  deleteAccount: protectedProcedure
+    .output(z.void())
+    .mutation(({ ctx }) =>
+      handleTrpcError(async () => {
+        await ctx.userService.deleteAccount(ctx.actorId);
+      }),
+    ),
 });

@@ -99,6 +99,8 @@ export const createMockDeps = (): MockDeps => ({
     createUser: vi.fn().mockResolvedValue("new-user-id" as UserId),
     saveImageData: vi.fn().mockResolvedValue(undefined),
     findImageData: vi.fn().mockResolvedValue(null),
+    findDeletedAt: vi.fn().mockResolvedValue(null),
+    deleteAccount: vi.fn().mockResolvedValue(undefined),
   },
   authzRepository: {
     isRegisteredUser: vi.fn().mockResolvedValue(false),

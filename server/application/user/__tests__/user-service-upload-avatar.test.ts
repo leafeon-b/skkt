@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createUserService } from "@/server/application/user/user-service";
 import { createAccessServiceStub } from "@/server/application/test-helpers/access-service-stub";
-import { createInMemoryUserRepository } from "@/server/infrastructure/repository/in-memory";
+import {
+  createInMemoryUserRepository,
+  createInMemoryCircleRepository,
+} from "@/server/infrastructure/repository/in-memory";
 import type { UserStore } from "@/server/infrastructure/repository/in-memory/in-memory-user-repository";
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
@@ -28,8 +31,11 @@ const changePasswordRateLimiter: RateLimiter = {
   reset: vi.fn(),
 };
 
+const circleRepository = createInMemoryCircleRepository();
+
 const service = createUserService({
   userRepository,
+  circleRepository,
   accessService,
   passwordHasher,
   changePasswordRateLimiter,
