@@ -126,6 +126,14 @@ export const createInMemoryUserRepository = (
     return null;
   },
 
+  async findDeletedAt(_id: UserId): Promise<Date | null> {
+    return null;
+  },
+
+  async deleteAccount(_id: UserId, _deletedAt: Date): Promise<void> {
+    // no-op for in-memory
+  },
+
   async createUser(data: SignupData): Promise<UserId> {
     for (const record of store.values()) {
       if (record.email === data.email) {

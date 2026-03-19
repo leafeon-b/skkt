@@ -20,6 +20,7 @@ const createTestContext = (
     updateProfileVisibility: vi.fn(),
     uploadAvatar: vi.fn().mockResolvedValue(undefined),
     findImageData: vi.fn().mockResolvedValue(null),
+    deleteAccount: vi.fn().mockResolvedValue(undefined),
   };
 
   const context: Context = {

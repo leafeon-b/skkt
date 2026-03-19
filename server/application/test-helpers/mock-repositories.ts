@@ -71,6 +71,8 @@ export const createMockUserRepository = () =>
     createUser: vi.fn(),
     saveImageData: vi.fn().mockResolvedValue(undefined),
     findImageData: vi.fn().mockResolvedValue(null),
+    findDeletedAt: vi.fn().mockResolvedValue(null),
+    deleteAccount: vi.fn().mockResolvedValue(undefined),
   }) satisfies UserRepository;
 
 export const createMockCircleInviteLinkRepository = () =>

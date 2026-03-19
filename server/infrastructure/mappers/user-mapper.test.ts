@@ -20,6 +20,7 @@ describe("User マッパー", () => {
       profileVisibility: "PUBLIC",
       imageData: null,
       imageMimeType: null,
+      deletedAt: null,
       createdAt: new Date("2024-01-01T00:00:00Z"),
     };
 
@@ -45,6 +46,7 @@ describe("User マッパー", () => {
       profileVisibility: "PUBLIC",
       imageData: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
       imageMimeType: "image/png",
+      deletedAt: null,
       createdAt: new Date("2024-01-01T00:00:00Z"),
     };
 

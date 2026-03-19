@@ -19,6 +19,7 @@ import { isPrismaUniqueConstraintError } from "@/server/infrastructure/repositor
 
 export const createPrismaUserRepository = (
   client: PrismaClientLike,
+  rootClient?: import("@/generated/prisma/client").PrismaClient,
 ): UserRepository => ({
   async findById(id: UserId): Promise<User | null> {
     const found = await client.user.findUnique({
@@ -186,6 +187,48 @@ export const createPrismaUserRepository = (
       throw error;
     }
   },
+
+  async findDeletedAt(id: UserId): Promise<Date | null> {
+    const found = await client.user.findUnique({
+      where: { id: toPersistenceId(id) },
+      select: { deletedAt: true },
+    });
+    return found?.deletedAt ?? null;
+  },
+
+  async deleteAccount(id: UserId, deletedAt: Date): Promise<void> {
+    const txClient = rootClient ?? prisma;
+    const pid = toPersistenceId(id);
+    await txClient.$transaction(async (tx) => {
+      // 1. CircleMembership を論理削除
+      await tx.circleMembership.updateMany({
+        where: { userId: pid, deletedAt: null },
+        data: { deletedAt },
+      });
+      // 2. CircleSessionMembership を論理削除
+      await tx.circleSessionMembership.updateMany({
+        where: { userId: pid, deletedAt: null },
+        data: { deletedAt },
+      });
+      // 3. 関連レコードを物理削除（論理削除ではCascadeが発火しないため明示的に削除）
+      await tx.circleInviteLink.deleteMany({ where: { createdByUserId: pid } });
+      await tx.account.deleteMany({ where: { userId: pid } });
+      await tx.session.deleteMany({ where: { userId: pid } });
+      await tx.notificationPreference.deleteMany({ where: { userId: pid } });
+      // 4. User の論理削除 + 個人情報消去
+      await tx.user.update({
+        where: { id: pid },
+        data: {
+          deletedAt,
+          email: null,
+          image: null,
+          passwordHash: null,
+          imageData: null,
+          imageMimeType: null,
+        },
+      });
+    });
+  },
 });
 
-export const prismaUserRepository = createPrismaUserRepository(prisma);
+export const prismaUserRepository = createPrismaUserRepository(prisma, prisma);

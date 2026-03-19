@@ -1,3 +1,4 @@
+import { DeleteAccountSection } from "@/app/(authenticated)/account/delete-account-section";
 import { NotificationForm } from "@/app/(authenticated)/account/notification-form";
 import { PasswordForm } from "@/app/(authenticated)/account/password-form";
 import { ProfileFormInner } from "@/app/(authenticated)/account/profile-form";
@@ -69,6 +70,22 @@ export default async function AccountPage() {
           <PasswordForm />
         </section>
       )}
+
+      <section
+        aria-labelledby="section-delete-account"
+        className="rounded-2xl border border-destructive/30 bg-white/85 p-6 shadow-sm"
+      >
+        <h2
+          id="section-delete-account"
+          className="mb-2 text-lg font-semibold text-destructive"
+        >
+          アカウント削除
+        </h2>
+        <p className="mb-4 text-sm text-(--brand-ink-muted)">
+          アカウントを削除すると、プロフィール情報や研究会の参加情報が削除されます。この操作は取り消せません。
+        </p>
+        <DeleteAccountSection />
+      </section>
     </div>
   );
 }

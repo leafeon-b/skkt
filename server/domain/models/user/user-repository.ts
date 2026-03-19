@@ -38,4 +38,6 @@ export type UserRepository = {
   findImageData(
     id: UserId,
   ): Promise<{ data: Buffer; mimeType: string } | null>;
+  findDeletedAt(id: UserId): Promise<Date | null>;
+  deleteAccount(id: UserId, deletedAt: Date): Promise<void>;
 };
