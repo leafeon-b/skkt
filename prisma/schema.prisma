@@ -51,6 +51,9 @@ model User {
 
   profileVisibility ProfileVisibility @default(PUBLIC)
 
+  /// 論理削除（アカウント削除時にセット）
+  deletedAt DateTime?
+
   circleMemberships        CircleMembership[]
   circleSessionMemberships CircleSessionMembership[]
 
@@ -89,7 +92,7 @@ model CircleInviteLink {
   createdAt       DateTime @default(now())
 
   circle    Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
-  createdBy User   @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+  createdBy User   @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
 
   @@index([circleId])
 }
