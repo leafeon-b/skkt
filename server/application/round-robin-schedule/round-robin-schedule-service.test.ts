@@ -86,7 +86,7 @@ beforeEach(async () => {
 
 describe("RoundRobinScheduleService", () => {
   describe("generateSchedule", () => {
-    test("スケジュールを生成できる（参加者からラウンドが生成され、保存される）", async () => {
+    test("順番を生成できる（参加者からラウンドが生成され、保存される）", async () => {
       await addMembers(4);
 
       const result = await service.generateSchedule({
@@ -105,7 +105,7 @@ describe("RoundRobinScheduleService", () => {
       expect(saved).toEqual(result);
     });
 
-    test("既存スケジュールがある場合、削除してから再生成する", async () => {
+    test("既存の順番がある場合、削除してから再生成する", async () => {
       await addMembers(3);
 
       const first = await service.generateSchedule({
@@ -151,7 +151,7 @@ describe("RoundRobinScheduleService", () => {
   });
 
   describe("getSchedule", () => {
-    test("スケジュールを取得できる", async () => {
+    test("順番を取得できる", async () => {
       await addMembers(3);
       const generated = await service.generateSchedule({
         actorId: ACTOR_ID,
@@ -167,7 +167,7 @@ describe("RoundRobinScheduleService", () => {
       expect(result).toEqual(generated);
     });
 
-    test("スケジュールが存在しない場合 null を返す", async () => {
+    test("順番が存在しない場合 null を返す", async () => {
       const result = await service.getSchedule({
         actorId: ACTOR_ID,
         circleId: CIRCLE_ID,
@@ -193,7 +193,7 @@ describe("RoundRobinScheduleService", () => {
   });
 
   describe("deleteSchedule", () => {
-    test("スケジュールを削除できる", async () => {
+    test("順番を削除できる", async () => {
       await addMembers(3);
       await service.generateSchedule({
         actorId: ACTOR_ID,
@@ -210,7 +210,7 @@ describe("RoundRobinScheduleService", () => {
       expect(result).toBeNull();
     });
 
-    test("スケジュールが存在しない場合でもエラーにならない（冪等）", async () => {
+    test("順番が存在しない場合でもエラーにならない（冪等）", async () => {
       await expect(
         service.deleteSchedule({
           actorId: ACTOR_ID,

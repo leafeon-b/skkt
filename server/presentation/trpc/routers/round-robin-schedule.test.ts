@@ -137,7 +137,7 @@ describe("roundRobinSchedule tRPC ルーター", () => {
   });
 
   describe("get", () => {
-    test("スケジュール存在時: DTO形式で返却される", async () => {
+    test("順番存在時: DTO形式で返却される", async () => {
       const { context, mocks } = createTestContext();
       mocks.roundRobinScheduleService.getSchedule.mockResolvedValueOnce(
         baseSchedule(),
@@ -160,7 +160,7 @@ describe("roundRobinSchedule tRPC ルーター", () => {
       expect(result!.rounds[0].pairings[0].player2.id).toBe("player-2");
     });
 
-    test("スケジュール未存在時: nullを返す", async () => {
+    test("順番未存在時: nullを返す", async () => {
       const { context, mocks } = createTestContext();
       mocks.roundRobinScheduleService.getSchedule.mockResolvedValueOnce(null);
 

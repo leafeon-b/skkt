@@ -73,7 +73,7 @@ export function RoundRobinScheduleSection({
   const generate = trpc.roundRobinSchedules.generate.useMutation({
     onSuccess: () => {
       router.refresh();
-      toast.success("総当たりスケジュールを生成しました");
+      toast.success("総当たり順番を生成しました");
     },
     onError: (error) => {
       toast.error(GENERIC_ERROR_MESSAGE, {
@@ -86,7 +86,7 @@ export function RoundRobinScheduleSection({
     onSuccess: () => {
       setShowDeleteDialog(false);
       router.refresh();
-      toast.success("総当たりスケジュールを削除しました");
+      toast.success("総当たり順番を削除しました");
     },
     onError: (error) => {
       setShowDeleteDialog(false);
@@ -108,7 +108,7 @@ export function RoundRobinScheduleSection({
     <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-(--brand-ink)">
-          総当たりスケジュール
+          総当たり順番
         </p>
         {canManage && schedule ? (
           <div className="flex gap-2">
@@ -140,13 +140,13 @@ export function RoundRobinScheduleSection({
           <ScheduleMatrix schedule={schedule} />
         ) : (
           <p className="mt-4 text-xs text-(--brand-ink-muted)">
-            スケジュールにラウンドがありません
+            順番にラウンドがありません
           </p>
         )
       ) : (
         <div className="mt-4">
           <p className="text-xs text-(--brand-ink-muted)">
-            スケジュールが未生成です
+            順番が未生成です
           </p>
           {canManage ? (
             <Button
@@ -157,7 +157,7 @@ export function RoundRobinScheduleSection({
               disabled={generate.isPending}
             >
               <Shuffle className="size-3.5" aria-hidden="true" />
-              {generate.isPending ? "生成中…" : "スケジュールを生成"}
+              {generate.isPending ? "生成中…" : "順番を生成"}
             </Button>
           ) : null}
         </div>
@@ -171,9 +171,9 @@ export function RoundRobinScheduleSection({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>スケジュールを再生成</AlertDialogTitle>
+            <AlertDialogTitle>順番を再生成</AlertDialogTitle>
             <AlertDialogDescription>
-              既存のスケジュールが上書きされます。再生成しますか？
+              既存の順番が上書きされます。再生成しますか？
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -206,9 +206,9 @@ export function RoundRobinScheduleSection({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>スケジュールを削除</AlertDialogTitle>
+            <AlertDialogTitle>順番を削除</AlertDialogTitle>
             <AlertDialogDescription>
-              総当たりスケジュールを削除します。この操作は取り消せません。
+              総当たり順番を削除します。この操作は取り消せません。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
