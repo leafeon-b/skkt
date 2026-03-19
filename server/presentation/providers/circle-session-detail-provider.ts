@@ -262,18 +262,16 @@ export async function getCircleSessionDetailViewModel(
 
   const session = await caller.circleSessions.get({ circleSessionId });
 
-  const [circle, memberships, matches, roundRobinScheduleDto] =
-    await Promise.all([
-      caller.circles.get({ circleId: session.circleId }),
-      caller.circleSessions.memberships.list({
-        circleSessionId: session.id,
-      }),
-      caller.matches.list({ circleSessionId: session.id }),
-      caller.roundRobinSchedules.get({
-        circleId: session.circleId,
-        circleSessionId: session.id,
-      }),
-    ]);
+  const [memberships, matches, roundRobinScheduleDto] = await Promise.all([
+    caller.circleSessions.memberships.list({
+      circleSessionId: session.id,
+    }),
+    caller.matches.list({ circleSessionId: session.id }),
+    caller.roundRobinSchedules.get({
+      circleId: session.circleId,
+      circleSessionId: session.id,
+    }),
+  ]);
 
   const userIds = new Set<string>();
   for (const membership of memberships) {
@@ -296,6 +294,7 @@ export async function getCircleSessionDetailViewModel(
     canRemoveCircleSessionMember,
     canTransferOwnership,
     canManageRoundRobinSchedule,
+    canViewCircle,
   ] = await Promise.all([
     caller.users.list({ userIds: Array.from(userIds) }),
     viewerId
@@ -325,6 +324,9 @@ export async function getCircleSessionDetailViewModel(
     viewerId
       ? ctx.accessService.canManageRoundRobinSchedule(viewerId, session.id)
       : Promise.resolve(false),
+    viewerId
+      ? ctx.accessService.canViewCircle(viewerId, session.circleId)
+      : Promise.resolve(false),
   ]);
 
   const userNameById = new Map(users.map((user) => [user.id, user.name]));
@@ -332,7 +334,7 @@ export async function getCircleSessionDetailViewModel(
 
   const { candidates: addableMemberCandidates, newNames } =
     await fetchAddableMemberCandidates(
-      canAddCircleSessionMember,
+      canAddCircleSessionMember && canViewCircle,
       caller,
       session,
       memberships,
@@ -378,8 +380,7 @@ export async function getCircleSessionDetailViewModel(
 
   const detail: CircleSessionDetailViewModel = {
     circleSessionId: session.id,
-    circleId: circle.id,
-    circleName: circle.name,
+    circleId: session.circleId,
     title: session.title,
     dateTimeLabel: formatDateTimeRange(session.startsAt, session.endsAt),
     locationLabel: session.location,

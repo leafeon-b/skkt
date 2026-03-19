@@ -51,7 +51,6 @@ export type RoundRobinScheduleViewModel = {
 export type CircleSessionDetailViewModel = {
   circleSessionId: string;
   circleId: string;
-  circleName: string;
   title: string;
   dateTimeLabel: string;
   locationLabel: string | null;
