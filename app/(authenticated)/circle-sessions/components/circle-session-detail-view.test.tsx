@@ -147,7 +147,6 @@ function buildDetail(
   return {
     circleSessionId: "session-1",
     circleId: "circle-1",
-    circleName: "テスト研究会",
     title: "第1回例会",
     dateTimeLabel: "2025-04-01 10:00〜18:00",
     locationLabel: null,

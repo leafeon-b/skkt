@@ -48,13 +48,6 @@ const BASE_SESSION = {
   createdAt: NOW,
 };
 
-const VALID_CIRCLE = {
-  id: CIRCLE_ID,
-  name: "テスト研究会",
-  createdAt: NOW,
-  sessionEmailNotificationEnabled: true,
-};
-
 const makeSessionMembership = (uid: string, role: CircleSessionRole) => ({
   circleSessionId: SESSION_ID,
   userId: toUserId(uid),
@@ -81,9 +74,6 @@ describe("getCircleSessionDetailViewModel", () => {
 
     // Session exists
     mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
-
-    // Circle exists
-    mockDeps.circleRepository.findById.mockResolvedValue(VALID_CIRCLE);
 
     // No matches by default
     mockDeps.matchRepository.listByCircleSessionId.mockResolvedValue([]);
