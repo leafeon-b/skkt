@@ -3,7 +3,7 @@
 import {
   SessionCalendar,
   type SessionExtendedProps,
-} from "@/app/components/calendar/session-calendar";
+} from "@/app/components/calendar";
 import { formatDate, formatTime } from "@/lib/date-utils";
 import type { HomeViewModel } from "@/server/presentation/view-models/home";
 import type { EventInput } from "@fullcalendar/core";
