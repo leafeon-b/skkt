@@ -4,6 +4,7 @@ import { createAccessServiceStub } from "@/server/application/test-helpers/acces
 import {
   createInMemoryUserRepository,
   createInMemoryCircleRepository,
+  createInMemoryCircleSessionRepository,
 } from "@/server/infrastructure/repository/in-memory";
 import type { UserStore } from "@/server/infrastructure/repository/in-memory/in-memory-user-repository";
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
@@ -35,10 +36,12 @@ const changePasswordRateLimiter: RateLimiter = {
 };
 
 const circleRepository = createInMemoryCircleRepository();
+const circleSessionRepository = createInMemoryCircleSessionRepository();
 
 const service = createUserService({
   userRepository,
   circleRepository,
+  circleSessionRepository,
   accessService,
   passwordHasher,
   changePasswordRateLimiter,
