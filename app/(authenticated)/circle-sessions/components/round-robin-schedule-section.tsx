@@ -68,6 +68,7 @@ export function RoundRobinScheduleSection({
 }: RoundRobinScheduleSectionProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
 
   const generate = trpc.roundRobinSchedules.generate.useMutation({
     onSuccess: () => {
@@ -114,9 +115,18 @@ export function RoundRobinScheduleSection({
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setShowRegenerateDialog(true)}
+              disabled={generate.isPending || deleteSchedule.isPending}
+            >
+              <Shuffle className="size-3.5" aria-hidden="true" />
+              再生成
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               className="text-red-700 hover:bg-red-50 hover:text-red-800"
               onClick={() => setShowDeleteDialog(true)}
-              disabled={deleteSchedule.isPending}
+              disabled={deleteSchedule.isPending || generate.isPending}
             >
               <Trash2 className="size-3.5" aria-hidden="true" />
               削除
@@ -152,6 +162,41 @@ export function RoundRobinScheduleSection({
           ) : null}
         </div>
       )}
+
+      <AlertDialog
+        open={showRegenerateDialog}
+        onOpenChange={(open) => {
+          if (!generate.isPending) setShowRegenerateDialog(open);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>スケジュールを再生成</AlertDialogTitle>
+            <AlertDialogDescription>
+              既存のスケジュールが上書きされます。再生成しますか？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={generate.isPending}>
+              キャンセル
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                generate.mutate(
+                  { circleSessionId },
+                  {
+                    onSettled: () => setShowRegenerateDialog(false),
+                  },
+                );
+              }}
+              disabled={generate.isPending}
+            >
+              {generate.isPending ? "生成中…" : "再生成する"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={showDeleteDialog}
