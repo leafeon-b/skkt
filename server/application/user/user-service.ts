@@ -2,6 +2,7 @@ import type { User, ProfileVisibility } from "@/server/domain/models/user/user";
 import type { UserId } from "@/server/domain/common/ids";
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
+import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { createAccessService } from "@/server/application/authz/access-service";
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
 import type { RateLimiter } from "@/server/domain/common/rate-limiter";
@@ -11,6 +12,7 @@ import {
   ForbiddenError,
 } from "@/server/domain/common/errors";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import { USER_PASSWORD_MAX_LENGTH } from "@/server/domain/models/user/user";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -39,6 +41,7 @@ type AccessService = ReturnType<typeof createAccessService>;
 export type UserServiceDeps = {
   userRepository: UserRepository;
   circleRepository: CircleRepository;
+  circleSessionRepository: CircleSessionRepository;
   accessService: AccessService;
   passwordHasher: PasswordHasher;
   changePasswordRateLimiter: RateLimiter;
@@ -226,14 +229,28 @@ export const createUserService = (deps: UserServiceDeps) => ({
   async deleteAccount(actorId: UserId): Promise<void> {
     const memberships =
       await deps.circleRepository.listMembershipsByUserId(actorId);
-    const isOwner = memberships.some(
+    const isCircleOwner = memberships.some(
       (m) => m.role === CircleRole.CircleOwner && m.deletedAt === null,
     );
-    if (isOwner) {
+    if (isCircleOwner) {
       throw new BadRequestError(
         "研究会のオーナー権限を移譲するか、研究会を削除してからアカウントを削除してください",
       );
     }
+
+    const sessionMemberships =
+      await deps.circleSessionRepository.listMembershipsByUserId(actorId);
+    const isSessionOwner = sessionMemberships.some(
+      (m) =>
+        m.role === CircleSessionRole.CircleSessionOwner &&
+        m.deletedAt === null,
+    );
+    if (isSessionOwner) {
+      throw new BadRequestError(
+        "セッションのオーナー権限を移譲してからアカウントを削除してください",
+      );
+    }
+
     await deps.userRepository.deleteAccount(actorId, new Date());
   },
 });

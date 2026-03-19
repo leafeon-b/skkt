@@ -120,6 +120,7 @@ export const createServiceContainer = (
     userService: createUserService({
       userRepository: deps.userRepository,
       circleRepository: deps.circleRepository,
+      circleSessionRepository: deps.circleSessionRepository,
       accessService,
       passwordHasher: deps.passwordHasher,
       changePasswordRateLimiter: deps.changePasswordRateLimiter,

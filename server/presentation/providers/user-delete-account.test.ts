@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { TRPCError } from "@trpc/server";
-import { toCircleId, toUserId } from "@/server/domain/common/ids";
+import {
+  toCircleId,
+  toCircleSessionId,
+  toUserId,
+} from "@/server/domain/common/ids";
 
 vi.mock("@/server/env", () => ({ env: {} }));
 
@@ -11,6 +15,8 @@ import {
   type MockDeps,
 } from "./__tests__/helpers/create-mock-deps";
 import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
+import type { CircleSessionMembership } from "@/server/domain/models/circle-session/circle-session-membership";
+import type { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 
 const ACTOR_ID = toUserId("actor-1");
 const NOW = new Date("2025-01-01T00:00:00Z");
@@ -51,6 +57,18 @@ const makeMembership = (
   deletedAt: Date | null = null,
 ): CircleMembership => ({
   circleId: toCircleId(circleId),
+  userId: ACTOR_ID,
+  role,
+  createdAt: NOW,
+  deletedAt,
+});
+
+const makeSessionMembership = (
+  sessionId: string,
+  role: CircleSessionRole,
+  deletedAt: Date | null = null,
+): CircleSessionMembership => ({
+  circleSessionId: toCircleSessionId(sessionId),
   userId: ACTOR_ID,
   role,
   createdAt: NOW,
@@ -111,5 +129,70 @@ describe("users.deleteAccount", () => {
     });
 
     expect(mockDeps.userRepository.deleteAccount).not.toHaveBeenCalled();
+  });
+
+  test("セッションオーナーはアカウントを削除できない", async () => {
+    mockDeps.circleRepository.listMembershipsByUserId.mockResolvedValue([]);
+    mockDeps.circleSessionRepository.listMembershipsByUserId.mockResolvedValue([
+      makeSessionMembership("session-1", "CircleSessionOwner"),
+    ]);
+
+    const caller = createCaller();
+
+    await expect(caller.users.deleteAccount()).rejects.toThrow(TRPCError);
+    await expect(caller.users.deleteAccount()).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+
+    expect(mockDeps.userRepository.deleteAccount).not.toHaveBeenCalled();
+  });
+
+  test("セッションマネージャー・メンバーの場合はアカウント削除できる", async () => {
+    mockDeps.circleRepository.listMembershipsByUserId.mockResolvedValue([]);
+    mockDeps.circleSessionRepository.listMembershipsByUserId.mockResolvedValue([
+      makeSessionMembership("session-1", "CircleSessionManager"),
+      makeSessionMembership("session-2", "CircleSessionMember"),
+    ]);
+
+    const caller = createCaller();
+    await caller.users.deleteAccount();
+
+    expect(mockDeps.userRepository.deleteAccount).toHaveBeenCalled();
+  });
+
+  test("論理削除済みのセッションオーナーシップがある場合はアカウント削除できる", async () => {
+    mockDeps.circleRepository.listMembershipsByUserId.mockResolvedValue([]);
+    mockDeps.circleSessionRepository.listMembershipsByUserId.mockResolvedValue([
+      makeSessionMembership(
+        "session-1",
+        "CircleSessionOwner",
+        new Date("2024-12-01"),
+      ),
+    ]);
+
+    const caller = createCaller();
+    await caller.users.deleteAccount();
+
+    expect(mockDeps.userRepository.deleteAccount).toHaveBeenCalled();
+  });
+
+  test("研究会オーナーかつセッションオーナーの場合は研究会オーナーのエラーが先に出る", async () => {
+    mockDeps.circleRepository.listMembershipsByUserId.mockResolvedValue([
+      makeMembership("circle-1", "CircleOwner"),
+    ]);
+    mockDeps.circleSessionRepository.listMembershipsByUserId.mockResolvedValue([
+      makeSessionMembership("session-1", "CircleSessionOwner"),
+    ]);
+
+    const caller = createCaller();
+
+    await expect(caller.users.deleteAccount()).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message: expect.stringContaining("研究会"),
+    });
+
+    expect(
+      mockDeps.circleSessionRepository.listMembershipsByUserId,
+    ).not.toHaveBeenCalled();
   });
 });
