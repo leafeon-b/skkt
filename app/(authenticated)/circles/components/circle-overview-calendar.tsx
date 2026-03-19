@@ -3,7 +3,7 @@
 import {
   SessionCalendar,
   type SessionExtendedProps,
-} from "@/app/components/calendar/session-calendar";
+} from "@/app/components/calendar";
 import { toLocalDateString } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import type { CircleOverviewSession } from "@/server/presentation/view-models/circle-overview";
