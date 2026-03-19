@@ -124,4 +124,24 @@ describe("generateRounds", () => {
       expect(numbers).toEqual([1, 2, 3]);
     });
   });
+
+  describe("ランダム性", () => {
+    test("同じ入力で複数回呼び出すと異なる対戦順序が生成される", () => {
+      const participants = ids("u1", "u2", "u3", "u4", "u5", "u6");
+
+      const serialize = (rounds: ReturnType<typeof generateRounds>) =>
+        JSON.stringify(
+          rounds.map((r) =>
+            r.pairings.map((p) => `${p.player1Id}-${p.player2Id}`),
+          ),
+        );
+
+      const results = new Set<string>();
+      for (let i = 0; i < 20; i++) {
+        results.add(serialize(generateRounds(participants)));
+      }
+
+      expect(results.size).toBeGreaterThan(1);
+    });
+  });
 });

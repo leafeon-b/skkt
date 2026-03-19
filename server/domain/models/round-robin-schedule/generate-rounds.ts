@@ -29,8 +29,15 @@ export const generateRounds = (participantIds: UserId[]): Round[] => {
     throw new BadRequestError("Duplicate participant IDs are not allowed");
   }
 
+  // 入力をシャッフルして毎回異なる対戦順序を生成（Fisher-Yates）
+  const shuffled = [...participantIds];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
   // 奇数の場合は BYE (null) を追加して偶数にする
-  const players: (UserId | null)[] = [...participantIds];
+  const players: (UserId | null)[] = [...shuffled];
   if (players.length % 2 !== 0) {
     players.push(null);
   }
