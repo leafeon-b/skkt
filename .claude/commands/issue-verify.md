@@ -12,8 +12,8 @@ Verification and intent-based review orchestration.
   - .claude/artifacts/issue-{id}/plan.md
   - .claude/artifacts/issue-{id}/implement-log.md
 - If any missing -> STOP and request required phase
-- Use `git diff main...HEAD --name-only` to get modified file list
-- Use `git diff main...HEAD` to understand change contents for intent inference
+- Use `git diff HEAD --name-only` to get modified file list (includes both staged and unstaged changes)
+- Use `git diff HEAD` to understand change contents for intent inference
 
 ---
 
