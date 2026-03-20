@@ -5,11 +5,10 @@ import type { UserId } from "@/server/domain/common/ids";
 
 const ids = (...names: string[]): UserId[] => names.map((n) => toUserId(n));
 
-function assertInvariants(
+function assertAllPairsAppearOnce(
   rounds: ReturnType<typeof generateRounds>,
   participants: UserId[],
 ): void {
-  // 全ペアがちょうど1回出現する
   const pairSet = new Set<string>();
   for (const round of rounds) {
     for (const p of round.pairings) {
@@ -20,8 +19,11 @@ function assertInvariants(
   }
   const expectedPairs = (participants.length * (participants.length - 1)) / 2;
   expect(pairSet.size).toBe(expectedPairs);
+}
 
-  // ラウンド内で同一プレイヤーが重複しない
+function assertNoPlayerDuplicateInRound(
+  rounds: ReturnType<typeof generateRounds>,
+): void {
   for (const round of rounds) {
     const playersInRound: string[] = [];
     for (const p of round.pairings) {
@@ -29,13 +31,27 @@ function assertInvariants(
     }
     expect(new Set(playersInRound).size).toBe(playersInRound.length);
   }
+}
 
-  // 合計対戦数が n*(n-1)/2 と一致する
+function assertTotalPairingsCount(
+  rounds: ReturnType<typeof generateRounds>,
+  participants: UserId[],
+): void {
   const totalPairings = rounds.reduce(
     (sum, r) => sum + r.pairings.length,
     0,
   );
+  const expectedPairs = (participants.length * (participants.length - 1)) / 2;
   expect(totalPairings).toBe(expectedPairs);
+}
+
+function assertInvariants(
+  rounds: ReturnType<typeof generateRounds>,
+  participants: UserId[],
+): void {
+  assertAllPairsAppearOnce(rounds, participants);
+  assertNoPlayerDuplicateInRound(rounds);
+  assertTotalPairingsCount(rounds, participants);
 }
 
 describe("generateRounds", () => {
@@ -113,41 +129,20 @@ describe("generateRounds", () => {
       const participants = ids("u1", "u2", "u3", "u4");
       const rounds = generateRounds(participants);
 
-      const pairSet = new Set<string>();
-      for (const round of rounds) {
-        for (const p of round.pairings) {
-          const key = [p.player1Id, p.player2Id].sort().join("-");
-          expect(pairSet.has(key)).toBe(false);
-          pairSet.add(key);
-        }
-      }
-
-      const expectedPairs = (participants.length * (participants.length - 1)) / 2;
-      expect(pairSet.size).toBe(expectedPairs);
+      assertAllPairsAppearOnce(rounds, participants);
     });
 
     test("ラウンド内で同一プレイヤーが重複しない", () => {
       const rounds = generateRounds(ids("u1", "u2", "u3", "u4", "u5"));
 
-      for (const round of rounds) {
-        const playersInRound: string[] = [];
-        for (const p of round.pairings) {
-          playersInRound.push(p.player1Id, p.player2Id);
-        }
-        expect(new Set(playersInRound).size).toBe(playersInRound.length);
-      }
+      assertNoPlayerDuplicateInRound(rounds);
     });
 
     test("合計対戦数が n*(n-1)/2 と一致する", () => {
       const participants = ids("u1", "u2", "u3", "u4", "u5", "u6");
       const rounds = generateRounds(participants);
 
-      const totalPairings = rounds.reduce(
-        (sum, r) => sum + r.pairings.length,
-        0,
-      );
-      const expected = (participants.length * (participants.length - 1)) / 2;
-      expect(totalPairings).toBe(expected);
+      assertTotalPairingsCount(rounds, participants);
     });
 
     test("ラウンド番号が1始まり連番である", () => {
