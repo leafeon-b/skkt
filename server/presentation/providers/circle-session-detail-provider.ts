@@ -208,20 +208,20 @@ const fetchAddableMemberCandidates = async (
     return { candidates: [], newNames: new Map() };
   }
 
-  const circleMembers = await caller.circles.memberships.list({
-    circleId: session.circleId,
-  });
+  const [circleMembers, deletedMemberships] = await Promise.all([
+    caller.circles.memberships.list({
+      circleId: session.circleId,
+    }),
+    circleSessionMembershipService.listDeletedMemberships(
+      toCircleSessionId(session.id),
+    ),
+  ]);
   const sessionMemberIds = new Set(memberships.map((m) => m.userId));
   const candidateUserIds = new Set(
     circleMembers
       .filter((cm) => !sessionMemberIds.has(cm.userId))
       .map((cm) => cm.userId),
   );
-
-  const deletedMemberships =
-    await circleSessionMembershipService.listDeletedMemberships(
-      toCircleSessionId(session.id),
-    );
   for (const dm of deletedMemberships) {
     if (!sessionMemberIds.has(dm.userId)) {
       candidateUserIds.add(dm.userId);
