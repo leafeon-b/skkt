@@ -1,103 +1,36 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
-import type { Context } from "@/server/presentation/trpc/context";
 import {
+  toCircleId,
   toCircleSessionId,
   toRoundRobinScheduleId,
   toUserId,
 } from "@/server/domain/common/ids";
-import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
+import {
+  createMockDeps,
+  createServiceContainer,
+  toServiceContainerDeps,
+  type MockDeps,
+} from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 import type { RoundRobinSchedule } from "@/server/domain/models/round-robin-schedule/round-robin-schedule";
 import type { User } from "@/server/domain/models/user/user";
 
-const createTestContext = (
-  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
-) => {
-  const roundRobinScheduleService = {
-    getSchedule: vi.fn(),
-    generateSchedule: vi.fn(),
-    deleteSchedule: vi.fn(),
-  };
+const ACTOR_ID = toUserId("user-1");
+const CIRCLE_ID = toCircleId("circle-1");
+const SESSION_ID = toCircleSessionId("session-1");
 
-  const userService = {
-    getUser: vi.fn(),
-    listUsers: vi.fn(),
-    getMe: vi.fn(),
-    updateProfile: vi.fn(),
-    updateProfileVisibility: vi.fn(),
-    changePassword: vi.fn(),
-    uploadAvatar: vi.fn().mockResolvedValue(undefined),
-    findImageData: vi.fn().mockResolvedValue(null),
-    deleteAccount: vi.fn(),
-  };
+let mockDeps: MockDeps;
 
-  const context: Context = {
-    actorId: actorIdValue,
-    clientIp: "1.2.3.4",
-    circleService: {
-      getCircle: vi.fn(),
-      createCircle: vi.fn(),
-      renameCircle: vi.fn(),
-      deleteCircle: vi.fn(),
-      updateSessionEmailNotificationEnabled: vi.fn(),
-    },
-    circleMembershipService: {
-      listByCircleId: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      withdrawMembership: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-    },
-    circleSessionService: {
-      listByCircleId: vi.fn(),
-      getCircleSession: vi.fn(),
-      createCircleSession: vi.fn(),
-      rescheduleCircleSession: vi.fn(),
-      updateCircleSessionDetails: vi.fn(),
-      deleteCircleSession: vi.fn(),
-    },
-    circleSessionMembershipService: {
-      countPastSessionsByUserId: vi.fn(),
-      listMemberships: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-      withdrawMembership: vi.fn(),
-      listDeletedMemberships: vi.fn(),
-    },
-    matchService: {
-      listByCircleSessionId: vi.fn(),
-      getMatch: vi.fn(),
-      recordMatch: vi.fn(),
-      updateMatch: vi.fn(),
-      deleteMatch: vi.fn(),
-    },
-    userService,
-    signupService: {
-      signup: vi.fn(),
-    },
-    circleInviteLinkService: {
-      createInviteLink: vi.fn(),
-      getInviteLinkInfo: vi.fn(),
-      redeemInviteLink: vi.fn(),
-    },
-    accessService: {} as Context["accessService"],
-    userStatisticsService: {} as Context["userStatisticsService"],
-    roundRobinScheduleService,
-    holidayProvider: {} as Context["holidayProvider"],
-    notificationPreferenceService: {} as Context["notificationPreferenceService"],
-  };
-
-  return { context, mocks: { roundRobinScheduleService, userService } };
+const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) => {
+  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+  return { actorId, clientIp: "1.2.3.4", ...services };
 };
 
 const baseSchedule = (): RoundRobinSchedule => ({
   id: toRoundRobinScheduleId("schedule-1"),
-  circleSessionId: toCircleSessionId("session-1"),
+  circleSessionId: SESSION_ID,
   rounds: [
     {
       roundNumber: 1,
@@ -131,20 +64,43 @@ const baseUsers = (): User[] => [
   },
 ];
 
+const setupViewAccess = () => {
+  // canViewRoundRobinSchedule checks both circle and session membership
+  mockDeps.authzRepository.findCircleMembership.mockResolvedValue({
+    kind: "member",
+    role: CircleRole.CircleMember,
+  });
+  // canViewUser for listUsers
+  mockDeps.authzRepository.isRegisteredUser.mockResolvedValue(true);
+};
+
+const setupManageAccess = () => {
+  // canManageRoundRobinSchedule checks session membership with Owner/Manager role
+  mockDeps.authzRepository.findCircleSessionMembership.mockResolvedValue({
+    kind: "member",
+    role: CircleSessionRole.CircleSessionOwner,
+  });
+  // canViewUser for listUsers
+  mockDeps.authzRepository.isRegisteredUser.mockResolvedValue(true);
+};
+
 describe("roundRobinSchedule tRPC ルーター", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDeps = createMockDeps();
   });
 
   describe("get", () => {
     test("順番存在時: DTO形式で返却される", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.roundRobinScheduleService.getSchedule.mockResolvedValueOnce(
+      setupViewAccess();
+      // getSchedule: roundRobinScheduleRepository.findByCircleSessionId → schedule
+      mockDeps.roundRobinScheduleRepository.findByCircleSessionId.mockResolvedValue(
         baseSchedule(),
       );
-      mocks.userService.listUsers.mockResolvedValueOnce(baseUsers());
+      // listUsers for player info: userRepository.findByIds → users
+      mockDeps.userRepository.findByIds.mockResolvedValue(baseUsers());
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.roundRobinSchedules.get({
         circleId: "circle-1",
         circleSessionId: "session-1",
@@ -161,10 +117,10 @@ describe("roundRobinSchedule tRPC ルーター", () => {
     });
 
     test("順番未存在時: nullを返す", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.roundRobinScheduleService.getSchedule.mockResolvedValueOnce(null);
+      setupViewAccess();
+      // roundRobinScheduleRepository.findByCircleSessionId defaults to null
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.roundRobinSchedules.get({
         circleId: "circle-1",
         circleSessionId: "session-1",
@@ -174,12 +130,10 @@ describe("roundRobinSchedule tRPC ルーター", () => {
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.roundRobinScheduleService.getSchedule.mockRejectedValueOnce(
-        new ForbiddenError(),
-      );
+      // No circle or session membership → canViewRoundRobinSchedule fails
+      // authzRepository defaults return { kind: "none" }
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.roundRobinSchedules.get({
@@ -190,8 +144,7 @@ describe("roundRobinSchedule tRPC ルーター", () => {
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
-      const { context } = createTestContext(null);
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.roundRobinSchedules.get({
@@ -204,31 +157,69 @@ describe("roundRobinSchedule tRPC ルーター", () => {
 
   describe("generate", () => {
     test("正常生成: DTO形式で返却される", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.roundRobinScheduleService.generateSchedule.mockResolvedValueOnce(
-        baseSchedule(),
-      );
-      mocks.userService.listUsers.mockResolvedValueOnce(baseUsers());
+      setupManageAccess();
+      // generateSchedule needs:
+      // 1. circleSessionRepository.findById → session (for existence check)
+      // 2. circleSessionRepository.listMemberships → members (for schedule generation)
+      // 3. roundRobinScheduleRepository.deleteByCircleSessionId
+      // 4. roundRobinScheduleRepository.save
+      mockDeps.circleSessionRepository.findById.mockResolvedValue({
+        id: SESSION_ID,
+        circleId: CIRCLE_ID,
+        title: "テスト",
+        startsAt: new Date(),
+        endsAt: new Date(),
+        location: null,
+        note: "",
+        createdAt: new Date(),
+      });
+      mockDeps.circleSessionRepository.listMemberships.mockResolvedValue([
+        {
+          circleSessionId: SESSION_ID,
+          userId: toUserId("player-1"),
+          role: CircleSessionRole.CircleSessionMember,
+          createdAt: new Date(),
+          deletedAt: null,
+        },
+        {
+          circleSessionId: SESSION_ID,
+          userId: toUserId("player-2"),
+          role: CircleSessionRole.CircleSessionMember,
+          createdAt: new Date(),
+          deletedAt: null,
+        },
+      ]);
+      // listUsers for player info
+      mockDeps.userRepository.findByIds.mockResolvedValue(baseUsers());
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.roundRobinSchedules.generate({
         circleSessionId: "session-1",
       });
 
-      expect(result.id).toBe("schedule-1");
       expect(result.circleSessionId).toBe("session-1");
       expect(result.rounds).toHaveLength(1);
-      expect(result.rounds[0].pairings[0].player1.id).toBe("player-1");
-      expect(result.rounds[0].pairings[0].player2.id).toBe("player-2");
+      const playerIds = [
+        result.rounds[0].pairings[0].player1.id,
+        result.rounds[0].pairings[0].player2.id,
+      ].sort();
+      expect(playerIds).toEqual(["player-1", "player-2"]);
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.roundRobinScheduleService.generateSchedule.mockRejectedValueOnce(
-        new ForbiddenError(),
-      );
+      // canManageRoundRobinSchedule fails (default: { kind: "none" })
+      mockDeps.circleSessionRepository.findById.mockResolvedValue({
+        id: SESSION_ID,
+        circleId: CIRCLE_ID,
+        title: "テスト",
+        startsAt: new Date(),
+        endsAt: new Date(),
+        location: null,
+        note: "",
+        createdAt: new Date(),
+      });
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.roundRobinSchedules.generate({
@@ -238,12 +229,30 @@ describe("roundRobinSchedule tRPC ルーター", () => {
     });
 
     test("BadRequestError → BAD_REQUEST", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.roundRobinScheduleService.generateSchedule.mockRejectedValueOnce(
-        new BadRequestError("Schedule already exists"),
-      );
+      // Generate with < 2 participants → BadRequestError from domain
+      setupManageAccess();
+      mockDeps.circleSessionRepository.findById.mockResolvedValue({
+        id: SESSION_ID,
+        circleId: CIRCLE_ID,
+        title: "テスト",
+        startsAt: new Date(),
+        endsAt: new Date(),
+        location: null,
+        note: "",
+        createdAt: new Date(),
+      });
+      // Only 1 member → BadRequestError
+      mockDeps.circleSessionRepository.listMemberships.mockResolvedValue([
+        {
+          circleSessionId: SESSION_ID,
+          userId: toUserId("player-1"),
+          role: CircleSessionRole.CircleSessionMember,
+          createdAt: new Date(),
+          deletedAt: null,
+        },
+      ]);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.roundRobinSchedules.generate({
@@ -253,8 +262,7 @@ describe("roundRobinSchedule tRPC ルーター", () => {
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
-      const { context } = createTestContext(null);
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.roundRobinSchedules.generate({
@@ -266,12 +274,9 @@ describe("roundRobinSchedule tRPC ルーター", () => {
 
   describe("delete", () => {
     test("正常削除: voidを返す", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.roundRobinScheduleService.deleteSchedule.mockResolvedValueOnce(
-        undefined,
-      );
+      setupManageAccess();
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.roundRobinSchedules.delete({
         circleSessionId: "session-1",
       });
@@ -280,12 +285,9 @@ describe("roundRobinSchedule tRPC ルーター", () => {
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.roundRobinScheduleService.deleteSchedule.mockRejectedValueOnce(
-        new ForbiddenError(),
-      );
+      // canManageRoundRobinSchedule fails (default: { kind: "none" })
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.roundRobinSchedules.delete({
@@ -295,8 +297,7 @@ describe("roundRobinSchedule tRPC ルーター", () => {
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
-      const { context } = createTestContext(null);
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.roundRobinSchedules.delete({

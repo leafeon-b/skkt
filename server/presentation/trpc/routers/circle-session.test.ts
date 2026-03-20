@@ -1,98 +1,41 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
-import type { Context } from "@/server/presentation/trpc/context";
-import { toUserId } from "@/server/domain/common/ids";
-import { BadRequestError } from "@/server/domain/common/errors";
+import { toCircleId, toUserId } from "@/server/domain/common/ids";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import {
+  createMockDeps,
+  createServiceContainer,
+  toServiceContainerDeps,
+  type MockDeps,
+} from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 
-const createTestContext = (
-  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
-) => {
-  const circleSessionService = {
-    listByCircleId: vi.fn(),
-    getCircleSession: vi.fn(),
-    createCircleSession: vi.fn(),
-    rescheduleCircleSession: vi.fn(),
-    updateCircleSessionDetails: vi.fn(),
-    deleteCircleSession: vi.fn(),
-  };
+const ACTOR_ID = toUserId("user-1");
+const CIRCLE_ID = toCircleId("circle-1");
 
-  const context: Context = {
-    actorId: actorIdValue,
-    clientIp: "1.2.3.4",
-    circleService: {
-      getCircle: vi.fn(),
-      createCircle: vi.fn(),
-      renameCircle: vi.fn(),
-      deleteCircle: vi.fn(),
-      updateSessionEmailNotificationEnabled: vi.fn(),
-    },
-    circleMembershipService: {
-      listByCircleId: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      withdrawMembership: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-    },
-    circleSessionService,
-    circleSessionMembershipService: {
-      countPastSessionsByUserId: vi.fn(),
-      listMemberships: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-      withdrawMembership: vi.fn(),
-      listDeletedMemberships: vi.fn(),
-    },
-    matchService: {
-      listByCircleSessionId: vi.fn(),
-      getMatch: vi.fn(),
-      recordMatch: vi.fn(),
-      updateMatch: vi.fn(),
-      deleteMatch: vi.fn(),
-    },
-    userService: {
-      getUser: vi.fn(),
-      listUsers: vi.fn(),
-      getMe: vi.fn(),
-      updateProfile: vi.fn(),
-      updateProfileVisibility: vi.fn(),
-      changePassword: vi.fn(),
-      uploadAvatar: vi.fn().mockResolvedValue(undefined),
-      findImageData: vi.fn().mockResolvedValue(null),
-      deleteAccount: vi.fn(),
-    },
-    signupService: {
-      signup: vi.fn(),
-    },
-    circleInviteLinkService: {
-      createInviteLink: vi.fn(),
-      getInviteLinkInfo: vi.fn(),
-      redeemInviteLink: vi.fn(),
-    },
-    accessService: {} as Context["accessService"],
-    userStatisticsService: {} as Context["userStatisticsService"],
-    roundRobinScheduleService: {} as Context["roundRobinScheduleService"],
-    holidayProvider: {} as Context["holidayProvider"],
-    notificationPreferenceService: {} as Context["notificationPreferenceService"],
-  };
+const BASE_CIRCLE = {
+  id: CIRCLE_ID,
+  name: "テスト研究会",
+  createdAt: new Date("2024-01-01T00:00:00Z"),
+  sessionEmailNotificationEnabled: true,
+};
 
-  return { context, mocks: { circleSessionService } };
+let mockDeps: MockDeps;
+
+const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) => {
+  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+  return { actorId, clientIp: "1.2.3.4", ...services };
 };
 
 describe("circle-session tRPC ルーター", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDeps = createMockDeps();
   });
 
   describe("create", () => {
     test("空のセッション名 → BAD_REQUEST（Zodバリデーション）", async () => {
-      const { context, mocks } = createTestContext();
-
-      const caller = appRouter.createCaller(context);
+      // Zod validation fires before service is called, so no repo setup needed
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.circleSessions.create({
@@ -104,19 +47,22 @@ describe("circle-session tRPC ルーター", () => {
       ).rejects.toMatchObject({ code: "BAD_REQUEST" });
 
       expect(
-        mocks.circleSessionService.createCircleSession,
+        mockDeps.circleSessionRepository.save,
       ).not.toHaveBeenCalled();
     });
 
     test("BadRequestError（開始日時が終了日時より後）→ BAD_REQUEST", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.circleSessionService.createCircleSession.mockRejectedValueOnce(
-        new BadRequestError(
-          "CircleSession start must be before or equal to end",
-        ),
-      );
+      // createCircleSession needs:
+      // 1. circleRepository.findById → circle exists
+      // 2. accessService.canCreateCircleSession → authzRepository.findCircleMembership → CircleOwner/Manager
+      // 3. createCircleSession domain function validates startsAt <= endsAt
+      mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+      mockDeps.authzRepository.findCircleMembership.mockResolvedValue({
+        kind: "member",
+        role: CircleRole.CircleOwner,
+      });
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.circleSessions.create({
@@ -129,10 +75,6 @@ describe("circle-session tRPC ルーター", () => {
         code: "BAD_REQUEST",
         message: "CircleSession start must be before or equal to end",
       });
-
-      expect(
-        mocks.circleSessionService.createCircleSession,
-      ).toHaveBeenCalledOnce();
     });
   });
 });

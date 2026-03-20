@@ -1,127 +1,81 @@
-import { ForbiddenError } from "@/server/domain/common/errors";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { appRouter } from "@/server/presentation/trpc/router";
 import {
   toCircleId,
   toCircleInviteLinkId,
+  toInviteLinkToken,
   toUserId,
 } from "@/server/domain/common/ids";
-import type { Context } from "@/server/presentation/trpc/context";
-import { appRouter } from "@/server/presentation/trpc/router";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import {
+  createMockDeps,
+  createServiceContainer,
+  toServiceContainerDeps,
+  type MockDeps,
+} from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 
+const ACTOR_ID = toUserId("user-1");
+const CIRCLE_ID = toCircleId("circle-1");
 const TEST_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440000";
 
-const createTestContext = () => {
-  const circleInviteLinkService = {
-    createInviteLink: vi.fn(),
-    getInviteLinkInfo: vi.fn(),
-    redeemInviteLink: vi.fn(),
-  };
+const BASE_CIRCLE = {
+  id: CIRCLE_ID,
+  name: "テスト研究会",
+  createdAt: new Date("2024-01-01T00:00:00Z"),
+  sessionEmailNotificationEnabled: true,
+};
 
-  const context: Context = {
-    actorId: toUserId("user-1"),
-    clientIp: "1.2.3.4",
-    circleService: {
-      getCircle: vi.fn(),
-      createCircle: vi.fn(),
-      renameCircle: vi.fn(),
-      deleteCircle: vi.fn(),
-      updateSessionEmailNotificationEnabled: vi.fn(),
-    },
-    circleMembershipService: {
-      listByCircleId: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      withdrawMembership: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-    },
-    circleSessionService: {
-      listByCircleId: vi.fn(),
-      getCircleSession: vi.fn(),
-      createCircleSession: vi.fn(),
-      rescheduleCircleSession: vi.fn(),
-      updateCircleSessionDetails: vi.fn(),
-      deleteCircleSession: vi.fn(),
-    },
-    circleSessionMembershipService: {
-      countPastSessionsByUserId: vi.fn(),
-      listMemberships: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-      withdrawMembership: vi.fn(),
-      listDeletedMemberships: vi.fn(),
-    },
-    matchService: {
-      listByCircleSessionId: vi.fn(),
-      getMatch: vi.fn(),
-      recordMatch: vi.fn(),
-      updateMatch: vi.fn(),
-      deleteMatch: vi.fn(),
-    },
-    userService: {
-      getUser: vi.fn(),
-      listUsers: vi.fn(),
-      getMe: vi.fn(),
-      updateProfile: vi.fn(),
-      updateProfileVisibility: vi.fn(),
-      changePassword: vi.fn(),
-      uploadAvatar: vi.fn().mockResolvedValue(undefined),
-      findImageData: vi.fn().mockResolvedValue(null),
-      deleteAccount: vi.fn(),
-    },
-    signupService: {
-      signup: vi.fn(),
-    },
-    circleInviteLinkService,
-    accessService: {} as Context["accessService"],
-    userStatisticsService: {} as Context["userStatisticsService"],
-    roundRobinScheduleService: {} as Context["roundRobinScheduleService"],
-    holidayProvider: {} as Context["holidayProvider"],
-    notificationPreferenceService: {} as Context["notificationPreferenceService"],
-  };
+let mockDeps: MockDeps;
 
-  return { context, mocks: { circleInviteLinkService } };
+const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) => {
+  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+  return { actorId, clientIp: "1.2.3.4", ...services };
 };
 
 describe("circleInviteLink tRPC ルーター", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDeps = createMockDeps();
   });
 
   test("circles.inviteLinks.create は招待リンクを返す", async () => {
-    const { context, mocks } = createTestContext();
-    mocks.circleInviteLinkService.createInviteLink.mockResolvedValueOnce({
-      id: toCircleInviteLinkId("link-1"),
-      circleId: toCircleId("circle-1"),
-      token: TEST_TOKEN_UUID,
-      createdByUserId: toUserId("user-1"),
-      expiresAt: new Date("2026-02-23T00:00:00Z"),
-      createdAt: new Date("2026-02-16T00:00:00Z"),
+    // createInviteLink needs:
+    // 1. circleRepository.findById → circle exists
+    // 2. accessService.canViewCircle → authzRepository.findCircleMembership → member
+    // 3. circleInviteLinkRepository.findActiveByCircleId → null (no existing link)
+    // 4. circleInviteLinkRepository.save
+    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    mockDeps.authzRepository.findCircleMembership.mockResolvedValue({
+      kind: "member",
+      role: CircleRole.CircleMember,
     });
 
-    const caller = appRouter.createCaller(context);
+    const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.inviteLinks.create({
       circleId: "circle-1",
     });
 
-    expect(result.token).toBe(TEST_TOKEN_UUID);
     expect(result.circleId).toBe("circle-1");
+    expect(result.token).toBeDefined();
   });
 
   test("circles.inviteLinks.getInfo はリンク情報を返す", async () => {
-    const { context, mocks } = createTestContext();
-    mocks.circleInviteLinkService.getInviteLinkInfo.mockResolvedValueOnce({
-      token: TEST_TOKEN_UUID,
-      circleName: "テスト研究会",
-      circleId: toCircleId("circle-1"),
-      expired: false,
+    // getInviteLinkInfo needs:
+    // 1. circleInviteLinkRepository.findByToken → link
+    // 2. circleRepository.findById → circle (for name)
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    mockDeps.circleInviteLinkRepository.findByToken.mockResolvedValue({
+      id: toCircleInviteLinkId("link-1"),
+      circleId: CIRCLE_ID,
+      token: toInviteLinkToken(TEST_TOKEN_UUID),
+      createdByUserId: ACTOR_ID,
+      expiresAt: futureDate,
+      createdAt: new Date("2026-02-16T00:00:00Z"),
     });
+    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
 
-    const caller = appRouter.createCaller(context);
+    const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.inviteLinks.getInfo({
       token: TEST_TOKEN_UUID,
     });
@@ -131,13 +85,25 @@ describe("circleInviteLink tRPC ルーター", () => {
   });
 
   test("circles.inviteLinks.redeem は参加結果を返す", async () => {
-    const { context, mocks } = createTestContext();
-    mocks.circleInviteLinkService.redeemInviteLink.mockResolvedValueOnce({
-      circleId: toCircleId("circle-1"),
-      alreadyMember: false,
+    // redeemInviteLink needs:
+    // 1. circleInviteLinkRepository.findByToken → link (not expired)
+    // 2. circleRepository.findById → circle
+    // 3. circleRepository.listMembershipsByCircleId → no matching membership
+    // 4. circleRepository.addMembership
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    mockDeps.circleInviteLinkRepository.findByToken.mockResolvedValue({
+      id: toCircleInviteLinkId("link-1"),
+      circleId: CIRCLE_ID,
+      token: toInviteLinkToken(TEST_TOKEN_UUID),
+      createdByUserId: toUserId("other-user"),
+      expiresAt: futureDate,
+      createdAt: new Date("2026-02-16T00:00:00Z"),
     });
+    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue([]);
 
-    const caller = appRouter.createCaller(context);
+    const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.inviteLinks.redeem({
       token: TEST_TOKEN_UUID,
     });
@@ -147,13 +113,28 @@ describe("circleInviteLink tRPC ルーター", () => {
   });
 
   test("circles.inviteLinks.redeem は既存メンバーの場合 alreadyMember=true", async () => {
-    const { context, mocks } = createTestContext();
-    mocks.circleInviteLinkService.redeemInviteLink.mockResolvedValueOnce({
-      circleId: toCircleId("circle-1"),
-      alreadyMember: true,
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    mockDeps.circleInviteLinkRepository.findByToken.mockResolvedValue({
+      id: toCircleInviteLinkId("link-1"),
+      circleId: CIRCLE_ID,
+      token: toInviteLinkToken(TEST_TOKEN_UUID),
+      createdByUserId: toUserId("other-user"),
+      expiresAt: futureDate,
+      createdAt: new Date("2026-02-16T00:00:00Z"),
     });
+    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue([
+      {
+        circleId: CIRCLE_ID,
+        userId: ACTOR_ID,
+        role: CircleRole.CircleMember,
+        createdAt: new Date(),
+        deletedAt: null,
+      },
+    ]);
 
-    const caller = appRouter.createCaller(context);
+    const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.inviteLinks.redeem({
       token: TEST_TOKEN_UUID,
     });
@@ -162,12 +143,11 @@ describe("circleInviteLink tRPC ルーター", () => {
   });
 
   test("circles.inviteLinks.create はエラー時に適切なTRPCエラーを返す", async () => {
-    const { context, mocks } = createTestContext();
-    mocks.circleInviteLinkService.createInviteLink.mockRejectedValueOnce(
-      new ForbiddenError(),
-    );
+    // canViewCircle fails → ForbiddenError
+    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    // authzRepository.findCircleMembership defaults to { kind: "none" }
 
-    const caller = appRouter.createCaller(context);
+    const caller = appRouter.createCaller(buildContext());
 
     await expect(
       caller.circles.inviteLinks.create({ circleId: "circle-1" }),
@@ -175,8 +155,7 @@ describe("circleInviteLink tRPC ルーター", () => {
   });
 
   test("不正な形式のトークンはバリデーションエラーになる", async () => {
-    const { context } = createTestContext();
-    const caller = appRouter.createCaller(context);
+    const caller = appRouter.createCaller(buildContext());
 
     await expect(
       caller.circles.inviteLinks.getInfo({ token: "not-a-uuid" }),
