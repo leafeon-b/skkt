@@ -17,7 +17,10 @@ export type Round = {
  * - 先頭の参加者を固定し、残りを回転させてペアリングを作る
  * - 奇数人数の場合は BYE（null）を追加し、BYE とのペアリングは除外する
  */
-export const generateRounds = (participantIds: UserId[]): Round[] => {
+export const generateRounds = (
+  participantIds: UserId[],
+  random: () => number = Math.random,
+): Round[] => {
   if (participantIds.length < 2) {
     throw new BadRequestError(
       "Round-robin requires at least 2 participants",
@@ -32,7 +35,7 @@ export const generateRounds = (participantIds: UserId[]): Round[] => {
   // 入力をシャッフルして毎回異なる対戦順序を生成（Fisher-Yates）
   const shuffled = [...participantIds];
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
