@@ -1,112 +1,84 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
-import type { Context } from "@/server/presentation/trpc/context";
-import { toCircleId, toCircleSessionId, toUserId } from "@/server/domain/common/ids";
-import { ForbiddenError } from "@/server/domain/common/errors";
+import {
+  toCircleId,
+  toCircleSessionId,
+  toUserId,
+} from "@/server/domain/common/ids";
+import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
+import {
+  createMockDeps,
+  createServiceContainer,
+  toServiceContainerDeps,
+  type MockDeps,
+} from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 
-const createTestContext = (
-  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
-) => {
-  const circleSessionMembershipService = {
-    countPastSessionsByUserId: vi.fn(),
-    listMemberships: vi.fn(),
-    listByUserId: vi.fn(),
-    addMembership: vi.fn(),
-    changeMembershipRole: vi.fn(),
-    removeMembership: vi.fn(),
-    transferOwnership: vi.fn(),
-    withdrawMembership: vi.fn(),
-    listDeletedMemberships: vi.fn(),
-  };
+const ACTOR_ID = toUserId("user-1");
+const SESSION_ID = toCircleSessionId("session-1");
+const CIRCLE_ID = toCircleId("circle-1");
 
-  const context: Context = {
-    actorId: actorIdValue,
-    clientIp: "1.2.3.4",
-    circleService: {
-      getCircle: vi.fn(),
-      createCircle: vi.fn(),
-      renameCircle: vi.fn(),
-      deleteCircle: vi.fn(),
-      updateSessionEmailNotificationEnabled: vi.fn(),
-    },
-    circleMembershipService: {
-      listByCircleId: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      withdrawMembership: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-    },
-    circleSessionService: {
-      listByCircleId: vi.fn(),
-      getCircleSession: vi.fn(),
-      createCircleSession: vi.fn(),
-      rescheduleCircleSession: vi.fn(),
-      updateCircleSessionDetails: vi.fn(),
-      deleteCircleSession: vi.fn(),
-    },
-    circleSessionMembershipService,
-    matchService: {
-      listByCircleSessionId: vi.fn(),
-      getMatch: vi.fn(),
-      recordMatch: vi.fn(),
-      updateMatch: vi.fn(),
-      deleteMatch: vi.fn(),
-    },
-    userService: {
-      getUser: vi.fn(),
-      listUsers: vi.fn(),
-      getMe: vi.fn(),
-      updateProfile: vi.fn(),
-      updateProfileVisibility: vi.fn(),
-      changePassword: vi.fn(),
-      uploadAvatar: vi.fn().mockResolvedValue(undefined),
-      findImageData: vi.fn().mockResolvedValue(null),
-      deleteAccount: vi.fn(),
-    },
-    signupService: {
-      signup: vi.fn(),
-    },
-    circleInviteLinkService: {
-      createInviteLink: vi.fn(),
-      getInviteLinkInfo: vi.fn(),
-      redeemInviteLink: vi.fn(),
-    },
-    accessService: {} as Context["accessService"],
-    userStatisticsService: {} as Context["userStatisticsService"],
-    roundRobinScheduleService: {} as Context["roundRobinScheduleService"],
-    holidayProvider: {} as Context["holidayProvider"],
-    notificationPreferenceService: {} as Context["notificationPreferenceService"],
-  };
+let mockDeps: MockDeps;
 
-  return { context, mocks: { circleSessionMembershipService } };
+const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) => {
+  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+  return { actorId, clientIp: "1.2.3.4", ...services };
 };
 
-const baseSummary = (overrides?: Record<string, unknown>) => ({
-  circleSessionId: toCircleSessionId("session-1"),
-  circleId: toCircleId("circle-1"),
-  circleName: "さくら将棋研究会",
+const setupRegisteredUser = () => {
+  mockDeps.authzRepository.isRegisteredUser.mockResolvedValue(true);
+};
+
+const baseMembership = () => ({
+  circleSessionId: SESSION_ID,
+  userId: ACTOR_ID,
+  role: CircleSessionRole.CircleSessionMember,
+  createdAt: new Date("2024-01-01T00:00:00Z"),
+  deletedAt: null,
+});
+
+const baseSession = (overrides?: Record<string, unknown>) => ({
+  id: SESSION_ID,
+  circleId: CIRCLE_ID,
   title: "第1回例会",
   startsAt: new Date("2024-06-01T13:00:00Z"),
   endsAt: new Date("2024-06-01T17:00:00Z"),
   location: "部室",
+  note: "",
+  createdAt: new Date("2024-01-01T00:00:00Z"),
   ...overrides,
+});
+
+const baseCircle = () => ({
+  id: CIRCLE_ID,
+  name: "さくら将棋研究会",
+  createdAt: new Date("2024-01-01T00:00:00Z"),
+  sessionEmailNotificationEnabled: true,
 });
 
 describe("userCircleSessionMembership tRPC ルーター", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDeps = createMockDeps();
   });
 
   describe("list", () => {
     test("ユーザーのセッション参加一覧を取得できる（limit 指定あり）", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce([
-        baseSummary(),
+      // listByUserId needs:
+      // 1. actorId === userId → OK
+      // 2. accessService.canListOwnCircles → isRegisteredUser
+      // 3. circleSessionRepository.listMembershipsByUserId → memberships
+      // 4. circleSessionRepository.findByIds → sessions
+      // 5. circleRepository.findByIds → circles (for names)
+      setupRegisteredUser();
+      mockDeps.circleSessionRepository.listMembershipsByUserId.mockResolvedValue([
+        baseMembership(),
       ]);
+      mockDeps.circleSessionRepository.findByIds.mockResolvedValue([
+        baseSession(),
+      ]);
+      mockDeps.circleRepository.findByIds.mockResolvedValue([baseCircle()]);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.users.circleSessions.memberships.list({
         limit: 5,
       });
@@ -120,48 +92,52 @@ describe("userCircleSessionMembership tRPC ルーター", () => {
     });
 
     test("ユーザーのセッション参加一覧を取得できる（limit 省略）", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce([
-        baseSummary(),
+      setupRegisteredUser();
+      mockDeps.circleSessionRepository.listMembershipsByUserId.mockResolvedValue([
+        baseMembership(),
       ]);
+      mockDeps.circleSessionRepository.findByIds.mockResolvedValue([
+        baseSession(),
+      ]);
+      mockDeps.circleRepository.findByIds.mockResolvedValue([baseCircle()]);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.users.circleSessions.memberships.list({});
 
       expect(result).toHaveLength(1);
     });
 
     test("空配列を返す（参加なし）", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce(
-        [],
-      );
+      setupRegisteredUser();
+      mockDeps.circleSessionRepository.listMembershipsByUserId.mockResolvedValue([]);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.users.circleSessions.memberships.list({});
 
       expect(result).toEqual([]);
     });
 
     test("location が null の場合も正しく返す", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.circleSessionMembershipService.listByUserId.mockResolvedValueOnce([
-        baseSummary({ location: null }),
+      setupRegisteredUser();
+      mockDeps.circleSessionRepository.listMembershipsByUserId.mockResolvedValue([
+        baseMembership(),
       ]);
+      mockDeps.circleSessionRepository.findByIds.mockResolvedValue([
+        baseSession({ location: null }),
+      ]);
+      mockDeps.circleRepository.findByIds.mockResolvedValue([baseCircle()]);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.users.circleSessions.memberships.list({});
 
       expect(result[0].location).toBeNull();
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.circleSessionMembershipService.listByUserId.mockRejectedValueOnce(
-        new ForbiddenError(),
-      );
+      // isRegisteredUser returns false → canListOwnCircles fails → ForbiddenError
+      mockDeps.authzRepository.isRegisteredUser.mockResolvedValue(false);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.users.circleSessions.memberships.list({}),
@@ -169,8 +145,7 @@ describe("userCircleSessionMembership tRPC ルーター", () => {
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
-      const { context } = createTestContext(null);
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.users.circleSessions.memberships.list({}),

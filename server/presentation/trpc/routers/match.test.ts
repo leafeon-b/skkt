@@ -1,91 +1,38 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
-import type { Context } from "@/server/presentation/trpc/context";
-import { toCircleSessionId, toMatchId, toUserId } from "@/server/domain/common/ids";
-import { BadRequestError, ForbiddenError } from "@/server/domain/common/errors";
+import {
+  toCircleId,
+  toCircleSessionId,
+  toMatchId,
+  toUserId,
+} from "@/server/domain/common/ids";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import {
+  createMockDeps,
+  createServiceContainer,
+  toServiceContainerDeps,
+  type MockDeps,
+} from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 
-const createTestContext = (
-  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
-) => {
-  const matchService = {
-    listByCircleSessionId: vi.fn(),
-    getMatch: vi.fn(),
-    recordMatch: vi.fn(),
-    updateMatch: vi.fn(),
-    deleteMatch: vi.fn(),
-  };
+const ACTOR_ID = toUserId("user-1");
+const CIRCLE_ID = toCircleId("circle-1");
+const SESSION_ID = toCircleSessionId("session-1");
+const MATCH_ID = toMatchId("match-1");
 
-  const context: Context = {
-    actorId: actorIdValue,
-    clientIp: "1.2.3.4",
-    circleService: {
-      getCircle: vi.fn(),
-      createCircle: vi.fn(),
-      renameCircle: vi.fn(),
-      deleteCircle: vi.fn(),
-      updateSessionEmailNotificationEnabled: vi.fn(),
-    },
-    circleMembershipService: {
-      listByCircleId: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      withdrawMembership: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-    },
-    circleSessionService: {
-      listByCircleId: vi.fn(),
-      getCircleSession: vi.fn(),
-      createCircleSession: vi.fn(),
-      rescheduleCircleSession: vi.fn(),
-      updateCircleSessionDetails: vi.fn(),
-      deleteCircleSession: vi.fn(),
-    },
-    circleSessionMembershipService: {
-      countPastSessionsByUserId: vi.fn(),
-      listMemberships: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-      withdrawMembership: vi.fn(),
-      listDeletedMemberships: vi.fn(),
-    },
-    matchService,
-    userService: {
-      getUser: vi.fn(),
-      listUsers: vi.fn(),
-      getMe: vi.fn(),
-      updateProfile: vi.fn(),
-      updateProfileVisibility: vi.fn(),
-      changePassword: vi.fn(),
-      uploadAvatar: vi.fn().mockResolvedValue(undefined),
-      findImageData: vi.fn().mockResolvedValue(null),
-      deleteAccount: vi.fn(),
-    },
-    signupService: {
-      signup: vi.fn(),
-    },
-    circleInviteLinkService: {
-      createInviteLink: vi.fn(),
-      getInviteLinkInfo: vi.fn(),
-      redeemInviteLink: vi.fn(),
-    },
-    accessService: {} as Context["accessService"],
-    userStatisticsService: {} as Context["userStatisticsService"],
-    roundRobinScheduleService: {} as Context["roundRobinScheduleService"],
-    holidayProvider: {} as Context["holidayProvider"],
-    notificationPreferenceService: {} as Context["notificationPreferenceService"],
-  };
-
-  return { context, mocks: { matchService } };
+const BASE_SESSION = {
+  id: SESSION_ID,
+  circleId: CIRCLE_ID,
+  title: "テスト",
+  startsAt: new Date("2024-06-01T10:00:00Z"),
+  endsAt: new Date("2024-06-01T17:00:00Z"),
+  location: null,
+  note: "",
+  createdAt: new Date("2024-01-01T00:00:00Z"),
 };
 
 const baseMatch = () => ({
-  id: toMatchId("match-1"),
-  circleSessionId: toCircleSessionId("session-1"),
+  id: MATCH_ID,
+  circleSessionId: SESSION_ID,
   createdAt: new Date("2024-06-01T10:00:00Z"),
   player1Id: toUserId("player-1"),
   player2Id: toUserId("player-2"),
@@ -93,18 +40,40 @@ const baseMatch = () => ({
   deletedAt: null,
 });
 
+let mockDeps: MockDeps;
+
+const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) => {
+  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+  return { actorId, clientIp: "1.2.3.4", ...services };
+};
+
+/** Set up authz for match operations (circle member = can view/record/edit/delete) */
+const setupMatchAccess = () => {
+  mockDeps.authzRepository.findCircleMembership.mockResolvedValue({
+    kind: "member",
+    role: CircleRole.CircleMember,
+  });
+};
+
 describe("match tRPC ルーター", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDeps = createMockDeps();
   });
 
   describe("list", () => {
     test("セッションの全対局一覧を取得できる", async () => {
-      const { context, mocks } = createTestContext();
-      const match = baseMatch();
-      mocks.matchService.listByCircleSessionId.mockResolvedValueOnce([match]);
+      setupMatchAccess();
+      // listByCircleSessionId needs:
+      // 1. circleSessionRepository.findById → session
+      // 2. canViewMatch → circle/session membership
+      // 3. matchRepository.listByCircleSessionId → matches
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+      mockDeps.matchRepository.listByCircleSessionId.mockResolvedValue([
+        baseMatch(),
+      ]);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.matches.list({
         circleSessionId: "session-1",
       });
@@ -116,10 +85,11 @@ describe("match tRPC ルーター", () => {
     });
 
     test("空配列を返す（対局なし）", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.matchService.listByCircleSessionId.mockResolvedValueOnce([]);
+      setupMatchAccess();
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+      mockDeps.matchRepository.listByCircleSessionId.mockResolvedValue([]);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.matches.list({
         circleSessionId: "session-1",
       });
@@ -128,12 +98,10 @@ describe("match tRPC ルーター", () => {
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.matchService.listByCircleSessionId.mockRejectedValueOnce(
-        new ForbiddenError(),
-      );
+      // No membership → canViewMatch fails
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.matches.list({ circleSessionId: "session-1" }),
@@ -141,8 +109,7 @@ describe("match tRPC ルーター", () => {
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
-      const { context } = createTestContext(null);
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.matches.list({ circleSessionId: "session-1" }),
@@ -152,11 +119,15 @@ describe("match tRPC ルーター", () => {
 
   describe("get", () => {
     test("対局1件を取得できる", async () => {
-      const { context, mocks } = createTestContext();
-      const match = baseMatch();
-      mocks.matchService.getMatch.mockResolvedValueOnce(match);
+      setupMatchAccess();
+      // getMatch needs:
+      // 1. matchRepository.findById → match
+      // 2. circleSessionRepository.findById → session (to get circleId)
+      // 3. canViewMatch
+      mockDeps.matchRepository.findById.mockResolvedValue(baseMatch());
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.matches.get({ matchId: "match-1" });
 
       expect(result.id).toBe("match-1");
@@ -166,10 +137,8 @@ describe("match tRPC ルーター", () => {
     });
 
     test("存在しない対局 → NOT_FOUND", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.matchService.getMatch.mockResolvedValueOnce(null);
-
-      const caller = appRouter.createCaller(context);
+      // matchRepository.findById defaults to null → NotFoundError in router
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.matches.get({ matchId: "nonexistent" }),
@@ -177,10 +146,11 @@ describe("match tRPC ルーター", () => {
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.matchService.getMatch.mockRejectedValueOnce(new ForbiddenError());
+      // Match exists but no membership → canViewMatch fails
+      mockDeps.matchRepository.findById.mockResolvedValue(baseMatch());
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.matches.get({ matchId: "match-1" }),
@@ -188,8 +158,7 @@ describe("match tRPC ルーター", () => {
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
-      const { context } = createTestContext(null);
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.matches.get({ matchId: "match-1" }),
@@ -199,11 +168,18 @@ describe("match tRPC ルーター", () => {
 
   describe("create", () => {
     test("対局を作成できる（outcome あり）", async () => {
-      const { context, mocks } = createTestContext();
-      const match = baseMatch();
-      mocks.matchService.recordMatch.mockResolvedValueOnce(match);
+      setupMatchAccess();
+      // recordMatch needs:
+      // 1. circleSessionRepository.findById → session
+      // 2. canRecordMatch → circle/session membership
+      // 3. circleSessionRepository.areUsersSessionMembers → true
+      // 4. matchRepository.save
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+      mockDeps.circleSessionRepository.areUsersSessionMembers.mockResolvedValue(
+        true,
+      );
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.matches.create({
         circleSessionId: "session-1",
         player1Id: "player-1",
@@ -211,16 +187,18 @@ describe("match tRPC ルーター", () => {
         outcome: "P1_WIN",
       });
 
-      expect(result.id).toBe("match-1");
+      expect(result.id).toBeDefined();
       expect(result.outcome).toBe("P1_WIN");
     });
 
     test("対局を作成できる（outcome なし）", async () => {
-      const { context, mocks } = createTestContext();
-      const match = { ...baseMatch(), outcome: "UNKNOWN" as const };
-      mocks.matchService.recordMatch.mockResolvedValueOnce(match);
+      setupMatchAccess();
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+      mockDeps.circleSessionRepository.areUsersSessionMembers.mockResolvedValue(
+        true,
+      );
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.matches.create({
         circleSessionId: "session-1",
         player1Id: "player-1",
@@ -231,12 +209,10 @@ describe("match tRPC ルーター", () => {
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.matchService.recordMatch.mockRejectedValueOnce(
-        new ForbiddenError(),
-      );
+      // No membership → canRecordMatch fails
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.matches.create({
@@ -248,9 +224,7 @@ describe("match tRPC ルーター", () => {
     });
 
     test("同一プレイヤーID → BAD_REQUEST（Zodバリデーション）", async () => {
-      const { context } = createTestContext();
-
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.matches.create({
@@ -267,8 +241,7 @@ describe("match tRPC ルーター", () => {
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
-      const { context } = createTestContext(null);
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.matches.create({
@@ -282,15 +255,20 @@ describe("match tRPC ルーター", () => {
 
   describe("update", () => {
     test("対局を更新できる（プレイヤー変更）", async () => {
-      const { context, mocks } = createTestContext();
-      const updated = {
-        ...baseMatch(),
-        player1Id: toUserId("player-3"),
-        player2Id: toUserId("player-4"),
-      };
-      mocks.matchService.updateMatch.mockResolvedValueOnce(updated);
+      setupMatchAccess();
+      // updateMatch needs:
+      // 1. matchRepository.findById → match (not deleted)
+      // 2. circleSessionRepository.findById → session
+      // 3. canEditMatch → circle/session membership
+      // 4. circleSessionRepository.areUsersSessionMembers → true (for player change)
+      // 5. matchRepository.save
+      mockDeps.matchRepository.findById.mockResolvedValue(baseMatch());
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+      mockDeps.circleSessionRepository.areUsersSessionMembers.mockResolvedValue(
+        true,
+      );
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.matches.update({
         matchId: "match-1",
         player1Id: "player-3",
@@ -302,11 +280,11 @@ describe("match tRPC ルーター", () => {
     });
 
     test("対局を更新できる（outcome のみ変更）", async () => {
-      const { context, mocks } = createTestContext();
-      const updated = { ...baseMatch(), outcome: "DRAW" as const };
-      mocks.matchService.updateMatch.mockResolvedValueOnce(updated);
+      setupMatchAccess();
+      mockDeps.matchRepository.findById.mockResolvedValue(baseMatch());
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.matches.update({
         matchId: "match-1",
         outcome: "DRAW",
@@ -316,12 +294,11 @@ describe("match tRPC ルーター", () => {
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.matchService.updateMatch.mockRejectedValueOnce(
-        new ForbiddenError(),
-      );
+      // No membership → canEditMatch fails
+      mockDeps.matchRepository.findById.mockResolvedValue(baseMatch());
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.matches.update({ matchId: "match-1", outcome: "DRAW" }),
@@ -329,12 +306,13 @@ describe("match tRPC ルーター", () => {
     });
 
     test("BadRequestError（削除済み対局）→ BAD_REQUEST", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.matchService.updateMatch.mockRejectedValueOnce(
-        new BadRequestError("Match is deleted"),
-      );
+      setupMatchAccess();
+      mockDeps.matchRepository.findById.mockResolvedValue({
+        ...baseMatch(),
+        deletedAt: new Date("2024-06-02T00:00:00Z"),
+      });
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.matches.update({ matchId: "match-1", outcome: "DRAW" }),
@@ -342,8 +320,7 @@ describe("match tRPC ルーター", () => {
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
-      const { context } = createTestContext(null);
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.matches.update({ matchId: "match-1", outcome: "DRAW" }),
@@ -353,26 +330,27 @@ describe("match tRPC ルーター", () => {
 
   describe("delete", () => {
     test("対局を論理削除できる", async () => {
-      const { context, mocks } = createTestContext();
-      const deleted = {
-        ...baseMatch(),
-        deletedAt: new Date("2024-06-02T00:00:00Z"),
-      };
-      mocks.matchService.deleteMatch.mockResolvedValueOnce(deleted);
+      setupMatchAccess();
+      // deleteMatch needs:
+      // 1. matchRepository.findById → match (not deleted)
+      // 2. circleSessionRepository.findById → session
+      // 3. canDeleteMatch → circle/session membership
+      // 4. matchRepository.save (with deletedAt set)
+      mockDeps.matchRepository.findById.mockResolvedValue(baseMatch());
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.matches.delete({ matchId: "match-1" });
 
-      expect(result.deletedAt).toEqual(new Date("2024-06-02T00:00:00Z"));
+      expect(result.deletedAt).toBeInstanceOf(Date);
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.matchService.deleteMatch.mockRejectedValueOnce(
-        new ForbiddenError(),
-      );
+      // No membership → canDeleteMatch fails
+      mockDeps.matchRepository.findById.mockResolvedValue(baseMatch());
+      mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.matches.delete({ matchId: "match-1" }),
@@ -380,12 +358,13 @@ describe("match tRPC ルーター", () => {
     });
 
     test("BadRequestError（削除済み対局）→ BAD_REQUEST", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.matchService.deleteMatch.mockRejectedValueOnce(
-        new BadRequestError("Match is deleted"),
-      );
+      setupMatchAccess();
+      mockDeps.matchRepository.findById.mockResolvedValue({
+        ...baseMatch(),
+        deletedAt: new Date("2024-06-02T00:00:00Z"),
+      });
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.matches.delete({ matchId: "match-1" }),
@@ -396,8 +375,7 @@ describe("match tRPC ルーター", () => {
     });
 
     test("未認証: actorId null → UNAUTHORIZED", async () => {
-      const { context } = createTestContext(null);
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.matches.delete({ matchId: "match-1" }),

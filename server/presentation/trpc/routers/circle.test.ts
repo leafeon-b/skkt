@@ -1,81 +1,57 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
-import type { Context } from "@/server/presentation/trpc/context";
-import { toUserId } from "@/server/domain/common/ids";
-import { ForbiddenError } from "@/server/domain/common/errors";
+import { toCircleId, toUserId } from "@/server/domain/common/ids";
+import { CircleRole } from "@/server/domain/models/circle/circle-role";
+import {
+  createMockDeps,
+  createServiceContainer,
+  toServiceContainerDeps,
+  type MockDeps,
+} from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 
-const createTestContext = (
-  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
-) => {
-  const circleService = {
-    getCircle: vi.fn(),
-    createCircle: vi.fn(),
-    renameCircle: vi.fn(),
-    deleteCircle: vi.fn(),
-    updateSessionEmailNotificationEnabled: vi.fn(),
-  };
+const ACTOR_ID = toUserId("user-1");
+const CIRCLE_ID = toCircleId("circle-1");
 
-  const context: Context = {
-    actorId: actorIdValue,
-    clientIp: "1.2.3.4",
-    circleService,
-    circleMembershipService: {
-      listByCircleId: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      withdrawMembership: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-    },
-    circleSessionService: {} as Context["circleSessionService"],
-    circleSessionMembershipService:
-      {} as Context["circleSessionMembershipService"],
-    matchService: {} as Context["matchService"],
-    userService: {} as Context["userService"],
-    signupService: {} as Context["signupService"],
-    circleInviteLinkService: {} as Context["circleInviteLinkService"],
-    accessService: {} as Context["accessService"],
-    userStatisticsService: {} as Context["userStatisticsService"],
-    roundRobinScheduleService: {} as Context["roundRobinScheduleService"],
-    holidayProvider: {} as Context["holidayProvider"],
-    notificationPreferenceService:
-      {} as Context["notificationPreferenceService"],
-  };
+const BASE_CIRCLE = {
+  id: CIRCLE_ID,
+  name: "テスト研究会",
+  createdAt: new Date("2024-01-01T00:00:00Z"),
+  sessionEmailNotificationEnabled: true,
+};
 
-  return { context, mocks: { circleService } };
+let mockDeps: MockDeps;
+
+const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) => {
+  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+  return { actorId, clientIp: "1.2.3.4", ...services };
 };
 
 describe("circles.updateSessionEmailNotification", () => {
-  let ctx: ReturnType<typeof createTestContext>;
-
   beforeEach(() => {
-    ctx = createTestContext();
+    vi.clearAllMocks();
+    mockDeps = createMockDeps();
   });
 
   test("正常に設定を更新できる", async () => {
-    ctx.mocks.circleService.updateSessionEmailNotificationEnabled.mockResolvedValue(
-      undefined,
-    );
+    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    mockDeps.authzRepository.findCircleMembership.mockResolvedValue({
+      kind: "member",
+      role: CircleRole.CircleOwner,
+    });
 
-    const caller = appRouter.createCaller(ctx.context);
+    const caller = appRouter.createCaller(buildContext());
     await caller.circles.updateSessionEmailNotification({
       circleId: "circle-1",
       enabled: false,
     });
 
-    expect(
-      ctx.mocks.circleService.updateSessionEmailNotificationEnabled,
-    ).toHaveBeenCalledWith(
-      toUserId("user-1"),
-      expect.anything(),
-      false,
+    expect(mockDeps.circleRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionEmailNotificationEnabled: false }),
     );
   });
 
   test("未認証ユーザーはUNAUTHORIZEDエラーになる", async () => {
-    const unauthCtx = createTestContext(null);
-    const caller = appRouter.createCaller(unauthCtx.context);
+    const caller = appRouter.createCaller(buildContext(null));
 
     await expect(
       caller.circles.updateSessionEmailNotification({
@@ -86,11 +62,10 @@ describe("circles.updateSessionEmailNotification", () => {
   });
 
   test("権限のないユーザーはFORBIDDENエラーになる", async () => {
-    ctx.mocks.circleService.updateSessionEmailNotificationEnabled.mockRejectedValue(
-      new ForbiddenError(),
-    );
+    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    // authzRepository.findCircleMembership defaults to { kind: "none" }
 
-    const caller = appRouter.createCaller(ctx.context);
+    const caller = appRouter.createCaller(buildContext());
 
     await expect(
       caller.circles.updateSessionEmailNotification({

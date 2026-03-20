@@ -1,114 +1,45 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
-import type { Context } from "@/server/presentation/trpc/context";
 import { toUserId } from "@/server/domain/common/ids";
 import {
-  BadRequestError,
-  ForbiddenError,
-  TooManyRequestsError,
-} from "@/server/domain/common/errors";
+  createMockDeps,
+  createServiceContainer,
+  toServiceContainerDeps,
+  type MockDeps,
+} from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 
-const createTestContext = (
-  actorIdValue: ReturnType<typeof toUserId> | null = toUserId("user-1"),
-) => {
-  const userService = {
-    getUser: vi.fn(),
-    listUsers: vi.fn(),
-    getMe: vi.fn(),
-    updateProfile: vi.fn(),
-    changePassword: vi.fn(),
-    updateProfileVisibility: vi.fn(),
-    uploadAvatar: vi.fn().mockResolvedValue(undefined),
-    findImageData: vi.fn().mockResolvedValue(null),
-    deleteAccount: vi.fn().mockResolvedValue(undefined),
-  };
+const ACTOR_ID = toUserId("user-1");
 
-  const context: Context = {
-    actorId: actorIdValue,
-    clientIp: "1.2.3.4",
-    circleService: {
-      getCircle: vi.fn(),
-      createCircle: vi.fn(),
-      renameCircle: vi.fn(),
-      deleteCircle: vi.fn(),
-      updateSessionEmailNotificationEnabled: vi.fn(),
-    },
-    circleMembershipService: {
-      listByCircleId: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      withdrawMembership: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-    },
-    circleSessionService: {
-      listByCircleId: vi.fn(),
-      getCircleSession: vi.fn(),
-      createCircleSession: vi.fn(),
-      rescheduleCircleSession: vi.fn(),
-      updateCircleSessionDetails: vi.fn(),
-      deleteCircleSession: vi.fn(),
-    },
-    circleSessionMembershipService: {
-      countPastSessionsByUserId: vi.fn(),
-      listMemberships: vi.fn(),
-      listByUserId: vi.fn(),
-      addMembership: vi.fn(),
-      changeMembershipRole: vi.fn(),
-      removeMembership: vi.fn(),
-      transferOwnership: vi.fn(),
-      withdrawMembership: vi.fn(),
-      listDeletedMemberships: vi.fn(),
-    },
-    matchService: {
-      listByCircleSessionId: vi.fn(),
-      getMatch: vi.fn(),
-      recordMatch: vi.fn(),
-      updateMatch: vi.fn(),
-      deleteMatch: vi.fn(),
-    },
-    userService,
-    signupService: {
-      signup: vi.fn(),
-    },
-    circleInviteLinkService: {
-      createInviteLink: vi.fn(),
-      getInviteLinkInfo: vi.fn(),
-      redeemInviteLink: vi.fn(),
-    },
-    accessService: {} as Context["accessService"],
-    userStatisticsService: {} as Context["userStatisticsService"],
-    roundRobinScheduleService: {} as Context["roundRobinScheduleService"],
-    holidayProvider: {} as Context["holidayProvider"],
-    notificationPreferenceService: {} as Context["notificationPreferenceService"],
-  };
+const BASE_USER = {
+  id: ACTOR_ID,
+  name: "Taro",
+  email: "taro@example.com",
+  image: null,
+  hasCustomImage: false,
+  profileVisibility: "PUBLIC" as const,
+  createdAt: new Date("2024-01-01"),
+};
 
-  return { context, mocks: { userService } };
+let mockDeps: MockDeps;
+
+const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) => {
+  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+  return { actorId, clientIp: "1.2.3.4", ...services };
 };
 
 describe("user tRPC ルーター", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDeps = createMockDeps();
   });
 
   describe("me", () => {
     test("ユーザー情報を meDtoSchema 準拠で返す", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.userService.getMe.mockResolvedValueOnce({
-        user: {
-          id: toUserId("user-1"),
-          name: "Taro",
-          email: "taro@example.com",
-          image: null,
-          hasCustomImage: false,
-          profileVisibility: "PUBLIC",
-          createdAt: new Date("2024-01-01"),
-        },
-        hasPassword: true,
-      });
+      // getMe needs: userRepository.findById → user, userRepository.findPasswordHashById → hash
+      mockDeps.userRepository.findById.mockResolvedValue(BASE_USER);
+      mockDeps.userRepository.findPasswordHashById.mockResolvedValue("hashed-password");
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
       const result = await caller.users.me();
 
       expect(result.id).toBe("user-1");
@@ -119,10 +50,10 @@ describe("user tRPC ルーター", () => {
     });
 
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.userService.getMe.mockRejectedValueOnce(new ForbiddenError());
+      // getMe: userRepository.findById returns null → ForbiddenError
+      mockDeps.userRepository.findById.mockResolvedValue(null);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(caller.users.me()).rejects.toMatchObject({
         code: "FORBIDDEN",
@@ -132,30 +63,29 @@ describe("user tRPC ルーター", () => {
 
   describe("updateProfile", () => {
     test("BadRequestError → BAD_REQUEST", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.userService.updateProfile.mockRejectedValueOnce(
-        new BadRequestError("Email already in use"),
-      );
+      // updateProfile: user exists, has password (not OAuth), email already in use
+      mockDeps.userRepository.findById.mockResolvedValue(BASE_USER);
+      mockDeps.userRepository.findPasswordHashById.mockResolvedValue("hashed");
+      mockDeps.userRepository.emailExists.mockResolvedValue(true);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.users.updateProfile({
           name: "Name",
           email: "taken@example.com",
         }),
-      ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+      ).rejects.toMatchObject({ code: "CONFLICT" });
     });
   });
 
   describe("changePassword", () => {
     test("BadRequestError → BAD_REQUEST", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.userService.changePassword.mockRejectedValueOnce(
-        new BadRequestError("Current password is incorrect"),
-      );
+      // changePassword: rate limiter passes, password hash found, verify fails
+      mockDeps.userRepository.findPasswordHashById.mockResolvedValue("hashed");
+      mockDeps.passwordHasher.verify.mockReturnValue(false);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.users.changePassword({
@@ -166,12 +96,15 @@ describe("user tRPC ルーター", () => {
     });
 
     test("TooManyRequestsError → TOO_MANY_REQUESTS", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.userService.changePassword.mockRejectedValueOnce(
+      // changePassword: rate limiter throws
+      const { TooManyRequestsError } = await import(
+        "@/server/domain/common/errors"
+      );
+      mockDeps.changePasswordRateLimiter.check.mockRejectedValue(
         new TooManyRequestsError(50_000),
       );
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.users.changePassword({
@@ -184,12 +117,10 @@ describe("user tRPC ルーター", () => {
 
   describe("updateProfileVisibility", () => {
     test("ForbiddenError → FORBIDDEN", async () => {
-      const { context, mocks } = createTestContext();
-      mocks.userService.updateProfileVisibility.mockRejectedValueOnce(
-        new ForbiddenError(),
-      );
+      // updateProfileVisibility: user not found → ForbiddenError
+      mockDeps.userRepository.findById.mockResolvedValue(null);
 
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext());
 
       await expect(
         caller.users.updateProfileVisibility({ visibility: "PRIVATE" }),
@@ -199,9 +130,7 @@ describe("user tRPC ルーター", () => {
 
   describe("未認証アクセス", () => {
     test("me: actorId null で UNAUTHORIZED を返す", async () => {
-      const { context } = createTestContext(null);
-
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(caller.users.me()).rejects.toMatchObject({
         code: "UNAUTHORIZED",
@@ -209,9 +138,7 @@ describe("user tRPC ルーター", () => {
     });
 
     test("updateProfile: actorId null で UNAUTHORIZED を返す", async () => {
-      const { context } = createTestContext(null);
-
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.users.updateProfile({
@@ -222,9 +149,7 @@ describe("user tRPC ルーター", () => {
     });
 
     test("changePassword: actorId null で UNAUTHORIZED を返す", async () => {
-      const { context } = createTestContext(null);
-
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.users.changePassword({
@@ -235,9 +160,7 @@ describe("user tRPC ルーター", () => {
     });
 
     test("updateProfileVisibility: actorId null で UNAUTHORIZED を返す", async () => {
-      const { context } = createTestContext(null);
-
-      const caller = appRouter.createCaller(context);
+      const caller = appRouter.createCaller(buildContext(null));
 
       await expect(
         caller.users.updateProfileVisibility({ visibility: "PRIVATE" }),
