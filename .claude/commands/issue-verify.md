@@ -7,11 +7,13 @@ Verification and intent-based review orchestration.
 ### Session Rule
 
 - Start stateless
-- Use ONLY artifacts:
+- Confirm existence (do NOT read contents) of:
   - .claude/artifacts/issue-{id}/research.md
   - .claude/artifacts/issue-{id}/plan.md
   - .claude/artifacts/issue-{id}/implement-log.md
-- If any missing -> STOP and request required phase.
+- If any missing -> STOP and request required phase
+- Use `git diff main...HEAD --name-only` to get modified file list
+- Use `git diff main...HEAD` to understand change contents for intent inference
 
 ---
 
@@ -32,7 +34,7 @@ Agent resolution is an external responsibility.
 
 ## Intent Inference Rules (rule-based)
 
-Infer intents from artifacts:
+Infer intents from git diff:
 
 ### safety
 
@@ -84,12 +86,19 @@ For each inferred intent in order:
 
 subagent_type = <resolved agent>
 
+Subagent prompt rules:
+
+- Pass ONLY file paths and review intent
+- Do NOT embed file contents or artifact contents in the prompt
+- The subagent must read all files from disk using its own tools
+
 Instructions to subagent:
 
-- inspect modified files
-- evaluate according to intent
-- report issues by severity
-- suggest minimal fixes
+- Review target files: [file paths]
+- Review intent: [intent name]
+- Read each file from disk before reviewing
+- Report issues by severity
+- Suggest minimal fixes
 
 3. Collect result before next intent.
 
