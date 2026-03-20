@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChangeEvent, FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,24 +85,22 @@ export function CircleSessionCreateForm({
     if (!startsAt || !endsAt || createSession.isPending) {
       return;
     }
-    createSession.mutate({
-      circleId,
-      title: trimWithFullwidth(title),
-      startsAt: new Date(startsAt),
-      endsAt: new Date(endsAt),
-      location: location.trim() || null,
-      note: note.trim() || undefined,
-    });
+    createSession.mutate(
+      {
+        circleId,
+        title: trimWithFullwidth(title),
+        startsAt: new Date(startsAt),
+        endsAt: new Date(endsAt),
+        location: location.trim() || null,
+        note: note.trim() || undefined,
+      },
+      {
+        onSuccess: (data) => {
+          router.push(`/circle-sessions/${encodeURIComponent(data.id)}`);
+        },
+      },
+    );
   };
-
-  const created = createSession.data;
-
-  useEffect(() => {
-    if (!created?.id) {
-      return;
-    }
-    router.push(`/circle-sessions/${encodeURIComponent(created.id)}`);
-  }, [created?.id, router]);
 
   return (
     <div className="w-full">

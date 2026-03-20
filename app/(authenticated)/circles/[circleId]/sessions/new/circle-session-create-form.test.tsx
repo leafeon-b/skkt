@@ -105,6 +105,9 @@ describe("CircleSessionCreateForm", () => {
         circleId,
         title: "テスト研究会",
       }),
+      expect.objectContaining({
+        onSuccess: expect.any(Function),
+      }),
     );
   });
 
