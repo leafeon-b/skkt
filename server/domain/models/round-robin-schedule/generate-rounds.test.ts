@@ -5,6 +5,39 @@ import type { UserId } from "@/server/domain/common/ids";
 
 const ids = (...names: string[]): UserId[] => names.map((n) => toUserId(n));
 
+function assertInvariants(
+  rounds: ReturnType<typeof generateRounds>,
+  participants: UserId[],
+): void {
+  // 全ペアがちょうど1回出現する
+  const pairSet = new Set<string>();
+  for (const round of rounds) {
+    for (const p of round.pairings) {
+      const key = [p.player1Id, p.player2Id].sort().join("-");
+      expect(pairSet.has(key)).toBe(false);
+      pairSet.add(key);
+    }
+  }
+  const expectedPairs = (participants.length * (participants.length - 1)) / 2;
+  expect(pairSet.size).toBe(expectedPairs);
+
+  // ラウンド内で同一プレイヤーが重複しない
+  for (const round of rounds) {
+    const playersInRound: string[] = [];
+    for (const p of round.pairings) {
+      playersInRound.push(p.player1Id, p.player2Id);
+    }
+    expect(new Set(playersInRound).size).toBe(playersInRound.length);
+  }
+
+  // 合計対戦数が n*(n-1)/2 と一致する
+  const totalPairings = rounds.reduce(
+    (sum, r) => sum + r.pairings.length,
+    0,
+  );
+  expect(totalPairings).toBe(expectedPairs);
+}
+
 describe("generateRounds", () => {
   describe("バリデーション", () => {
     test("0人の場合エラーになる", () => {
@@ -138,7 +171,9 @@ describe("generateRounds", () => {
 
       const results = new Set<string>();
       for (let i = 0; i < 20; i++) {
-        results.add(serialize(generateRounds(participants)));
+        const rounds = generateRounds(participants);
+        assertInvariants(rounds, participants);
+        results.add(serialize(rounds));
       }
 
       expect(results.size).toBeGreaterThan(1);
