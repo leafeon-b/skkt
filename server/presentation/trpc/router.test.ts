@@ -37,7 +37,7 @@ const BASE_SESSION = {
   title: "第1回 研究会",
   startsAt: new Date("2025-02-01T09:00:00Z"),
   endsAt: new Date("2025-02-01T12:00:00Z"),
-  location: null,
+  location: null as string | null,
   note: "",
   createdAt: NOW,
 };
