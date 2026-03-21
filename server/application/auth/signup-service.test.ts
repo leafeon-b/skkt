@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { createInMemoryUserRepository } from "@/server/infrastructure/repository/in-memory";
 import type { UserStore } from "@/server/infrastructure/repository/in-memory/in-memory-user-repository";
 import { ConflictError } from "@/server/domain/common/errors";
@@ -15,6 +15,18 @@ const validInput = {
   agreedToTerms: true,
 };
 
+const createFakePasswordHasher = () => {
+  const hashed: string[] = [];
+  return {
+    hashed,
+    hash: (password: string) => {
+      hashed.push(password);
+      return `hashed:${password}`;
+    },
+    verify: (password: string, hash: string) => hash === `hashed:${password}`,
+  };
+};
+
 const createDeps = (
   userStore: UserStore = new Map(),
 ): { deps: SignupServiceDeps; userStore: UserStore } => {
@@ -22,10 +34,7 @@ const createDeps = (
   return {
     deps: {
       userRepository,
-      passwordHasher: {
-        hash: vi.fn().mockReturnValue("hashed-password"),
-        verify: vi.fn(),
-      },
+      passwordHasher: createFakePasswordHasher(),
     },
     userStore,
   };
@@ -163,9 +172,9 @@ describe("SignupService", () => {
     expect(userStore.size).toBe(1);
   });
 
-  // タイミング特性は振る舞いとして観測困難なため、例外的にモック呼び出しを検証する
   test("重複メール時にもパスワードハッシュが実行される（タイミングサイドチャネル防止）", async () => {
     const { deps, userStore } = createDeps();
+    const fakeHasher = deps.passwordHasher as ReturnType<typeof createFakePasswordHasher>;
     // 既存ユーザーを登録
     userStore.set("existing-user", {
       id: toUserId("existing-user"),
@@ -183,7 +192,7 @@ describe("SignupService", () => {
     const result = await service.signup(validInput);
 
     expect(result).toEqual({ success: false, error: "signup_failed" });
-    expect(deps.passwordHasher.hash).toHaveBeenCalledWith(validInput.password);
+    expect(fakeHasher.hashed).toContain(validInput.password);
   });
 
   test("createUser が ConflictError 以外をスローした場合はそのまま伝播する", async () => {

@@ -8,7 +8,7 @@ import {
 } from "@/server/infrastructure/repository/in-memory";
 import type { UserStore } from "@/server/infrastructure/repository/in-memory/in-memory-user-repository";
 import type { PasswordHasher } from "@/server/domain/common/password-hasher";
-import type { RateLimiter } from "@/server/domain/common/rate-limiter";
+import { createFakeRateLimiter } from "@/server/application/test-helpers/fake-rate-limiter";
 import { toUserId } from "@/server/domain/common/ids";
 import {
   createUser,
@@ -29,11 +29,7 @@ const passwordHasher: PasswordHasher = {
   verify: vi.fn((p: string, h: string) => h === `hashed:${p}`),
 };
 
-const changePasswordRateLimiter: RateLimiter = {
-  check: vi.fn(),
-  recordAttempt: vi.fn(),
-  reset: vi.fn(),
-};
+const changePasswordRateLimiter = createFakeRateLimiter();
 
 const circleRepository = createInMemoryCircleRepository();
 const circleSessionRepository = createInMemoryCircleSessionRepository();
@@ -65,6 +61,9 @@ const addTestUser = (passwordHash: string | null = null) => {
 
 beforeEach(() => {
   userStore.clear();
+  changePasswordRateLimiter.attempts.length = 0;
+  changePasswordRateLimiter.resets.length = 0;
+  changePasswordRateLimiter.check = async () => {};
   vi.clearAllMocks();
 });
 
@@ -240,9 +239,9 @@ describe("changePassword", () => {
   });
 
   test("レート制限超過時に TooManyRequestsError", async () => {
-    vi.mocked(changePasswordRateLimiter.check).mockImplementationOnce(() => {
+    changePasswordRateLimiter.check = async () => {
       throw new TooManyRequestsError(50_000);
-    });
+    };
     addTestUser("hashed:oldpass");
 
     await expect(
@@ -261,9 +260,7 @@ describe("changePassword", () => {
       service.changePassword(actorId, { currentPassword: "wrong", newPassword: "newpass12", clientIp: "1.2.3.4" }),
     ).rejects.toThrow("Current password is incorrect");
 
-    expect(changePasswordRateLimiter.recordAttempt).toHaveBeenCalledWith(
-      `${actorId}:1.2.3.4`,
-    );
+    expect(changePasswordRateLimiter.attempts).toContain(`${actorId}:1.2.3.4`);
   });
 
   test("パスワード変更成功時に reset が呼ばれる", async () => {
@@ -271,9 +268,7 @@ describe("changePassword", () => {
 
     await service.changePassword(actorId, { currentPassword: "oldpass", newPassword: "newpass12", clientIp: "1.2.3.4" });
 
-    expect(changePasswordRateLimiter.reset).toHaveBeenCalledWith(
-      `${actorId}:1.2.3.4`,
-    );
+    expect(changePasswordRateLimiter.resets).toContain(`${actorId}:1.2.3.4`);
   });
 });
 
