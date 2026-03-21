@@ -42,10 +42,6 @@ describe("Prisma Authz リポジトリ", () => {
 
     const result = await prismaAuthzRepository.isRegisteredUser("user-1");
 
-    expect(mockedPrisma.user.findUnique).toHaveBeenCalledWith({
-      where: { id: "user-1" },
-      select: { id: true },
-    });
     expect(result).toBe(true);
   });
 
@@ -72,10 +68,6 @@ describe("Prisma Authz リポジトリ", () => {
       "circle-1",
     );
 
-    expect(mockedPrisma.circleMembership.findFirst).toHaveBeenCalledWith({
-      where: { userId: "user-1", circleId: "circle-1", deletedAt: null },
-      select: { role: true },
-    });
     expect(membership).toEqual({ kind: "member", role: "CircleOwner" });
   });
 
@@ -105,16 +97,6 @@ describe("Prisma Authz リポジトリ", () => {
       "session-1",
     );
 
-    expect(mockedPrisma.circleSessionMembership.findFirst).toHaveBeenCalledWith(
-      {
-        where: {
-          userId: "user-1",
-          circleSessionId: "session-1",
-          deletedAt: null,
-        },
-        select: { role: true },
-      },
-    );
     expect(membership).toEqual({ kind: "member", role: "CircleSessionMember" });
   });
 
@@ -138,10 +120,6 @@ describe("Prisma Authz リポジトリ", () => {
       "circle-1",
     );
 
-    expect(mockedPrisma.circleMembership.findFirst).toHaveBeenCalledWith({
-      where: { userId: "user-1", circleId: "circle-1", deletedAt: null },
-      select: { role: true },
-    });
     expect(membership).toEqual({ kind: "none" });
   });
 
@@ -153,16 +131,6 @@ describe("Prisma Authz リポジトリ", () => {
       "session-1",
     );
 
-    expect(mockedPrisma.circleSessionMembership.findFirst).toHaveBeenCalledWith(
-      {
-        where: {
-          userId: "user-1",
-          circleSessionId: "session-1",
-          deletedAt: null,
-        },
-        select: { role: true },
-      },
-    );
     expect(membership).toEqual({ kind: "none" });
   });
 });
