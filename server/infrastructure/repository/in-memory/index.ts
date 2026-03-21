@@ -22,6 +22,10 @@ import {
   createInMemoryCircleInviteLinkRepository,
   type CircleInviteLinkStore,
 } from "./in-memory-circle-invite-link-repository";
+import {
+  createInMemoryNotificationPreferenceRepository,
+  type NotificationPreferenceStore,
+} from "./in-memory-notification-preference-repository";
 import { createInMemoryAuthzRepository } from "./in-memory-authz-repository";
 import { createInMemoryUnitOfWork } from "./in-memory-unit-of-work";
 import type { UnitOfWork } from "@/server/domain/common/unit-of-work";
@@ -34,6 +38,7 @@ export type InMemoryStores = {
   userStore: UserStore;
   matchStore: MatchStore;
   circleInviteLinkStore: CircleInviteLinkStore;
+  notificationPreferenceStore: NotificationPreferenceStore;
 };
 
 export type InMemoryRepositories = {
@@ -52,6 +57,7 @@ export const createInMemoryRepositories = (): InMemoryRepositories => {
   const userStore: UserStore = new Map();
   const matchStore: MatchStore = new Map();
   const circleInviteLinkStore: CircleInviteLinkStore = new Map();
+  const notificationPreferenceStore: NotificationPreferenceStore = new Map();
 
   const circleRepository = createInMemoryCircleRepository(
     circleStore,
@@ -69,6 +75,10 @@ export const createInMemoryRepositories = (): InMemoryRepositories => {
   const circleInviteLinkRepository = createInMemoryCircleInviteLinkRepository(
     circleInviteLinkStore,
   );
+  const notificationPreferenceRepository =
+    createInMemoryNotificationPreferenceRepository(
+      notificationPreferenceStore,
+    );
   const authzRepository = createInMemoryAuthzRepository({
     userStore,
     circleMembershipStore,
@@ -82,6 +92,7 @@ export const createInMemoryRepositories = (): InMemoryRepositories => {
     userRepository,
     authzRepository,
     circleInviteLinkRepository,
+    notificationPreferenceRepository,
   };
 
   const unitOfWork = createInMemoryUnitOfWork(repos);
@@ -97,6 +108,7 @@ export const createInMemoryRepositories = (): InMemoryRepositories => {
       userStore,
       matchStore,
       circleInviteLinkStore,
+      notificationPreferenceStore,
     },
   };
 };
@@ -107,4 +119,5 @@ export { createInMemoryUserRepository } from "./in-memory-user-repository";
 export { createInMemoryMatchRepository } from "./in-memory-match-repository";
 export { createInMemoryCircleInviteLinkRepository } from "./in-memory-circle-invite-link-repository";
 export { createInMemoryAuthzRepository } from "./in-memory-authz-repository";
+export { createInMemoryNotificationPreferenceRepository } from "./in-memory-notification-preference-repository";
 export { createInMemoryUnitOfWork } from "./in-memory-unit-of-work";

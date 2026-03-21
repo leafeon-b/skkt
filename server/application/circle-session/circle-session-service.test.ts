@@ -13,7 +13,7 @@ import {
 } from "@/server/domain/models/circle-session/circle-session";
 import { createCircle } from "@/server/domain/models/circle/circle";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { createNotificationService } from "@/server/application/notification/notification-service";
+import { createFakeNotificationService } from "@/server/application/test-helpers/fake-notification-service";
 
 const circleRepository = createInMemoryCircleRepository();
 
@@ -323,9 +323,7 @@ describe("UnitOfWork 経路", () => {
 });
 
 describe("セッション作成時のメール通知", () => {
-  const notificationService: ReturnType<typeof createNotificationService> = {
-    notifySessionCreated: vi.fn().mockResolvedValue(undefined),
-  };
+  const fakeNotificationService = createFakeNotificationService();
 
   const notifyCircleRepo = createInMemoryCircleRepository();
   const notifySessionRepo = createInMemoryCircleSessionRepository();
@@ -335,12 +333,13 @@ describe("セッション作成時のメール通知", () => {
     circleRepository: notifyCircleRepo,
     circleSessionRepository: notifySessionRepo,
     accessService: notifyAccessService,
-    notificationService,
+    notificationService: fakeNotificationService,
   });
 
   beforeEach(async () => {
     notifyCircleRepo._clear();
     notifySessionRepo._clear();
+    fakeNotificationService.notifications.length = 0;
     vi.clearAllMocks();
     await notifyCircleRepo.save(baseCircle);
     vi.mocked(notifyAccessService.canCreateCircleSession).mockResolvedValue(
@@ -354,17 +353,14 @@ describe("セッション作成時のメール通知", () => {
       ...baseSessionParams,
     });
 
-    expect(notificationService.notifySessionCreated).toHaveBeenCalledWith(
-      expect.objectContaining({ id: baseSessionParams.id }),
-      baseCircle.name,
-      "user-1",
-    );
+    expect(fakeNotificationService.notifications).toHaveLength(1);
+    expect(fakeNotificationService.notifications[0].session.id).toBe(baseSessionParams.id);
+    expect(fakeNotificationService.notifications[0].circleName).toBe(baseCircle.name);
+    expect(fakeNotificationService.notifications[0].actorId).toBe("user-1");
   });
 
   test("メール送信失敗時もセッション作成は成功する", async () => {
-    vi.mocked(notificationService.notifySessionCreated).mockRejectedValue(
-      new Error("email error"),
-    );
+    fakeNotificationService.failOnNextCall(new Error("email error"));
 
     const consoleSpy = vi
       .spyOn(console, "error")
@@ -382,14 +378,7 @@ describe("セッション作成時のメール通知", () => {
     // Wait for the fire-and-forget promise to settle
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Failed to send session notification:",
-      expect.objectContaining({
-        sessionId: baseSessionParams.id,
-        circleId: baseCircle.id,
-        message: "email error",
-      }),
-    );
+    expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
 });

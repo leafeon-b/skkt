@@ -12,10 +12,10 @@ import type { CircleRepository } from "@/server/domain/models/circle/circle-repo
 import type { UserRepository } from "@/server/domain/models/user/user-repository";
 import type { NotificationPreferenceRepository } from "@/server/domain/models/notification-preference/notification-preference-repository";
 import type { UnsubscribeTokenService } from "@/server/domain/services/unsubscribe-token";
-import type { EmailSender } from "@/server/domain/common/email-sender";
 import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
 import type { User } from "@/server/domain/models/user/user";
 import { createCircle } from "@/server/domain/models/circle/circle";
+import { createFakeEmailSender } from "@/server/application/test-helpers/fake-email-sender";
 
 const mockCircleRepository = {
   findById: vi.fn(),
@@ -35,16 +35,14 @@ const mockUnsubscribeTokenService: UnsubscribeTokenService = {
   verify: vi.fn(),
 };
 
-const mockEmailSender: EmailSender = {
-  send: vi.fn().mockResolvedValue(undefined),
-};
+const fakeEmailSender = createFakeEmailSender();
 
 const service = createNotificationService({
   circleRepository: mockCircleRepository,
   userRepository: mockUserRepository,
   notificationPreferenceRepository: mockNotificationPreferenceRepository,
   unsubscribeTokenService: mockUnsubscribeTokenService,
-  emailSender: mockEmailSender,
+  emailSender: fakeEmailSender,
 });
 
 const session = createCircleSession({
@@ -88,6 +86,7 @@ const defaultCircle = createCircle({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  fakeEmailSender.sentMessages.length = 0;
   mockEnv.BASE_URL = undefined;
   vi.mocked(mockCircleRepository.findById).mockResolvedValue(defaultCircle);
   vi.mocked(mockNotificationPreferenceRepository.findByUserIds).mockResolvedValue([]);
@@ -105,13 +104,9 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).toHaveBeenCalledOnce();
-    expect(mockEmailSender.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: ["user2@example.com"],
-        subject: `[将棋研究会] 第1回 研究会`,
-      }),
-    );
+    expect(fakeEmailSender.sentMessages).toHaveLength(1);
+    expect(fakeEmailSender.sentMessages[0].to).toEqual(["user2@example.com"]);
+    expect(fakeEmailSender.sentMessages[0].subject).toBe(`[将棋研究会] 第1回 研究会`);
   });
 
   test("作成者自身にはメール送信されない", async () => {
@@ -121,7 +116,7 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).not.toHaveBeenCalled();
+    expect(fakeEmailSender.sentMessages).toHaveLength(0);
     expect(mockUserRepository.findByIds).not.toHaveBeenCalled();
   });
 
@@ -135,7 +130,7 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).not.toHaveBeenCalled();
+    expect(fakeEmailSender.sentMessages).toHaveLength(0);
   });
 
   test("退会済みメンバーにはメール送信されない", async () => {
@@ -145,7 +140,7 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).not.toHaveBeenCalled();
+    expect(fakeEmailSender.sentMessages).toHaveLength(0);
   });
 
   test("BASE_URL が設定されている場合、メール本文にセッション詳細リンクが含まれる", async () => {
@@ -160,12 +155,9 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        body: expect.stringContaining(
-          "詳細はこちら: https://example.com/circle-sessions/session-1",
-        ),
-      }),
+    expect(fakeEmailSender.sentMessages).toHaveLength(1);
+    expect(fakeEmailSender.sentMessages[0].body).toContain(
+      "詳細はこちら: https://example.com/circle-sessions/session-1",
     );
   });
 
@@ -181,11 +173,8 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        body: expect.stringContaining("SKKT でご確認ください。"),
-      }),
-    );
+    expect(fakeEmailSender.sentMessages).toHaveLength(1);
+    expect(fakeEmailSender.sentMessages[0].body).toContain("SKKT でご確認ください。");
   });
 
   test("メール通知をオプトアウトしたユーザーにはメール送信されない", async () => {
@@ -201,7 +190,7 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).not.toHaveBeenCalled();
+    expect(fakeEmailSender.sentMessages).toHaveLength(0);
   });
 
   test("オプトアウトしていないユーザーにはメール送信される", async () => {
@@ -222,12 +211,8 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).toHaveBeenCalledOnce();
-    expect(mockEmailSender.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: ["user3@example.com"],
-      }),
-    );
+    expect(fakeEmailSender.sentMessages).toHaveLength(1);
+    expect(fakeEmailSender.sentMessages[0].to).toEqual(["user3@example.com"]);
   });
 
   test("BASE_URL が設定されている場合、List-Unsubscribe ヘッダーが付与される", async () => {
@@ -242,15 +227,12 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        headers: {
-          "List-Unsubscribe":
-            "<https://example.com/api/unsubscribe?token=mock-token>",
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-        },
-      }),
-    );
+    expect(fakeEmailSender.sentMessages).toHaveLength(1);
+    expect(fakeEmailSender.sentMessages[0].headers).toEqual({
+      "List-Unsubscribe":
+        "<https://example.com/api/unsubscribe?token=mock-token>",
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    });
   });
 
   test("BASE_URL が未設定の場合、headers が付与されない", async () => {
@@ -265,8 +247,8 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    const call = vi.mocked(mockEmailSender.send).mock.calls[0]?.[0];
-    expect(call).not.toHaveProperty("headers");
+    expect(fakeEmailSender.sentMessages).toHaveLength(1);
+    expect(fakeEmailSender.sentMessages[0]).not.toHaveProperty("headers");
   });
 
   test("研究会のメール通知設定が無効の場合、メール送信されない", async () => {
@@ -287,7 +269,7 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).not.toHaveBeenCalled();
+    expect(fakeEmailSender.sentMessages).toHaveLength(0);
     expect(mockCircleRepository.listMembershipsByCircleId).not.toHaveBeenCalled();
   });
 
@@ -303,12 +285,9 @@ describe("NotificationService", () => {
 
     await service.notifySessionCreated(session, circleName, actorId);
 
-    expect(mockEmailSender.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        body: expect.stringContaining(
-          "メール配信を停止する: https://example.com/unsubscribe?token=mock-token",
-        ),
-      }),
+    expect(fakeEmailSender.sentMessages).toHaveLength(1);
+    expect(fakeEmailSender.sentMessages[0].body).toContain(
+      "メール配信を停止する: https://example.com/unsubscribe?token=mock-token",
     );
   });
 });
