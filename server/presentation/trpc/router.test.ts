@@ -442,7 +442,6 @@ describe("tRPC router", () => {
       {
         circleId: CIRCLE_ID,
         userId: ACTOR_ID,
-        displayName: "テストユーザー",
         role: CircleRole.CircleOwner,
         createdAt: NOW,
         deletedAt: null,
@@ -450,7 +449,6 @@ describe("tRPC router", () => {
       {
         circleId: CIRCLE_ID,
         userId: toUserId("user-2"),
-        displayName: "メンバー",
         role: CircleRole.CircleMember,
         createdAt: NOW,
         deletedAt: null,
@@ -622,7 +620,6 @@ describe("tRPC router", () => {
       {
         circleSessionId: SESSION_ID,
         userId: ACTOR_ID,
-        displayName: "オーナー",
         role: CircleSessionRole.CircleSessionOwner,
         createdAt: NOW,
         deletedAt: null,
@@ -630,7 +627,6 @@ describe("tRPC router", () => {
       {
         circleSessionId: SESSION_ID,
         userId: toUserId("user-2"),
-        displayName: "メンバー",
         role: CircleSessionRole.CircleSessionMember,
         createdAt: NOW,
         deletedAt: null,
