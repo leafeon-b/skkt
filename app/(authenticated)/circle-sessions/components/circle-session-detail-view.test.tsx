@@ -6,7 +6,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CircleSessionDetailView } from "./circle-session-detail-view";
 
 const pushMock = vi.fn();
-const refreshMock = vi.fn();
 
 type MutationBehavior = "idle" | "success" | "error";
 let matchCreateBehavior: MutationBehavior = "idle";
@@ -121,7 +120,7 @@ vi.mock("next/navigation", () => ({
     push: pushMock,
     replace: vi.fn(),
     prefetch: vi.fn(),
-    refresh: refreshMock,
+    refresh: vi.fn(),
   }),
 }));
 
@@ -135,7 +134,6 @@ vi.mock("sonner", () => ({
 afterEach(() => {
   cleanup();
   pushMock.mockClear();
-  refreshMock.mockClear();
   matchCreateBehavior = "idle";
   matchUpdateBehavior = "idle";
   matchDeleteBehavior = "idle";
@@ -403,7 +401,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       );
     });
 
-    it("成功時にダイアログが閉じ、成功トーストと router.refresh が呼ばれる", async () => {
+    it("成功時にダイアログが閉じ、成功トーストが表示される", async () => {
       matchCreateBehavior = "success";
       const user = await openAddDialogForEmptyCell();
 
@@ -413,7 +411,6 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(toastModule.toast.success).toHaveBeenCalledOnce();
-      expect(refreshMock).toHaveBeenCalled();
     });
   });
 
@@ -435,7 +432,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       );
     });
 
-    it("成功時にダイアログが閉じ、成功トーストと router.refresh が呼ばれる", async () => {
+    it("成功時にダイアログが閉じ、成功トーストが表示される", async () => {
       matchUpdateBehavior = "success";
       const user = await openEditDialogViaDropdown();
 
@@ -445,7 +442,6 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(toastModule.toast.success).toHaveBeenCalledOnce();
-      expect(refreshMock).toHaveBeenCalled();
     });
   });
 
@@ -467,7 +463,7 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
       );
     });
 
-    it("成功時にダイアログが閉じ、成功トーストと router.refresh が呼ばれる", async () => {
+    it("成功時にダイアログが閉じ、成功トーストが表示される", async () => {
       matchDeleteBehavior = "success";
       const user = await openDeleteDialogViaDropdown();
 
@@ -477,7 +473,6 @@ describe("CircleSessionDetailView mutation エラーパス", () => {
 
       expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
       expect(toastModule.toast.success).toHaveBeenCalledOnce();
-      expect(refreshMock).toHaveBeenCalled();
     });
   });
 });

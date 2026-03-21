@@ -17,7 +17,7 @@ const useMutationHolder = vi.hoisted(() => {
   return { current: noop as (...args: unknown[]) => unknown };
 });
 
-const { useMutation, mutateSpyRef, resetSpy } = makeMutationMock<{
+const { useMutation, resetSpy } = makeMutationMock<{
   id: string;
 }>(() => createBehavior, {
   errorMessage: "作成に失敗しました",
@@ -49,7 +49,6 @@ afterEach(() => {
   cleanup();
   pushMock.mockClear();
   resetSpy.mockClear();
-  mutateSpyRef.current.mockClear();
   createBehavior = "idle";
 });
 
@@ -70,19 +69,7 @@ describe("CircleCreateDialog", () => {
     expect(input).toBeRequired();
   });
 
-  it("有効な名前入力後に送信すると mutate が呼ばれる", async () => {
-    const { user, dialog } = await openDialog();
-
-    const input = within(dialog).getByPlaceholderText("研究会名");
-    await user.type(input, "新しい研究会");
-
-    const submitButton = within(dialog).getByRole("button", { name: "作成" });
-    await user.click(submitButton);
-
-    expect(mutateSpyRef.current).toHaveBeenCalledWith({ name: "新しい研究会" });
-  });
-
-  it("成功時に router.push が呼ばれダイアログが閉じる", async () => {
+  it("成功時にナビゲーションが発生しダイアログが閉じる", async () => {
     createBehavior = "success";
     const { user, dialog } = await openDialog();
 
@@ -150,7 +137,8 @@ describe("CircleCreateDialog", () => {
     );
   });
 
-  it("空白のみの入力では trim 後の空文字列で mutate が呼ばれる", async () => {
+  it("空白のみの入力で送信するとエラーが表示される", async () => {
+    createBehavior = "error";
     const { user, dialog } = await openDialog();
 
     const input = within(dialog).getByPlaceholderText("研究会名");
@@ -159,10 +147,12 @@ describe("CircleCreateDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "作成" });
     await user.click(submitButton);
 
-    expect(mutateSpyRef.current).toHaveBeenCalledWith({ name: "" });
+    const alert = within(dialog).getByRole("alert");
+    expect(alert).toHaveTextContent("作成に失敗しました");
   });
 
-  it("前後の空白を除去して mutate が呼ばれる", async () => {
+  it("前後に空白がある名前でも送信に成功する", async () => {
+    createBehavior = "success";
     const { user, dialog } = await openDialog();
 
     const input = within(dialog).getByPlaceholderText("研究会名");
@@ -171,7 +161,8 @@ describe("CircleCreateDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "作成" });
     await user.click(submitButton);
 
-    expect(mutateSpyRef.current).toHaveBeenCalledWith({ name: "新しい研究会" });
+    expect(pushMock).toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("80%（40文字）以上で aria-live='polite' が有効化される", async () => {

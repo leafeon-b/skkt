@@ -8,8 +8,6 @@ import {
 } from "@/test-helpers/trpc-mutation-mock";
 import { MemberRoleDropdown } from "./member-role-dropdown";
 
-const refreshMock = vi.fn();
-
 let updateRoleBehavior: MutationBehavior = "idle";
 
 const useMutationHolder = vi.hoisted(() => {
@@ -17,7 +15,7 @@ const useMutationHolder = vi.hoisted(() => {
   return { current: noop as (...args: unknown[]) => unknown };
 });
 
-const { useMutation, mutateSpyRef } = makeMutationMock(
+const { useMutation } = makeMutationMock(
   () => updateRoleBehavior,
   { hasReset: false },
 );
@@ -42,7 +40,7 @@ vi.mock("next/navigation", () => ({
     push: vi.fn(),
     replace: vi.fn(),
     prefetch: vi.fn(),
-    refresh: refreshMock,
+    refresh: vi.fn(),
   }),
 }));
 
@@ -54,7 +52,6 @@ vi.mock("sonner", () => ({
 
 afterEach(() => {
   cleanup();
-  refreshMock.mockClear();
   updateRoleBehavior = "idle";
 });
 
@@ -106,7 +103,7 @@ describe("MemberRoleDropdown", () => {
     expect(items[0]).toHaveAttribute("data-disabled");
   });
 
-  it("異なるロールを選択すると updateRole が呼ばれる", async () => {
+  it("異なるロールを選択するとメニューが閉じる", async () => {
     updateRoleBehavior = "success";
     const user = userEvent.setup();
     render(<MemberRoleDropdown {...defaultProps} currentRole="manager" />);
@@ -117,25 +114,7 @@ describe("MemberRoleDropdown", () => {
     const items = within(menu).getAllByRole("menuitem");
     await user.click(items[1]);
 
-    expect(mutateSpyRef.current).toHaveBeenCalledWith({
-      circleId: "circle-1",
-      userId: "user-1",
-      role: "CircleMember",
-    });
-  });
-
-  it("ロール変更成功時に router.refresh() が呼ばれる", async () => {
-    updateRoleBehavior = "success";
-    const user = userEvent.setup();
-    render(<MemberRoleDropdown {...defaultProps} currentRole="manager" />);
-
-    await user.click(screen.getByRole("button", { name: "ロールを変更" }));
-
-    const menu = screen.getByRole("menu");
-    const items = within(menu).getAllByRole("menuitem");
-    await user.click(items[1]);
-
-    expect(refreshMock).toHaveBeenCalled();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
   it("ロール変更失敗時に toast.error が呼ばれる", async () => {

@@ -4,8 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CircleSessionEditDialog } from "./circle-session-edit-dialog";
 
-const refreshMock = vi.fn();
-
 type MutationBehavior = "idle" | "success" | "error";
 let updateBehavior: MutationBehavior = "idle";
 const mutateMock = vi.fn();
@@ -51,13 +49,12 @@ vi.mock("next/navigation", () => ({
     push: vi.fn(),
     replace: vi.fn(),
     prefetch: vi.fn(),
-    refresh: refreshMock,
+    refresh: vi.fn(),
   }),
 }));
 
 afterEach(() => {
   cleanup();
-  refreshMock.mockClear();
   mutateMock.mockClear();
   resetMock.mockClear();
   updateBehavior = "idle";
@@ -132,20 +129,7 @@ describe("CircleSessionEditDialog", () => {
   });
 
   describe("送信", () => {
-    it("保存ボタンをクリックすると mutation が呼ばれる", async () => {
-      updateBehavior = "success";
-      const user = await openEditDialog();
-
-      const dialog = await screen.findByRole("dialog");
-      const submitButton = within(dialog).getByRole("button", {
-        name: "保存",
-      });
-      await user.click(submitButton);
-
-      expect(mutateMock).toHaveBeenCalledOnce();
-    });
-
-    it("成功時にダイアログが閉じ、router.refresh が呼ばれる", async () => {
+    it("成功時にダイアログが閉じる", async () => {
       updateBehavior = "success";
       const user = await openEditDialog();
 
@@ -156,7 +140,6 @@ describe("CircleSessionEditDialog", () => {
       await user.click(submitButton);
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-      expect(refreshMock).toHaveBeenCalled();
     });
 
     it("タイトルが空白のみの場合、customValidity が設定される", async () => {

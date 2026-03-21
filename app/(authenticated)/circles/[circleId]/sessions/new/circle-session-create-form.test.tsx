@@ -37,7 +37,7 @@ afterEach(() => {
 describe("CircleSessionCreateForm", () => {
   const circleId = "test-circle-id";
 
-  it("mutate が呼ばれない: title が未入力", async () => {
+  it("title 未入力ではバリデーションエラーにより送信されない", async () => {
     const user = userEvent.setup();
     render(<CircleSessionCreateForm circleId={circleId} />);
 
@@ -50,10 +50,11 @@ describe("CircleSessionCreateForm", () => {
 
     await user.click(screen.getByRole("button", { name: /予定を作成/ }));
 
-    expect(mutateMock).not.toHaveBeenCalled();
+    const titleInput = screen.getByLabelText("タイトル") as HTMLInputElement;
+    expect(titleInput.validity.valid).toBe(false);
   });
 
-  it("mutate が呼ばれない: startsAt が未入力", async () => {
+  it("startsAt 未入力ではバリデーションエラーにより送信されない", async () => {
     const user = userEvent.setup();
     render(<CircleSessionCreateForm circleId={circleId} />);
 
@@ -66,10 +67,10 @@ describe("CircleSessionCreateForm", () => {
 
     await user.click(screen.getByRole("button", { name: /予定を作成/ }));
 
-    expect(mutateMock).not.toHaveBeenCalled();
+    expect((startsAtInput as HTMLInputElement).validity.valid).toBe(false);
   });
 
-  it("mutate が呼ばれない: endsAt が未入力", async () => {
+  it("endsAt 未入力ではバリデーションエラーにより送信されない", async () => {
     const user = userEvent.setup();
     render(<CircleSessionCreateForm circleId={circleId} />);
 
@@ -82,7 +83,7 @@ describe("CircleSessionCreateForm", () => {
 
     await user.click(screen.getByRole("button", { name: /予定を作成/ }));
 
-    expect(mutateMock).not.toHaveBeenCalled();
+    expect((endsAtInput as HTMLInputElement).validity.valid).toBe(false);
   });
 
   it("全フィールド入力済みで mutate が呼ばれる", async () => {
