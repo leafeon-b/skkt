@@ -5,9 +5,9 @@ vi.mock("@/server/env", () => ({ env: {} }));
 
 import {
   createMockDeps,
+  createServiceContainer,
   toServiceContainerDeps,
 } from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
-import { createServiceContainer } from "@/server/infrastructure/service-container";
 
 const mockDeps = createMockDeps();
 

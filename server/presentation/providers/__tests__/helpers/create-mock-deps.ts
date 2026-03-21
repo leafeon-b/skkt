@@ -4,6 +4,8 @@ import {
   createServiceContainer,
   type ServiceContainerDeps,
 } from "@/server/infrastructure/service-container";
+
+export { createServiceContainer };
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
