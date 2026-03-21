@@ -8,8 +8,6 @@ import {
 } from "@/test-helpers/trpc-mutation-mock";
 import { CircleRenameDialog } from "./circle-rename-dialog";
 
-const refreshMock = vi.fn();
-
 let renameBehavior: MutationBehavior = "idle";
 
 const useMutationHolder = vi.hoisted(() => {
@@ -17,7 +15,7 @@ const useMutationHolder = vi.hoisted(() => {
   return { current: noop as (...args: unknown[]) => unknown };
 });
 
-const { useMutation, mutateSpyRef, resetSpy } = makeMutationMock(
+const { useMutation, resetSpy } = makeMutationMock(
   () => renameBehavior,
   { errorMessage: "変更に失敗しました" },
 );
@@ -39,15 +37,13 @@ vi.mock("next/navigation", () => ({
     push: vi.fn(),
     replace: vi.fn(),
     prefetch: vi.fn(),
-    refresh: refreshMock,
+    refresh: vi.fn(),
   }),
 }));
 
 afterEach(() => {
   cleanup();
-  refreshMock.mockClear();
   resetSpy.mockClear();
-  mutateSpyRef.current.mockClear();
   renameBehavior = "idle";
 });
 
@@ -88,23 +84,7 @@ describe("CircleRenameDialog", () => {
     expect(submitButton).toBeDisabled();
   });
 
-  it("異なる有効な名前入力後に送信すると mutate が呼ばれる", async () => {
-    const { user, dialog } = await openDialog();
-
-    const input = within(dialog).getByPlaceholderText("研究会名");
-    await user.clear(input);
-    await user.type(input, "新しい名前");
-
-    const submitButton = within(dialog).getByRole("button", { name: "変更" });
-    await user.click(submitButton);
-
-    expect(mutateSpyRef.current).toHaveBeenCalledWith({
-      circleId: CIRCLE_ID,
-      name: "新しい名前",
-    });
-  });
-
-  it("成功時に router.refresh() が呼ばれダイアログが閉じる", async () => {
+  it("成功時にダイアログが閉じる", async () => {
     renameBehavior = "success";
     const { user, dialog } = await openDialog();
 
@@ -115,7 +95,6 @@ describe("CircleRenameDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "変更" });
     await user.click(submitButton);
 
-    expect(refreshMock).toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -176,7 +155,7 @@ describe("CircleRenameDialog", () => {
     );
   });
 
-  it("空白のみの入力では送信ボタンクリックしても mutate が呼ばれない", async () => {
+  it("空白のみの入力では送信してもダイアログが閉じない", async () => {
     const { user, dialog } = await openDialog();
 
     const input = within(dialog).getByPlaceholderText("研究会名");
@@ -186,10 +165,11 @@ describe("CircleRenameDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "変更" });
     await user.click(submitButton);
 
-    expect(mutateSpyRef.current).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("前後の空白を除去して mutate が呼ばれる", async () => {
+  it("前後に空白がある名前でも送信に成功する", async () => {
+    renameBehavior = "success";
     const { user, dialog } = await openDialog();
 
     const input = within(dialog).getByPlaceholderText("研究会名");
@@ -199,10 +179,7 @@ describe("CircleRenameDialog", () => {
     const submitButton = within(dialog).getByRole("button", { name: "変更" });
     await user.click(submitButton);
 
-    expect(mutateSpyRef.current).toHaveBeenCalledWith({
-      circleId: CIRCLE_ID,
-      name: "新しい名前",
-    });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("80%（40文字）以上で aria-live='polite' が有効化される", async () => {

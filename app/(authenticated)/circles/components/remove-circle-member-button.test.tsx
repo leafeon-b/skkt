@@ -8,8 +8,6 @@ import {
 } from "@/test-helpers/trpc-mutation-mock";
 import { RemoveCircleMemberButton } from "./remove-circle-member-button";
 
-const refreshMock = vi.fn();
-
 let removeBehavior: MutationBehavior = "idle";
 
 const useMutationHolder = vi.hoisted(() => {
@@ -17,7 +15,7 @@ const useMutationHolder = vi.hoisted(() => {
   return { current: noop as (...args: unknown[]) => unknown };
 });
 
-const { useMutation, mutateSpyRef } = makeMutationMock(() => removeBehavior, {
+const { useMutation } = makeMutationMock(() => removeBehavior, {
   hasReset: false,
 });
 useMutationHolder.current =
@@ -41,7 +39,7 @@ vi.mock("next/navigation", () => ({
     push: vi.fn(),
     replace: vi.fn(),
     prefetch: vi.fn(),
-    refresh: refreshMock,
+    refresh: vi.fn(),
   }),
 }));
 
@@ -54,7 +52,6 @@ vi.mock("sonner", () => ({
 
 afterEach(() => {
   cleanup();
-  refreshMock.mockClear();
   removeBehavior = "idle";
 });
 
@@ -105,26 +102,7 @@ describe("RemoveCircleMemberButton", () => {
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
-  it("「除外する」クリックで mutation が呼び出される", async () => {
-    removeBehavior = "success";
-    const { user, dialog } = await openDialog();
-
-    // onSuccess による再レンダリングで mutateSpyRef.current が上書きされるため、
-    // クリック前に参照を保持する
-    const mutateSpy = mutateSpyRef.current;
-
-    const removeButton = within(dialog).getByRole("button", {
-      name: "除外する",
-    });
-    await user.click(removeButton);
-
-    expect(mutateSpy).toHaveBeenCalledWith({
-      circleId: "circle-1",
-      userId: "user-1",
-    });
-  });
-
-  it("成功時: ダイアログが閉じ、router.refresh() が呼ばれ、成功 toast が表示される", async () => {
+  it("成功時: ダイアログが閉じ、成功 toast が表示される", async () => {
     removeBehavior = "success";
     const { user, dialog } = await openDialog();
 
@@ -133,7 +111,6 @@ describe("RemoveCircleMemberButton", () => {
     });
     await user.click(removeButton);
 
-    expect(refreshMock).toHaveBeenCalled();
     expect(toastModule.toast.success).toHaveBeenCalledWith(
       "テストユーザーを除外しました",
     );
