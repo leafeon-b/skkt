@@ -8,10 +8,9 @@ import {
 
 vi.mock("@/server/env", () => ({ env: {} }));
 
-import { createServiceContainer } from "@/server/infrastructure/service-container";
 import {
+  createMockContext,
   createMockDeps,
-  toServiceContainerDeps,
   type MockDeps,
 } from "./__tests__/helpers/create-mock-deps";
 import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
@@ -24,10 +23,8 @@ const NOW = new Date("2025-01-01T00:00:00Z");
 let mockDeps: MockDeps;
 
 vi.mock("@/server/presentation/trpc/context", () => ({
-  createContext: () => {
-    const services = createServiceContainer(toServiceContainerDeps(mockDeps));
-    return Promise.resolve({ actorId: ACTOR_ID, ...services });
-  },
+  createContext: () =>
+    Promise.resolve(createMockContext(ACTOR_ID, mockDeps)),
 }));
 
 const { appRouter } = await import(
@@ -35,11 +32,7 @@ const { appRouter } = await import(
 );
 
 const createCaller = () =>
-  appRouter.createCaller({
-    actorId: ACTOR_ID,
-    ...createServiceContainer(toServiceContainerDeps(mockDeps)),
-    clientIp: "127.0.0.1",
-  } as never);
+  appRouter.createCaller(createMockContext(ACTOR_ID, mockDeps));
 
 const makeUser = (uid: string) => ({
   id: toUserId(uid),

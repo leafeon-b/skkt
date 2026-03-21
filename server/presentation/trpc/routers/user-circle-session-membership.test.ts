@@ -7,9 +7,8 @@ import {
 } from "@/server/domain/common/ids";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import {
+  createMockContext,
   createMockDeps,
-  createServiceContainer,
-  toServiceContainerDeps,
   type MockDeps,
 } from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 
@@ -19,10 +18,8 @@ const CIRCLE_ID = toCircleId("circle-1");
 
 let mockDeps: MockDeps;
 
-const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) => {
-  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
-  return { actorId, clientIp: "1.2.3.4", ...services };
-};
+const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) =>
+  createMockContext(actorId, mockDeps);
 
 const setupRegisteredUser = () => {
   mockDeps.authzRepository.isRegisteredUser.mockResolvedValue(true);

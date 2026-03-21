@@ -4,10 +4,9 @@ import { toCircleSessionId, toUserId } from "@/server/domain/common/ids";
 
 vi.mock("@/server/env", () => ({ env: {} }));
 
-import { createServiceContainer } from "@/server/infrastructure/service-container";
 import {
+  createMockContext,
   createMockDeps,
-  toServiceContainerDeps,
   type MockDeps,
 } from "./__tests__/helpers/create-mock-deps";
 
@@ -18,10 +17,8 @@ const NOW = new Date("2025-01-01T00:00:00Z");
 let mockDeps: MockDeps;
 
 vi.mock("@/server/presentation/trpc/context", () => ({
-  createContext: () => {
-    const services = createServiceContainer(toServiceContainerDeps(mockDeps));
-    return Promise.resolve({ actorId: VIEWER_ID, ...services });
-  },
+  createContext: () =>
+    Promise.resolve(createMockContext(VIEWER_ID, mockDeps)),
 }));
 
 const { getUserProfileViewModel } = await import("./user-profile-provider");
