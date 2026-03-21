@@ -37,7 +37,7 @@ const BASE_SESSION = {
   title: "第1回 研究会",
   startsAt: new Date("2025-02-01T09:00:00Z"),
   endsAt: new Date("2025-02-01T12:00:00Z"),
-  location: null,
+  location: null as string | null,
   note: "",
   createdAt: NOW,
 };
@@ -83,6 +83,78 @@ const setupCircleAndSessionMember = () => {
   setupSessionMember(CircleSessionRole.CircleSessionOwner);
 };
 
+/** Set up circleRepository.findById to return BASE_CIRCLE (with optional overrides) */
+const setupCircleFound = (
+  override?: Partial<typeof BASE_CIRCLE>,
+) => {
+  mockDeps.circleRepository.findById.mockResolvedValue({
+    ...BASE_CIRCLE,
+    ...override,
+  });
+};
+
+/** Set up circleSessionRepository.findById to return BASE_SESSION (with optional overrides) */
+const setupSessionFound = (
+  override?: Partial<typeof BASE_SESSION>,
+) => {
+  mockDeps.circleSessionRepository.findById.mockResolvedValue({
+    ...BASE_SESSION,
+    ...override,
+  });
+};
+
+/** Default circle memberships: Owner(ACTOR_ID) + Member(user-2) */
+const DEFAULT_CIRCLE_MEMBERSHIPS = [
+  {
+    circleId: CIRCLE_ID,
+    userId: ACTOR_ID,
+    role: CircleRole.CircleOwner,
+    createdAt: NOW,
+    deletedAt: null,
+  },
+  {
+    circleId: CIRCLE_ID,
+    userId: toUserId("user-2"),
+    role: CircleRole.CircleMember,
+    createdAt: NOW,
+    deletedAt: null,
+  },
+];
+
+/** Set up circleRepository.listMembershipsByCircleId */
+const setupCircleMemberships = (
+  members = DEFAULT_CIRCLE_MEMBERSHIPS,
+) => {
+  mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue(
+    members,
+  );
+};
+
+/** Default session memberships: Owner(ACTOR_ID) + Member(user-2) */
+const DEFAULT_SESSION_MEMBERSHIPS = [
+  {
+    circleSessionId: SESSION_ID,
+    userId: ACTOR_ID,
+    role: CircleSessionRole.CircleSessionOwner,
+    createdAt: NOW,
+    deletedAt: null,
+  },
+  {
+    circleSessionId: SESSION_ID,
+    userId: toUserId("user-2"),
+    role: CircleSessionRole.CircleSessionMember,
+    createdAt: NOW,
+    deletedAt: null,
+  },
+];
+
+/** Set up circleSessionRepository.listMemberships */
+const setupSessionMemberships = (
+  members = DEFAULT_SESSION_MEMBERSHIPS,
+) => {
+  mockDeps.circleSessionRepository.listMemberships.mockResolvedValue(members);
+};
+
 describe("tRPC router", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -91,7 +163,7 @@ describe("tRPC router", () => {
 
   test("circles.get はサークルを返す", async () => {
     setupCircleMember();
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    setupCircleFound();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.get({ circleId: "circle-1" });
@@ -109,16 +181,8 @@ describe("tRPC router", () => {
 
   test("circles.memberships.add は void を返す", async () => {
     setupCircleMember();
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
-    mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue([
-      {
-        circleId: CIRCLE_ID,
-        userId: ACTOR_ID,
-        role: CircleRole.CircleOwner,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-    ]);
+    setupCircleFound();
+    setupCircleMemberships([DEFAULT_CIRCLE_MEMBERSHIPS[0]]);
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.memberships.add({
@@ -191,7 +255,7 @@ describe("tRPC router", () => {
 
   test("circles.rename は更新後のサークルを返す", async () => {
     setupCircleMember();
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    setupCircleFound();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.rename({
@@ -204,7 +268,7 @@ describe("tRPC router", () => {
 
   test("circles.delete は void を返す", async () => {
     setupCircleMember();
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    setupCircleFound();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.delete({ circleId: "circle-1" });
@@ -214,7 +278,7 @@ describe("tRPC router", () => {
 
   test("circles.delete は権限エラーで FORBIDDEN", async () => {
     setupCircleMember(CircleRole.CircleMember);
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    setupCircleFound();
 
     const caller = appRouter.createCaller(buildContext());
 
@@ -225,7 +289,7 @@ describe("tRPC router", () => {
 
   test("circleSessions.create は Date 入力を受け付ける", async () => {
     setupCircleMember(CircleRole.CircleOwner);
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    setupCircleFound();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circleSessions.create({
@@ -243,7 +307,7 @@ describe("tRPC router", () => {
 
   test("circleSessions.delete は void を返す", async () => {
     setupSessionMember(CircleSessionRole.CircleSessionOwner);
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+    setupSessionFound();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circleSessions.delete({
@@ -266,7 +330,7 @@ describe("tRPC router", () => {
 
   test("matches.list は対局一覧を返す", async () => {
     setupCircleMember(CircleRole.CircleMember);
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+    setupSessionFound();
     mockDeps.matchRepository.listByCircleSessionId.mockResolvedValue([
       baseMatch(),
     ]);
@@ -283,7 +347,7 @@ describe("tRPC router", () => {
   test("matches.get は対局を返す", async () => {
     setupCircleMember(CircleRole.CircleMember);
     mockDeps.matchRepository.findById.mockResolvedValue(baseMatch());
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+    setupSessionFound();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.matches.get({ matchId: "match-1" });
@@ -301,7 +365,7 @@ describe("tRPC router", () => {
 
   test("matches.create は作成した対局を返す", async () => {
     setupCircleMember(CircleRole.CircleMember);
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+    setupSessionFound();
     mockDeps.circleSessionRepository.areUsersSessionMembers.mockResolvedValue(
       true,
     );
@@ -332,7 +396,7 @@ describe("tRPC router", () => {
   test("matches.update は更新後の対局を返す", async () => {
     setupCircleMember(CircleRole.CircleMember);
     mockDeps.matchRepository.findById.mockResolvedValue(baseMatch());
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+    setupSessionFound();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.matches.update({
@@ -346,7 +410,7 @@ describe("tRPC router", () => {
   test("matches.delete は削除済みの対局を返す", async () => {
     setupCircleMember(CircleRole.CircleMember);
     mockDeps.matchRepository.findById.mockResolvedValue(baseMatch());
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+    setupSessionFound();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.matches.delete({ matchId: "match-1" });
@@ -356,23 +420,8 @@ describe("tRPC router", () => {
 
   test("circleSessions.memberships.updateRole は void を返す", async () => {
     setupSessionMember(CircleSessionRole.CircleSessionOwner);
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
-    mockDeps.circleSessionRepository.listMemberships.mockResolvedValue([
-      {
-        circleSessionId: SESSION_ID,
-        userId: ACTOR_ID,
-        role: CircleSessionRole.CircleSessionOwner,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-      {
-        circleSessionId: SESSION_ID,
-        userId: toUserId("user-2"),
-        role: CircleSessionRole.CircleSessionMember,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-    ]);
+    setupSessionFound();
+    setupSessionMemberships();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circleSessions.memberships.updateRole({
@@ -386,23 +435,8 @@ describe("tRPC router", () => {
 
   test("circleSessions.memberships.transferOwnership は void を返す", async () => {
     setupSessionMember(CircleSessionRole.CircleSessionOwner);
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
-    mockDeps.circleSessionRepository.listMemberships.mockResolvedValue([
-      {
-        circleSessionId: SESSION_ID,
-        userId: ACTOR_ID,
-        role: CircleSessionRole.CircleSessionOwner,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-      {
-        circleSessionId: SESSION_ID,
-        userId: toUserId("user-2"),
-        role: CircleSessionRole.CircleSessionMember,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-    ]);
+    setupSessionFound();
+    setupSessionMemberships();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circleSessions.memberships.transferOwnership({
@@ -433,23 +467,8 @@ describe("tRPC router", () => {
 
   test("circles.memberships.list は参加者一覧を返す", async () => {
     setupCircleMember();
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
-    mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue([
-      {
-        circleId: CIRCLE_ID,
-        userId: ACTOR_ID,
-        role: CircleRole.CircleOwner,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-      {
-        circleId: CIRCLE_ID,
-        userId: toUserId("user-2"),
-        role: CircleRole.CircleMember,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-    ]);
+    setupCircleFound();
+    setupCircleMemberships();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.memberships.list({
@@ -463,23 +482,8 @@ describe("tRPC router", () => {
 
   test("circles.memberships.updateRole は void を返す", async () => {
     setupCircleMember();
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
-    mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue([
-      {
-        circleId: CIRCLE_ID,
-        userId: ACTOR_ID,
-        role: CircleRole.CircleOwner,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-      {
-        circleId: CIRCLE_ID,
-        userId: toUserId("user-2"),
-        role: CircleRole.CircleMember,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-    ]);
+    setupCircleFound();
+    setupCircleMemberships();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.memberships.updateRole({
@@ -493,23 +497,8 @@ describe("tRPC router", () => {
 
   test("circles.memberships.remove は void を返す", async () => {
     setupCircleMember();
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
-    mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue([
-      {
-        circleId: CIRCLE_ID,
-        userId: ACTOR_ID,
-        role: CircleRole.CircleOwner,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-      {
-        circleId: CIRCLE_ID,
-        userId: toUserId("user-2"),
-        role: CircleRole.CircleMember,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-    ]);
+    setupCircleFound();
+    setupCircleMemberships();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.memberships.remove({
@@ -522,23 +511,8 @@ describe("tRPC router", () => {
 
   test("circles.memberships.transferOwnership は void を返す", async () => {
     setupCircleMember();
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
-    mockDeps.circleRepository.listMembershipsByCircleId.mockResolvedValue([
-      {
-        circleId: CIRCLE_ID,
-        userId: ACTOR_ID,
-        role: CircleRole.CircleOwner,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-      {
-        circleId: CIRCLE_ID,
-        userId: toUserId("user-2"),
-        role: CircleRole.CircleMember,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-    ]);
+    setupCircleFound();
+    setupCircleMemberships();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circles.memberships.transferOwnership({
@@ -556,7 +530,7 @@ describe("tRPC router", () => {
 
   test("circleSessions.list はセッション一覧を返す", async () => {
     setupCircleMember();
-    mockDeps.circleRepository.findById.mockResolvedValue(BASE_CIRCLE);
+    setupCircleFound();
     mockDeps.circleSessionRepository.listByCircleId.mockResolvedValue([
       BASE_SESSION,
       {
@@ -582,11 +556,7 @@ describe("tRPC router", () => {
 
   test("circleSessions.get はセッションを返す", async () => {
     setupCircleAndSessionMember();
-    mockDeps.circleSessionRepository.findById.mockResolvedValue({
-      ...BASE_SESSION,
-      location: "会議室A",
-      note: "メモ",
-    });
+    setupSessionFound({ location: "会議室A", note: "メモ" });
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circleSessions.get({
@@ -611,23 +581,8 @@ describe("tRPC router", () => {
 
   test("circleSessions.memberships.list は参加者一覧を返す", async () => {
     setupCircleAndSessionMember();
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
-    mockDeps.circleSessionRepository.listMemberships.mockResolvedValue([
-      {
-        circleSessionId: SESSION_ID,
-        userId: ACTOR_ID,
-        role: CircleSessionRole.CircleSessionOwner,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-      {
-        circleSessionId: SESSION_ID,
-        userId: toUserId("user-2"),
-        role: CircleSessionRole.CircleSessionMember,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-    ]);
+    setupSessionFound();
+    setupSessionMemberships();
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circleSessions.memberships.list({
@@ -641,7 +596,7 @@ describe("tRPC router", () => {
 
   test("circleSessions.memberships.add は void を返す", async () => {
     setupSessionMember(CircleSessionRole.CircleSessionOwner);
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
+    setupSessionFound();
     mockDeps.circleRepository.findMembershipByCircleAndUser.mockResolvedValue({
       circleId: CIRCLE_ID,
       userId: toUserId("user-3"),
@@ -649,15 +604,7 @@ describe("tRPC router", () => {
       createdAt: NOW,
       deletedAt: null,
     });
-    mockDeps.circleSessionRepository.listMemberships.mockResolvedValue([
-      {
-        circleSessionId: SESSION_ID,
-        userId: ACTOR_ID,
-        role: CircleSessionRole.CircleSessionOwner,
-        createdAt: NOW,
-        deletedAt: null,
-      },
-    ]);
+    setupSessionMemberships([DEFAULT_SESSION_MEMBERSHIPS[0]]);
 
     const caller = appRouter.createCaller(buildContext());
     const result = await caller.circleSessions.memberships.add({
@@ -671,15 +618,9 @@ describe("tRPC router", () => {
 
   test("circleSessions.memberships.remove は void を返す", async () => {
     setupSessionMember(CircleSessionRole.CircleSessionOwner);
-    mockDeps.circleSessionRepository.findById.mockResolvedValue(BASE_SESSION);
-    mockDeps.circleSessionRepository.listMemberships.mockResolvedValue([
-      {
-        circleSessionId: SESSION_ID,
-        userId: ACTOR_ID,
-        role: CircleSessionRole.CircleSessionOwner,
-        createdAt: NOW,
-        deletedAt: null,
-      },
+    setupSessionFound();
+    setupSessionMemberships([
+      DEFAULT_SESSION_MEMBERSHIPS[0],
       {
         circleSessionId: SESSION_ID,
         userId: toUserId("user-3"),
