@@ -1,5 +1,9 @@
 import { vi } from "vitest";
-import type { ServiceContainerDeps } from "@/server/infrastructure/service-container";
+import type { Context } from "@/server/presentation/trpc/context";
+import {
+  createServiceContainer,
+  type ServiceContainerDeps,
+} from "@/server/infrastructure/service-container";
 import type { CircleRepository } from "@/server/domain/models/circle/circle-repository";
 import type { CircleSessionRepository } from "@/server/domain/models/circle-session/circle-session-repository";
 import type { MatchRepository } from "@/server/domain/models/match/match-repository";
@@ -149,4 +153,11 @@ export const toServiceContainerDeps = (
   mockDeps: MockDeps,
 ): ServiceContainerDeps => mockDeps as unknown as ServiceContainerDeps;
 
-export { createServiceContainer } from "@/server/infrastructure/service-container";
+export const createMockContext = (
+  actorId: UserId | null,
+  mockDeps: MockDeps,
+): Context => {
+  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
+  return { actorId, clientIp: "1.2.3.4", ...services };
+};
+

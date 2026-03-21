@@ -9,9 +9,8 @@ import {
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
 import {
+  createMockContext,
   createMockDeps,
-  createServiceContainer,
-  toServiceContainerDeps,
   type MockDeps,
 } from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 
@@ -23,10 +22,7 @@ const NOW = new Date("2025-01-01T00:00:00Z");
 
 let mockDeps: MockDeps;
 
-const buildContext = () => {
-  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
-  return { actorId: ACTOR_ID, clientIp: "1.2.3.4", ...services };
-};
+const buildContext = () => createMockContext(ACTOR_ID, mockDeps);
 
 const BASE_CIRCLE = {
   id: CIRCLE_ID,

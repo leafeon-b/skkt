@@ -2,9 +2,8 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { appRouter } from "@/server/presentation/trpc/router";
 import { toUserId } from "@/server/domain/common/ids";
 import {
+  createMockContext,
   createMockDeps,
-  createServiceContainer,
-  toServiceContainerDeps,
   type MockDeps,
 } from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
 
@@ -22,10 +21,8 @@ const BASE_USER = {
 
 let mockDeps: MockDeps;
 
-const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) => {
-  const services = createServiceContainer(toServiceContainerDeps(mockDeps));
-  return { actorId, clientIp: "1.2.3.4", ...services };
-};
+const buildContext = (actorId: ReturnType<typeof toUserId> | null = ACTOR_ID) =>
+  createMockContext(actorId, mockDeps);
 
 describe("user tRPC ルーター", () => {
   beforeEach(() => {

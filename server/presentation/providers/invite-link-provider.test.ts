@@ -9,10 +9,9 @@ import {
   toInviteLinkToken,
   toUserId,
 } from "@/server/domain/common/ids";
-import { createServiceContainer } from "@/server/infrastructure/service-container";
 import {
+  createMockContext,
   createMockDeps,
-  toServiceContainerDeps,
   type MockDeps,
 } from "./__tests__/helpers/create-mock-deps";
 
@@ -23,10 +22,7 @@ let mockDeps: MockDeps;
 let actorId: ReturnType<typeof toUserId> | null = null;
 
 vi.mock("@/server/presentation/trpc/context", () => ({
-  createContext: () => {
-    const services = createServiceContainer(toServiceContainerDeps(mockDeps));
-    return Promise.resolve({ actorId, ...services });
-  },
+  createContext: () => Promise.resolve(createMockContext(actorId, mockDeps)),
 }));
 
 // dynamic import after mocks are registered

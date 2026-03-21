@@ -11,10 +11,9 @@ import {
 } from "@/server/domain/common/ids";
 import { CircleRole } from "@/server/domain/models/circle/circle-role";
 import { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";
-import { createServiceContainer } from "@/server/infrastructure/service-container";
 import {
+  createMockContext,
   createMockDeps,
-  toServiceContainerDeps,
   type MockDeps,
 } from "./__tests__/helpers/create-mock-deps";
 
@@ -27,10 +26,7 @@ let mockDeps: MockDeps;
 let actorId: ReturnType<typeof toUserId> | null = VIEWER_ID;
 
 vi.mock("@/server/presentation/trpc/context", () => ({
-  createContext: () => {
-    const services = createServiceContainer(toServiceContainerDeps(mockDeps));
-    return Promise.resolve({ actorId, ...services });
-  },
+  createContext: () => Promise.resolve(createMockContext(actorId, mockDeps)),
 }));
 
 const { getCircleSessionDetailViewModel } = await import(
