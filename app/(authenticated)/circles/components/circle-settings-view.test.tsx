@@ -31,6 +31,12 @@ vi.mock(
   }),
 );
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => "/circles/circle-1/settings",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 afterEach(() => {
   cleanup();
 });
