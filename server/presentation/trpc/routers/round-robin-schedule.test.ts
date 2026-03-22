@@ -12,7 +12,7 @@ import {
   createMockContext,
   createMockDeps,
   type MockDeps,
-} from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
+} from "@/server/test-utils/create-mock-deps";
 import type { RoundRobinSchedule } from "@/server/domain/models/round-robin-schedule/round-robin-schedule";
 import type { User } from "@/server/domain/models/user/user";
 

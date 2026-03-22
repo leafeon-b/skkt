@@ -8,7 +8,7 @@ import {
   createMockDeps,
   createServiceContainer,
   toServiceContainerDeps,
-} from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
+} from "@/server/test-utils/create-mock-deps";
 
 const mockDeps = createMockDeps();
 

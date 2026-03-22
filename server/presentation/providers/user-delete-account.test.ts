@@ -12,7 +12,7 @@ import {
   createMockContext,
   createMockDeps,
   type MockDeps,
-} from "./__tests__/helpers/create-mock-deps";
+} from "@/server/test-utils/create-mock-deps";
 import type { CircleMembership } from "@/server/domain/models/circle/circle-membership";
 import type { CircleSessionMembership } from "@/server/domain/models/circle-session/circle-session-membership";
 import type { CircleSessionRole } from "@/server/domain/models/circle-session/circle-session-role";

@@ -6,7 +6,7 @@ import {
   createMockContext,
   createMockDeps,
   type MockDeps,
-} from "@/server/presentation/providers/__tests__/helpers/create-mock-deps";
+} from "@/server/test-utils/create-mock-deps";
 
 const ACTOR_ID = toUserId("user-1");
 

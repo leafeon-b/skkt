@@ -13,7 +13,7 @@ import {
   createMockContext,
   createMockDeps,
   type MockDeps,
-} from "./__tests__/helpers/create-mock-deps";
+} from "@/server/test-utils/create-mock-deps";
 
 const VALID_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440000";
 const UNKNOWN_TOKEN_UUID = "550e8400-e29b-41d4-a716-446655440099";
