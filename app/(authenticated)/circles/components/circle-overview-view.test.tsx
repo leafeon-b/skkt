@@ -334,3 +334,88 @@ describe("CircleOverviewView 退会ボタン表示制御", () => {
     expect(screen.queryByTestId("withdraw-button")).not.toBeInTheDocument();
   });
 });
+
+describe("CircleOverviewView 招待リンク表示制御", () => {
+  it("getInviteLinkHref が渡された場合、招待リンクが表示される", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview()}
+        getInviteLinkHref={() => "/circles/circle-1/invite"}
+      />,
+    );
+
+    expect(screen.getByText("招待リンク")).toBeInTheDocument();
+  });
+
+  it("getInviteLinkHref が未指定の場合、招待リンクが表示されない", () => {
+    render(<CircleOverviewView overview={buildOverview()} />);
+
+    expect(screen.queryByText("招待リンク")).not.toBeInTheDocument();
+  });
+});
+
+describe("CircleOverviewView 次回セッション表示", () => {
+  const nextSession = {
+    id: "session-1",
+    title: "第1回例会",
+    dateTimeLabel: "2025-04-01 10:00〜18:00",
+    locationLabel: "将棋会館",
+  };
+
+  it("nextSession がある場合、タイトルと日時が表示される", () => {
+    render(
+      <CircleOverviewView overview={buildOverview({ nextSession })} />,
+    );
+
+    expect(screen.getByText("第1回例会")).toBeInTheDocument();
+    expect(
+      screen.getByText("2025-04-01 10:00〜18:00 / 将棋会館"),
+    ).toBeInTheDocument();
+  });
+
+  it("getNextSessionHref が渡された場合、次回セッションがリンクとして表示される", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview({ nextSession })}
+        getNextSessionHref={() => "/sessions/session-1"}
+      />,
+    );
+
+    const link = screen.getByText("第1回例会").closest("a");
+    expect(link).toHaveAttribute("href", "/sessions/session-1");
+  });
+
+  it("nextSession が null の場合、未設定メッセージが表示される", () => {
+    render(
+      <CircleOverviewView overview={buildOverview({ nextSession: null })} />,
+    );
+
+    expect(screen.getByText("次回予定は未設定です")).toBeInTheDocument();
+  });
+});
+
+describe("CircleOverviewView 空メンバーリスト", () => {
+  it("メンバーが空の場合、空状態メッセージが表示される", () => {
+    render(
+      <CircleOverviewView overview={buildOverview({ members: [] })} />,
+    );
+
+    expect(
+      screen.getByText("まだ参加メンバーがいません"),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("CircleOverviewView heroContent", () => {
+  it("heroContent が渡された場合、デフォルトヒーローの代わりにレンダリングされる", () => {
+    render(
+      <CircleOverviewView
+        overview={buildOverview()}
+        heroContent={<div data-testid="custom-hero">カスタムヒーロー</div>}
+      />,
+    );
+
+    expect(screen.getByTestId("custom-hero")).toBeInTheDocument();
+    expect(screen.queryByText("テスト研究会")).not.toBeInTheDocument();
+  });
+});
