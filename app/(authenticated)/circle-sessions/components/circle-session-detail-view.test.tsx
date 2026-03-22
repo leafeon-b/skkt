@@ -81,6 +81,14 @@ vi.mock("@/lib/trpc/client", () => ({
             reset: vi.fn(),
           }),
         },
+        withdraw: {
+          useMutation: () => ({
+            mutate: vi.fn(),
+            isPending: false,
+            data: null,
+            error: null,
+          }),
+        },
       },
     },
     matches: {
@@ -592,6 +600,139 @@ describe("CircleSessionDetailView オーナー移譲ボタン", () => {
     expect(
       screen.queryByRole("button", { name: "オーナーを移譲" }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("CircleSessionDetailView 削除ボタン表示制御", () => {
+  it("canDeleteCircleSession: true の場合、削除ボタンが表示される", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({ canDeleteCircleSession: true })}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "削除" })).toBeInTheDocument();
+  });
+
+  it("canDeleteCircleSession: false の場合、削除ボタンが表示されない", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({ canDeleteCircleSession: false })}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "削除" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("CircleSessionDetailView 退会ボタン表示制御", () => {
+  it("canWithdrawFromCircleSession: true かつ member ロールの場合、退会ボタンが表示される", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({
+          canWithdrawFromCircleSession: true,
+          viewerRole: "member",
+        })}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: /退会/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("canWithdrawFromCircleSession: false の場合、退会ボタンが表示されない", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({
+          canWithdrawFromCircleSession: false,
+          viewerRole: "member",
+        })}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /退会/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("canWithdrawFromCircleSession: true かつ owner ロールの場合、退会ボタンが表示されない", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({
+          canWithdrawFromCircleSession: true,
+          viewerRole: "owner",
+        })}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /退会/ }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("CircleSessionDetailView メモ表示", () => {
+  it("memoText が null の場合、「未設定」が表示される", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({ memoText: null })}
+      />,
+    );
+
+    expect(screen.getByText(/未設定/)).toBeInTheDocument();
+  });
+
+  it("memoText がある場合、その内容が表示される", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({ memoText: "持ち物: 将棋盤" })}
+      />,
+    );
+
+    expect(screen.getByText(/持ち物: 将棋盤/)).toBeInTheDocument();
+  });
+});
+
+describe("CircleSessionDetailView 場所表示", () => {
+  it("locationLabel が null の場合、場所が表示されない", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({ locationLabel: null })}
+      />,
+    );
+
+    expect(
+      screen.getByText("2025-04-01 10:00〜18:00"),
+    ).toBeInTheDocument();
+  });
+
+  it("locationLabel がある場合、日時と合わせて表示される", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({ locationLabel: "将棋会館" })}
+      />,
+    );
+
+    expect(
+      screen.getByText("2025-04-01 10:00〜18:00 / 将棋会館"),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("CircleSessionDetailView 空メンバーリスト", () => {
+  it("メンバーシップが空の場合、空状態メッセージが表示される", () => {
+    render(
+      <CircleSessionDetailView
+        detail={buildDetail({ memberships: [] })}
+      />,
+    );
+
+    expect(
+      screen.getByText("まだ参加メンバーがいません"),
+    ).toBeInTheDocument();
   });
 });
 

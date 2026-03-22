@@ -89,4 +89,30 @@ describe("CircleSettingsView", () => {
       "/circles/circle-1",
     );
   });
+
+  it("通知設定・オーナー移譲・危険な操作の各セクション見出しが表示される", () => {
+    render(
+      <CircleSettingsView
+        settings={buildSettings()}
+        backHref="/circles/circle-1"
+      />,
+    );
+
+    expect(screen.getByText("通知設定")).toBeInTheDocument();
+    expect(screen.getByText("オーナー移譲")).toBeInTheDocument();
+    expect(screen.getByText("危険な操作")).toBeInTheDocument();
+  });
+
+  it("設定ページの見出しが表示される", () => {
+    render(
+      <CircleSettingsView
+        settings={buildSettings()}
+        backHref="/circles/circle-1"
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "設定" }),
+    ).toBeInTheDocument();
+  });
 });
