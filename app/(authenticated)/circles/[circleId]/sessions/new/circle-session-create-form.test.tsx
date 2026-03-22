@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CircleSessionCreateForm } from "./circle-session-create-form";
 
 const mutateMock = vi.fn();
@@ -215,6 +215,29 @@ describe("CircleSessionCreateForm", () => {
     expect(
       (titleInput as HTMLInputElement).validationMessage,
     ).toBe("タイトルを入力してください");
+  });
+
+  describe("タイムゾーン境界", () => {
+    beforeEach(() => {
+      // JST 2025-01-02 03:00 = UTC 2025-01-01 18:00
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2025-01-02T03:00:00+09:00"));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("JST 深夜帯（UTC では前日）でもローカル日付がデフォルト値に使用される", () => {
+      render(<CircleSessionCreateForm circleId={circleId} />);
+
+      expect(screen.getByLabelText("開始日時")).toHaveValue(
+        "2025-01-02T10:00",
+      );
+      expect(screen.getByLabelText("終了日時")).toHaveValue(
+        "2025-01-02T18:00",
+      );
+    });
   });
 
   it("空白のみから有効なタイトルに変更すると customValidity がクリアされる", async () => {

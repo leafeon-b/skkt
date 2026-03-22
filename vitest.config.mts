@@ -11,6 +11,9 @@ export default defineConfig({
       "**/*.{test,spec}.mts",
       "**/*.{test,spec}.tsx",
     ],
+    env: {
+      TZ: "Asia/Tokyo",
+    },
     exclude: [
       ...configDefaults.exclude,
       ".next",
