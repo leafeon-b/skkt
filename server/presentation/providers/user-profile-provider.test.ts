@@ -8,7 +8,7 @@ import {
   createMockContext,
   createMockDeps,
   type MockDeps,
-} from "./__tests__/helpers/create-mock-deps";
+} from "@/server/test-utils/create-mock-deps";
 
 const VIEWER_ID = toUserId("viewer-1");
 const TARGET_USER_ID = toUserId("target-1");

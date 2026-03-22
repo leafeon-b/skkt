@@ -15,7 +15,7 @@ import {
   createMockContext,
   createMockDeps,
   type MockDeps,
-} from "./__tests__/helpers/create-mock-deps";
+} from "@/server/test-utils/create-mock-deps";
 
 const CIRCLE_ID = toCircleId("circle-1");
 const SESSION_ID = toCircleSessionId("session-1");
