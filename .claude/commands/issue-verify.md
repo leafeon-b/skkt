@@ -7,10 +7,7 @@ Verification and intent-based review orchestration.
 ### Session Rule
 
 - Start stateless
-- Confirm existence (do NOT read contents) of:
-  - .claude/artifacts/issue-{id}/research.md
-  - .claude/artifacts/issue-{id}/plan.md
-  - .claude/artifacts/issue-{id}/implement-log.md
+- Run `ls .claude/artifacts/issue-{id}/research.md .claude/artifacts/issue-{id}/plan.md .claude/artifacts/issue-{id}/implement-log.md` to confirm all exist
 - If any missing -> STOP and request required phase
 - Use `git diff HEAD --name-only` to get modified file list (includes both staged and unstaged changes)
 - Use `git diff HEAD` to understand change contents for intent inference
